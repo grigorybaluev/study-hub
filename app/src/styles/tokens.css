@@ -1,0 +1,64 @@
+:root {
+  --bg: #f7f7f5;
+  --bg-elev: #ffffff;
+  --bg-sunken: #eeeeea;
+  --fg: #1c1c1a;
+  --fg-muted: #5f6368;
+  --fg-faint: #8a8f98;
+  --line: #e0e0dc;
+  --accent: #2f5fd6;
+  --accent-soft: #e6ecfb;
+  --ok: #2f8f5b;
+  --ok-soft: #e3f3ea;
+  --warn: #b8791a;
+  --warn-soft: #fbefd8;
+  --bad: #c43d3d;
+  --bad-soft: #fbe3e3;
+  --code-bg: #f1f1ee;
+  --callout-def: #2f5fd6;
+  --callout-example: #2f8f5b;
+  --callout-note: #8a8f98;
+  --callout-insight: #b8791a;
+  --callout-caution: #c43d3d;
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 8px;
+  --measure: 76ch;
+  --sidebar: 300px;
+
+  /* concept domains */
+  --dom-math-calculus: #3b6fd6;
+  --dom-math-linear-algebra: #5b8def;
+  --dom-math-discrete: #7c5cd6;
+  --dom-theory: #a04fb5;
+  --dom-probability: #d65c8c;
+  --dom-statistics: #d67f3b;
+  --dom-programming: #2f9e7a;
+  --dom-algorithms: #3f8f4f;
+  --dom-systems: #7a8a3b;
+  --dom-data: #2f8fa3;
+  --dom-ml: #c9a227;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121417;
+    --bg-elev: #1a1d22;
+    --bg-sunken: #0e1013;
+    --fg: #e6e6e3;
+    --fg-muted: #a3a8b1;
+    --fg-faint: #6f7580;
+    --line: #2a2e35;
+    --accent: #7ea2ff;
+    --accent-soft: #1d2740;
+    --ok: #5fc48b;
+    --ok-soft: #16301f;
+    --warn: #e0a84a;
+    --warn-soft: #3a2c12;
+    --bad: #ef6b6b;
+    --bad-soft: #3d1b1b;
+    --code-bg: #15181d;
+    --callout-note: #6f7580;
+  }
+}

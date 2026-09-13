@@ -1,0 +1,84 @@
+/* Automata simulator UI (FA.mount in automata.js). Copied from web2/css/styles.css; light-on-white by design,
+   the SVG is drawn with fixed colours. Variables mapped to this app's tokens. */
+.sim-plot.sim-custom { min-height: 0; background: #fff; color: #1c1c1a; }
+.fa-wrap { padding: .9rem 1.1rem 1.1rem; font-size: .9rem; }
+.fa-toolbar, .fa-playback { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; margin-bottom: .7rem; }
+.fa-playback { background: #f8f7f3; border: 1px solid #e0e0dc; border-radius: 8px; padding: .55rem .8rem; }
+.fa-field { display: inline-flex; align-items: center; gap: .4rem; font-weight: 600; color: #5f6368; font-size: .85rem; }
+.fa-field small { font-weight: 500; }
+.fa-input, .fa-field select { font: inherit; font-size: .9rem; padding: .3rem .5rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1c1c1a; }
+.fa-input { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; letter-spacing: .06em; min-width: 9ch; }
+.fa-btn { padding: .38rem .8rem; font-size: .82rem; align-self: center; }
+.fa-btn.fa-secondary { background: #64748b; }
+.fa-btn.fa-secondary:hover { background: #475569; }
+.fa-btn.fa-play { background: #2f5fd6; min-width: 5.5rem; }
+.fa-btn.fa-play:hover { background: #2563eb; }
+.fa-speed { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 600; color: #5f6368; }
+.fa-speed input[type=range] { width: 120px; }
+.fa-speed span { min-width: 5.5rem; color: #2f5fd6; }
+.fa-counter { margin-left: auto; font-size: .8rem; font-weight: 700; color: #5f6368; }
+.fa-machine-name { font-weight: 700; color: #1e293b; }
+.fa-tape { display: flex; align-items: center; gap: 2px; margin: .4rem 0 .6rem; flex-wrap: wrap; }
+.fa-cell { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border: 1.5px solid #94a3b8; background: #fff; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-weight: 700; font-size: 1rem; }
+.fa-cell.read { color: #94a3b8; background: #f1f5f9; }
+.fa-cell.head { border-color: #dc2626; box-shadow: 0 0 0 2px #fecaca inset; background: #fff1f2; position: relative; }
+.fa-cell.head::before { content: '▼'; position: absolute; top: -1.05rem; color: #dc2626; font-size: .7rem; }
+.fa-cell.end { border-style: dashed; width: 2.6rem; }
+.fa-tape-note { margin-left: .6rem; font-size: .8rem; color: #5f6368; font-style: italic; }
+.fa-svg { width: 100%; max-height: 360px; background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; display: block; }
+.fa-edge { fill: none; stroke: #1e293b; stroke-width: 1.6; }
+.fa-edge.active { stroke: #dc2626; stroke-width: 3; }
+.fa-label { font-size: 15px; font-style: italic; font-family: Georgia, 'Times New Roman', serif; text-anchor: middle; fill: #111827; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
+.fa-state { font-size: 17px; font-style: italic; font-family: Georgia, 'Times New Roman', serif; text-anchor: middle; fill: #111827; }
+.fa-state.small { font-size: 12px; font-style: normal; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; }
+.fa-state.muted { fill: #9ca3af; }
+.fa-hang { font-size: 14px; fill: #dc2626; font-weight: 700; }
+.fa-status { margin-top: .7rem; display: grid; gap: .35rem; }
+.fa-line { line-height: 1.6; }
+.fa-line b { color: #1e293b; }
+.fa-line .cur { background: #fee2e2; border-radius: 4px; padding: 0 .3em; font-weight: 700; }
+.fa-arrow { color: #5f6368; }
+.fa-note { color: #5f6368; font-size: .84rem; }
+.fa-final { border-top: 1px dashed #e0e0dc; padding-top: .4rem; margin-top: .2rem; }
+.fa-verdict { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-weight: 800; font-size: .82rem; margin-right: .3rem; }
+.fa-verdict.accept { background: #dcfce7; color: #166534; }
+.fa-verdict.reject { background: #fee2e2; color: #991b1b; }
+.fa-config { display: inline-flex; align-items: stretch; border: 1.5px solid #cbd5e1; border-radius: 6px; margin: 0 .35rem .3rem 0; overflow: hidden; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .85rem; background: #fefce8; }
+.fa-config b { padding: .15rem .45rem; background: #fde68a; }
+.fa-config .fa-rest { padding: .15rem .45rem; letter-spacing: .05em; }
+.fa-config i { padding: .15rem .45rem; color: #991b1b; font-size: .75rem; }
+.fa-config.ok { background: #dcfce7; border-color: #86efac; } .fa-config.ok b { background: #86efac; }
+.fa-config.bad { background: #fee2e2; border-color: #fca5a5; } .fa-config.bad b { background: #fca5a5; }
+.fa-config.dead { background: #f3f4f6; border-color: #d1d5db; opacity: .8; } .fa-config.dead b { background: #e5e7eb; text-decoration: line-through; }
+.fa-multi { margin-top: .8rem; border-top: 1px solid #e0e0dc; padding-top: .6rem; }
+.fa-multi textarea { display: block; width: 100%; max-width: 28rem; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .9rem; padding: .4rem .5rem; border: 1px solid #cbd5e1; border-radius: 6px; margin: .4rem 0; }
+.fa-table { border-collapse: collapse; margin-top: .6rem; font-size: .88rem; }
+.fa-table th, .fa-table td { border: 1px solid #e0e0dc; padding: .3rem .7rem; text-align: left; }
+.fa-table th { background: #f1f5f9; }
+.fa-table td.ok { color: #166534; font-weight: 700; } .fa-table td.bad { color: #991b1b; font-weight: 700; }
+.fa-table.kv th { width: 30%; font-weight: 600; color: #5f6368; white-space: nowrap; }
+.fa-table.kv td { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .86rem; word-break: break-word; }
+.fa-two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+.fa-caption { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #5f6368; margin-bottom: .3rem; }
+.fa-empty { border: 1px dashed #cbd5e1; border-radius: 8px; min-height: 8rem; display: flex; align-items: center; justify-content: center; color: #5f6368; font-style: italic; padding: 1rem; text-align: center; }
+.fa-log { margin: .8rem 0 0 1.3rem; font-size: .86rem; color: #94a3b8; display: grid; gap: .2rem; }
+.fa-log li.done { color: #1c1c1a; }
+.fa-log li.cur { background: #fef3c7; border-radius: 4px; padding: .1rem .4rem; margin-left: -.4rem; font-weight: 700; color: #92400e; }
+.fa-block { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-weight: 700; margin-right: .3rem; border: 1px solid rgba(0,0,0,.1); }
+.fa-rules { font-family: Georgia, 'Times New Roman', serif; font-size: 1.05rem; line-height: 1.8; background: #f8fafc; border: 1px solid #e0e0dc; border-radius: 8px; padding: .6rem .9rem; }
+.fa-derivation { font-family: Georgia, 'Times New Roman', serif; font-size: 1.15rem; line-height: 2; background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; padding: .6rem .9rem; margin-bottom: .5rem; word-break: break-word; }
+.fa-form.cur { background: #fef3c7; border-radius: 4px; padding: 0 .25em; }
+.fa-var { color: #1d4ed8; font-weight: 700; } .fa-term { color: #111827; }
+.fa-var.will-expand { text-decoration: underline; text-decoration-color: #dc2626; text-decoration-thickness: 2px; }
+.fa-chip { border: 1px solid #cbd5e1; background: #fff; border-radius: 999px; padding: .05rem .55rem; font: inherit; font-size: .8rem; cursor: pointer; color: #1c1c1a; }
+.fa-chip:hover { background: #f1f5f9; }
+.fa-dominoes { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; }
+.fa-domino { width: 6.2rem; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: .35rem .4rem; background: #f8fafc; font-size: .72rem; line-height: 1.35; color: #5f6368; text-align: center; transition: transform .3s, background .3s; }
+.fa-domino .fa-domino-n { font-weight: 800; font-size: .85rem; color: #1c1c1a; }
+.fa-domino .fa-domino-ok { font-size: 1rem; font-weight: 800; }
+.fa-domino.fallen { background: #dcfce7; border-color: #86efac; color: #166534; transform: rotate(-6deg) translateY(4px); }
+.fa-domino.fallen .fa-domino-n, .fa-domino.fallen .fa-domino-ok { color: #166534; }
+.fa-domino.cur { background: #fef3c7; border-color: #fcd34d; color: #92400e; box-shadow: 0 0 0 3px #fde68a; }
+.fa-domino.cur .fa-domino-n, .fa-domino.cur .fa-domino-ok { color: #92400e; }
+.fa-btn { font: inherit; border: 0; border-radius: 6px; background: #2f5fd6; color: #fff; cursor: pointer; }
+.fa-btn:hover { background: #2563eb; }

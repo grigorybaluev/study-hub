@@ -1,2 +1,21 @@
 # study-hub
-Open study hub for Concordia's BCompSc Data Science program — unit/concept graph, roadmap coverage, sequence analytics.
+
+Open study hub for Concordia's BCompSc Data Science program: a concept-level knowledge
+graph of the curriculum, cross-linked to a data-science skill roadmap, with analytics on
+course dependencies and gaps, and the course notes themselves with interactive examples.
+
+- `content/` — the source of truth: concepts, courses, units, program variants, roadmap
+  (markdown/YAML, CC BY-SA 4.0)
+- `build/` — lint, graph build, derived analytics (Python, no dependencies beyond PyYAML)
+- `analytics/` — markdown report generator
+- `app/` — the static site (Vite + React + TypeScript + Cytoscape)
+
+## Run
+
+```
+python -m venv .venv && .venv/bin/pip install -r requirements.txt
+nvm use && cd app && npm install
+npm run dev          # lints content, builds graph.json/derived.json, starts the site
+```
+
+See `CLAUDE.md` for the data model and authoring rules.

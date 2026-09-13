@@ -29,8 +29,11 @@ python build/lint.py           # validate content; run before every commit
 python build/build_graph.py    # content -> graph.json
 python build/derive.py         # graph.json -> derived.json
 python analytics/report.py     # derived.json -> analytics/report.md
-cd app && npm run dev
+cd app && npm run dev        # runs the pipeline first (npm run data), then Vite
 ```
+
+Node via nvm (`nvm use`, .nvmrc = 24); Python via `.venv` (3.12). The app's `npm run data`
+runs lint -> build_graph -> derive and copies the JSON into app/public/data/.
 
 ## Graph model
 
