@@ -4,8 +4,11 @@ order: 11
 status: outline
 weeks: [11, 12]
 textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 9"
-introduces: []
-requires: []
+introduces: [turing-machine, church-turing-thesis]
+requires:
+  - {concept: dfa, strength: hard}
+  - {concept: pushdown-automaton, strength: soft}
+  - {concept: function, strength: soft}
 reinforces: []
 ---
 

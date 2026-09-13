@@ -5,8 +5,11 @@ status: outline
 weeks: [5]
 textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 4"
 introduces: []
-requires: []
-reinforces: []
+requires:
+  - {concept: r-programming, strength: hard}
+reinforces:
+  - {concept: control-flow, perspective: "in R"}
+  - {concept: function-definition, perspective: "in R"}
 ---
 
 Conditional execution, for and while loops, and writing functions to manage complexity.

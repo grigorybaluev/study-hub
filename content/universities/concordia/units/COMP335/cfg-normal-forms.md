@@ -4,8 +4,9 @@ order: 8
 status: outline
 weeks: [8]
 textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 6"
-introduces: []
-requires: []
+introduces: [grammar-normal-forms]
+requires:
+  - {concept: context-free-grammar, strength: hard}
 reinforces: []
 ---
 

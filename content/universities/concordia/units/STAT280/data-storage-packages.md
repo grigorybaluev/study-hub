@@ -4,9 +4,11 @@ order: 3
 status: outline
 weeks: [2]
 textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 2"
-introduces: []
-requires: []
-reinforces: []
+introduces: [missing-data]
+requires:
+  - {concept: r-programming, strength: hard}
+reinforces:
+  - {concept: floating-point, perspective: "round-off error seen from R"}
 ---
 
 How R stores numbers (floating point and round-off), missing and special values, dates,

@@ -4,8 +4,10 @@ order: 2
 status: outline
 weeks: [1]
 textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 1.2"
-introduces: []
-requires: []
+introduces: [formal-language, grammar, automaton]
+requires:
+  - {concept: set, strength: hard}
+  - {concept: function, strength: soft}
 reinforces: []
 ---
 

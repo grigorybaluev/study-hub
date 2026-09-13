@@ -4,8 +4,11 @@ order: 9
 status: outline
 weeks: [9]
 textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 7"
-introduces: []
-requires: []
+introduces: [pushdown-automaton]
+requires:
+  - {concept: context-free-grammar, strength: hard}
+  - {concept: nfa, strength: hard}
+  - {concept: stack, strength: soft}
 reinforces: []
 ---
 

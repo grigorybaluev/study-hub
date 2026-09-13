@@ -4,8 +4,11 @@ order: 5
 status: outline
 weeks: [4]
 textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 4.1-4.2"
-introduces: []
-requires: []
+introduces: [language-closure-properties, language-decision-problems]
+requires:
+  - {concept: regular-language, strength: hard}
+  - {concept: dfa, strength: hard}
+  - {concept: regular-expression, strength: soft}
 reinforces: []
 ---
 

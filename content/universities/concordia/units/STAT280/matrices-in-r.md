@@ -5,8 +5,14 @@ status: outline
 weeks: [11]
 textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 6"
 introduces: []
-requires: []
-reinforces: []
+requires:
+  - {concept: r-programming, strength: hard}
+  - {concept: vectorized-operations, strength: hard}
+reinforces:
+  - {concept: matrix, perspective: "computing with matrices in R"}
+  - {concept: matrix-inverse, perspective: "solve() in R"}
+  - {concept: determinant, perspective: "det() in R"}
+  - {concept: linear-system, perspective: "solving numerically in R"}
 ---
 
 Constructing and indexing matrices, matrix multiplication, inversion, and solving linear

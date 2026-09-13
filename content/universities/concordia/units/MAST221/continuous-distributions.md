@@ -4,8 +4,14 @@ order: 11
 status: outline
 weeks: [11, 12]
 textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 6"
-introduces: []
-requires: []
+introduces: [continuous-uniform-distribution, exponential-distribution, gamma-distribution, chi-square-distribution, beta-distribution, normal-distribution, normal-approximation]
+requires:
+  - {concept: probability-density-function, strength: hard}
+  - {concept: improper-integral, strength: hard}
+  - {concept: integration-techniques, strength: hard}
+  - {concept: moment-generating-function, strength: soft}
+  - {concept: binomial-distribution, strength: soft}
+  - {concept: poisson-distribution, strength: soft}
 reinforces: []
 ---
 

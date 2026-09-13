@@ -4,8 +4,12 @@ order: 8
 status: outline
 weeks: [7]
 textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 4.5"
-introduces: []
-requires: []
+introduces: [moment-generating-function]
+requires:
+  - {concept: expected-value, strength: hard}
+  - {concept: moment, strength: hard}
+  - {concept: taylor-series, strength: hard}
+  - {concept: integration-techniques, strength: soft}
 reinforces: []
 ---
 
