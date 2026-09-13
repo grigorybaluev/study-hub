@@ -12,3 +12,6 @@ app/dist/
 .DS_Store
 .idea/
 .vscode/
+
+# Personal / actual study plans (same shape as a program variant), never committed
+content/universities/*/programs/local/

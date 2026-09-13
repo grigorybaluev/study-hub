@@ -1,0 +1,47 @@
+id: bcompsc-data-science
+name: BCompSc — Computer Science, Data Science option
+source: concordia-cs-ds-sequence-v3
+# Only core courses are placed. `electives` is the number of unnamed elective slots in
+# a term (see calendar §71.85). Prerequisites live in courses/*.md, never here.
+# Personal / actual plans use the same variant shape but are kept out of the repo
+# (programs/local/ is git-ignored).
+
+variants:
+  - id: sept-entry
+    name: September entry
+    entry: fall
+    coop: false
+    terms:
+      - {year: 1, season: fall,   courses: [MAST218, MAST221, STAT280, COMP248], electives: 1}
+      - {year: 1, season: winter, courses: [MAST234, MAST333, COMP228, COMP232, COMP249]}
+      - {year: 2, season: fall,   courses: [COMP335, COMP352, COMP361, ENCS282], electives: 1}
+      - {year: 2, season: winter, courses: [COMP348, COMP354, COMP432], electives: 1}
+      - {year: 3, season: fall,   courses: [MAST387, COMP346, COMP433], electives: 1}
+      - {year: 3, season: winter, courses: [ENCS393, COMP353, SOEN471], electives: 1}
+
+  - id: jan-entry
+    name: January entry
+    entry: winter
+    coop: false
+    terms:
+      - {year: 1, season: winter, courses: [MAST218, MAST234, COMP248], electives: 1}
+      - {year: 1, season: summer, courses: [COMP228, COMP232, COMP249], electives: 1}
+      - {year: 2, season: fall,   courses: [COMP335, COMP352, MAST221, STAT280, ENCS282]}
+      - {year: 2, season: winter, courses: [COMP346, COMP348, COMP354, COMP432, MAST333]}
+      - {year: 3, season: fall,   courses: [MAST387, COMP361, COMP433], electives: 1}
+      - {year: 3, season: winter, courses: [ENCS393, COMP353, SOEN471], electives: 1}
+
+  - id: coop-entry
+    name: Co-op entry (September)
+    entry: fall
+    coop: true
+    terms:
+      - {year: 1, season: fall,   courses: [COMP232, COMP248, MAST218, MAST221, STAT280]}
+      - {year: 1, season: winter, courses: [COMP228, COMP249, ENCS282, MAST234], electives: 1}
+      - {year: 1, season: summer, courses: [COMP352, COMP348, COMP335], electives: 1}
+      - {year: 2, season: fall,   work_term: 1}
+      - {year: 2, season: winter, courses: [SOEN471, MAST333, COMP432], electives: 1}
+      - {year: 2, season: summer, work_term: 2}
+      - {year: 3, season: fall,   courses: [MAST387, COMP354, COMP361, COMP433], electives: 1}
+      - {year: 3, season: winter, work_term: 3}
+      - {year: 3, season: summer, courses: [COMP346, COMP353, ENCS393], electives: 1}

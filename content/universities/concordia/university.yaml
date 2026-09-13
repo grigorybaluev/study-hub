@@ -1,0 +1,12 @@
+id: concordia
+name: Concordia University
+faculty: Gina Cody School of Engineering and Computer Science
+department: Computer Science and Software Engineering
+# Courses the program assumes as prior knowledge (CEGEP or Extended Credit Program).
+# They exist as `kind: assumed_prior` stubs under courses/ so prerequisite edges resolve.
+assumed_prior: [MATH203, MATH204, MATH205]
+sources:
+  - id: concordia-cs-ds-sequence-v3
+    title: Computer Science – Data Science Course Sequence (V3)
+    url: https://www.concordia.ca/content/dam/ginacody/csse/docs/CS-Data-Science-Course-Sequence-V3.pdf
+    retrieved: 2026-09-13
