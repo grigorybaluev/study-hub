@@ -10,7 +10,8 @@ from collections import Counter
 from pathlib import Path
 
 from schema import (CODE_RE, COURSE_KIND, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SLUG_RE, STRENGTH,
-                    UNIT_KIND, UNIT_STATUS, Content, Doc, edge_entries, load, prereq_groups, unit_slug)
+                    UNIT_KIND, UNIT_STATUS, Content, Doc, edge_entries, load, prereq_groups, roadmap_node_ids,
+                    roadmap_root, unit_slug)
 
 
 class Report:
@@ -50,7 +51,33 @@ def check_enum(doc: Doc, key: str, allowed: set, rep: Report, default=None):
         rep.error(doc.path, f"{key}: {value!r} not in {sorted(allowed)}")
 
 
-def lint_concepts(c: Content, rep: Report):
+def lint_roadmaps(c: Content, rep: Report) -> set[str]:
+    """Return the set of valid maps_to targets."""
+    targets: set[str] = set()
+    for rid, data in c.roadmaps.items():
+        path = Path("content/roadmaps") / f"{rid}.yaml"
+        for key in ("id", "title", "areas"):
+            if key not in data:
+                rep.error(path, f"missing required field {key!r}")
+        if data.get("id") != rid:
+            rep.error(path, f"id {data.get('id')!r} does not match filename")
+        seen = Counter()
+        for area in data.get("areas") or []:
+            for node in [area] + (area.get("skills") or []):
+                nid = node.get("id")
+                if not nid or not SLUG_RE.match(nid):
+                    rep.error(path, f"node id {nid!r} is not a slug")
+                if not node.get("title"):
+                    rep.error(path, f"node {nid!r} has no title")
+                seen[nid] += 1
+        for nid, n in seen.items():
+            if n > 1:
+                rep.error(path, f"node id {nid!r} used {n} times (ids are unique across areas and skills)")
+        targets |= roadmap_node_ids(data, rid)
+    return targets
+
+
+def lint_concepts(c: Content, rep: Report, roadmap_targets: set[str] = frozenset()):
     for slug, doc in c.concepts.items():
         check_fields(doc, "concept", rep)
         if not SLUG_RE.match(slug):
@@ -62,6 +89,9 @@ def lint_concepts(c: Content, rep: Report):
                     rep.error(doc.path, f"{key}: unknown concept {target!r}")
                 elif target == slug:
                     rep.error(doc.path, f"{key}: concept refers to itself")
+        for target in doc.meta.get("maps_to") or []:
+            if target not in roadmap_targets:
+                rep.error(doc.path, f"maps_to: unknown roadmap node {target!r}")
         if not doc.body:
             rep.warn(doc.path, "empty definition")
 
@@ -253,7 +283,8 @@ def run(content=None) -> Report:
     rep = Report()
     for path, msg in c.parse_errors:
         rep.error(path, msg)
-    lint_concepts(c, rep)
+    targets = lint_roadmaps(c, rep)
+    lint_concepts(c, rep, targets)
     lint_concept_cycles(c, rep)
     for uni in c.universities.values():
         lint_university(c, uni, rep)

@@ -94,6 +94,21 @@ def edge_entries(value) -> list[dict]:
     return out
 
 
+def roadmap_root(data: dict, rid: str) -> str:
+    return f"{data.get('source', 'roadmap')}/{rid}"
+
+
+def roadmap_node_ids(data: dict, rid: str) -> set[str]:
+    """All node ids a concept may `maps_to`: areas and skills, fully qualified."""
+    root = roadmap_root(data, rid)
+    ids = set()
+    for area in data.get("areas") or []:
+        ids.add(f"{root}/{area['id']}")
+        for skill in area.get("skills") or []:
+            ids.add(f"{root}/{skill['id']}")
+    return ids
+
+
 def prereq_groups(value) -> list[list[str]]:
     """Normalize prereqs to a list of OR-groups. `[A, [B, C]]` -> `[[A], [B, C]]`."""
     groups = []

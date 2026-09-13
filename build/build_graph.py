@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 import lint
-from schema import ROOT, SEASONS, Content, edge_entries, load, prereq_groups, unit_slug
+from schema import ROOT, SEASONS, Content, edge_entries, load, prereq_groups, roadmap_root, unit_slug
 
 OUT = ROOT / "graph.json"
 SCHEMA_VERSION = 1
@@ -46,15 +46,19 @@ def build(c: Content) -> dict:
         for target in m.get("maps_to") or []:
             edge(slug, target, "maps_to", provenance="authored")
 
-    # ---- roadmaps (titles + hierarchy only)
+    # ---- roadmaps: areas -> skills; both become roadmap_node, skills carry parent
     for rid, data in c.roadmaps.items():
-        root = f"{data.get('source', 'roadmap')}/{rid}"
-        for node in data.get("nodes") or []:
-            nid = f"{root}/{node['id']}"
-            nodes.append({
-                "id": nid, "type": "roadmap_node", "roadmap": root, "title": node["title"],
-                "parent": f"{root}/{node['parent']}" if node.get("parent") else None,
-            })
+        root = roadmap_root(data, rid)
+        nodes.append({"id": root, "type": "roadmap", "title": data["title"], "source": data.get("source"),
+                      "description": data.get("description"), "references": data.get("references") or []})
+        for area in data.get("areas") or []:
+            aid = f"{root}/{area['id']}"
+            nodes.append({"id": aid, "type": "roadmap_node", "roadmap": root, "level": "area",
+                          "title": area["title"], "parent": None})
+            for skill in area.get("skills") or []:
+                nodes.append({"id": f"{root}/{skill['id']}", "type": "roadmap_node", "roadmap": root, "level": "skill",
+                              "title": skill["title"], "summary": skill.get("summary"), "refs": skill.get("refs") or [],
+                              "parent": aid})
 
     # ---- universities
     for uni in c.universities.values():

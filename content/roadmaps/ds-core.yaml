@@ -1,0 +1,198 @@
+id: ds-core
+source: study-hub
+title: Data science core skills
+description: >
+  What a data science graduate should be able to do, organised as areas of skills.
+  Authored for this project (CC BY-SA 4.0), informed by the ACM Data Science Task Force's
+  "Computing Competencies for Undergraduate Data Science Curricula" and by published
+  practitioner roadmaps, which are linked as references rather than reproduced.
+  Concepts map to skills with `maps_to`; coverage is derived, never authored.
+references:
+  - title: ACM Data Science Task Force — Computing Competencies for Undergraduate Data Science Curricula (2021)
+    url: https://dstf.acm.org/DSTF_Final_Report.pdf
+  - title: roadmap.sh — AI and Data Scientist roadmap
+    url: https://roadmap.sh/ai-data-scientist
+
+areas:
+  - id: mathematics
+    title: Mathematical foundations
+    skills:
+      - id: calculus
+        title: Calculus
+        summary: Limits, derivatives and integrals in one and several variables; gradients and their role in optimisation.
+      - id: linear-algebra
+        title: Linear algebra
+        summary: Vectors, matrices, linear systems, transformations and eigen-decompositions as the language of data.
+      - id: discrete-mathematics
+        title: Discrete mathematics
+        summary: Logic, sets, relations, proof techniques, induction and combinatorics.
+      - id: optimization
+        title: Optimization
+        summary: Unconstrained and constrained optimisation, gradient-based methods, and convexity.
+      - id: numerical-methods
+        title: Numerical methods
+        summary: Floating-point arithmetic and error, numerical integration, and numerical linear algebra.
+
+  - id: probability
+    title: Probability
+    skills:
+      - id: probability-theory
+        title: Probability theory
+        summary: Sample spaces, axioms, conditioning, independence and Bayes' theorem.
+      - id: random-variables
+        title: Random variables
+        summary: Discrete and continuous random variables, their distributions, expectation and moments.
+      - id: distributions
+        title: Standard distributions
+        summary: The common discrete and continuous families and the situations they model.
+      - id: multivariate-probability
+        title: Multivariate probability
+        summary: Joint, marginal and conditional distributions, covariance and conditional expectation.
+      - id: stochastic-processes
+        title: Stochastic processes
+        summary: Markov chains, random walks and other sequences of dependent random variables.
+      - id: simulation
+        title: Simulation
+        summary: Monte Carlo methods, generating random variates, and estimating quantities by simulation.
+
+  - id: statistics
+    title: Statistics
+    skills:
+      - id: descriptive-statistics
+        title: Descriptive statistics and EDA
+        summary: Summarising and exploring data numerically and graphically before modelling.
+      - id: estimation
+        title: Estimation
+        summary: Sampling distributions, the central limit theorem, point and interval estimation.
+      - id: hypothesis-testing
+        title: Hypothesis testing
+        summary: Formulating and running tests, p-values, power, and multiple comparisons.
+      - id: linear-models
+        title: Linear models
+        summary: Regression, analysis of variance and generalised linear models.
+      - id: bayesian-inference
+        title: Bayesian inference
+        summary: Priors, posteriors and Bayesian estimation and decision making.
+      - id: experimentation
+        title: Experimentation
+        summary: Designing experiments, A/B testing, variance reduction and ratio metrics.
+        refs:
+          - https://roadmap.sh/ai-data-scientist
+      - id: time-series
+        title: Time series
+        summary: Autocorrelation, trend and seasonality, and forecasting.
+
+  - id: programming
+    title: Programming and computing
+    skills:
+      - id: python
+        title: Python
+        summary: The language, its standard library and the scientific stack used for data work.
+      - id: r
+        title: R
+        summary: The R language and environment for statistical computing.
+      - id: sql
+        title: SQL
+        summary: "Querying relational data: joins, aggregation, subqueries and views."
+      - id: data-structures-algorithms
+        title: Data structures and algorithms
+        summary: Abstract data types, complexity analysis, sorting, searching and graph algorithms.
+      - id: software-engineering-practice
+        title: Software engineering practice
+        summary: Version control, testing, code quality and working in a codebase with others.
+      - id: computing-systems
+        title: Computing systems
+        summary: How hardware, operating systems, memory and concurrency shape what programs can do.
+      - id: theory-of-computation
+        title: Theory of computation
+        summary: Automata, grammars, computability and the limits of algorithms.
+
+  - id: data-management
+    title: Data management
+    skills:
+      - id: data-modelling
+        title: Data modelling
+        summary: Relational design, entity-relationship modelling and normalisation.
+      - id: data-wrangling
+        title: Data wrangling
+        summary: Cleaning, reshaping, joining and validating data; handling missing values.
+      - id: data-pipelines
+        title: Data pipelines
+        summary: Extract-transform-load, distributed processing and big-data frameworks.
+      - id: data-governance-privacy
+        title: Data governance and privacy
+        summary: Provenance, access, privacy, security and the regulation of data use.
+
+  - id: machine-learning
+    title: Machine learning
+    skills:
+      - id: supervised-learning
+        title: Supervised learning
+        summary: Regression and classification methods, from linear models to trees, kernels and neighbours.
+      - id: unsupervised-learning
+        title: Unsupervised learning
+        summary: Clustering, dimensionality reduction and density estimation.
+      - id: model-evaluation
+        title: Model evaluation and selection
+        summary: Validation, metrics, the bias-variance trade-off, overfitting and regularisation.
+      - id: feature-engineering
+        title: Feature engineering
+        summary: Representing, encoding, scaling and selecting the inputs to a model.
+      - id: ensembles
+        title: Ensemble methods
+        summary: Bagging, boosting and stacking.
+      - id: interpretability
+        title: Interpretability
+        summary: Understanding and explaining what a model has learned.
+
+  - id: deep-learning
+    title: Deep learning
+    skills:
+      - id: neural-networks
+        title: Neural networks
+        summary: Perceptrons, backpropagation, training dynamics and regularisation.
+      - id: vision-architectures
+        title: Vision architectures
+        summary: Convolutional networks and transfer learning for images.
+      - id: sequence-models
+        title: Sequence models
+        summary: Recurrent networks, attention and transformers for sequential data.
+      - id: foundation-models
+        title: Foundation models
+        summary: Large language models, prompting, retrieval-augmented generation and fine-tuning.
+
+  - id: ml-production
+    title: Machine learning in production
+    skills:
+      - id: deployment
+        title: Deployment
+        summary: Packaging and serving models behind an interface.
+      - id: mlops
+        title: MLOps
+        summary: Continuous integration and delivery for models, monitoring, drift and retraining.
+      - id: reproducibility
+        title: Reproducibility
+        summary: Experiment tracking and versioning of data, code and models.
+
+  - id: communication
+    title: Analysis and communication
+    skills:
+      - id: data-visualization
+        title: Data visualization
+        summary: Choosing and building plots and dashboards that communicate honestly.
+      - id: technical-communication
+        title: Technical communication
+        summary: Reports, presentations and documentation for technical and non-technical readers.
+      - id: problem-framing
+        title: Problem framing
+        summary: Turning a domain question into an analysis plan and running the project lifecycle.
+
+  - id: professional-practice
+    title: Professional practice
+    skills:
+      - id: ethics-and-impact
+        title: Ethics and impact
+        summary: Fairness, bias, societal effects and professional responsibility in data work.
+      - id: collaboration
+        title: Collaboration
+        summary: Teamwork, project management and agile practice.
