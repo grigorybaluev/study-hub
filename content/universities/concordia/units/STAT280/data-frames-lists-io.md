@@ -4,11 +4,12 @@ order: 4
 status: outline
 weeks: [3]
 textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 2"
-introduces: [data-frame, boolean-indexing]
+introduces: [data-frame]
 requires:
   - {concept: r-programming, strength: hard}
   - {concept: vectorized-operations, strength: hard}
 reinforces:
+  - {concept: boolean-indexing, perspective: "filtering rows of a data frame"}
   - {concept: file-io, perspective: "reading and writing data files in R"}
 ---
 

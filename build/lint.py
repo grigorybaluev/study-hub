@@ -5,11 +5,14 @@ exit 0. The rules are numbered to match the design discussion; see CLAUDE.md.
 """
 from __future__ import annotations
 
+import re
 import sys
 from collections import Counter
 from pathlib import Path
 
-from schema import (CODE_RE, COURSE_KIND, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SLUG_RE, STRENGTH,
+import yaml
+
+from schema import (CODE_RE, ROOT, COURSE_KIND, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SLUG_RE, STRENGTH,
                     UNIT_KIND, UNIT_STATUS, Content, Doc, edge_entries, load, prereq_groups, roadmap_node_ids,
                     roadmap_root, unit_slug)
 
@@ -147,6 +150,34 @@ def lint_university(c: Content, uni, rep: Report):
             lint_variant(uni, variant, core, ppath, rep)
 
 
+SIM_BLOCK_RE = re.compile(r"^```sim\n(.*?)^```", re.M | re.S)
+
+
+def load_sim_registry() -> dict | None:
+    p = ROOT / "app" / "src" / "sims" / "registry.yaml"
+    return yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
+def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
+    for m in SIM_BLOCK_RE.finditer(doc.body):
+        try:
+            cfg = yaml.safe_load(m.group(1))
+        except yaml.YAMLError as e:
+            rep.error(doc.path, f"sim block is not valid YAML: {e}")
+            continue
+        if not isinstance(cfg, dict) or not cfg.get("id"):
+            rep.error(doc.path, "sim block needs an `id`")
+            continue
+        if registry is None:
+            rep.warn(doc.path, f"sim {cfg['id']!r}: no registry (app/src/sims/registry.yaml) to check against")
+        elif cfg.get("custom"):
+            modes = registry.get("automata", {}).get("modes") or []
+            if cfg.get("mode", "run") not in modes:
+                rep.error(doc.path, f"sim {cfg['id']!r}: automata mode {cfg.get('mode')!r} not in {modes}")
+        elif cfg["id"] not in (registry.get("plotly") or []):
+            rep.error(doc.path, f"sim {cfg['id']!r} is not in the registry")
+
+
 def lint_unit(c: Content, doc: Doc, rep: Report):
     slug = unit_slug(doc)
     check_fields(doc, "unit", rep)
@@ -190,6 +221,7 @@ def lint_unit(c: Content, doc: Doc, rep: Report):
 
     if len(doc.body) < 40:
         rep.warn(doc.path, "body is empty or very short")
+    lint_sim_blocks(doc, SIM_REGISTRY, rep)
 
 
 def lint_variant(uni, variant: dict, core: set, ppath: Path, rep: Report):
@@ -278,7 +310,12 @@ def lint_concept_cycles(c: Content, rep: Report):
 
 
 # --------------------------------------------------------------------------- main
+SIM_REGISTRY = None
+
+
 def run(content=None) -> Report:
+    global SIM_REGISTRY
+    SIM_REGISTRY = load_sim_registry()
     c = content or load()
     rep = Report()
     for path, msg in c.parse_errors:

@@ -1,0 +1,38 @@
+# Simulation registry. lint.py checks every ```sim block in unit bodies against it.
+# plotly: ids in the SIMS table of simulations.js (slider-driven Plotly figures).
+# automata: modes of FA.mount in automata.js; a block with `custom: true` picks one via `mode`.
+plotly:
+  - euler-demo
+  - rk4-comparison
+  - heat-pde
+  - gradient-descent
+  - newton-method
+  - logistic-regression
+  - monte-carlo-pi
+  - regularization
+  - param-est
+  - sgd-loss
+  - param-particle
+  - param-line
+  - param-two-points
+  - param-circle
+  - param-smiley
+  - param-tangent
+  - param-area
+  - dice-sum-grid
+  - empirical-dice
+  - venn-counts
+  - prob-union
+  - sample-space-tree
+  - coin-event-grid
+  - complement-rule
+  - incl-excl-3
+  - r-precedence
+  - r-loan
+  - r-function-plot
+  - r-recycling
+  - r-logical-filter
+  - r-matrix-index
+  - r-roundoff
+automata:
+  modes: [run, convert, minimize, derive, tool, graph, proofs]

@@ -19,6 +19,7 @@ content/
 build/    schema.py, build_graph.py, derive.py, lint.py   -> graph.json, derived.json (never hand-edited)
 analytics/ report generator and notebooks
 app/      Vite + React + TS + Cytoscape.js, reads graph.json and derived.json
+app/src/sims/   simulation engines (simulations.js, automata.js) + registry.yaml checked by lint
 ```
 
 ## Commands
@@ -76,6 +77,12 @@ Units
   Record provenance in `weeks`, `textbook`, `notes`.
 - Every course the student has taken gets units, at least coarse concept-introducing
   ones, so every required concept has an introducer.
+- Body conventions: `## part` per topic; LaTeX in `$…$`/`$$…$$`; callouts as blockquotes
+  with a bold label (`> **Definition.**`, `**Example.**`, `**Note.**`, `**Key insight.**`,
+  `**Caution.**`); an `**Equations**` list; fenced code with a language; `## Further reading`.
+  Interactive examples are ```` ```sim ```` fenced YAML blocks (`id`, `controls`, `note`, or
+  `custom: true` + `mode` for automata) placed where they belong in the text; lint checks
+  ids against `app/src/sims/registry.yaml`. Lecture notes are written directly into units.
 
 Courses and programs
 - `kind: core | assumed_prior | external`. Assumed-prior courses (MATH 203/204/205) have
