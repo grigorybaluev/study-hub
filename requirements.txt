@@ -1,0 +1,3 @@
+# Build + analytics dependencies. Install into .venv:
+#   python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+# Add packages only when a script actually needs them.
