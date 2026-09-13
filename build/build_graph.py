@@ -51,14 +51,14 @@ def build(c: Content) -> dict:
         root = roadmap_root(data, rid)
         nodes.append({"id": root, "type": "roadmap", "title": data["title"], "source": data.get("source"),
                       "description": data.get("description"), "references": data.get("references") or []})
-        for area in data.get("areas") or []:
+        for ai, area in enumerate(data.get("areas") or []):
             aid = f"{root}/{area['id']}"
             nodes.append({"id": aid, "type": "roadmap_node", "roadmap": root, "level": "area",
-                          "title": area["title"], "parent": None})
-            for skill in area.get("skills") or []:
+                          "title": area["title"], "parent": None, "order": [ai]})
+            for si, skill in enumerate(area.get("skills") or []):
                 nodes.append({"id": f"{root}/{skill['id']}", "type": "roadmap_node", "roadmap": root, "level": "skill",
                               "title": skill["title"], "summary": skill.get("summary"), "refs": skill.get("refs") or [],
-                              "parent": aid})
+                              "parent": aid, "order": [ai, si]})
 
     # ---- universities
     for uni in c.universities.values():

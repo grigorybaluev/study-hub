@@ -2,6 +2,7 @@
 title: Markov chains
 domain: probability
 aliases: ["transition matrix"]
+maps_to: [study-hub/ds-core/stochastic-processes]
 ---
 
 Random sequences where the next state depends only on the current one, described by a

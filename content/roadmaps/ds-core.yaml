@@ -85,6 +85,9 @@ areas:
   - id: programming
     title: Programming and computing
     skills:
+      - id: programming-fundamentals
+        title: Programming fundamentals
+        summary: Variables, control flow, functions, data types, and object-oriented design in a general-purpose language.
       - id: python
         title: Python
         summary: The language, its standard library and the scientific stack used for data work.

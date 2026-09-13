@@ -3,6 +3,7 @@ title: Pushdown automata
 domain: theory
 aliases: ["PDA", "NPDA", "DPDA"]
 generalizes: [nfa]
+maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 
 Finite automata with a stack; nondeterministic PDAs accept exactly the context-free

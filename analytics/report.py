@@ -151,8 +151,26 @@ class Report:
 
     def roadmap(self):
         self.h(2, "Roadmap coverage")
-        if not self.d.get("roadmap_coverage"):
-            self.p("No roadmap imported yet.")
+        cov = self.d.get("roadmap_coverage") or {}
+        if not cov:
+            self.p("No roadmap loaded.")
+            return
+        self.p("For each skill: *covered* = every concept mapped to it is introduced by some unit; "
+               "*thin* = covered, but only one or two concepts map to it; "
+               "*partial* = some are introduced; *gap* = concepts map to it but none is introduced (a known hole); "
+               "*unmapped* = no concept maps to it yet — either the program has nothing there or the "
+               "vocabulary for it has not been written (Year 2–3 courses have no units yet).")
+        for rid, r in cov.items():
+            self.h(3, self.nodes[rid]["title"])
+            self.p(", ".join(f"{k}: {v}" for k, v in r["summary"].items()))
+            self.p()
+            rows = []
+            for sid, sk in sorted(r["skills"].items(), key=lambda kv: kv[1]["order"]):
+                area = self.nodes[sk["area"]]["title"]
+                rows.append([area, sk["title"], sk["status"], len(sk["concepts"]),
+                             ", ".join(code(c) for c in sk["courses"]) or "—",
+                             ", ".join(f"`{m}`" for m in sk["missing"]) or ""])
+            self.table(["area", "skill", "status", "concepts", "taught in", "missing concepts"], rows)
 
     def render(self) -> str:
         self.summary(); self.coverage(); self.unmet(); self.variants(); self.coupling(); self.concepts(); self.roadmap()

@@ -160,6 +160,36 @@ def variant_analysis(g: Graph, idx: dict, program: dict, variant: dict) -> dict:
     return {"program": program["id"], "variant": variant["id"], "terms": terms_out, "reteach": reteach}
 
 
+# --------------------------------------------------------------------------- roadmap coverage
+def roadmap_coverage(g: Graph, idx: dict, variants: dict) -> dict:
+    """Per roadmap skill: which concepts map to it, which courses introduce them, and the first term
+    per variant. status: covered (all mapped concepts introduced, more than two of them), thin (all
+    introduced but only one or two concepts map), partial (some introduced), gap (mapped, none
+    introduced), unmapped (no concept maps to it)."""
+    out = {}
+    for rm in g.by_type["roadmap"]:
+        skills = {}
+        for node in g.by_type["roadmap_node"]:
+            if node["roadmap"] != rm["id"] or node["level"] != "skill":
+                continue
+            concepts = sorted(e["from"] for e in g.inc[(node["id"], "maps_to")])
+            introduced = [c for c in concepts if idx[c]["introduced_by"]]
+            courses = sorted({g.course_of(u) for c in introduced for u in idx[c]["introduced_by"]})
+            status = ("unmapped" if not concepts else "gap" if not introduced
+                      else "partial" if len(introduced) < len(concepts)
+                      else "thin" if len(concepts) <= 2 else "covered")
+            first_term = {}
+            for vid, v in variants.items():
+                terms = [t["index"] for t in v["terms"] for c in t.get("introduced", []) if c in concepts]
+                first_term[vid] = min(terms) if terms else None
+            skills[node["id"]] = {"area": node["parent"], "title": node["title"], "order": node["order"], "status": status,
+                                  "concepts": concepts, "missing": sorted(set(concepts) - set(introduced)),
+                                  "courses": courses, "first_term": first_term}
+        out[rm["id"]] = {"skills": skills, "summary": dict(sorted(
+            __import__("collections").Counter(s["status"] for s in skills.values()).items()))}
+    return out
+
+
 # --------------------------------------------------------------------------- main
 def derive(data: dict) -> dict:
     g = Graph(data)
@@ -175,7 +205,7 @@ def derive(data: dict) -> dict:
         "course_uses": course_uses(g, idx),
         "unmet": unmet(g, idx),
         "variants": variants,
-        "roadmap_coverage": {},
+        "roadmap_coverage": roadmap_coverage(g, idx, variants),
     }
 
 
@@ -192,6 +222,8 @@ def main(graph: Path = GRAPH, out: Path = OUT) -> int:
         same = sum(1 for t in v["terms"] for x in t.get("debt", []) if x["same_term"])
         later = sum(1 for t in v["terms"] for x in t.get("debt", []) if x["introduced_in_term"] is not None and not x["same_term"])
         print(f"{vid}: debt={debt} (same term {same}, later term {later}, never {debt - same - later}); reteach={len(v['reteach'])}")
+    for rid, r in d["roadmap_coverage"].items():
+        print(f"{rid}: {r['summary']}")
     return 0
 
 

@@ -2,6 +2,7 @@
 title: Functional programming
 domain: programming
 aliases: ["immutability", "higher-order function", "Clojure", "Lisp"]
+maps_to: [study-hub/ds-core/programming-fundamentals]
 ---
 
 Programming with immutable data and functions as values: higher-order functions,
