@@ -11,11 +11,12 @@ content/
   concepts/<slug>.md                  global concept vocabulary (shared by all universities)
   roadmaps/<roadmap>.yaml             imported roadmap trees (titles + hierarchy only)
   universities/<uni>/
-    university.yaml                   name, assumed_prior courses
-    courses/<CODE>.md                 course metadata, official prereqs/coreqs
+    university.yaml                   name, assumed_prior courses, sources
+    courses/<CODE>.md                 catalog entry: credits, kind, official prereqs/coreqs
     units/<CODE>/<slug>.md            unit content + authored edges (frontmatter)
-    programs/<program>.yaml           entry variants -> terms -> courses
-build/    schema.py, build_graph.py, derive.py, lint.py   -> graph.json, derived.json
+    programs/<program>.yaml           variants -> terms -> courses (placements only)
+    programs/local/                   personal plans, same shape, git-ignored
+build/    schema.py, build_graph.py, derive.py, lint.py   -> graph.json, derived.json (never hand-edited)
 analytics/ report generator and notebooks
 app/      Vite + React + TS + Cytoscape.js, reads graph.json and derived.json
 ```
@@ -32,55 +33,56 @@ cd app && npm run dev
 
 ## Graph model
 
-Node types: Concept, Unit, Course, Program (with variants), RoadmapNode, University.
+Nodes: Concept, Unit, Course, Program (with variants), RoadmapNode, University.
+IDs: concepts are global slugs (`conditional-probability`); everything else is namespaced
+(`concordia/COMP232`, `concordia/MAST218/parametric-curves`,
+`roadmap-sh/ai-data-scientist/linear-algebra`).
 
-IDs: concepts are global slugs (`conditional-probability`); everything else is
-namespaced (`concordia/COMP232`, `concordia/MAST218/parametric-curves`,
-`roadmap-sh/ai-data-scientist/linear-algebra`). Unit IDs are slugs, never numbers:
-nothing hand-written references a unit, so units can be renamed, split, merged, or
-inserted freely as a course's real structure emerges from lecture notes.
-
-Authored edges (the only ones humans write, in unit/concept frontmatter):
-- `unit introduces concept`
+Authored edges (the only ones humans write, in unit/concept/course frontmatter):
+- `unit introduces concept` — entry is a slug or `{concept, perspective}`; several units
+  (in different courses) may introduce the same concept, each from its own perspective
 - `unit requires concept` with `strength: hard | soft`
-- `unit reinforces concept`
-- `concept generalizes | part_of concept`
-- `concept maps_to roadmapNode`
-- `course prereq | coreq course` (copied from the official calendar)
+- `unit reinforces concept` — slug or `{concept, perspective}`
+- `concept generalizes | part_of concept`; `concept maps_to roadmapNode`
+- `course prereq | coreq course` (official calendar)
 
-Derived edges (never hand-written; rebuilt by `derive.py`):
-`unit depends_on unit`, `course uses course` (weighted), `course covers roadmapNode`,
-per-variant concept debt by term. Every edge carries
+Derived (rebuilt by `derive.py`): `unit depends_on unit` (to the earliest introducer in the
+variant's term order), `course uses course` (weighted), `course covers roadmapNode`,
+per-variant concept debt by term, unmet dependencies. Every edge carries
 `provenance: authored | official | derived`.
 
 ## Authoring rules
 
-- Concepts are global. Never create a university-specific concept; if one is
-  missing, add it to `content/concepts/` with a one-sentence definition and aliases.
-- A `requires` edge must reference an existing concept. Lint fails otherwise.
-- One concept per file; keep granularity coarse (`eigenvalue` covers eigenvectors
-  unless a unit needs them separately).
-- A unit is one coherent teaching chunk of one course (roughly a week or a textbook
-  chapter, ~10-12 per course). Its `order` (frontmatter only) is the teaching order;
-  lint requires orders to be unique and contiguous. Headings inside the unit body are
-  parts of the unit, not graph nodes.
+Concepts
+- Global, one per file, one-sentence definition, `domain`, `aliases`. Never
+  university-specific. A `requires` must reference an existing concept (lint fails).
 - A concept exists only if another unit could plausibly `require` it on its own.
-  Applying a known concept to a new object ("tangent to a parametric curve") is a
-  heading, not a concept; split a concept out only when a unit needs it separately.
-- Unit `status`: `detailed` (written from lecture notes), `outline` (from the official
-  course outline only), `planned` (no outline available). The official outline is only
-  the initial hypothesis; lecture notes are ground truth. Record provenance in
-  `weeks`, `textbook`, `notes`.
-- Assumed-prior courses (e.g. MATH 203/204/205, `kind: assumed_prior`) have a few
-  coarse units whose only job is to `introduce` the concepts the program assumes, so
-  every required concept is introduced somewhere. Courses from other programs that
-  appear only as prerequisite alternatives are `kind: external` stubs with no units.
-- Course prerequisites are OR-groups (`[[COMP232, COEN231], [COMP249, COEN244]]`);
-  co-requisites mean "prior or concurrent". Free-text requirements (writing test,
-  credit counts) go in `requirements:` and are not edges.
-- Program variants (`programs/*.yaml`) hold term placements only; prerequisites live
-  in `courses/`. Personal plans use the same shape under `programs/local/` (git-ignored).
-- Do not edit `graph.json` or `derived.json` by hand.
+  Applying a known concept to a new object is a heading, not a concept. Keep coarse;
+  split only when a unit needs the part separately.
+- A concept nobody introduces is a finding (unmet dependency), reported by derive and
+  warned by lint — never author around it.
+
+Units
+- One coherent teaching chunk of one course (~a week or chapter, ~10-12 per course).
+  ID and filename are slugs, never numbers: nothing hand-written references a unit, so
+  units are freely renamed, split, merged, or inserted. `order` (frontmatter) is the
+  teaching order; lint requires it unique and contiguous. Headings inside the body are
+  parts, not nodes.
+- `kind: teaching | review`. A review unit recaps material introduced elsewhere with no
+  new perspective: `reinforces` only, minimal body; the app links to the introducer.
+  A unit that revisits a concept from a new angle is `teaching` with a `perspective`.
+- `status: detailed` (from lecture notes) | `outline` (official outline only) |
+  `planned` (no outline). The outline is the initial hypothesis; notes are ground truth.
+  Record provenance in `weeks`, `textbook`, `notes`.
+- Every course the student has taken gets units, at least coarse concept-introducing
+  ones, so every required concept has an introducer.
+
+Courses and programs
+- `kind: core | assumed_prior | external`. Assumed-prior courses (MATH 203/204/205) have
+  coarse units; external alternates (COEN 231 …) are stubs with no units.
+- Prereqs are OR-groups (`[[COMP232, COEN231], [COMP249, COEN244]]`); coreqs mean
+  "prior or concurrent"; free-text requirements go in `requirements:` (not edges).
+- Variants hold term placements only; prereqs live in `courses/`.
 
 ## Content rules
 
@@ -88,8 +90,7 @@ per-variant concept debt by term. Every edge carries
 - roadmap.sh data: titles and structure only, with source attribution.
 - Code is MIT; everything under `content/` is CC BY-SA 4.0.
 
-## When adding a new university
+## Adding a university
 
-Add `universities/<uni>/` with `university.yaml`, courses, units, programs.
-Map units to existing concepts. Touching `content/concepts/` should be the
-exception, not the rule.
+Add `universities/<uni>/` with `university.yaml`, courses, units, programs. Map units to
+existing concepts; touching `content/concepts/` should be the exception.
