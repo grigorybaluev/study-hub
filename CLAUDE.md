@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-Concept-level knowledge graph of a CS Data Science curriculum, cross-linked to the
-roadmap.sh AI/Data Scientist roadmap, with analytics on course dependencies and gaps.
+Concept-level knowledge graph of a CS Data Science curriculum, cross-linked to a
+data-science skill roadmap, with analytics on course dependencies and gaps.
 Content is authored as markdown/YAML; the graph is a build artifact; the site is static.
 
 ## Layout
@@ -9,7 +9,7 @@ Content is authored as markdown/YAML; the graph is a build artifact; the site is
 ```
 content/
   concepts/<slug>.md                  global concept vocabulary (shared by all universities)
-  roadmaps/<roadmap>.yaml             imported roadmap trees (titles + hierarchy only)
+  roadmaps/<roadmap>.yaml             skill roadmaps: areas -> skills (ds-core is our own)
   universities/<uni>/
     university.yaml                   name, assumed_prior courses, sources
     courses/<CODE>.md                 catalog entry: credits, kind, official prereqs/coreqs
@@ -37,7 +37,7 @@ cd app && npm run dev
 Nodes: Concept, Unit, Course, Program (with variants), RoadmapNode, University.
 IDs: concepts are global slugs (`conditional-probability`); everything else is namespaced
 (`concordia/COMP232`, `concordia/MAST218/parametric-curves`,
-`roadmap-sh/ai-data-scientist/linear-algebra`).
+`study-hub/ds-core/linear-algebra`).
 
 Authored edges (the only ones humans write, in unit/concept/course frontmatter):
 - `unit introduces concept` — entry is a slug or `{concept, perspective}`; several units
@@ -94,7 +94,8 @@ Courses and programs
 ## Content rules
 
 - Own words only. No lecture slides, textbook figures, or copied problem sets.
-- roadmap.sh data: titles and structure only, with source attribution.
+- Roadmaps are authored here (CC BY-SA). roadmap.sh's content is under a personal-use-only
+  licence: link to it as a reference, never reproduce its titles or structure.
 - Code is MIT; everything under `content/` is CC BY-SA 4.0.
 
 ## Adding a university
