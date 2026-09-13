@@ -1,0 +1,14 @@
+---
+title: Closure properties and decision algorithms for regular languages
+order: 5
+status: outline
+weeks: [4]
+textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 4.1-4.2"
+introduces: []
+requires: []
+reinforces: []
+---
+
+Which operations keep a language regular (union, concatenation, star, complement,
+intersection, homomorphism, ...) and which questions about regular languages can be
+answered algorithmically.
