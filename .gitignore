@@ -15,3 +15,7 @@ app/dist/
 
 # Personal / actual study plans (same shape as a program variant), never committed
 content/universities/*/programs/local/
+
+# Build artifacts (regenerate with build/build_graph.py and build/derive.py)
+graph.json
+derived.json
