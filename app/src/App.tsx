@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 import { DataContext, loadData, type Data } from "./data/load";
 import Search from "./components/Search";
+import ThemeToggle from "./components/ThemeToggle";
 import Home from "./pages/Home";
 import Course from "./pages/Course";
 import Unit from "./pages/Unit";
@@ -35,6 +36,7 @@ export default function App() {
           </nav>
           <div className="spacer" />
           <Search />
+          <ThemeToggle />
         </header>
         <main className="main">
           <Routes>

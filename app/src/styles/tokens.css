@@ -1,29 +1,65 @@
+/* Light (default) palette carried over from the original web2 site; dark is the second option.
+   The theme is explicit: <html data-theme="light|dark">, set by the toggle in the top bar. */
 :root {
-  --bg: #f7f7f5;
+  --bg: #f7f6f2;
   --bg-elev: #ffffff;
-  --bg-sunken: #eeeeea;
-  --fg: #1c1c1a;
-  --fg-muted: #5f6368;
-  --fg-faint: #8a8f98;
-  --line: #e0e0dc;
-  --accent: #2f5fd6;
-  --accent-soft: #e6ecfb;
-  --ok: #2f8f5b;
-  --ok-soft: #e3f3ea;
-  --warn: #b8791a;
-  --warn-soft: #fbefd8;
-  --bad: #c43d3d;
-  --bad-soft: #fbe3e3;
-  --code-bg: #f1f1ee;
-  --callout-def: #2f5fd6;
-  --callout-example: #2f8f5b;
-  --callout-note: #8a8f98;
-  --callout-insight: #b8791a;
-  --callout-caution: #c43d3d;
+  --bg-sunken: #f1f0ea;
+  --fg: #1a1a2e;
+  --fg-muted: #64748b;
+  --fg-faint: #94a3b8;
+  --line: #e2e0d8;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .08), 0 4px 12px rgba(0, 0, 0, .06);
+
+  --accent: #00a651;
+  --accent-dk: #007a3d;
+  --accent-soft: #e8f5ee;
+  --link: #007a3d;
+  --ok: #007a3d;
+  --ok-soft: #e8f5ee;
+  --warn: #b45309;
+  --warn-soft: #fffbeb;
+  --bad: #be123c;
+  --bad-soft: #fff1f2;
+  --info: #1e40af;
+  --info-soft: #eff6ff;
+
+  --header-bg: #0f0e23;
+  --header-fg: #ffffff;
+  --header-muted: #9aa3c4;
+  --header-line: #00a651;
+
+  --code-bg: #0d1117;
+  --code-fg: #c9d1d9;
+  --code-line: #30363d;
+  --inline-code-bg: #f1f5f9;
+  --inline-code-fg: #c2185b;
+
+  --callout-def-bg: #eff6ff;
+  --callout-def-line: #3b82f6;
+  --callout-def-border: #bfdbfe;
+  --callout-example-border: #cbd5e1;
+  --callout-example-title: #007a3d;
+  --callout-note-bg: #e8f5ee;
+  --callout-note-line: #00a651;
+  --callout-steps-bg: #fffbeb;
+  --callout-steps-line: #f59e0b;
+  --callout-insight-bg: #eff6ff;
+  --callout-insight-border: #93c5fd;
+  --callout-insight-fg: #1e40af;
+  --callout-caution-bg: #fff1f2;
+  --callout-caution-border: #fca5a5;
+  --callout-caution-fg: #9f1239;
+
+  --sim-surface: #ffffff;
+  --sim-controls-bg: #f8f7f3;
+  --sim-note-bg: #f0faf4;
+  --sim-note-fg: #2d6a45;
+  --sim-note-line: #c8e6d5;
 
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --radius: 8px;
+  --mono: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 10px;
+  --radius-sm: 6px;
   --measure: 76ch;
   --sidebar: 300px;
 
@@ -41,24 +77,59 @@
   --dom-ml: #c9a227;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #121417;
-    --bg-elev: #1a1d22;
-    --bg-sunken: #0e1013;
-    --fg: #e6e6e3;
-    --fg-muted: #a3a8b1;
-    --fg-faint: #6f7580;
-    --line: #2a2e35;
-    --accent: #7ea2ff;
-    --accent-soft: #1d2740;
-    --ok: #5fc48b;
-    --ok-soft: #16301f;
-    --warn: #e0a84a;
-    --warn-soft: #3a2c12;
-    --bad: #ef6b6b;
-    --bad-soft: #3d1b1b;
-    --code-bg: #15181d;
-    --callout-note: #6f7580;
-  }
+:root[data-theme="dark"] {
+  --bg: #121417;
+  --bg-elev: #1a1d22;
+  --bg-sunken: #0e1013;
+  --fg: #e6e6e3;
+  --fg-muted: #a3a8b1;
+  --fg-faint: #6f7580;
+  --line: #2a2e35;
+  --shadow: none;
+
+  --accent: #34c47a;
+  --accent-dk: #5fd393;
+  --accent-soft: #16301f;
+  --link: #5fd393;
+  --ok: #5fc48b;
+  --ok-soft: #16301f;
+  --warn: #e0a84a;
+  --warn-soft: #3a2c12;
+  --bad: #ef6b6b;
+  --bad-soft: #3d1b1b;
+  --info: #9dbcff;
+  --info-soft: #1d2740;
+
+  --header-bg: #0b0b14;
+  --header-fg: #ffffff;
+  --header-muted: #9aa3c4;
+  --header-line: #34c47a;
+
+  --code-bg: #0d1117;
+  --code-fg: #c9d1d9;
+  --code-line: #30363d;
+  --inline-code-bg: #1f242c;
+  --inline-code-fg: #f0a3c2;
+
+  --callout-def-bg: #1d2740;
+  --callout-def-line: #7ea2ff;
+  --callout-def-border: #2b3a5e;
+  --callout-example-border: #3a4150;
+  --callout-example-title: #5fd393;
+  --callout-note-bg: #16301f;
+  --callout-note-line: #34c47a;
+  --callout-steps-bg: #3a2c12;
+  --callout-steps-line: #e0a84a;
+  --callout-insight-bg: #1d2740;
+  --callout-insight-border: #2b3a5e;
+  --callout-insight-fg: #c9d8ff;
+  --callout-caution-bg: #3d1b1b;
+  --callout-caution-border: #5a2a2a;
+  --callout-caution-fg: #ffb4b4;
+
+  --sim-surface: #1a1f2e;
+  --sim-controls-bg: #151a27;
+  --sim-note-bg: #151a27;
+  --sim-note-fg: #a3a8b1;
+  --sim-note-line: #232d3f;
 }

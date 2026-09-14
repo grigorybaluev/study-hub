@@ -23,8 +23,8 @@ function calloutClass(children: ReactNode): string {
   const strong = Children.toArray((first.props as { children?: ReactNode }).children)[0];
   if (!isValidElement(strong) || strong.type !== "strong") return "";
   const text = String(Children.toArray((strong.props as { children?: ReactNode }).children)[0] ?? "").toLowerCase();
-  const label = text.split(/[—.:]/)[0].trim();
-  return CALLOUTS[label] ?? "";
+  const label = Object.keys(CALLOUTS).find((k) => text.startsWith(k));
+  return label ? CALLOUTS[label] : "";
 }
 
 function textOf(children: ReactNode): string {
