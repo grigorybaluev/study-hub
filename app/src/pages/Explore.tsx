@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ElementDefinition, LayoutOptions } from "cytoscape";
-import GraphView from "../components/GraphView";
+import GraphView, { boxLabel, tint, useTheme } from "../components/GraphView";
 import { Badge, ConceptChip, CourseChip, UnitLink } from "../components/Chips";
 import { edgesOut, href, node, useData, type Data } from "../data/load";
 import type { ConceptNode, CourseNode, UnitNode } from "../data/types";
@@ -13,10 +13,11 @@ const DOMAIN_COLOR: Record<string, string> = {
   probability: "#d65c8c", statistics: "#d67f3b", programming: "#2f9e7a", algorithms: "#3f8f4f", systems: "#7a8a3b",
   data: "#2f8fa3", ml: "#c9a227",
 };
-const TERM_COLORS = ["#bcd4ff", "#a7e3c4", "#ffe3a3", "#f6bcd0", "#d5c4f5", "#b9e6ef", "#f7c9a8", "#c8e3a0", "#e2c8ff"];
+const TERM_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4", "#f97316", "#84cc16", "#a855f7"];
+const NEUTRAL = "#94a3b8";
 
-const DAGRE: LayoutOptions = { name: "dagre", rankDir: "LR", nodeSep: 18, rankSep: 70, padding: 20 } as LayoutOptions;
-const FCOSE: LayoutOptions = { name: "fcose", animate: false, nodeRepulsion: 6000, idealEdgeLength: 70, padding: 20 } as LayoutOptions;
+const PRESET: LayoutOptions = { name: "preset", padding: 24, fit: true } as LayoutOptions;
+const FCOSE: LayoutOptions = { name: "fcose", animate: false, nodeRepulsion: 9000, idealEdgeLength: 90, padding: 24 } as LayoutOptions;
 
 export default function Explore() {
   const d = useData();
@@ -25,13 +26,14 @@ export default function Explore() {
   const [variantId, setVariantId] = useState(d.programs[0].variants.find((v) => v.coop)?.id ?? d.programs[0].variants[0].id);
   const [courseId, setCourseId] = useState<string>(d.courses.find((c) => c.code === "MAST221")?.id ?? d.courses[0].id);
   const [selected, setSelected] = useState<string | null>(null);
+  const theme = useTheme();
 
   const elements = useMemo<ElementDefinition[]>(() => {
-    if (view === "courses") return courseElements(d, variantId);
-    if (view === "concepts") return conceptElements(d);
-    return unitElements(d, courseId);
-  }, [d, view, variantId, courseId]);
-  const layout = view === "concepts" ? FCOSE : DAGRE;
+    if (view === "courses") return courseElements(d, variantId, theme);
+    if (view === "concepts") return conceptElements(d, theme);
+    return unitElements(d, courseId, theme);
+  }, [d, view, variantId, courseId, theme]);
+  const layout = view === "concepts" ? FCOSE : PRESET;
 
   const open = (id: string) => {
     const n = node(d, id);
@@ -61,9 +63,9 @@ export default function Explore() {
         )}
       </div>
       <p className="muted small">
-        {view === "courses" && "Solid arrows: official prerequisites (dashed: co-requisites). Grey arrows: derived reliance, thicker = more concepts. Colour = term in the selected variant. Click to highlight, double-click to open."}
+        {view === "courses" && "One column per term of the selected variant (assumed-prior and external courses on the left). Solid arrows: official prerequisites; dashed: co-requisites; faint arrows: derived reliance, thicker = more concepts. Click to highlight, double-click to open."}
         {view === "concepts" && "Concepts coloured by domain; size = how many units require them; arrows = generalizes. Click to highlight, double-click to open."}
-        {view === "units" && "The course's units (left to right in teaching order) and every unit elsewhere they depend on. Click to highlight, double-click to open."}
+        {view === "units" && "The course's units top to bottom in teaching order (right), and the units of other courses they depend on, one column per course (left). Solid arrows: hard requirements; faint: soft. Click to highlight, double-click to open."}
       </p>
       <GraphView elements={elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open} />
       {selected && <Selected id={selected} />}
@@ -93,56 +95,123 @@ function Selected({ id }: { id: string }) {
 
 // ---------------------------------------------------------------- element builders
 
-function courseElements(d: Data, variantId: string): ElementDefinition[] {
+const COL_W = 230;   // horizontal distance between term columns
+const ROW_GAP = 14;
+
+type Theme = "light" | "dark";
+const SEASON = { fall: "Fall", winter: "Winter", summer: "Summer" };
+
+function courseElements(d: Data, variantId: string, theme: Theme): ElementDefinition[] {
   const program = d.programs[0];
   const variant = program.variants.find((v) => v.id === variantId)!;
-  const term = new Map<string, number>();
-  for (const t of variant.terms) for (const c of t.courses ?? []) term.set(c, t.index);
+  const uni = d.universities.find((u) => u.id === program.university);
+  const assumed = new Set(uni?.assumed_prior ?? []);
+
+  // column per term; assumed-prior / external courses in column 0; work terms are skipped
+  const columns: string[][] = [[]];
+  const headers = ["Assumed / external"];
+  const colOf = new Map<string, number>();
+  for (const t of variant.terms) {
+    if (!t.courses) continue;
+    columns.push([...t.courses]);
+    headers.push(`Y${t.year} ${SEASON[t.season]}`);
+    for (const c of t.courses) colOf.set(c, columns.length - 1);
+  }
+  for (const c of d.courses) if (!colOf.has(c.id)) { columns[0].push(c.id); colOf.set(c.id, 0); }
+  columns[0].sort((a, b) => Number(assumed.has(b)) - Number(assumed.has(a)) || a.localeCompare(b));
+
+  // predecessors (prereq + coreq + uses) for barycentre ordering within a column
+  const preds = new Map<string, string[]>();
+  const addPred = (from: string, to: string) => (preds.get(from) ?? preds.set(from, []).get(from)!).push(to);
+  for (const e of d.graph.edges) if (e.type === "prereq" || e.type === "coreq") addPred(e.from, e.to);
+  for (const u of d.derived.course_uses) addPred(u.from, u.to);
+
+  const boxes = new Map(d.courses.map((c) => [c.id, boxLabel(c.code, c.title, 22)]));
+  const pos = new Map<string, { x: number; y: number }>();
+  columns.forEach((col, ci) => {
+    if (ci > 0) {
+      const bary = (id: string) => {
+        const ys = (preds.get(id) ?? []).map((p) => pos.get(p)?.y).filter((y): y is number => y !== undefined);
+        return ys.length ? ys.reduce((a, b) => a + b, 0) / ys.length : Number.POSITIVE_INFINITY;
+      };
+      col.sort((a, b) => bary(a) - bary(b) || a.localeCompare(b));
+    }
+    const total = col.reduce((acc, id) => acc + boxes.get(id)!.h + ROW_GAP, -ROW_GAP);
+    let y = -total / 2;
+    for (const id of col) {
+      const b = boxes.get(id)!;
+      pos.set(id, { x: ci * COL_W, y: y + b.h / 2 });
+      y += b.h + ROW_GAP;
+    }
+  });
+
   const els: ElementDefinition[] = [];
+  const top = Math.min(...[...pos.values()].map((p) => p.y)) - 50;
+  headers.forEach((h, ci) => els.push({ classes: "header", data: { id: `hdr:${ci}`, label: h, w: COL_W - 20, h: 20, fill: NEUTRAL, border: NEUTRAL }, position: { x: ci * COL_W, y: top } }));
   for (const c of d.courses) {
-    const t = term.get(c.id);
-    const color = c.kind === "core" ? TERM_COLORS[(t ?? 0) % TERM_COLORS.length] : "#e6e6e3";
-    els.push({ data: { id: c.id, label: c.code, color, size: c.kind === "core" ? 52 : 38, shape: c.kind === "core" ? "ellipse" : "round-rectangle" } });
+    const b = boxes.get(c.id)!;
+    const ci = colOf.get(c.id)!;
+    const color = c.kind === "core" ? TERM_COLORS[(ci - 1) % TERM_COLORS.length] : NEUTRAL;
+    els.push({ data: { id: c.id, ...b, fill: tint(color, theme), border: color, dim: c.kind !== "core" }, position: pos.get(c.id) });
   }
   for (const e of d.graph.edges) {
-    if (e.type === "prereq") els.push({ data: { id: `${e.from}>${e.to}:p`, source: e.to, target: e.from, color: "#1c1c1a", width: 1.6 } });
-    if (e.type === "coreq") els.push({ data: { id: `${e.from}>${e.to}:c`, source: e.to, target: e.from, color: "#1c1c1a", width: 1.2, dashed: true } });
+    if (e.type === "prereq") els.push({ data: { id: `${e.from}>${e.to}:p`, source: e.to, target: e.from, width: 1.4, alpha: 0.85 } });
+    if (e.type === "coreq") els.push({ data: { id: `${e.from}>${e.to}:c`, source: e.to, target: e.from, width: 1.2, alpha: 0.7, dashed: true } });
   }
   for (const u of d.derived.course_uses) {
-    els.push({ data: { id: `${u.from}>${u.to}:u`, source: u.to, target: u.from, color: "#9aa0a6", width: 0.6 + Math.min(u.weight, 12) * 0.35 } });
+    els.push({ data: { id: `${u.from}>${u.to}:u`, source: u.to, target: u.from, width: 0.5 + Math.min(u.weight, 12) * 0.12, alpha: 0.18 } });
   }
   return els;
 }
 
-function conceptElements(d: Data): ElementDefinition[] {
+function conceptElements(d: Data, theme: Theme): ElementDefinition[] {
   const els: ElementDefinition[] = [];
   for (const c of d.concepts) {
-    const idx = d.derived.concepts[c.id];
-    const size = 14 + Math.min(idx.required_by.length, 12) * 2.2;
-    els.push({ data: { id: c.id, label: c.title, color: DOMAIN_COLOR[c.domain] ?? "#999", size } });
+    const color = DOMAIN_COLOR[c.domain] ?? NEUTRAL;
+    els.push({ data: { id: c.id, ...boxLabel("", c.title, 20), fill: tint(color, theme), border: color } });
   }
   for (const e of d.graph.edges) {
-    if (e.type === "generalizes") els.push({ data: { id: `${e.from}>${e.to}`, source: e.to, target: e.from, color: "#9aa0a6", width: 1.2 } });
+    if (e.type === "generalizes") els.push({ data: { id: `${e.from}>${e.to}`, source: e.to, target: e.from, width: 1.2, alpha: 0.6 } });
   }
   return els;
 }
 
-function unitElements(d: Data, courseId: string): ElementDefinition[] {
-  const units = d.unitsOf.get(courseId) ?? [];
-  const ids = new Set(units.map((u) => u.id));
-  const els: ElementDefinition[] = [];
-  const add = (u: UnitNode, own: boolean) => {
-    const course = node<CourseNode>(d, u.course)!;
-    els.push({ data: { id: u.id, label: own ? `${u.order}. ${u.title}` : `${course.code}\n${u.title}`, color: own ? "#bcd4ff" : "#eeeeea", size: own ? 54 : 40, shape: own ? "ellipse" : "round-rectangle" } });
-  };
-  for (const u of units) add(u, true);
-  for (let i = 1; i < units.length; i++) {
-    els.push({ data: { id: `${units[i - 1].id}>${units[i].id}:o`, source: units[i - 1].id, target: units[i].id, color: "#bcd4ff", width: 1, dashed: true } });
+function unitElements(d: Data, courseId: string, theme: Theme): ElementDefinition[] {
+  const own = d.unitsOf.get(courseId) ?? [];
+  const ownIds = new Set(own.map((u) => u.id));
+  const deps = d.derived.unit_depends_on.filter((e) => ownIds.has(e.from));
+
+  // external units grouped by course, one column per course, in program order (course id)
+  const byCourse = new Map<string, UnitNode[]>();
+  for (const e of deps) {
+    if (byCourse.has(e.to) || ownIds.has(e.to)) continue;
+    const u = node<UnitNode>(d, e.to)!;
+    const list = byCourse.get(u.course) ?? byCourse.set(u.course, []).get(u.course)!;
+    if (!list.some((x) => x.id === u.id)) list.push(u);
   }
-  for (const e of d.derived.unit_depends_on) {
-    if (!ids.has(e.from)) continue;
-    if (!els.some((x) => x.data.id === e.to)) add(node<UnitNode>(d, e.to)!, false);
-    els.push({ data: { id: `${e.to}>${e.from}`, source: e.to, target: e.from, color: e.strength === "hard" ? "#1c1c1a" : "#9aa0a6", width: e.strength === "hard" ? 1.6 : 1 } });
+  const extCourses = [...byCourse.keys()].sort();
+  for (const list of byCourse.values()) list.sort((a, b) => a.order - b.order);
+
+  const els: ElementDefinition[] = [];
+  const stack = (units: UnitNode[], x: number, header: string, color: string, ownCol: boolean) => {
+    const boxes = units.map((u) => boxLabel(ownCol ? `${u.order}.` : "", u.title, 26));
+    const total = boxes.reduce((a, b) => a + b.h + ROW_GAP, -ROW_GAP);
+    let y = -total / 2;
+    els.push({ classes: "header", data: { id: `hdr:${x}`, label: header, w: COL_W - 20, h: 20, fill: NEUTRAL, border: NEUTRAL }, position: { x, y: y - 40 } });
+    units.forEach((u, i) => {
+      const b = boxes[i];
+      els.push({ data: { id: u.id, ...b, fill: tint(color, theme), border: color, dim: !ownCol }, position: { x, y: y + b.h / 2 } });
+      y += b.h + ROW_GAP;
+    });
+  };
+  extCourses.forEach((cid, i) => stack(byCourse.get(cid)!, i * COL_W, node<CourseNode>(d, cid)!.code, NEUTRAL, false));
+  stack(own, extCourses.length * COL_W + 40, node<CourseNode>(d, courseId)!.code, TERM_COLORS[0], true);
+
+  for (let i = 1; i < own.length; i++) {
+    els.push({ data: { id: `${own[i - 1].id}>${own[i].id}:o`, source: own[i - 1].id, target: own[i].id, width: 1, alpha: 0.5, dashed: true, tinted: true, color: TERM_COLORS[0] } });
+  }
+  for (const e of deps) {
+    els.push({ data: { id: `${e.to}>${e.from}`, source: e.to, target: e.from, width: e.strength === "hard" ? 1.4 : 1, alpha: e.strength === "hard" ? 0.8 : 0.3 } });
   }
   return els;
 }
