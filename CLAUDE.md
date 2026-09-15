@@ -95,6 +95,23 @@ Courses and programs
   "prior or concurrent"; free-text requirements go in `requirements:` (not edges).
 - Variants hold term placements only; prereqs live in `courses/`.
 
+## Workflow
+
+- Every piece of work is a GitHub issue first (templates: content, build). One issue = one
+  thing reviewable in a sitting. `ISSUES.md` holds only what is not yet filed.
+- Branch per issue off `main`: `content/<n>-<slug>`, `feat/<n>-<slug>`, `fix/<n>-<slug>`,
+  `chore/<n>-<slug>`. Never commit to `main` directly (branch protection requires a PR
+  with green CI).
+- Discuss the plan before code for anything touching `build/`, the graph/derived JSON
+  shape, or `app/src/data/types.ts` (that file mirrors the Python output; change both).
+  Content-only passes can go straight to implementation.
+- Commits: one logical change each, message says what and why; if it needs "and", split.
+  The pre-commit hook runs `lint.py` (enable once: `git config core.hooksPath .githooks`).
+- PR per branch using the template: what, why, how it was verified (lint/build output,
+  screenshots of the app), what was left out. Run `/code-review` before opening it.
+  CI runs lint -> build_graph -> derive -> report and `npm run build`.
+- Merge when CI is green; then `git switch main && git pull` before the next branch.
+
 ## Content rules
 
 - Own words only. No lecture slides, textbook figures, or copied problem sets.

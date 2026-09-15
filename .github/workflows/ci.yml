@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  content:
+    name: Lint content and build the graph
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python build/lint.py
+      - run: python build/build_graph.py
+      - run: python build/derive.py
+      - run: python analytics/report.py
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: graph
+          path: |
+            graph.json
+            derived.json
+            analytics/report.md
+
+  app:
+    name: Type-check and build the app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+        working-directory: app
+      - run: npm run build          # runs the Python pipeline first via prebuild
+        working-directory: app

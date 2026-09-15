@@ -1,0 +1,11 @@
+#!/bin/sh
+# Validate content before every commit. Enable once per clone with:
+#   git config core.hooksPath .githooks
+set -e
+root=$(git rev-parse --show-toplevel)
+python="$root/.venv/bin/python"
+[ -x "$python" ] || python=python3
+"$python" "$root/build/lint.py" >/dev/null || {
+  echo "lint failed - run: python build/lint.py" >&2
+  exit 1
+}
