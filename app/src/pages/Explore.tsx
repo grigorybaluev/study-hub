@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ElementDefinition, LayoutOptions } from "cytoscape";
 import GraphView, { boxLabel, clearSaved, tint, useTheme } from "../components/GraphView";
-import { compactRows, layered } from "../components/layered";
+import { compactRows } from "../components/layered";
 import { FONT } from "../components/GraphView";
 import { Badge, ConceptChip, CourseChip, UnitLink } from "../components/Chips";
 import { edgesOut, href, node, useData, type Data } from "../data/load";
@@ -54,9 +54,7 @@ export default function Explore() {
     ? "One column per term of the selected variant (assumed-prior and external courses on the left). Solid arrows: official prerequisites; dashed: co-requisites; faint: derived reliance. Click to highlight, double-click to open."
     : view === "units"
     ? "The course's units top to bottom in teaching order (right); the units of other courses they depend on, one column per course (left); arcs beside the spine are dependencies within the course. Click to highlight, double-click to open."
-    : scope === "all"
-    ? "Foundations at the bottom, what builds on them above; colours are domains, clustered within each level. Arrows lead from a concept to the ones that require it; solid = hard, faint = soft, dashed = generalizes. Drag to tidy (remembered). Click to highlight, double-click to open."
-    : "Foundations on the left, what builds on them to the right; each colour band is a domain. Arrows lead from a concept to the ones that require it; solid = hard, faint = soft, dashed = generalizes. Drag to tidy (remembered per scope). Click to highlight, double-click to open.";
+    : "Foundations at the bottom, what builds on them above; colours are domains, clustered within each row. Arrows lead from a concept to the ones that require it; solid = hard, faint = soft, dashed = generalizes. Greyed boxes are concepts from outside the scope that these rest on. Drag to tidy (remembered per scope). Click to highlight, double-click to open.";
 
   return (
     <div className="explore">
@@ -210,12 +208,12 @@ function conceptElements(d: Data, theme: Theme, scope: string): ElementDefinitio
   const shown = new Set([...focus, ...deps.map((e) => e.to)]);
   const gens = d.graph.edges.filter((e) => e.type === "generalizes" && shown.has(e.from) && shown.has(e.to));
 
-  const boxes = d.concepts.filter((c) => shown.has(c.id)).map((c) => ({ c, box: boxLabel("", c.title, scope === "all" ? 26 : 20) }));
+  const boxes = d.concepts.filter((c) => shown.has(c.id)).map((c) => ({ c, box: boxLabel("", c.title, 26) }));
   const lnodes = boxes.map(({ c, box }) => ({ id: c.id, group: c.domain, w: box.w, h: box.h, title: c.title }));
   const ledges = [...deps.map((e) => ({ from: e.from, to: e.to })), ...gens.map((e) => ({ from: e.from, to: e.to }))];
-  const pos = scope === "all"
-    ? compactRows(lnodes, ledges, { groupOrder: DOMAIN_ORDER, maxWidth: 1716, gapX: 9, rowGap: 10 })
-    : layered(lnodes, ledges, { groupOrder: DOMAIN_ORDER, direction: "right", colGap: 70, rowGap: 18, bandGap: 36 });
+  // same bottom-up packing for every scope; smaller graphs get more air between rows
+  const small = lnodes.length < 60;
+  const pos = compactRows(lnodes, ledges, { groupOrder: DOMAIN_ORDER, maxWidth: 1716, gapX: small ? 18 : 9, rowGap: small ? 36 : 10 });
 
   const els: ElementDefinition[] = [];
   for (const { c, box } of boxes) {
