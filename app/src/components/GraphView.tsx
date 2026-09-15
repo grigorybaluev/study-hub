@@ -20,11 +20,11 @@ export function useTheme(): "light" | "dark" {
   return theme;
 }
 
-const FONT = 12;
-const LINE = 15;
-const PAD_X = 12;
-const PAD_Y = 8;
-const CHAR_W = 6.6;
+export const FONT = 14;
+const LINE = 16;
+const PAD_X = 9;
+const PAD_Y = 5;
+const CHAR_W = 7.4;
 
 /** Wrap a title to ~maxChars per line and return the label plus a box size that fits it. */
 export function boxLabel(header: string, title: string, maxChars = 24): { label: string; w: number; h: number } {
@@ -92,6 +92,19 @@ export interface GraphViewProps {
   /** bump to discard remembered positions */
   resetToken?: number;
   height?: string;
+  /** called after fitting with the zoom actually applied */
+  onZoom?: (zoom: number) => void;
+  /** region of the container to fit into, leaving room for overlays */
+  inset?: { top?: number; right?: number; bottom?: number; left?: number };
+}
+
+function fitInto(c: cytoscape.Core, inset: NonNullable<GraphViewProps["inset"]>, maxZoom: number) {
+  const { top = 0, right = 0, bottom = 0, left = 0 } = inset;
+  const bb = c.elements().boundingBox({});
+  const W = c.width(), H = c.height();
+  const z = Math.min((W - left - right) / bb.w, (H - top - bottom) / bb.h, maxZoom);
+  c.zoom(z);
+  c.pan({ x: left + ((W - left - right) - bb.w * z) / 2 - bb.x1 * z, y: top + ((H - top - bottom) - bb.h * z) / 2 - bb.y1 * z });
 }
 
 type Saved = Record<string, { x: number; y: number }>;
@@ -99,7 +112,7 @@ const loadSaved = (key: string): Saved => { try { return JSON.parse(localStorage
 const storeSaved = (key: string, v: Saved) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ } };
 export const clearSaved = (key: string) => { try { localStorage.removeItem(key); } catch { /* ignore */ } };
 
-export default function GraphView({ elements, layout, onSelect, onOpen, highlight, maxZoom = 1.15, positionsKey, resetToken = 0, height = "72vh" }: GraphViewProps) {
+export default function GraphView({ elements, layout, onSelect, onOpen, highlight, maxZoom = 1.15, positionsKey, resetToken = 0, height = "72vh", onZoom, inset }: GraphViewProps) {
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const theme = useTheme();
@@ -117,8 +130,9 @@ export default function GraphView({ elements, layout, onSelect, onOpen, highligh
         storeSaved(positionsKey, all);
       });
     }
-    c.fit(undefined, 24);
-    if (c.zoom() > maxZoom) { c.zoom(maxZoom); c.center(); }
+    fitInto(c, { top: 12, right: 12, bottom: 12, left: 12, ...inset }, maxZoom);
+    onZoom?.(c.zoom());
+    c.on("zoom", () => onZoom?.(c.zoom()));
     c.on("tap", "node", (e) => onSelect?.(e.target.id()));
     c.on("dbltap", "node", (e) => onOpen?.(e.target.id()));
     c.on("tap", (e) => { if (e.target === c) onSelect?.(null); });
@@ -140,5 +154,5 @@ export default function GraphView({ elements, layout, onSelect, onOpen, highligh
     n.connectedEdges().addClass("hi");
   }, [highlight, elements]);
 
-  return <div ref={host} style={{ width: "100%", height, border: "1.5px solid var(--line)", borderRadius: "var(--radius)", background: "var(--bg-elev)" }} />;
+  return <div ref={host} style={{ width: "100%", height, background: "var(--bg-elev)" }} />;
 }

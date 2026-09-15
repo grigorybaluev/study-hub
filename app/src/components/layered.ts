@@ -122,3 +122,82 @@ export function layered(nodes: LNode[], edges: LEdge[], opts: LayeredOptions): M
   }
   return pos;
 }
+
+// ---------------------------------------------------------------------------------------
+// Compact rows: foundations at the bottom; a concept is placed in the lowest row that is
+// above every concept it builds on and still has horizontal room. Sparse dependency levels
+// therefore share rows, which is what lets a whole vocabulary fit on one screen. Within a
+// row nodes are ordered by group (colour clusters) and then by the average x of their
+// dependencies. Deterministic.
+
+export interface CompactOptions {
+  groupOrder: string[];
+  maxWidth: number;
+  gapX?: number;
+  rowGap?: number;
+}
+
+export function compactRows(nodes: LNode[], edges: LEdge[], opts: CompactOptions): Map<string, { x: number; y: number }> {
+  const { maxWidth, gapX = 12, rowGap = 14 } = opts;
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const deps = new Map<string, string[]>();
+  for (const n of nodes) deps.set(n.id, []);
+  for (const e of edges) if (byId.has(e.from) && byId.has(e.to) && e.from !== e.to) deps.get(e.from)!.push(e.to);
+  const state = new Map<string, number>();
+  const drop = new Set<string>();
+  const dfs = (u: string) => {
+    state.set(u, 1);
+    for (const v of deps.get(u)!) {
+      const s = state.get(v);
+      if (s === 1) drop.add(`${u}>${v}`);
+      else if (s === undefined) dfs(v);
+    }
+    state.set(u, 2);
+  };
+  for (const n of nodes) if (!state.has(n.id)) dfs(n.id);
+  for (const [u, list] of deps) deps.set(u, list.filter((v) => !drop.has(`${u}>${v}`)));
+  const rank = new Map<string, number>();
+  const rankOf = (u: string): number => {
+    const r = rank.get(u);
+    if (r !== undefined) return r;
+    const d = deps.get(u)!;
+    const v = d.length ? 1 + Math.max(...d.map(rankOf)) : 0;
+    rank.set(u, v);
+    return v;
+  };
+  for (const n of nodes) rankOf(n.id);
+  const groupIndex = (g: string) => { const i = opts.groupOrder.indexOf(g); return i < 0 ? opts.groupOrder.length : i; };
+
+  // assign rows bottom-up: lowest row above all dependencies with room left
+  const order = [...nodes].sort((a, b) => rank.get(a.id)! - rank.get(b.id)! || groupIndex(a.group) - groupIndex(b.group) || a.title.localeCompare(b.title));
+  const rows: LNode[][] = [];
+  const width: number[] = [];
+  const rowOf = new Map<string, number>();
+  for (const n of order) {
+    const ds = deps.get(n.id)!.map((d) => rowOf.get(d)).filter((v): v is number => v !== undefined);
+    const min = ds.length ? Math.max(...ds) + 1 : 0;
+    let r = min;
+    while (r < rows.length && width[r] + (rows[r].length ? gapX : 0) + n.w > maxWidth) r++;
+    while (rows.length <= r) { rows.push([]); width.push(0); }
+    rows[r].push(n);
+    width[r] += (rows[r].length > 1 ? gapX : 0) + n.w;
+    rowOf.set(n.id, r);
+  }
+
+  // order within rows (bottom-up so barycentres refer to placed rows), then position
+  const pos = new Map<string, { x: number; y: number }>();
+  let y = 0;
+  for (const row of rows) {
+    const bary = (n: LNode) => {
+      const xs = deps.get(n.id)!.map((d) => pos.get(d)?.x).filter((v): v is number => v !== undefined);
+      return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
+    };
+    row.sort((a, b) => groupIndex(a.group) - groupIndex(b.group) || bary(a) - bary(b) || a.title.localeCompare(b.title));
+    const rowW = row.reduce((a, n) => a + n.w, 0) + (row.length - 1) * gapX;
+    const rowH = Math.max(...row.map((n) => n.h));
+    let x = -rowW / 2;
+    for (const n of row) { pos.set(n.id, { x: x + n.w / 2, y: y - rowH / 2 }); x += n.w + gapX; }
+    y -= rowH + rowGap;
+  }
+  return pos;
+}

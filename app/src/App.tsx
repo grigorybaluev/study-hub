@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { DataContext, loadData, type Data } from "./data/load";
 import Search from "./components/Search";
 import ThemeToggle from "./components/ThemeToggle";
@@ -14,6 +14,7 @@ import Analytics from "./pages/Analytics";
 export default function App() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const full = useLocation().pathname.startsWith("/explore");
 
   useEffect(() => {
     loadData().then(setData).catch((e) => setError(String(e)));
@@ -38,7 +39,7 @@ export default function App() {
           <Search />
           <ThemeToggle />
         </header>
-        <main className="main">
+        <main className={full ? "main full" : "main"}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/course/:code" element={<Course />} />

@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ElementDefinition, LayoutOptions } from "cytoscape";
 import GraphView, { boxLabel, clearSaved, tint, useTheme } from "../components/GraphView";
-import { layered } from "../components/layered";
+import { compactRows, layered } from "../components/layered";
+import { FONT } from "../components/GraphView";
 import { Badge, ConceptChip, CourseChip, UnitLink } from "../components/Chips";
 import { edgesOut, href, node, useData, type Data } from "../data/load";
 import type { ConceptNode, CourseNode, UnitNode } from "../data/types";
@@ -23,12 +24,13 @@ const PRESET: LayoutOptions = { name: "preset", padding: 24, fit: true } as Layo
 export default function Explore() {
   const d = useData();
   const nav = useNavigate();
-  const [view, setView] = useState<View>("courses");
+  const [view, setView] = useState<View>("concepts");
   const [variantId, setVariantId] = useState(d.programs[0].variants.find((v) => v.coop)?.id ?? d.programs[0].variants[0].id);
   const [courseId, setCourseId] = useState<string>(d.courses.find((c) => c.code === "MAST221")?.id ?? d.courses[0].id);
   const [scope, setScope] = useState<string>("all");
   const [resetToken, setResetToken] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
   const theme = useTheme();
 
   const elements = useMemo<ElementDefinition[]>(() => {
@@ -46,33 +48,48 @@ export default function Explore() {
     else if (n.type === "unit") nav(href.unit(id));
     else if (n.type === "concept") nav(href.concept(id));
   };
+  const pick = (v: View) => { setView(v); setSelected(null); };
+
+  const help = view === "courses"
+    ? "One column per term of the selected variant (assumed-prior and external courses on the left). Solid arrows: official prerequisites; dashed: co-requisites; faint: derived reliance. Click to highlight, double-click to open."
+    : view === "units"
+    ? "The course's units top to bottom in teaching order (right); the units of other courses they depend on, one column per course (left); arcs beside the spine are dependencies within the course. Click to highlight, double-click to open."
+    : scope === "all"
+    ? "Foundations at the bottom, what builds on them above; colours are domains, clustered within each level. Arrows lead from a concept to the ones that require it; solid = hard, faint = soft, dashed = generalizes. Drag to tidy (remembered). Click to highlight, double-click to open."
+    : "Foundations on the left, what builds on them to the right; each colour band is a domain. Arrows lead from a concept to the ones that require it; solid = hard, faint = soft, dashed = generalizes. Drag to tidy (remembered per scope). Click to highlight, double-click to open.";
 
   return (
-    <>
-      <h1>Explore</h1>
-      <div className="tabs">
-        <button className={view === "courses" ? "active" : ""} onClick={() => { setView("courses"); setSelected(null); }}>Courses</button>
-        <button className={view === "concepts" ? "active" : ""} onClick={() => { setView("concepts"); setSelected(null); }}>Concepts</button>
-        <button className={view === "units" ? "active" : ""} onClick={() => { setView("units"); setSelected(null); }}>Units of a course</button>
-        <span className="spacer" style={{ flex: 1 }} />
+    <div className="explore">
+      <div className="explore-graph">
+        <GraphView elements={elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open}
+          positionsKey={positionsKey} resetToken={resetToken} height="100%" maxZoom={1.3} onZoom={setZoom}
+          inset={{ top: 64, right: 12, bottom: 12, left: 12 }} />
+      </div>
+      <div className="explore-panel">
+        <h1>Explore</h1>
+        <div className="tabs">
+          <button className={view === "concepts" ? "active" : ""} onClick={() => pick("concepts")}>Concepts</button>
+          <button className={view === "courses" ? "active" : ""} onClick={() => pick("courses")}>Courses</button>
+          <button className={view === "units" ? "active" : ""} onClick={() => pick("units")}>Units of a course</button>
+        </div>
         {view === "courses" && (
           <select value={variantId} onChange={(e) => setVariantId(e.target.value)}>
             {d.programs[0].variants.map((v) => <option key={v.id} value={v.id}>{v.name ?? v.id}</option>)}
           </select>
         )}
         {view === "concepts" && (
-          <select value={scope} onChange={(e) => setScope(e.target.value)}>
-            <option value="all">all concepts</option>
-            <optgroup label="introduced by course">
-              {d.courses.filter((c) => (d.unitsOf.get(c.id)?.length ?? 0) > 0).map((c) => <option key={c.id} value={"course:" + c.id}>{c.code} — {c.title}</option>)}
-            </optgroup>
-            <optgroup label="domain">
-              {[...new Set(d.concepts.map((c) => c.domain))].sort().map((dm) => <option key={dm} value={"domain:" + dm}>{dm}</option>)}
-            </optgroup>
-          </select>
-        )}
-        {view === "concepts" && (
-          <button onClick={() => { if (positionsKey) clearSaved(positionsKey); setResetToken((t) => t + 1); }} title="Forget dragged positions and re-run the layout">reset layout</button>
+          <>
+            <select value={scope} onChange={(e) => { setScope(e.target.value); setSelected(null); }}>
+              <option value="all">all concepts</option>
+              <optgroup label="introduced by course">
+                {d.courses.filter((c) => (d.unitsOf.get(c.id)?.length ?? 0) > 0).map((c) => <option key={c.id} value={"course:" + c.id}>{c.code} — {c.title}</option>)}
+              </optgroup>
+              <optgroup label="domain">
+                {[...new Set(d.concepts.map((c) => c.domain))].sort().map((dm) => <option key={dm} value={"domain:" + dm}>{dm}</option>)}
+              </optgroup>
+            </select>
+            <button className="plain" onClick={() => { if (positionsKey) clearSaved(positionsKey); setResetToken((t) => t + 1); }} title="Forget dragged positions and re-run the layout">reset layout</button>
+          </>
         )}
         {view === "units" && (
           <select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
@@ -80,16 +97,10 @@ export default function Explore() {
           </select>
         )}
       </div>
-      <p className="muted small">
-        {view === "courses" && "One column per term of the selected variant (assumed-prior and external courses on the left). Solid arrows: official prerequisites; dashed: co-requisites; faint arrows: derived reliance, thicker = more concepts. Click to highlight, double-click to open."}
-        {view === "concepts" && (scope === "all"
-          ? "Foundations at the bottom, what builds on them above; each colour column is a domain. Arrows lead from a concept to the ones that require it (derived from unit edges), solid = hard, faint = soft, dashed = generalizes. Drag nodes to tidy; positions are remembered. Click to highlight, double-click to open."
-          : "Foundations on the left, what builds on them to the right; each colour band is a domain. Arrows lead from a concept to the ones that require it (derived from unit edges), solid = hard, faint = soft, dashed = generalizes. Drag nodes to tidy; positions are remembered per scope. Click to highlight, double-click to open.")}
-        {view === "units" && "The course's units top to bottom in teaching order (right), and the units of other courses they depend on, one column per course (left). Solid arrows: hard requirements; faint: soft. Click to highlight, double-click to open."}
-      </p>
-      <GraphView elements={elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open} positionsKey={positionsKey} resetToken={resetToken} height={view === "concepts" && scope === "all" ? "85vh" : "72vh"} />
-      {selected && <Selected id={selected} />}
-    </>
+      <div className="explore-zoom" title="Effective label size at the current zoom">text {(FONT * zoom).toFixed(1)} px</div>
+      <div className="explore-help" title={help}>?</div>
+      {selected && <div className="explore-selected"><Selected id={selected} /></div>}
+    </div>
   );
 }
 
@@ -99,16 +110,16 @@ function Selected({ id }: { id: string }) {
   if (!n) return null;
   if (n.type === "course") {
     const c = n as CourseNode;
-    return <p><CourseChip id={c.id} /> {c.title} <Badge kind={c.kind} /> · {d.unitsOf.get(c.id)?.length ?? 0} units</p>;
+    return <div><CourseChip id={c.id} /> {c.title} <Badge kind={c.kind} /> · {d.unitsOf.get(c.id)?.length ?? 0} units</div>;
   }
   if (n.type === "unit") {
     const u = n as UnitNode;
-    return <p><UnitLink id={u.id} /> <Badge kind={u.status} /> — introduces {edgesOut(d, u.id, "introduces").map((e) => <ConceptChip key={e.to} id={e.to} />)}</p>;
+    return <div><UnitLink id={u.id} /> <Badge kind={u.status} /> — introduces {edgesOut(d, u.id, "introduces").map((e) => <ConceptChip key={e.to} id={e.to} />)}</div>;
   }
   if (n.type === "concept") {
     const c = n as ConceptNode;
     const idx = d.derived.concepts[c.id];
-    return <p><ConceptChip id={c.id} /> {c.body} <span className="muted small">— introduced by {idx.introduced_by.length}, required by {idx.required_by.length} units</span></p>;
+    return <div><ConceptChip id={c.id} /> {c.body} <span className="muted small">— introduced by {idx.introduced_by.length}, required by {idx.required_by.length} units</span></div>;
   }
   return null;
 }
@@ -199,14 +210,12 @@ function conceptElements(d: Data, theme: Theme, scope: string): ElementDefinitio
   const shown = new Set([...focus, ...deps.map((e) => e.to)]);
   const gens = d.graph.edges.filter((e) => e.type === "generalizes" && shown.has(e.from) && shown.has(e.to));
 
-  const boxes = d.concepts.filter((c) => shown.has(c.id)).map((c) => ({ c, box: boxLabel("", c.title, 20) }));
-  const pos = layered(
-    boxes.map(({ c, box }) => ({ id: c.id, group: c.domain, w: box.w, h: box.h, title: c.title })),
-    [...deps.map((e) => ({ from: e.from, to: e.to })), ...gens.map((e) => ({ from: e.from, to: e.to }))],
-    scope === "all"
-      ? { groupOrder: DOMAIN_ORDER, direction: "up", colGap: 60, rowGap: 14, bandGap: 44, wrap: 3 }
-      : { groupOrder: DOMAIN_ORDER, direction: "right", colGap: 70, rowGap: 18, bandGap: 36 },
-  );
+  const boxes = d.concepts.filter((c) => shown.has(c.id)).map((c) => ({ c, box: boxLabel("", c.title, scope === "all" ? 26 : 20) }));
+  const lnodes = boxes.map(({ c, box }) => ({ id: c.id, group: c.domain, w: box.w, h: box.h, title: c.title }));
+  const ledges = [...deps.map((e) => ({ from: e.from, to: e.to })), ...gens.map((e) => ({ from: e.from, to: e.to }))];
+  const pos = scope === "all"
+    ? compactRows(lnodes, ledges, { groupOrder: DOMAIN_ORDER, maxWidth: 1716, gapX: 9, rowGap: 10 })
+    : layered(lnodes, ledges, { groupOrder: DOMAIN_ORDER, direction: "right", colGap: 70, rowGap: 18, bandGap: 36 });
 
   const els: ElementDefinition[] = [];
   for (const { c, box } of boxes) {
@@ -214,8 +223,9 @@ function conceptElements(d: Data, theme: Theme, scope: string): ElementDefinitio
     els.push({ data: { id: c.id, ...box, fill: tint(color, theme), border: color, dim: !focus.has(c.id) }, position: pos.get(c.id) });
   }
   // arrows lead from the foundation to what builds on it, matching the left-to-right reading
+  const dense = scope === "all";
   for (const e of deps) {
-    els.push({ data: { id: `${e.from}>${e.to}:d`, source: e.to, target: e.from, width: 0.8 + Math.min(e.weight, 6) * 0.3, alpha: e.strength === "hard" ? 0.7 : 0.28 } });
+    els.push({ data: { id: `${e.from}>${e.to}:d`, source: e.to, target: e.from, width: (dense ? 0.6 : 0.8) + Math.min(e.weight, 6) * (dense ? 0.2 : 0.3), alpha: e.strength === "hard" ? (dense ? 0.45 : 0.7) : (dense ? 0.18 : 0.28) } });
   }
   for (const e of gens) {
     els.push({ data: { id: `${e.from}>${e.to}:g`, source: e.to, target: e.from, width: 1, alpha: 0.5, dashed: true, tinted: true, color: "#a04fb5" } });
