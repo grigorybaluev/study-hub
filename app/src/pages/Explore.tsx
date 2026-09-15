@@ -61,7 +61,7 @@ export default function Explore() {
       <div className="explore-graph">
         <GraphView elements={elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open}
           positionsKey={positionsKey} resetToken={resetToken} height="100%" maxZoom={1.3} onZoom={setZoom}
-          inset={{ top: 64, right: 12, bottom: 12, left: 12 }} />
+          inset={{ top: 96, right: 12, bottom: 12, left: 12 }} />
       </div>
       <div className="explore-panel">
         <h1>Explore</h1>
@@ -93,6 +93,25 @@ export default function Explore() {
           <select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
             {d.courses.filter((c) => (d.unitsOf.get(c.id)?.length ?? 0) > 0).map((c) => <option key={c.id} value={c.id}>{c.code} — {c.title}</option>)}
           </select>
+        )}
+      </div>
+      <div className="explore-legend">
+        {view === "concepts" && DOMAIN_ORDER.filter((dm) => d.concepts.some((c) => c.domain === dm)).map((dm) => (
+          <span key={dm}><i style={{ background: tint(DOMAIN_COLOR[dm], theme), borderColor: DOMAIN_COLOR[dm] }} />{dm}</span>
+        ))}
+        {view === "courses" && (
+          <>
+            {d.programs[0].variants.find((v) => v.id === variantId)!.terms.filter((t) => t.courses).map((t, i) => (
+              <span key={t.index}><i style={{ background: tint(TERM_COLORS[i % TERM_COLORS.length], theme), borderColor: TERM_COLORS[i % TERM_COLORS.length] }} />Y{t.year} {SEASON[t.season]}</span>
+            ))}
+            <span><i style={{ background: tint(NEUTRAL, theme), borderColor: NEUTRAL }} />assumed / external</span>
+          </>
+        )}
+        {view === "units" && (
+          <>
+            <span><i style={{ background: tint(TERM_COLORS[0], theme), borderColor: TERM_COLORS[0] }} />this course</span>
+            <span><i style={{ background: tint(NEUTRAL, theme), borderColor: NEUTRAL }} />other courses</span>
+          </>
         )}
       </div>
       <div className="explore-zoom" title="Effective label size at the current zoom">text {(FONT * zoom).toFixed(1)} px</div>
