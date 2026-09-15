@@ -82,10 +82,12 @@ export default function Explore() {
       </div>
       <p className="muted small">
         {view === "courses" && "One column per term of the selected variant (assumed-prior and external courses on the left). Solid arrows: official prerequisites; dashed: co-requisites; faint arrows: derived reliance, thicker = more concepts. Click to highlight, double-click to open."}
-        {view === "concepts" && "Foundations on the left, what builds on them to the right; arrows lead from a concept to the ones that require it (derived from unit edges), solid = hard, faint = soft, dashed = generalizes. Each colour band is a domain. Drag nodes to tidy; positions are remembered per scope. Scope to a course to see its concepts plus what they rest on. Click to highlight, double-click to open."}
+        {view === "concepts" && (scope === "all"
+          ? "Foundations at the bottom, what builds on them above; each colour column is a domain. Arrows lead from a concept to the ones that require it (derived from unit edges), solid = hard, faint = soft, dashed = generalizes. Drag nodes to tidy; positions are remembered. Click to highlight, double-click to open."
+          : "Foundations on the left, what builds on them to the right; each colour band is a domain. Arrows lead from a concept to the ones that require it (derived from unit edges), solid = hard, faint = soft, dashed = generalizes. Drag nodes to tidy; positions are remembered per scope. Click to highlight, double-click to open.")}
         {view === "units" && "The course's units top to bottom in teaching order (right), and the units of other courses they depend on, one column per course (left). Solid arrows: hard requirements; faint: soft. Click to highlight, double-click to open."}
       </p>
-      <GraphView elements={elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open} positionsKey={positionsKey} resetToken={resetToken} />
+      <GraphView elements={elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open} positionsKey={positionsKey} resetToken={resetToken} height={view === "concepts" && scope === "all" ? "85vh" : "72vh"} />
       {selected && <Selected id={selected} />}
     </>
   );
@@ -201,7 +203,9 @@ function conceptElements(d: Data, theme: Theme, scope: string): ElementDefinitio
   const pos = layered(
     boxes.map(({ c, box }) => ({ id: c.id, group: c.domain, w: box.w, h: box.h, title: c.title })),
     [...deps.map((e) => ({ from: e.from, to: e.to })), ...gens.map((e) => ({ from: e.from, to: e.to }))],
-    { groupOrder: DOMAIN_ORDER, colGap: scope === "all" ? 90 : 70, rowGap: scope === "all" ? 24 : 18, bandGap: scope === "all" ? 60 : 36 },
+    scope === "all"
+      ? { groupOrder: DOMAIN_ORDER, direction: "up", colGap: 60, rowGap: 14, bandGap: 44, wrap: 3 }
+      : { groupOrder: DOMAIN_ORDER, direction: "right", colGap: 70, rowGap: 18, bandGap: 36 },
   );
 
   const els: ElementDefinition[] = [];

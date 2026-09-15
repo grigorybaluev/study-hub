@@ -91,6 +91,7 @@ export interface GraphViewProps {
   positionsKey?: string;
   /** bump to discard remembered positions */
   resetToken?: number;
+  height?: string;
 }
 
 type Saved = Record<string, { x: number; y: number }>;
@@ -98,7 +99,7 @@ const loadSaved = (key: string): Saved => { try { return JSON.parse(localStorage
 const storeSaved = (key: string, v: Saved) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ } };
 export const clearSaved = (key: string) => { try { localStorage.removeItem(key); } catch { /* ignore */ } };
 
-export default function GraphView({ elements, layout, onSelect, onOpen, highlight, maxZoom = 1.15, positionsKey, resetToken = 0 }: GraphViewProps) {
+export default function GraphView({ elements, layout, onSelect, onOpen, highlight, maxZoom = 1.15, positionsKey, resetToken = 0, height = "72vh" }: GraphViewProps) {
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const theme = useTheme();
@@ -139,5 +140,5 @@ export default function GraphView({ elements, layout, onSelect, onOpen, highligh
     n.connectedEdges().addClass("hi");
   }, [highlight, elements]);
 
-  return <div ref={host} style={{ width: "100%", height: "72vh", border: "1.5px solid var(--line)", borderRadius: "var(--radius)", background: "var(--bg-elev)" }} />;
+  return <div ref={host} style={{ width: "100%", height, border: "1.5px solid var(--line)", borderRadius: "var(--radius)", background: "var(--bg-elev)" }} />;
 }
