@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ElementDefinition, LayoutOptions } from "cytoscape";
-import GraphView, { boxLabel, tint, useTheme } from "../components/GraphView";
+import GraphView, { boxLabel, clearSaved, tint, useTheme } from "../components/GraphView";
+import { layered } from "../components/layered";
 import { Badge, ConceptChip, CourseChip, UnitLink } from "../components/Chips";
 import { edgesOut, href, node, useData, type Data } from "../data/load";
 import type { ConceptNode, CourseNode, UnitNode } from "../data/types";
@@ -13,13 +14,11 @@ const DOMAIN_COLOR: Record<string, string> = {
   probability: "#d65c8c", statistics: "#d67f3b", programming: "#2f9e7a", algorithms: "#3f8f4f", systems: "#7a8a3b",
   data: "#2f8fa3", ml: "#c9a227",
 };
+const DOMAIN_ORDER = ["math.discrete", "math.calculus", "math.linear-algebra", "probability", "statistics", "theory", "algorithms", "programming", "systems", "data", "ml"];
 const TERM_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4", "#f97316", "#84cc16", "#a855f7"];
 const NEUTRAL = "#94a3b8";
 
 const PRESET: LayoutOptions = { name: "preset", padding: 24, fit: true } as LayoutOptions;
-const FCOSE: LayoutOptions = { name: "fcose", animate: false, nodeRepulsion: 9000, idealEdgeLength: 90, padding: 24 } as LayoutOptions;
-// dependency DAG: arrows point at foundations, so rank bottom-to-top puts foundations at the bottom
-const LAYERED: LayoutOptions = { name: "dagre", rankDir: "BT", nodeSep: 24, rankSep: 70, padding: 24, ranker: "longest-path" } as LayoutOptions;
 
 export default function Explore() {
   const d = useData();
@@ -27,7 +26,8 @@ export default function Explore() {
   const [view, setView] = useState<View>("courses");
   const [variantId, setVariantId] = useState(d.programs[0].variants.find((v) => v.coop)?.id ?? d.programs[0].variants[0].id);
   const [courseId, setCourseId] = useState<string>(d.courses.find((c) => c.code === "MAST221")?.id ?? d.courses[0].id);
-  const [scope, setScope] = useState<string>("course:" + (d.courses.find((c) => c.code === "COMP232")?.id ?? d.courses[0].id));
+  const [scope, setScope] = useState<string>("all");
+  const [resetToken, setResetToken] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const theme = useTheme();
 
@@ -36,7 +36,8 @@ export default function Explore() {
     if (view === "concepts") return conceptElements(d, theme, scope);
     return unitElements(d, courseId, theme);
   }, [d, view, variantId, courseId, scope, theme]);
-  const layout = view === "concepts" ? (scope === "all" ? FCOSE : LAYERED) : PRESET;
+  const layout = PRESET;
+  const positionsKey = view === "concepts" ? `explore:concepts:${scope}` : undefined;
 
   const open = (id: string) => {
     const n = node(d, id);
@@ -70,6 +71,9 @@ export default function Explore() {
             </optgroup>
           </select>
         )}
+        {view === "concepts" && (
+          <button onClick={() => { if (positionsKey) clearSaved(positionsKey); setResetToken((t) => t + 1); }} title="Forget dragged positions and re-run the layout">reset layout</button>
+        )}
         {view === "units" && (
           <select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
             {d.courses.filter((c) => (d.unitsOf.get(c.id)?.length ?? 0) > 0).map((c) => <option key={c.id} value={c.id}>{c.code} — {c.title}</option>)}
@@ -78,10 +82,10 @@ export default function Explore() {
       </div>
       <p className="muted small">
         {view === "courses" && "One column per term of the selected variant (assumed-prior and external courses on the left). Solid arrows: official prerequisites; dashed: co-requisites; faint arrows: derived reliance, thicker = more concepts. Click to highlight, double-click to open."}
-        {view === "concepts" && "Arrows point from a concept to what it builds on (derived: a unit introducing it requires the other); solid = hard, faint = soft; dashed = generalizes. Colour = domain. Scope to a course to see its concepts plus what they rest on. Click to highlight, double-click to open."}
+        {view === "concepts" && "Foundations on the left, what builds on them to the right; arrows lead from a concept to the ones that require it (derived from unit edges), solid = hard, faint = soft, dashed = generalizes. Each colour band is a domain. Drag nodes to tidy; positions are remembered per scope. Scope to a course to see its concepts plus what they rest on. Click to highlight, double-click to open."}
         {view === "units" && "The course's units top to bottom in teaching order (right), and the units of other courses they depend on, one column per course (left). Solid arrows: hard requirements; faint: soft. Click to highlight, double-click to open."}
       </p>
-      <GraphView elements={elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open} />
+      <GraphView elements={elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open} positionsKey={positionsKey} resetToken={resetToken} />
       {selected && <Selected id={selected} />}
     </>
   );
@@ -191,20 +195,26 @@ function conceptElements(d: Data, theme: Theme, scope: string): ElementDefinitio
   }
   const deps = d.derived.concept_depends_on.filter((e) => focus.has(e.from));
   const shown = new Set([...focus, ...deps.map((e) => e.to)]);
+  const gens = d.graph.edges.filter((e) => e.type === "generalizes" && shown.has(e.from) && shown.has(e.to));
+
+  const boxes = d.concepts.filter((c) => shown.has(c.id)).map((c) => ({ c, box: boxLabel("", c.title, 20) }));
+  const pos = layered(
+    boxes.map(({ c, box }) => ({ id: c.id, group: c.domain, w: box.w, h: box.h, title: c.title })),
+    [...deps.map((e) => ({ from: e.from, to: e.to })), ...gens.map((e) => ({ from: e.from, to: e.to }))],
+    { groupOrder: DOMAIN_ORDER, colGap: scope === "all" ? 90 : 70, rowGap: scope === "all" ? 24 : 18, bandGap: scope === "all" ? 60 : 36 },
+  );
 
   const els: ElementDefinition[] = [];
-  for (const c of d.concepts) {
-    if (!shown.has(c.id)) continue;
+  for (const { c, box } of boxes) {
     const color = DOMAIN_COLOR[c.domain] ?? NEUTRAL;
-    els.push({ data: { id: c.id, ...boxLabel("", c.title, 20), fill: tint(color, theme), border: color, dim: !focus.has(c.id) } });
+    els.push({ data: { id: c.id, ...box, fill: tint(color, theme), border: color, dim: !focus.has(c.id) }, position: pos.get(c.id) });
   }
+  // arrows lead from the foundation to what builds on it, matching the left-to-right reading
   for (const e of deps) {
-    els.push({ data: { id: `${e.from}>${e.to}:d`, source: e.from, target: e.to, width: 0.8 + Math.min(e.weight, 6) * 0.3, alpha: e.strength === "hard" ? 0.75 : 0.3 } });
+    els.push({ data: { id: `${e.from}>${e.to}:d`, source: e.to, target: e.from, width: 0.8 + Math.min(e.weight, 6) * 0.3, alpha: e.strength === "hard" ? 0.7 : 0.28 } });
   }
-  for (const e of d.graph.edges) {
-    if (e.type === "generalizes" && shown.has(e.from) && shown.has(e.to)) {
-      els.push({ data: { id: `${e.from}>${e.to}:g`, source: e.from, target: e.to, width: 1, alpha: 0.5, dashed: true, tinted: true, color: "#a04fb5" } });
-    }
+  for (const e of gens) {
+    els.push({ data: { id: `${e.from}>${e.to}:g`, source: e.to, target: e.from, width: 1, alpha: 0.5, dashed: true, tinted: true, color: "#a04fb5" } });
   }
   return els;
 }

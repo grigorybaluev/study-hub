@@ -1,6 +1,6 @@
 ---
 title: Input/output organization
-order: 5
+order: 6
 status: outline
 textbook: "Hamacher et al., Computer Organization and Embedded Systems, 6e, 3"
 introduces: [io-and-interrupts]

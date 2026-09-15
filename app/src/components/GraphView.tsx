@@ -85,23 +85,46 @@ export interface GraphViewProps {
   onSelect?: (id: string | null) => void;
   onOpen?: (id: string) => void;
   highlight?: string | null;
+  /** never zoom in past this when fitting, so small graphs are not blown up */
+  maxZoom?: number;
+  /** localStorage key under which dragged node positions are remembered */
+  positionsKey?: string;
+  /** bump to discard remembered positions */
+  resetToken?: number;
 }
 
-export default function GraphView({ elements, layout, onSelect, onOpen, highlight }: GraphViewProps) {
+type Saved = Record<string, { x: number; y: number }>;
+const loadSaved = (key: string): Saved => { try { return JSON.parse(localStorage.getItem(key) ?? "{}"); } catch { return {}; } };
+const storeSaved = (key: string, v: Saved) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ } };
+export const clearSaved = (key: string) => { try { localStorage.removeItem(key); } catch { /* ignore */ } };
+
+export default function GraphView({ elements, layout, onSelect, onOpen, highlight, maxZoom = 1.15, positionsKey, resetToken = 0 }: GraphViewProps) {
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const theme = useTheme();
 
   useEffect(() => {
     if (!host.current) return;
-    const c = cytoscape({ container: host.current, elements, style: stylesheet(theme), layout, wheelSensitivity: 0.2 });
+    const c = cytoscape({ container: host.current, elements, style: stylesheet(theme), layout: { ...layout, fit: false } as LayoutOptions, wheelSensitivity: 0.2 });
+    // remembered positions override the layout for the nodes that have them
+    if (positionsKey) {
+      const saved = loadSaved(positionsKey);
+      c.nodes().forEach((n) => { const p = saved[n.id()]; if (p) n.position(p); });
+      c.on("dragfree", "node", () => {
+        const all: Saved = { ...loadSaved(positionsKey) };
+        c.nodes().forEach((n) => { all[n.id()] = n.position(); });
+        storeSaved(positionsKey, all);
+      });
+    }
+    c.fit(undefined, 24);
+    if (c.zoom() > maxZoom) { c.zoom(maxZoom); c.center(); }
     c.on("tap", "node", (e) => onSelect?.(e.target.id()));
     c.on("dbltap", "node", (e) => onOpen?.(e.target.id()));
     c.on("tap", (e) => { if (e.target === c) onSelect?.(null); });
     cy.current = c;
     return () => { c.destroy(); cy.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [elements, layout, theme]);
+  }, [elements, layout, theme, positionsKey, resetToken]);
 
   useEffect(() => {
     const c = cy.current;
