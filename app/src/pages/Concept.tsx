@@ -51,6 +51,8 @@ function ConceptPage({ slug }: { slug: string }) {
     const u = node<UnitNode>(d, p.unit)!;
     (byCourse.get(u.course) ?? byCourse.set(u.course, []).get(u.course)!).push(p);
   }
+  const buildsOn = d.derived.concept_depends_on.filter((e) => e.from === c.id).sort((a, b) => b.weight - a.weight);
+  const neededFor = d.derived.concept_depends_on.filter((e) => e.to === c.id).sort((a, b) => b.weight - a.weight);
   const generalizes = edgesOut(d, c.id, "generalizes").map((e) => e.to);
   const generalizedBy = edgesIn(d, c.id, "generalizes").map((e) => e.from);
   const skills = edgesOut(d, c.id, "maps_to").map((e) => e.to);
@@ -96,6 +98,16 @@ function ConceptPage({ slug }: { slug: string }) {
         )}
       </div>
       <aside className="sidebar">
+        {buildsOn.length > 0 && (
+          <section><h4>Builds on</h4>
+            <ul>{buildsOn.map((e) => <li key={e.to}><ConceptChip id={e.to} /> <Badge kind={e.strength} /></li>)}</ul>
+          </section>
+        )}
+        {neededFor.length > 0 && (
+          <section><h4>Needed for</h4>
+            <ul>{neededFor.map((e) => <li key={e.from}><ConceptChip id={e.from} /> <Badge kind={e.strength} /></li>)}</ul>
+          </section>
+        )}
         {generalizes.length > 0 && <section><h4>Generalizes</h4><p>{generalizes.map((id) => <ConceptChip key={id} id={id} />)}</p></section>}
         {generalizedBy.length > 0 && <section><h4>Generalized by</h4><p>{generalizedBy.map((id) => <ConceptChip key={id} id={id} />)}</p></section>}
         {skills.length > 0 && (

@@ -70,6 +70,8 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
       "target-arrow-shape": "triangle", "arrow-scale": 0.7, "curve-style": "bezier", "control-point-step-size": 30,
     } },
     { selector: "edge[?dashed]", style: { "line-style": "dashed" } },
+    // arcs: edges within one column bow out to the side by data(bulge) px so they stay visible
+    { selector: "edge[bulge]", style: { "curve-style": "unbundled-bezier", "control-point-distances": "data(bulge)" as never, "control-point-weights": 0.5 as never } },
     { selector: "edge[?tinted]", style: { "line-color": "data(color)", "target-arrow-color": "data(color)" } },
     { selector: "edge.dim", style: { "line-opacity": 0.05 as never } },
     { selector: "edge.hi", style: { "line-opacity": 1 as never, width: 2.2 } },

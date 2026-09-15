@@ -1,6 +1,6 @@
 """graph.json -> derived.json: everything computed from the authored graph.
 
-Variant-independent: concept index, unit_depends_on, course_uses, unmet.
+Variant-independent: concept index, unit_depends_on, concept_depends_on, course_uses, unmet.
 Per variant: concept debt by term, re-teaching. Assumed-prior courses count as
 taught before term 0 in every variant.
 """
@@ -56,18 +56,42 @@ def concept_index(g: Graph) -> dict:
 
 
 def unit_depends_on(g: Graph, idx: dict) -> list[dict]:
-    """A depends on every unit introducing a concept A requires (outside A's own course)."""
+    """A depends on every unit introducing a concept A requires. Same-course edges are kept
+    (they are the course's own spine) and flagged with same_course; a unit never depends on
+    itself or on a later unit of its own course."""
     acc: dict[tuple[str, str], dict] = {}
     for u in g.by_type["unit"]:
         for e in g.out[(u["id"], "requires")]:
             for introducer in idx[e["to"]]["introduced_by"]:
-                if g.course_of(introducer) == u["course"]:
+                if introducer == u["id"]:
                     continue
-                d = acc.setdefault((u["id"], introducer), {"via": set(), "hard": False})
+                same = g.course_of(introducer) == u["course"]
+                if same and g.nodes[introducer]["order"] > u["order"]:
+                    continue
+                d = acc.setdefault((u["id"], introducer), {"via": set(), "hard": False, "same": same})
                 d["via"].add(e["to"])
                 d["hard"] |= e["strength"] == "hard"
     return [{"from": a, "to": b, "via": sorted(d["via"]), "strength": "hard" if d["hard"] else "soft",
-             "provenance": "derived"} for (a, b), d in sorted(acc.items())]
+             "same_course": d["same"], "provenance": "derived"} for (a, b), d in sorted(acc.items())]
+
+
+def concept_depends_on(g: Graph, idx: dict) -> list[dict]:
+    """B depends on A when a unit that introduces B requires A. weight = number of such
+    units; strength is hard if any of them requires A hard."""
+    acc: dict[tuple[str, str], dict] = {}
+    for u in g.by_type["unit"]:
+        intro = [e["to"] for e in g.out[(u["id"], "introduces")]]
+        for b in intro:
+            for e in g.out[(u["id"], "requires")]:
+                a = e["to"]
+                if a == b:
+                    continue
+                d = acc.setdefault((b, a), {"weight": 0, "hard": False, "units": set()})
+                d["weight"] += 1
+                d["hard"] |= e["strength"] == "hard"
+                d["units"].add(u["id"])
+    return [{"from": b, "to": a, "weight": d["weight"], "strength": "hard" if d["hard"] else "soft",
+             "via_units": sorted(d["units"]), "provenance": "derived"} for (b, a), d in sorted(acc.items())]
 
 
 def course_uses(g: Graph, idx: dict) -> list[dict]:
@@ -202,6 +226,7 @@ def derive(data: dict) -> dict:
         "meta": {"content_version": g.meta["content_version"], "graph_built": g.meta["built"], "schema": SCHEMA_VERSION},
         "concepts": idx,
         "unit_depends_on": unit_depends_on(g, idx),
+        "concept_depends_on": concept_depends_on(g, idx),
         "course_uses": course_uses(g, idx),
         "unmet": unmet(g, idx),
         "variants": variants,
@@ -216,7 +241,8 @@ def main(graph: Path = GRAPH, out: Path = OUT) -> int:
     d = derive(json.loads(graph.read_text(encoding="utf-8")))
     out.write_text(json.dumps(d, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {out.relative_to(ROOT)} ({out.stat().st_size // 1024} KB)")
-    print(f"unit_depends_on: {len(d['unit_depends_on'])}  course_uses: {len(d['course_uses'])}  unmet: {len(d['unmet'])}")
+    print(f"unit_depends_on: {len(d['unit_depends_on'])}  concept_depends_on: {len(d['concept_depends_on'])}  "
+          f"course_uses: {len(d['course_uses'])}  unmet: {len(d['unmet'])}")
     for vid, v in d["variants"].items():
         debt = sum(len(t.get("debt", [])) for t in v["terms"])
         same = sum(1 for t in v["terms"] for x in t.get("debt", []) if x["same_term"])

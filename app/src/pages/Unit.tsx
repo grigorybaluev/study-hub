@@ -17,7 +17,8 @@ export default function Unit() {
   const introduces = edgesOut(d, unit.id, "introduces");
   const requires = edgesOut(d, unit.id, "requires");
   const reinforces = edgesOut(d, unit.id, "reinforces");
-  const dependsOn = d.derived.unit_depends_on.filter((e) => e.from === unit.id);
+  const dependsOn = d.derived.unit_depends_on.filter((e) => e.from === unit.id && !e.same_course);
+  const dependsOnOwn = d.derived.unit_depends_on.filter((e) => e.from === unit.id && e.same_course);
 
   return (
     <div className="with-sidebar">
@@ -55,6 +56,11 @@ export default function Unit() {
         {reinforces.length > 0 && (
           <section><h4>Reinforces</h4>
             <ul>{reinforces.map((e) => <li key={e.to}><ConceptChip id={e.to} /> {e.perspective && <span className="small muted">— {e.perspective}</span>}</li>)}</ul>
+          </section>
+        )}
+        {dependsOnOwn.length > 0 && (
+          <section><h4>Builds on (this course)</h4>
+            <ul>{dependsOnOwn.map((e) => <li key={e.to}><UnitLink id={e.to} withCourse={false} /> <span className="faint small">via {e.via.join(", ")}</span></li>)}</ul>
           </section>
         )}
         {dependsOn.length > 0 && (

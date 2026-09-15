@@ -50,8 +50,9 @@ Authored edges (the only ones humans write, in unit/concept/course frontmatter):
 - `concept generalizes | part_of concept`; `concept maps_to roadmapNode`
 - `course prereq | coreq course` (official calendar)
 
-Derived (rebuilt by `derive.py`): `unit depends_on unit` (to the earliest introducer in the
-variant's term order), `course uses course` (weighted), `course covers roadmapNode`,
+Derived (rebuilt by `derive.py`): `unit depends_on unit` (every introducer of a required
+concept; same-course edges flagged), `concept depends_on concept` (B on A when a unit
+introducing B requires A), `course uses course` (weighted), `course covers roadmapNode`,
 per-variant concept debt by term, unmet dependencies. Every edge carries
 `provenance: authored | official | derived`.
 

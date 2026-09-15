@@ -130,6 +130,15 @@ export interface UnitDependsOn {
   to: string;
   via: string[];
   strength: "hard" | "soft";
+  same_course: boolean;
+}
+
+export interface ConceptDependsOn {
+  from: string;
+  to: string;
+  weight: number;
+  strength: "hard" | "soft";
+  via_units: string[];
 }
 
 export interface CourseUses {
@@ -186,6 +195,7 @@ export interface Derived {
   meta: { content_version: string; graph_built: string; schema: number };
   concepts: Record<string, ConceptIndex>;
   unit_depends_on: UnitDependsOn[];
+  concept_depends_on: ConceptDependsOn[];
   course_uses: CourseUses[];
   unmet: Unmet[];
   variants: Record<string, VariantAnalysis>;
