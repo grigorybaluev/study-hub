@@ -8,6 +8,7 @@ introduces: [linear-transformation]
 requires:
   - {concept: matrix, strength: hard}
   - {concept: vector-space, strength: hard}
+  - {concept: basis-dimension, strength: hard}
 reinforces: []
 ---
 
