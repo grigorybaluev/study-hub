@@ -1,7 +1,7 @@
 ---
 title: Elementary number theory
 domain: math.discrete
-aliases: ["divisibility", "gcd", "Euclidean algorithm", "congruence"]
+aliases: ["divisibility", "prime", "gcd", "lcm", "division algorithm", "Euclidean algorithm", "congruence"]
 maps_to: [study-hub/ds-core/discrete-mathematics]
 ---
 

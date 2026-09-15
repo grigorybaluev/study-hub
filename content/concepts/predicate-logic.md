@@ -1,7 +1,7 @@
 ---
 title: Predicate logic
 domain: math.discrete
-aliases: ["quantifiers", "rules of inference", "first-order logic"]
+aliases: ["quantifiers", "predicates", "first-order logic", "universe of discourse"]
 maps_to: [study-hub/ds-core/discrete-mathematics]
 ---
 

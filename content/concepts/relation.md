@@ -1,7 +1,7 @@
 ---
 title: Relations
 domain: math.discrete
-aliases: ["equivalence relation", "partial order"]
+aliases: ["equivalence relation", "equivalence class", "partial order", "poset", "Hasse diagram", "closure of a relation"]
 maps_to: [study-hub/ds-core/discrete-mathematics]
 ---
 

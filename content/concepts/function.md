@@ -1,7 +1,7 @@
 ---
 title: Function
 domain: math.calculus
-aliases: ["mapping"]
+aliases: ["mapping", "injective", "surjective", "bijection", "inverse function", "composition", "floor", "ceiling"]
 maps_to: [study-hub/ds-core/calculus]
 ---
 

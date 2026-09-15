@@ -1,7 +1,7 @@
 ---
 title: Sets
 domain: math.discrete
-aliases: ["set operations", "Venn diagram"]
+aliases: ["set operations", "Venn diagram", "power set", "Cartesian product", "partition", "bit-string representation"]
 maps_to: [study-hub/ds-core/discrete-mathematics]
 ---
 
