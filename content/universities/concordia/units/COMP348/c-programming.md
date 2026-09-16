@@ -5,7 +5,8 @@ status: outline
 weeks: [1, 2, 3]
 introduces: [c-programming, pointers]
 requires:
-  - {concept: control-flow, strength: hard}
+  - {concept: selection, strength: hard}
+  - {concept: iteration, strength: hard}
   - {concept: function-definition, strength: hard}
   - {concept: array, strength: hard}
 reinforces: []

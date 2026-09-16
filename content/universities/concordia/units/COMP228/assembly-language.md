@@ -6,7 +6,8 @@ textbook: "Hamacher et al., Computer Organization and Embedded Systems, 6e, 2, A
 introduces: [assembly-language]
 requires:
   - {concept: number-representation, strength: hard}
-  - {concept: control-flow, strength: soft}
+  - {concept: selection, strength: soft}
+  - {concept: iteration, strength: soft}
 reinforces: []
 ---
 

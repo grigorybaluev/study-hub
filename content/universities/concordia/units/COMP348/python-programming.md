@@ -5,7 +5,8 @@ status: outline
 weeks: [4, 5, 6]
 introduces: [python-programming, dynamic-typing, garbage-collection]
 requires:
-  - {concept: control-flow, strength: hard}
+  - {concept: selection, strength: hard}
+  - {concept: iteration, strength: hard}
   - {concept: function-definition, strength: hard}
 reinforces: []
 ---
