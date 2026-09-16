@@ -119,6 +119,9 @@ Courses and programs
   runs `.github/workflows/deploy.yml`, which builds the app and publishes `app/dist` to
   GitHub Pages (https://grigorybaluev.github.io/study-hub/). The site is built only in
   Actions, never from a laptop, so git-ignored personal plans cannot leak into it.
+  Releases are cut from `main` only: the workflow refuses a tag whose commit is not on
+  `main`, and tag rulesets make `v*` tags owner-created and immutable (undoing a release
+  means disabling the "release tags: immutable" ruleset in Settings first).
 
 ## Content rules
 
