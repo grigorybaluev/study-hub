@@ -65,7 +65,7 @@
         if (/[fF]/.test(suf)) { kind = 'float'; j++; } else if (/[dD]/.test(suf)) { kind = 'double'; j++; } else if (/[lL]/.test(suf)) { kind = 'long'; j++; }
         const text = src.slice(i, j).replace(/[_fFdDlL]/g, '');
         const v = kind === 'int' || kind === 'long' ? parseInt(text, 10) : parseFloat(text);
-        if (kind === 'int' && v > 2147483647) throw compileError('integer number too large', line);
+        if (kind === 'int' && v > 2147483648) throw compileError('integer number too large', line);
         toks.push({ t: 'num', v, kind, line }); i = j; continue;
       }
       if (c === '"') {
@@ -173,23 +173,18 @@
           continue;
         }
         const type = this.type();
-        const fname = this.ident();
+        let fname = this.ident();
         if (this.is('(')) {
           this.p--; // unread name
           cls.methods.push(this.methodDecl(mods, name, type, mline));
         } else {
-          for (;;) {
+          for (;;) { // int a, b[] = {1}, c;
             let ftype = type;
             while (this.accept('[')) { this.expect(']'); ftype += '[]'; }
             const init = this.accept('=') ? this.varInit(ftype) : null;
-            cls.fields.push({ name: fname === undefined ? this.ident() : fname, type: ftype, init, static: mods.static, final: mods.final, line: mline });
+            cls.fields.push({ name: fname, type: ftype, init, static: mods.static, final: mods.final, line: mline });
             if (!this.accept(',')) break;
-            fname === undefined; // keep lints quiet
-            const nn = this.ident(); cls.fields[cls.fields.length] = undefined; cls.fields.length--; // placeholder removed below
-            let t2 = type; while (this.accept('[')) { this.expect(']'); t2 += '[]'; }
-            const init2 = this.accept('=') ? this.varInit(t2) : null;
-            cls.fields.push({ name: nn, type: t2, init: init2, static: mods.static, final: mods.final, line: mline });
-            if (!this.accept(',')) break;
+            fname = this.ident();
           }
           this.expect(';');
         }
@@ -353,7 +348,7 @@
       return c;
     }
     binary(level) {
-      const LEVELS = [['||'], ['&&'], ['|'], ['^'], ['&'], ['==', '!='], ['<', '>', '<=', '>='], ['+', '-'], ['*', '/', '%']];
+      const LEVELS = [['||'], ['&&'], ['|'], ['^'], ['&'], ['==', '!='], ['<', '>', '<=', '>='], ['<<', '>>', '>>>'], ['+', '-'], ['*', '/', '%']];
       if (level >= LEVELS.length) return this.unary();
       let l = this.binary(level + 1);
       for (;;) {
@@ -367,6 +362,7 @@
       const t = this.peek();
       if (t.t === 'op') {
         if (t.v === '++' || t.v === '--') { this.next(); const e = this.unary(); return { k: 'IncDec', op: t.v, prefix: true, target: e, line: t.line }; }
+        if (t.v === '-' && this.peek(1).t === 'num' && this.peek(1).kind === 'int' && this.peek(1).v === 2147483648) { this.next(); this.next(); return { k: 'Lit', type: 'int', v: -2147483648, line: t.line }; }
         if (t.v === '-' || t.v === '+' || t.v === '!' || t.v === '~') { this.next(); return { k: 'Unary', op: t.v, e: this.unary(), line: t.line }; }
         if (t.v === '(' && this.peek(1).t === 'kw' && PRIM.has(this.peek(1).v) && this.is(')', 2)) {
           this.next(); const type = this.next().v; this.next();
@@ -405,7 +401,9 @@
     primary() {
       const t = this.next(), line = t.line;
       switch (t.t) {
-        case 'num': return { k: 'Lit', type: t.kind, v: t.v, line };
+        case 'num':
+          if (t.kind === 'int' && t.v > 2147483647) throw compileError('integer number too large', line);
+          return { k: 'Lit', type: t.kind, v: t.v, line };
         case 'str': return { k: 'Lit', type: 'String', v: t.v, line };
         case 'char': return { k: 'Lit', type: 'char', v: t.v, line };
         case 'id':
@@ -632,9 +630,13 @@
       if (!mainCls) throw compileError('no class with a "public static void main(String[] args)" method', 1);
       // static field initialisers, in order
       for (const c of this.unit.classes) for (const f of c.fields) if (f.static) {
-        if (f.block) { yield* this.execBlockIn(f.init, new Env(null, this.pushFrame(`static init of ${c.name}`, null)), true); this.stack.pop(); continue; }
-        c.statics[f.name] = { t: f.type, v: isDefault(f.type).v, final: f.final, name: f.name };
-        if (f.init) { const v = yield* this.evalIn(f.init, new Env(null, this.pushFrame(`static init of ${c.name}`, null))); this.stack.pop(); this.store(c.statics[f.name], v, f.line, true); }
+        const frame = this.pushFrame(`static init of ${c.name}`, null); frame.cls = c;
+        if (f.block) yield* this.execBlockIn(f.init, frame.env, true);
+        else {
+          c.statics[f.name] = { t: f.type, v: isDefault(f.type).v, final: f.final, name: f.name };
+          if (f.init) this.store(c.statics[f.name], yield* this.eval(f.init, frame.env, f.type), f.line, true);
+        }
+        this.stack.pop();
       }
       const main = mainCls.methods.find(m => m.name === 'main' && m.static);
       const args = main.params.length ? [V('String[]', { id: nextId++, elems: [] })] : [];
@@ -650,7 +652,7 @@
     *invoke(cls, m, self, args, line) {
       const frame = this.pushFrame(`${m.name === '<init>' ? cls.name : m.name}(${m.params.map(p => p.type).join(', ')})`, self);
       frame.cls = cls;
-      m.params.forEach((p, i) => frame.env.declare(p.name, p.type, convert(args[i], p.type).v, false, line));
+      m.params.forEach((p, i) => this.store(frame.env.declare(p.name, p.type, null, false, line), args[i], line, true));
       const sig = yield* this.execBlockIn(m.body, frame.env, true);
       if (this.stack.length === 1 && m.name === 'main') this.snap(null, 'finished'); // main's variables stay visible at the end
       this.stack.pop();
@@ -824,9 +826,9 @@
           if (e.op === '!') { if (v.t !== 'boolean') throw compileError(`bad operand type ${v.t} for unary operator '!'`, e.line); return V('boolean', !v.v); }
           if (!isNum(v.t)) throw compileError(`bad operand type ${typeName(v.t)} for unary operator '${e.op}'`, e.line);
           const t = promote(v.t, 'int');
-          if (e.op === '-') return V(t, t === 'int' ? wrapInt(-v.v) : -v.v);
-          if (e.op === '~') return V(t, ~v.v);
-          return V(t, v.v);
+          const r = e.op === '-' ? V(t, t === 'int' ? wrapInt(-v.v) : -v.v) : e.op === '~' ? V(t, ~v.v) : V(t, v.v);
+          if (v.constant && t === 'int') r.constant = true;
+          return r;
         }
         case 'Cast': {
           const v = yield* this.eval(e.e, env);
@@ -848,9 +850,12 @@
           let v = yield* this.eval(e.value, env, ref.t);
           if (e.op !== '=') {
             const cur = ref.get();
-            const fake = { k: 'Bin', op: e.op.slice(0, -1), line: e.line };
-            v = this.binop(fake, cur, v);
-            if (isNum(ref.t) && isNum(v.t)) v = convert(v, ref.t); // compound assignment narrows implicitly
+            if (e.op === '+=' && (cur.t === 'String' || v.t === 'String' || ref.t === 'String')) {
+              v = str((yield* toStr(cur, this, e.line)) + (yield* toStr(v, this, e.line)));
+            } else {
+              v = this.binop({ k: 'Bin', op: e.op.slice(0, -1), line: e.line }, cur, v);
+              if (isNum(ref.t) && isNum(v.t)) v = convert(v, ref.t); // compound assignment narrows implicitly
+            }
           }
           return ref.set(v);
         }
@@ -1040,7 +1045,9 @@
           case '/': if (b === 0) throw runtimeError('ArithmeticException', '/ by zero', e.line); x = Math.trunc(a / b); break;
           case '%': if (b === 0) throw runtimeError('ArithmeticException', '/ by zero', e.line); x = a % b; break;
           case '&': x = a & b; break; case '|': x = a | b; break; case '^': x = a ^ b; break;
-          case '<<': x = a << b; break; case '>>': x = a >> b; break; case '>>>': x = a >>> b; break;
+          case '<<': x = t === 'int' ? a << b : Number(BigInt.asIntN(64, BigInt(a) << BigInt(b & 63))); break;
+          case '>>': x = t === 'int' ? a >> b : Number(BigInt(a) >> BigInt(b & 63)); break;
+          case '>>>': x = t === 'int' ? a >>> b : Number(BigInt.asIntN(64, BigInt.asUintN(64, BigInt(a)) >> BigInt(b & 63))); break;
           default: throw bad();
         }
         return V(t, t === 'int' ? wrapInt(x) : x);
@@ -1086,7 +1093,7 @@
         return yield* this.invoke(cls, { name: '<init>', params: ctor.params, ret: 'void', body: ctor.body, line: ctor.line }, top.self, args, e.line);
       }
       if (!e.target) { // unqualified: method of the current class
-        const cls = top.cls || this.unit.classes[0];
+        const cls = top.cls;
         const m = findMethod(cls, e.name, args, e.line);
         if (!m.static && !top.self) throw compileError(`non-static method ${e.name}(${m.params.map(p => p.type).join(',')}) cannot be referenced from a static context`, e.line);
         return yield* this.invoke(cls, m, m.static ? null : top.self, args, e.line);

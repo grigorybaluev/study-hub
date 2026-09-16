@@ -279,6 +279,42 @@ System.out.println(n);
   return inLoop && JSON.stringify(names) === '["n"]' ? null : `after-loop vars ${JSON.stringify(names)}, i seen in loop: ${!!inLoop}`;
 } });
 
+// regressions from the first code review
+t('shift operators', `System.out.println((1 << 3) + " " + (-16 >> 2) + " " + (-16 >>> 28) + " " + (1L << 40));`, `8 -4 15 1099511627776\n`);
+t('String parameters keep identity', `
+static boolean same(String x, String y) { return x == y; }
+String a = "hi";
+System.out.println(same(a, a) + " " + same(a, new String("hi")) + " " + same("hi", "hi"));
+`, `true false true\n`);
+t('compound += on Strings', `
+String s = "";
+for (int i = 1; i <= 3; i++) s += i;
+s += 'x';
+s += 2.5;
+System.out.println(s);
+`, `123x2.5\n`);
+t('static initialisers see their class', `
+public class Main { public static void main(String[] args) { System.out.println(Cfg.y + " " + Cfg.t.length + " " + Cfg.V); } }
+class Cfg {
+  static int x = 5;
+  static int y = x + 1;
+  static int[] t;
+  static { t = new int[3]; }
+  static int V = mk();
+  static int mk() { return x * 10; }
+}
+`, `6 3 50\n`);
+t('three fields in one declaration', `
+class P { int a, b = 2, c; P() { a = 1; c = 3; } }
+public class Main { public static void main(String[] args) { P p = new P(); System.out.println(p.a + p.b + p.c); } }
+`, `6\n`);
+t('negative byte/short literals and MIN_VALUE', `
+byte b = -1; short s = -5; char c = 65;
+int m = -2147483648;
+System.out.println(b + " " + s + " " + c + " " + m + " " + (m == Integer.MIN_VALUE));
+`, `-1 -5 A -2147483648 true\n`);
+t('2147483648 alone is an error', `int m = 2147483648;`, ``, { expectError: 'compile', errorText: 'too large' });
+
 let pass = 0, fail = 0;
 for (const c of cases) {
   const r = JAVA.run(c.code, c.stdin || '', { maxSteps: 2000 });
