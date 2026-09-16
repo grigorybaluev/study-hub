@@ -1,6 +1,6 @@
 ---
 title: Vector functions and space curves
-order: 7
+order: 8
 status: outline
 weeks: [7]
 textbook: "Stewart, Multivariable Calculus, 9e, 13.1-13.2"

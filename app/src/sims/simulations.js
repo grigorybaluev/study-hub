@@ -503,6 +503,106 @@
                 legend: { orientation: 'h', y: -0.2 } }), cfg());
   }
 
+  // Simpson's rule on [a, b]
+  function simpson(f, a, b, N) {
+    N = N || 400; let acc = 0;
+    for (let i = 0; i <= N; i++) { const t = a + (b - a) * i / N, w = (i === 0 || i === N) ? 1 : (i % 2 ? 4 : 2); acc += w * f(t); }
+    return acc * (b - a) / N / 3;
+  }
+
+  // ── P8. Second derivative and concavity: x = 2t + 3, y = t³ − t ──
+  function paramConcavity() {
+    const id = 'param-concavity';
+    const t0 = val(id, 't0', 0.8);
+    const fx = t => 2 * t + 3, fy = t => t * t * t - t;
+    const dydx = t => (3 * t * t - 1) / 2, d2 = t => 3 * t / 2;         // y' = (3t²−1)/2,  y'' = (3t/2)
+    const [dnx, dny] = samplePath(fx, fy, -1.6, 0, 300);                // concave down (t < 0)
+    const [upx, upy] = samplePath(fx, fy, 0, 1.6, 300);                 // concave up (t > 0)
+    const x0 = fx(t0), y0 = fy(t0), m = dydx(t0);
+    const xs = [x0 - 1.2, x0 + 1.2];
+    Plotly.newPlot(el(id), [
+      { x: dnx, y: dny, mode: 'lines', name: 't < 0: y″ = 3t/2 < 0, concave down', line: { color: '#f87171', width: 3.5 } },
+      { x: upx, y: upy, mode: 'lines', name: 't > 0: y″ = 3t/2 > 0, concave up', line: { color: C_PATH, width: 3.5 } },
+      { x: xs, y: xs.map(x => y0 + m * (x - x0)), mode: 'lines', name: `tangent, slope y′/x′ = ${m.toFixed(3)}`, line: { color: C_TAN, width: 2, dash: 'dash' } },
+      { x: [3], y: [0], mode: 'markers+text', name: 't = 0: inflection (3, 0)', text: ['t = 0'], textposition: 'bottom right', textfont: { color: C_ARROW }, marker: { color: C_ARROW, size: 9, symbol: 'diamond' } },
+      { x: [x0], y: [y0], mode: 'markers', name: `t₀ = ${t0.toFixed(2)}`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } },
+    ], layout({ title: `t₀ = ${t0.toFixed(2)}:  dy/dx = (3t²−1)/2 = ${m.toFixed(3)},   d²y/dx² = 3t/2 = ${d2(t0).toFixed(3)} → ${d2(t0) > 0 ? 'concave up' : d2(t0) < 0 ? 'concave down' : 'inflection'}`,
+                xaxis: ax({ title: 'x = 2t + 3', range: [-0.5, 6.5] }), yaxis: ax({ title: 'y = t³ − t', range: [-3, 3] }),
+                legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── P9. Length of the circle vs distance travelled ────────────
+  function paramLengthDistance() {
+    const id = 'param-length-distance';
+    const T = val(id, 'T', 1) * 2 * Math.PI;                             // upper limit, in turns
+    const fx = t => 3 * Math.cos(t), fy = t => 3 * Math.sin(t);
+    const [cx, cy] = samplePath(fx, fy, 0, 2 * Math.PI, 200);
+    const [px, py] = samplePath(fx, fy, 0, T, 600);
+    const dist = simpson(t => Math.sqrt(9 * Math.sin(t) ** 2 + 9 * Math.cos(t) ** 2), 0, T);   // ∫√(x′²+y′²) dt = 3T
+    const laps = T / (2 * Math.PI);
+    Plotly.newPlot(el(id), [
+      { x: cx, y: cy, mode: 'lines', name: 'C: x = 3cos t, y = 3sin t (length 6π)', line: { color: C_GHOST, width: 1.5, dash: 'dot' } },
+      { x: px, y: py, mode: 'lines', name: `path 0 ≤ t ≤ ${(laps * 2).toFixed(2)}π`, line: { color: C_PATH, width: 4 } },
+      { x: [fx(T)], y: [fy(T)], mode: 'markers', name: 'particle at t = T', marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } },
+      { x: [3], y: [0], mode: 'markers', name: 'start (3, 0)', marker: { color: C_ARROW, size: 8, symbol: 'diamond' } },
+    ], layout({ title: `∫₀ᵀ √(x′² + y′²) dt = ∫₀ᵀ 3 dt = ${dist.toFixed(3)} = ${(dist / Math.PI).toFixed(2)}π  →  ${laps <= 1 ? 'the length of the arc traced so far' : `distance travelled (${laps.toFixed(2)} laps); the curve's length is still 6π ≈ ${(6 * Math.PI).toFixed(3)}`}`,
+                xaxis: ax({ title: 'x', range: [-3.8, 3.8] }), yaxis: ax({ title: 'y', range: [-3.8, 3.8], scaleanchor: 'x', scaleratio: 1 }),
+                legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── P10. Surface of revolution of the upper semicircle ────────
+  function paramSurfaceRevolution() {
+    const id = 'param-surface-revolution';
+    const frac = val(id, 'tmax', 1);                                     // fraction of [0, π] rotated
+    const tmax = frac * Math.PI;
+    const r = 3;
+    const nt = 40, nph = 40;
+    const X = [], Y = [], Z = [];
+    for (let i = 0; i <= nt; i++) {
+      const t = tmax * i / nt, x = r * Math.cos(t), y = r * Math.sin(t);
+      const rx = [], ry = [], rz = [];
+      for (let j = 0; j <= nph; j++) { const ph = 2 * Math.PI * j / nph; rx.push(x); ry.push(y * Math.cos(ph)); rz.push(y * Math.sin(ph)); }
+      X.push(rx); Y.push(ry); Z.push(rz);
+    }
+    const [gx, gy] = samplePath(t => r * Math.cos(t), t => r * Math.sin(t), 0, tmax, 100);
+    const S = simpson(t => 2 * Math.PI * r * Math.sin(t) * r, 0, tmax);   // 2π ∫ y(t) √(x′²+y′²) dt, √(...) = 3
+    Plotly.newPlot(el(id), [
+      { type: 'surface', x: X, y: Y, z: Z, colorscale: [[0, '#065f46'], [1, '#34d399']], showscale: false, opacity: 0.85, name: 'surface' },
+      { type: 'scatter3d', x: gx, y: gy, z: gy.map(() => 0), mode: 'lines', name: 'C: x = 3cos t, y = 3sin t', line: { color: C_PT, width: 6 } },
+      { type: 'scatter3d', x: [-3.5, 3.5], y: [0, 0], z: [0, 0], mode: 'lines', name: 'x-axis', line: { color: C_ARROW, width: 3 } },
+    ], layout({ title: `S = 2π ∫₀^${frac === 1 ? 'π' : (frac).toFixed(2) + 'π'} 3 sin t · 3 dt = ${S.toFixed(3)} = ${(S / Math.PI).toFixed(2)}π   (sphere: 4πr² = 36π ≈ 113.097)`,
+                scene: { xaxis: { title: 'x', range: [-3.5, 3.5] }, yaxis: { title: 'y', range: [-3.5, 3.5] }, zaxis: { title: 'z', range: [-3.5, 3.5] }, aspectmode: 'cube',
+                         camera: { eye: { x: 1.5, y: 1.2, z: 0.9 } } },
+                margin: { t: 40, r: 0, b: 0, l: 0 }, legend: { orientation: 'h', y: -0.05 } }), cfg());
+  }
+
+  // ── P11. The loop x = 3t − t³, y = 3 − t² ─────────────────────
+  function paramLoop() {
+    const id = 'param-loop';
+    const T = val(id, 'T', 2.3);                                         // current parameter, traced from −2.3
+    const fx = t => 3 * t - t * t * t, fy = t => 3 - t * t;
+    const s3 = Math.sqrt(3);
+    const [gx, gy] = samplePath(fx, fy, -2.3, 2.3, 400);
+    const [lx, ly] = samplePath(fx, fy, -s3, s3, 300);
+    const [px, py] = samplePath(fx, fy, -2.3, T, 400);
+    const len = simpson(t => Math.sqrt((3 - 3 * t * t) ** 2 + (2 * t) ** 2), -s3, s3);
+    const area = Math.abs(simpson(t => fy(t) * (3 - 3 * t * t), -s3, s3));                     // |∫ y x′ dt| = 24√3/5
+    const dirX = 3 * (1 - T * T), dirY = -2 * T, nrm = Math.hypot(dirX, dirY) || 1;
+    const traces = [
+      { x: lx.concat([lx[0]]), y: ly.concat([ly[0]]), fill: 'toself', mode: 'lines', name: `loop: area |∫ y x′ dt| = 24√3/5 ≈ ${area.toFixed(3)}`, line: { color: 'rgba(0,0,0,0)' }, fillcolor: 'rgba(0,166,81,.25)' },
+      { x: gx, y: gy, mode: 'lines', name: 'C: x = 3t − t³, y = 3 − t²', line: { color: C_GHOST, width: 1.5, dash: 'dot' } },
+      { x: px, y: py, mode: 'lines', name: `traced from t = −2.3 to ${T.toFixed(2)}`, line: { color: C_PATH, width: 3.5 } },
+      { x: [0], y: [0], mode: 'markers+text', name: 'self-intersection t = ±√3', text: ['t = ±√3'], textposition: 'bottom right', textfont: { color: C_ARROW }, marker: { color: C_ARROW, size: 10, symbol: 'diamond' } },
+      { x: [-2, 2], y: [2, 2], mode: 'markers+text', name: 'vertical tangents t = ∓1', text: ['t = −1', 't = 1'], textposition: ['middle left', 'middle right'], textfont: { color: C_TAN }, marker: { color: C_TAN, size: 9 } },
+      { x: [0], y: [3], mode: 'markers+text', name: 'horizontal tangent t = 0', text: ['t = 0'], textposition: 'top center', textfont: { color: C_TAN }, marker: { color: C_TAN, size: 9, symbol: 'square' } },
+      { x: [fx(T)], y: [fy(T)], mode: 'markers', name: `particle, x′ = ${dirX.toFixed(2)} (${dirX > 0 ? '→' : '←'}), y′ = ${dirY.toFixed(2)} (${dirY > 0 ? '↑' : '↓'})`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } },
+    ];
+    Plotly.newPlot(el(id), traces, layout({ title: `loop length ∫₋√₃^√₃ √((3−3t²)² + (−2t)²) dt ≈ ${len.toFixed(3)};  loop area ≈ ${area.toFixed(3)}`,
+                xaxis: ax({ title: 'x', range: [-6, 6] }), yaxis: ax({ title: 'y', range: [-3.5, 4], scaleanchor: 'x', scaleratio: 1 }),
+                annotations: [{ x: fx(T) + 0.9 * dirX / nrm, y: fy(T) + 0.9 * dirY / nrm, ax: fx(T), ay: fy(T), xref: 'x', yref: 'y', axref: 'x', ayref: 'y', showarrow: true, arrowhead: 3, arrowwidth: 2.5, arrowcolor: C_ARROW, text: '' }],
+                legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
 
   // ══════════════════════════════════════════════════════════════
   //  MAST 221 — Probability
@@ -865,6 +965,10 @@
     'param-smiley':        paramSmiley,
     'param-tangent':       paramTangent,
     'param-area':          paramArea,
+    'param-concavity':     paramConcavity,
+    'param-length-distance': paramLengthDistance,
+    'param-surface-revolution': paramSurfaceRevolution,
+    'param-loop':          paramLoop,
     // MAST 221
     'dice-sum-grid':       diceSumGrid,
     'empirical-dice':      empiricalDice,

@@ -1,6 +1,6 @@
 ---
 title: Functions of several variables, limits and continuity
-order: 9
+order: 10
 status: outline
 weeks: [9]
 textbook: "Stewart, Multivariable Calculus, 9e, 14.1-14.2"
