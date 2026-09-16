@@ -887,9 +887,10 @@
   window.runSim = function (id, cfg) {
     if (SIMS[id]) {
       try { SIMS[id](); } catch (e) { console.warn('Sim error:', id, e); }
-    } else if (cfg && cfg.custom && window.FA) {
-      // custom simulators (automata / grammars) mount themselves into #sim-<id>
-      try { window.FA.mount(id, cfg); } catch (e) { console.warn('Sim error:', id, e); }
+    } else if (cfg && cfg.custom) {
+      // custom simulators mount themselves into #sim-<id>: automata / grammars (default) or the Java stepper
+      const engine = cfg.engine === 'java' ? window.JAVA : window.FA;
+      if (engine) try { engine.mount(id, cfg); } catch (e) { console.warn('Sim error:', id, e); }
     }
   };
 })();

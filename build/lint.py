@@ -171,9 +171,15 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
         if registry is None:
             rep.warn(doc.path, f"sim {cfg['id']!r}: no registry (app/src/sims/registry.yaml) to check against")
         elif cfg.get("custom"):
-            modes = registry.get("automata", {}).get("modes") or []
+            engine = cfg.get("engine", "automata")
+            if engine == "plotly" or engine not in registry:
+                rep.error(doc.path, f"sim {cfg['id']!r}: unknown engine {engine!r}")
+                continue
+            modes = registry.get(engine, {}).get("modes") or []
             if cfg.get("mode", "run") not in modes:
-                rep.error(doc.path, f"sim {cfg['id']!r}: automata mode {cfg.get('mode')!r} not in {modes}")
+                rep.error(doc.path, f"sim {cfg['id']!r}: {engine} mode {cfg.get('mode')!r} not in {modes}")
+            if engine == "java" and not isinstance(cfg.get("code"), str):
+                rep.error(doc.path, f"sim {cfg['id']!r}: java block needs a `code` string")
         elif cfg["id"] not in (registry.get("plotly") or []):
             rep.error(doc.path, f"sim {cfg['id']!r} is not in the registry")
 

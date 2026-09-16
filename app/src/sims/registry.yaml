@@ -1,6 +1,8 @@
 # Simulation registry. lint.py checks every ```sim block in unit bodies against it.
 # plotly: ids in the SIMS table of simulations.js (slider-driven Plotly figures).
 # automata: modes of FA.mount in automata.js; a block with `custom: true` picks one via `mode`.
+# java: the Java-subset stepper in java.js; a block with `custom: true` and `engine: java` carries the
+#   program in `code` (and optionally `stdin`).
 plotly:
   - euler-demo
   - rk4-comparison
@@ -36,3 +38,5 @@ plotly:
   - r-roundoff
 automata:
   modes: [run, convert, minimize, derive, tool, graph, proofs]
+java:
+  modes: [run]
