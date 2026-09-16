@@ -1031,7 +1031,6 @@
         return V('boolean', op === '&' ? (l.v && r.v) : op === '|' ? (l.v || r.v) : (l.v !== r.v));
       }
       if (!isNum(l.t) || !isNum(r.t)) throw bad();
-      if (op === '+' && false) return null;
       const t = promote(l.t, r.t);
       const a = l.v, b = r.v;
       switch (op) {
@@ -1147,11 +1146,13 @@
             s = String(a.v); if (flags.includes(',')) s = s.replace(/\B(?=(\d{3})+(?!\d))/g, ','); if (flags.includes('+') && a.v >= 0) s = '+' + s; break;
           case 'f': if (!isNum(a.t) || INTEGRAL.has(a.t)) throw runtimeError('IllegalFormatConversionException', `f != ${a.t === 'int' ? 'java.lang.Integer' : a.t === 'String' ? 'java.lang.String' : a.t}`, line);
             s = a.v.toFixed(prec === undefined ? 6 : +prec); if (flags.includes(',')) { const [i, f] = s.split('.'); s = i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (f !== undefined ? '.' + f : ''); } if (flags.includes('+') && a.v >= 0) s = '+' + s; break;
-          case 'e': case 'E': s = a.v.toExponential(prec === undefined ? 6 : +prec).replace(/e([+-])(\d)$/, 'e$10$2'); if (conv === 'E') s = s.toUpperCase(); break;
+          case 'e': case 'E': if (!isNum(a.t) || INTEGRAL.has(a.t)) throw runtimeError('IllegalFormatConversionException', `${conv} != ${a.t === 'String' ? 'java.lang.String' : a.t}`, line);
+            s = a.v.toExponential(prec === undefined ? 6 : +prec).replace(/e([+-])(\d)$/, 'e$10$2'); if (conv === 'E') s = s.toUpperCase(); break;
           case 's': case 'S': s = yield* toStr(a, this, line); if (prec !== undefined) s = s.slice(0, +prec); if (conv === 'S') s = s.toUpperCase(); break;
           case 'c': s = a.t === 'char' ? String.fromCharCode(a.v) : (INTEGRAL.has(a.t) ? String.fromCharCode(a.v) : (() => { throw runtimeError('IllegalFormatConversionException', `c != ${a.t}`, line); })()); break;
           case 'b': s = a.t === 'boolean' ? String(a.v) : (a.t === 'null' ? 'false' : 'true'); break;
-          case 'x': case 'X': s = (a.v >>> 0).toString(16); if (conv === 'X') s = s.toUpperCase(); break;
+          case 'x': case 'X': if (!INTEGRAL.has(a.t) || a.t === 'char') throw runtimeError('IllegalFormatConversionException', `${conv} != ${a.t === 'String' ? 'java.lang.String' : a.t}`, line);
+            s = (a.v >>> 0).toString(16); if (conv === 'X') s = s.toUpperCase(); break;
         }
         if (width) { const w = +width; if (s.length < w) s = flags.includes('-') ? s.padEnd(w) : (flags.includes('0') && conv !== 's' ? (s[0] === '-' ? '-' + s.slice(1).padStart(w - 1, '0') : s.padStart(w, '0')) : s.padStart(w)); }
         out += s;
@@ -1241,6 +1242,10 @@
       const argStr = i => { const a = args[i]; if (!a || a.t !== 'String') throw compileError(`method ${name} in class String cannot be applied to given types: found ${args.map(a => typeName(a.t)).join(',')}`, line); return a.v; };
       const argInt = i => { const a = args[i]; if (!a || !INTEGRAL.has(a.t) || a.t === 'long') throw compileError(`incompatible types: ${a ? typeName(a.t) : 'missing'} cannot be converted to int`, line); return a.v; };
       const argChar = i => { const a = args[i]; if (!a || (a.t !== 'char' && a.t !== 'int')) throw compileError(`method ${name} in class String cannot be applied to given types: found ${args.map(a => typeName(a.t)).join(',')}`, line); return String.fromCharCode(a.v); };
+      const ARITY = { length: [0], charAt: [1], substring: [1, 2], indexOf: [1, 2], lastIndexOf: [1], equals: [1], equalsIgnoreCase: [1], compareTo: [1], compareToIgnoreCase: [1],
+        toUpperCase: [0], toLowerCase: [0], trim: [0], strip: [0], isEmpty: [0], isBlank: [0], contains: [1], startsWith: [1], endsWith: [1], replace: [2], concat: [1], repeat: [1],
+        toCharArray: [0], split: [1], toString: [0], hashCode: [0], matches: [1] };
+      if (ARITY[name] && !ARITY[name].includes(args.length)) throw compileError(`method ${name} in class String cannot be applied to given types: required ${ARITY[name][0]} argument(s), found ${args.length}`, line);
       switch (name) {
         case 'length': return V('int', t.length);
         case 'charAt': { const i = argInt(0); if (i < 0 || i >= t.length) throw runtimeError('StringIndexOutOfBoundsException', `Index ${i} out of bounds for length ${t.length}`, line); return V('char', t.charCodeAt(i)); }

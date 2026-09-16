@@ -322,6 +322,10 @@ public class Main { public static void main(String[] args) {
   System.out.println(ps[1].v);
 } }
 `, `true 1\n`, { expectError: 'runtime', errorName: 'NullPointerException' });
+t('String method arity is a compile error', `String s = "ab"; s.indexOf();`, ``, { expectError: 'compile', errorText: 'cannot be applied' });
+t('String replace with one argument', `String s = "ab"; s.replace("a");`, ``, { expectError: 'compile', errorText: 'cannot be applied' });
+t('printf %e with a String', `System.out.printf("%e", "text");`, ``, { expectError: 'runtime', errorName: 'IllegalFormatConversionException' });
+t('printf %e and %x', `System.out.printf("%.2e %x%n", 12345.678, 255);`, `1.23e+04 ff\n`);
 t('2147483648 alone is an error', `int m = 2147483648;`, ``, { expectError: 'compile', errorText: 'too large' });
 
 let pass = 0, fail = 0;
