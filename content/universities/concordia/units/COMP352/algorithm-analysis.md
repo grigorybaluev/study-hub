@@ -6,7 +6,7 @@ textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Ja
 introduces: [algorithm-analysis]
 requires:
   - {concept: function, strength: hard}
-  - {concept: control-flow, strength: hard}
+  - {concept: iteration, strength: hard}
 reinforces: []
 ---
 

@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import Plotly from "plotly.js-dist-min";
 import "./automata.css";
+import "./java.css";
 
 declare global {
   interface Window {
@@ -11,15 +12,17 @@ declare global {
     ctrlVal: (simId: string, ctrlId: string) => number | null;
     runSim: (id: string, cfg?: unknown) => void;
     FA?: unknown;
+    JAVA?: unknown;
   }
 }
 
 const VALUES: Record<string, Record<string, number>> = {};
 window.Plotly = Plotly;
 window.ctrlVal = (simId, ctrlId) => VALUES[simId]?.[ctrlId] ?? null;
-// side-effect imports: define window.runSim and window.FA
+// side-effect imports: define window.runSim, window.FA and window.JAVA
 import "./simulations.js";
 import "./automata.js";
+import "./java.js";
 
 export interface Control {
   id: string;
@@ -36,6 +39,7 @@ export interface SimConfig {
   controls?: Control[];
   note?: string;
   custom?: boolean;
+  engine?: string;
   mode?: string;
   [k: string]: unknown;
 }

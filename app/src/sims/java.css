@@ -1,0 +1,49 @@
+/* Java stepper UI (JAVA.mount in java.js). Follows the theme tokens, unlike the automata engine. */
+.sim-plot.sim-custom:has(.jv-wrap) { background: var(--sim-surface); color: var(--fg); }
+.jv-wrap { padding: .8rem 1rem 1rem; font-size: .88rem; }
+.jv-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .7rem; }
+.jv-toolbar .fa-btn { padding: .38rem .8rem; font-size: .82rem; }
+.jv-toolbar .fa-btn:disabled { opacity: .45; cursor: default; }
+.jv-toolbar .jv-step { background: #2f5fd6; }
+.jv-toolbar .jv-step:hover:not(:disabled) { background: #2563eb; }
+.jv-sep { width: 1px; height: 1.5rem; background: var(--line); margin: 0 .3rem; }
+.jv-status { margin-left: auto; font-size: .8rem; font-weight: 700; color: var(--fg-muted); }
+.jv-main { display: grid; grid-template-columns: minmax(0, 3fr) minmax(220px, 2fr); gap: .8rem; align-items: start; }
+@media (max-width: 720px) { .jv-main { grid-template-columns: 1fr; } }
+.jv-code { min-width: 0; }
+.jv-editor, .jv-listing { width: 100%; box-sizing: border-box; margin: 0; font-family: var(--mono); font-size: .84rem; line-height: 1.55; tab-size: 4;
+  background: var(--code-bg); color: var(--code-fg); border: 1px solid var(--code-line); border-radius: 8px; padding: .6rem .7rem; }
+.jv-editor { resize: vertical; outline: none; white-space: pre; overflow: auto; }
+.jv-editor:focus { border-color: var(--accent); }
+.jv-listing { overflow: auto; max-height: 520px; white-space: pre; cursor: text; }
+.jv-ln { display: block; padding-right: .5rem; border-radius: 4px; }
+.jv-ln.cur { background: rgba(250, 204, 21, .22); box-shadow: inset 3px 0 0 #facc15; }
+.jv-ln.err { background: rgba(239, 68, 68, .25); box-shadow: inset 3px 0 0 #ef4444; }
+.jv-no { display: inline-block; width: 2.2em; margin-right: .6em; text-align: right; color: #6e7681; user-select: none; }
+.jv-listing b { color: #ff7b72; font-weight: 600; }
+.jv-listing i { color: #79c0ff; font-style: normal; }
+.jv-listing .jv-str { color: #a5d6ff; }
+.jv-listing .jv-cm { color: #8b949e; font-style: italic; }
+.jv-side { display: grid; gap: .7rem; min-width: 0; }
+.jv-panel { border: 1px solid var(--line); border-radius: 8px; background: var(--bg-elev); overflow: hidden; }
+.jv-panel-title { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-muted); padding: .35rem .7rem; background: var(--sim-controls-bg); border-bottom: 1px solid var(--line); }
+.jv-vars { padding: .4rem .5rem; max-height: 320px; overflow: auto; display: grid; gap: .45rem; }
+.jv-frame { border-left: 2px solid var(--line); padding-left: .5rem; }
+.jv-frame.top { border-left-color: var(--accent); }
+.jv-frame-name { font-family: var(--mono); font-size: .76rem; font-weight: 700; color: var(--fg-muted); margin-bottom: .15rem; }
+.jv-frame.top .jv-frame-name { color: var(--accent-dk); }
+.jv-frame table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: .8rem; }
+.jv-frame td { padding: .1rem .4rem .1rem 0; vertical-align: top; }
+.jv-frame td:first-child { color: var(--info); white-space: nowrap; width: 1%; }
+.jv-frame td:last-child { word-break: break-word; }
+.jv-frame tr.changed td:last-child { background: rgba(250, 204, 21, .3); border-radius: 3px; }
+.jv-frame tr.new td:last-child { background: rgba(52, 196, 122, .22); border-radius: 3px; }
+.jv-empty { color: var(--fg-faint); font-size: .8rem; padding: .3rem .2rem; }
+.jv-console { margin: 0; padding: .5rem .7rem; min-height: 3.5em; max-height: 240px; overflow: auto; font-family: var(--mono); font-size: .82rem; line-height: 1.5;
+  background: var(--code-bg); color: var(--code-fg); white-space: pre-wrap; word-break: break-word; border: 0; border-radius: 0; }
+.jv-caret { color: #facc15; animation: jv-blink 1s steps(2) infinite; }
+@keyframes jv-blink { to { visibility: hidden; } }
+.jv-err { padding: .45rem .7rem; font-family: var(--mono); font-size: .8rem; line-height: 1.5; color: var(--callout-caution-fg); background: var(--callout-caution-bg); border-top: 1px solid var(--callout-caution-border); }
+.jv-stdin { margin-top: .7rem; display: grid; gap: .3rem; }
+.jv-stdin label { font-size: .78rem; font-weight: 700; color: var(--fg-muted); }
+.jv-stdin-box { width: 100%; box-sizing: border-box; font-family: var(--mono); font-size: .84rem; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-elev); color: var(--fg); resize: vertical; }

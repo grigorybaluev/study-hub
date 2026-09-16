@@ -7,7 +7,7 @@ textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e
 introduces: [monte-carlo-simulation, pseudorandom-number-generation]
 requires:
   - {concept: probability, strength: hard}
-  - {concept: control-flow, strength: hard}
+  - {concept: iteration, strength: hard}
   - {concept: random-variable, strength: soft}
 reinforces:
   - {concept: probability, perspective: "empirical estimation by simulation"}

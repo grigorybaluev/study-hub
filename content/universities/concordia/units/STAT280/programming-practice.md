@@ -6,10 +6,10 @@ weeks: [6, 7]
 textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 4"
 introduces: []
 requires:
-  - {concept: control-flow, strength: hard}
+  - {concept: iteration, strength: hard}
   - {concept: function-definition, strength: hard}
 reinforces:
-  - {concept: control-flow, perspective: "replicate() instead of loops"}
+  - {concept: iteration, perspective: "replicate() instead of loops"}
   - {concept: function-definition, perspective: "guidelines, debugging, efficiency"}
 ---
 
