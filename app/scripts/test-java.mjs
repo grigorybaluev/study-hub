@@ -313,6 +313,15 @@ byte b = -1; short s = -5; char c = 65;
 int m = -2147483648;
 System.out.println(b + " " + s + " " + c + " " + m + " " + (m == Integer.MIN_VALUE));
 `, `-1 -5 A -2147483648 true\n`);
+t('++ wraps at MAX_VALUE', `int big = Integer.MAX_VALUE; big++; int small = Integer.MIN_VALUE; small--; System.out.println(big + " " + small);`, `-2147483648 2147483647\n`);
+t('array of objects starts as nulls', `
+class P { int v = 1; }
+public class Main { public static void main(String[] args) {
+  P[] ps = new P[2]; ps[0] = new P();
+  System.out.println((ps[1] == null) + " " + ps[0].v);
+  System.out.println(ps[1].v);
+} }
+`, `true 1\n`, { expectError: 'runtime', errorName: 'NullPointerException' });
 t('2147483648 alone is an error', `int m = 2147483648;`, ``, { expectError: 'compile', errorText: 'too large' });
 
 let pass = 0, fail = 0;

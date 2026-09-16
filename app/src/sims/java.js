@@ -522,7 +522,7 @@
     const fs = Object.entries(val.v.fields).map(([k, v]) => `${k}=${show(v, depth + 1)}`);
     return `${val.t}#${val.v.id}{${fs.join(', ')}}`;
   }
-  const tagElem = (et, raw) => (raw && typeof raw === 'object' && 't' in raw) ? raw : V(et, raw);
+  const tagElem = (et, raw) => raw === null || raw === undefined ? NULL : (typeof raw === 'object' && 't' in raw) ? raw : V(et, raw);
 
   // Can a value of type `from` be stored in a slot of type `to` (assignment context)?
   function assignable(val, to, ctx) {
@@ -863,7 +863,8 @@
           const ref = yield* this.lvalue(e.target, env);
           const cur = ref.get();
           if (!isNum(cur.t)) throw compileError(`bad operand type ${typeName(cur.t)} for unary operator '${e.op}'`, e.line);
-          const nv = convert(V(promote(cur.t, 'int'), cur.v + (e.op === '++' ? 1 : -1)), cur.t);
+          const d = e.op === '++' ? 1 : -1;
+          const nv = cur.t === 'int' ? V('int', wrapInt(cur.v + d)) : convert(V(promote(cur.t, 'int'), cur.v + d), cur.t);
           ref.set(nv);
           return e.prefix ? nv : cur;
         }
