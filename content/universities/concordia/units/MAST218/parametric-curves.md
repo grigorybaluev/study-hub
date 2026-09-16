@@ -10,12 +10,11 @@ requires:
   - {concept: derivative, strength: hard}
   - {concept: integral, strength: hard}
   - {concept: chain-rule, strength: soft}
-reinforces:
-  - {concept: arc-length, perspective: "along a parametric curve"}
+reinforces: []
 ---
 
-Curves described by parametric equations, sketching them, and doing calculus along them:
-tangent lines, areas, and arc length.
+Curves described by parametric equations, sketching them, and the first calculus along
+them: tangent lines and areas.
 
 ## Parametric Equations & Parametric Curves
 
