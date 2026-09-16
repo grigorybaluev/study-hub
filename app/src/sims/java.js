@@ -563,7 +563,7 @@
     declare(name, type, val, isFinal, line) {
       for (let e = this; e; e = e.parent) { if (e.vars.has(name)) throw compileError(`variable ${name} is already defined in method ${this.frame.name}`, line); if (e.frame && e === e.frame.env) break; }
       const slot = { t: type, v: val, final: !!isFinal, name };
-      this.vars.set(name, slot); this.frame.order.push(slot); return slot;
+      this.vars.set(name, slot); return slot;
     }
   }
   const BREAK = { sig: 'break' }, CONTINUE = { sig: 'continue' };
@@ -613,13 +613,16 @@
       for (const f of this.stack) {
         const vars = [];
         if (f.self) vars.push(['this', show(f.self)]);
-        for (const s of f.order) vars.push([s.name, show(s)]);
+        const scopes = []; // outermost first, so main's variables come before a loop's
+        for (let e = f.scope || f.env; e; e = e.parent) { scopes.unshift(e); if (e === f.env) break; }
+        for (const e of scopes) for (const s of e.vars.values()) vars.push([s.name, show(s)]);
         frames.push({ name: f.name, vars });
       }
       this.trace.push({ line, frames, outLen: this.out.length, note: note || null });
     }
-    *step(line) {
+    *step(line, env) {
       if (++this.steps > this.maxSteps) throw runtimeError('StepLimit', `stopped after ${this.maxSteps} steps — is there an infinite loop?`, line);
+      if (env) env.frame.scope = env;
       this.snap(line);
       yield null;
     }
@@ -636,11 +639,10 @@
       const main = mainCls.methods.find(m => m.name === 'main' && m.static);
       const args = main.params.length ? [V('String[]', { id: nextId++, elems: [] })] : [];
       yield* this.invoke(mainCls, main, null, args, main.line);
-      this.snap(null, 'finished');
     }
     pushFrame(name, self) {
       if (this.stack.length >= this.maxDepth) throw runtimeError('StackOverflowError', 'too many nested method calls', 0);
-      const frame = { name, self, order: [], env: null };
+      const frame = { name, self, env: null, scope: null };
       frame.env = new Env(null, frame);
       this.stack.push(frame);
       return frame;
@@ -650,6 +652,7 @@
       frame.cls = cls;
       m.params.forEach((p, i) => frame.env.declare(p.name, p.type, convert(args[i], p.type).v, false, line));
       const sig = yield* this.execBlockIn(m.body, frame.env, true);
+      if (this.stack.length === 1 && m.name === 'main') this.snap(null, 'finished'); // main's variables stay visible at the end
       this.stack.pop();
       if (sig && sig.sig === 'return') {
         if (m.ret === 'void') throw compileError('incompatible types: unexpected return value', sig.line);
@@ -682,7 +685,7 @@
         case 'Block': return yield* this.execBlockIn(s, env, false);
         case 'Empty': return null;
         case 'VarDecl': {
-          yield* this.step(s.line);
+          yield* this.step(s.line, env);
           for (const d of s.decls) {
             const slot = env.declare(d.name, d.type, isDefault(d.type).v, s.final, s.line);
             slot.assigned = false;
@@ -692,13 +695,13 @@
           return null;
         }
         case 'ExprStmt': {
-          yield* this.step(s.line);
+          yield* this.step(s.line, env);
           if (!['Assign', 'IncDec', 'Call', 'New'].includes(s.expr.k)) throw compileError('not a statement', s.line);
           yield* this.eval(s.expr, env);
           return null;
         }
         case 'If': {
-          yield* this.step(s.line);
+          yield* this.step(s.line, env);
           const c = yield* this.evalBool(s.cond, env);
           if (c) return yield* this.exec(s.then, new Env(env));
           if (s.els) return yield* this.exec(s.els, new Env(env));
@@ -706,7 +709,7 @@
         }
         case 'While': {
           for (;;) {
-            yield* this.step(s.line);
+            yield* this.step(s.line, env);
             if (!(yield* this.evalBool(s.cond, env))) return null;
             const sig = yield* this.exec(s.body, new Env(env));
             if (sig === BREAK) return null;
@@ -718,20 +721,20 @@
             const sig = yield* this.exec(s.body, new Env(env));
             if (sig === BREAK) return null;
             if (sig && sig.sig === 'return') return sig;
-            yield* this.step(s.line);
+            yield* this.step(s.line, env);
             if (!(yield* this.evalBool(s.cond, env))) return null;
           }
         }
         case 'For': {
           const scope = new Env(env);
-          yield* this.step(s.line);
+          yield* this.step(s.line, env);
           if (s.init) {
             if (s.init.k === 'VarDecl') { for (const d of s.init.decls) { const slot = scope.declare(d.name, d.type, isDefault(d.type).v, false, s.line); if (d.init) this.store(slot, yield* this.eval(d.init, scope, d.type), s.line, true); } }
             else for (const e of s.init.exprs) yield* this.eval(e, scope);
           }
           let first = true;
           for (;;) {
-            if (!first) { yield* this.step(s.line); for (const u of s.update) yield* this.eval(u, scope); }
+            if (!first) { yield* this.step(s.line, scope); for (const u of s.update) yield* this.eval(u, scope); }
             first = false;
             if (s.cond && !(yield* this.evalBool(s.cond, scope))) return null;
             const sig = yield* this.exec(s.body, new Env(scope));
@@ -740,14 +743,14 @@
           }
         }
         case 'ForEach': {
-          yield* this.step(s.line);
+          yield* this.step(s.line, env);
           const arr = yield* this.eval(s.iter, env);
           if (arr.t === 'null') throw runtimeError('NullPointerException', 'Cannot read the array length because the array is null', s.line);
           if (!arr.t.endsWith('[]')) throw compileError(`for-each not applicable to expression type ${arr.t}`, s.line);
           const et = arr.t.slice(0, -2);
           const elems = arr.v.elems;
           for (let i = 0; i < elems.length; i++) {
-            if (i > 0) yield* this.step(s.line);
+            if (i > 0) yield* this.step(s.line, env);
             const scope = new Env(env);
             const slot = scope.declare(s.name, s.type, isDefault(s.type).v, false, s.line);
             this.store(slot, tagElem(et, elems[i]), s.line, true);
@@ -758,7 +761,7 @@
           return null;
         }
         case 'Switch': {
-          yield* this.step(s.line);
+          yield* this.step(s.line, env);
           const subj = yield* this.eval(s.subject, env);
           let start = -1;
           for (let i = 0; i < s.cases.length && start < 0; i++) {
@@ -779,10 +782,10 @@
           }
           return null;
         }
-        case 'Break': yield* this.step(s.line); return BREAK;
-        case 'Continue': yield* this.step(s.line); return CONTINUE;
+        case 'Break': yield* this.step(s.line, env); return BREAK;
+        case 'Continue': yield* this.step(s.line, env); return CONTINUE;
         case 'Return': {
-          yield* this.step(s.line);
+          yield* this.step(s.line, env);
           const value = s.value ? yield* this.eval(s.value, env) : V('void', undefined);
           return { sig: 'return', value, line: s.line };
         }
@@ -1357,7 +1360,7 @@
 
       const codeHtml = this.editing
         ? `<textarea class="jv-editor" spellcheck="false" rows="${Math.max(3, lines.length + 1)}">${esc(this.code)}</textarea>`
-        : `<pre class="jv-listing">${lines.map((l, k) => `<span class="jv-ln${curLine === k + 1 ? ' cur' : ''}${errLine === k + 1 ? ' err' : ''}"><span class="jv-no">${k + 1}</span>${highlight(l) || ' '}</span>`).join('\n')}</pre>`;
+        : `<pre class="jv-listing">${lines.map((l, k) => `<span class="jv-ln${curLine === k + 1 ? ' cur' : ''}${errLine === k + 1 ? ' err' : ''}"><span class="jv-no">${k + 1}</span>${highlight(l) || ' '}</span>`).join('')}</pre>`;
 
       let varsHtml = '';
       if (cur) {
@@ -1385,10 +1388,10 @@
             ${this.editing ? '' : `<button class="btn fa-btn fa-secondary" data-act="edit">✎ Edit</button>`}
             <button class="btn fa-btn fa-secondary" data-act="reset" title="restore the original program">⟲ Reset</button>
             ${this.editing ? '' : `<span class="jv-sep"></span>
-            <button class="btn fa-btn fa-secondary" data-act="first" ${this.i === 0 ? 'disabled' : ''}>⏮</button>
+            <button class="btn fa-btn fa-secondary" data-act="first" ${this.i === 0 ? 'disabled' : ''} title="first step">|◀</button>
             <button class="btn fa-btn fa-secondary" data-act="back" ${this.i === 0 ? 'disabled' : ''}>◀ Back</button>
             <button class="btn fa-btn jv-step" data-act="step" ${last ? 'disabled' : ''}>Step ▶</button>
-            <button class="btn fa-btn fa-secondary" data-act="last" ${last ? 'disabled' : ''}>⏭</button>`}
+            <button class="btn fa-btn fa-secondary" data-act="last" ${last ? 'disabled' : ''} title="last step">▶|</button>`}
             <span class="jv-status">${esc(status)}</span>
           </div>
           <div class="jv-main">

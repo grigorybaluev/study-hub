@@ -268,6 +268,17 @@ System.out.println(a[0]);
   return v[0][1] === '#1 [9, 2]' && v[1][1] === '#1 [9, 2]' ? null : JSON.stringify(v);
 } });
 
+t('loop variable leaves scope', `
+int n = 0;
+for (int i = 0; i < 2; i++) n += i;
+System.out.println(n);
+`, `1\n`, { check: r => {
+  const inLoop = r.trace.find(s => s.line === 3 && s.frames[0].vars.some(v => v[0] === 'i'));
+  const after = r.trace.find(s => s.line === 4);
+  const names = after.frames[0].vars.map(v => v[0]);
+  return inLoop && JSON.stringify(names) === '["n"]' ? null : `after-loop vars ${JSON.stringify(names)}, i seen in loop: ${!!inLoop}`;
+} });
+
 let pass = 0, fail = 0;
 for (const c of cases) {
   const r = JAVA.run(c.code, c.stdin || '', { maxSteps: 2000 });
