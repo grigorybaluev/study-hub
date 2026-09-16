@@ -115,6 +115,10 @@ Courses and programs
 - Merge when CI is green with `gh pr merge <n> --squash --delete-branch` (the PR title and
   body become the history, so branch commits need not be tidy); then
   `git switch main && git pull` before the next branch.
+- Releases: `main` is never deployed by itself. `gh release create vX.Y.Z --generate-notes`
+  runs `.github/workflows/deploy.yml`, which builds the app and publishes `app/dist` to
+  GitHub Pages (https://grigorybaluev.github.io/study-hub/). The site is built only in
+  Actions, never from a laptop, so git-ignored personal plans cannot leak into it.
 
 ## Content rules
 
