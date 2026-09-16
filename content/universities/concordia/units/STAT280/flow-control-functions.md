@@ -8,7 +8,8 @@ introduces: []
 requires:
   - {concept: r-programming, strength: hard}
 reinforces:
-  - {concept: control-flow, perspective: "in R"}
+  - {concept: selection, perspective: "in R"}
+  - {concept: iteration, perspective: "in R"}
   - {concept: function-definition, perspective: "in R"}
 ---
 
