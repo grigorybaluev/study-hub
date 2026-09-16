@@ -97,8 +97,10 @@ Courses and programs
 
 ## Workflow
 
-- Every piece of work is a GitHub issue first (templates: content, build). One issue = one
-  thing reviewable in a sitting. `ISSUES.md` holds only what is not yet filed.
+- Every piece of work is a GitHub issue first (templates: content, build; extra labels
+  `finding` for a lint/derive result that needs a decision, `tracking` for a checklist
+  umbrella whose child issues do the work). One issue = one thing reviewable in a
+  sitting. `ISSUES.md` holds only what is not yet filed.
 - Branch per issue off `main`: `content/<n>-<slug>`, `feat/<n>-<slug>`, `fix/<n>-<slug>`,
   `chore/<n>-<slug>`. Never commit to `main` directly (branch protection requires a PR
   with green CI).
@@ -110,7 +112,9 @@ Courses and programs
 - PR per branch using the template: what, why, how it was verified (lint/build output,
   screenshots of the app), what was left out. Run `/code-review` before opening it.
   CI runs lint -> build_graph -> derive -> report and `npm run build`.
-- Merge when CI is green; then `git switch main && git pull` before the next branch.
+- Merge when CI is green with `gh pr merge <n> --squash --delete-branch` (the PR title and
+  body become the history, so branch commits need not be tidy); then
+  `git switch main && git pull` before the next branch.
 
 ## Content rules
 

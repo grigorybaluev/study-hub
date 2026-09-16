@@ -3,7 +3,11 @@
 #   git config core.hooksPath .githooks
 set -e
 root=$(git rev-parse --show-toplevel)
+# In a git worktree the toplevel has no .venv; the main checkout (parent of the
+# common git dir) does.
+main=$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd)")
 python="$root/.venv/bin/python"
+[ -x "$python" ] || python="$main/.venv/bin/python"
 [ -x "$python" ] || python=python3
 "$python" "$root/build/lint.py" >/dev/null || {
   echo "lint failed - run: python build/lint.py" >&2
