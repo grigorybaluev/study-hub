@@ -37,6 +37,8 @@ jobs:
         working-directory: app
       - run: npm run build          # runs the Python pipeline first via prebuild
         working-directory: app
+        env:
+          VITE_APP_VERSION: ${{ github.ref_name }}   # the release tag, shown in the footer
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
