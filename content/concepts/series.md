@@ -1,8 +1,9 @@
 ---
-title: Sequences and series
+title: Series
 domain: math.calculus
-aliases: ["sequence", "convergence tests", "geometric series"]
+aliases: ["infinite series", "partial sums", "geometric series", "telescoping series", "harmonic series", "divergence test"]
 maps_to: [study-hub/ds-core/calculus]
 ---
 
-Infinite sequences, infinite sums, and the tests that decide whether they converge.
+An infinite sum, defined as the limit of its sequence of partial sums; it converges when
+that limit exists and diverges otherwise.

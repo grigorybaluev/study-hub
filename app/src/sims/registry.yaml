@@ -40,6 +40,30 @@ plotly:
   - r-logical-filter
   - r-matrix-index
   - r-roundoff
+  - calc-riemann-sums
+  - calc-signed-area
+  - calc-antiderivative-family
+  - calc-ftc-accumulation
+  - calc-net-change
+  - calc-substitution
+  - calc-parts-area
+  - calc-area-between
+  - calc-average-value
+  - calc-trig-powers
+  - calc-trig-sub
+  - calc-partial-fractions
+  - calc-solid-revolution
+  - calc-improper-p
+  - calc-sequence-limit
+  - calc-geometric-series
+  - calc-integral-test
+  - calc-comparison
+  - calc-alternating
+  - calc-ratio-test
+  - calc-rearrangement
+  - calc-power-series-interval
+  - calc-arctan-series
+  - calc-taylor-polynomials
 automata:
   modes: [run, convert, minimize, derive, tool, graph, proofs]
 java:

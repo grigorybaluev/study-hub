@@ -9,7 +9,7 @@ requires:
   - {concept: expected-value, strength: hard}
   - {concept: moment, strength: hard}
   - {concept: taylor-series, strength: hard}
-  - {concept: integration-techniques, strength: soft}
+  - {concept: integration-by-parts, strength: soft}
 reinforces: []
 ---
 

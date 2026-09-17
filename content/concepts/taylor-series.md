@@ -1,7 +1,7 @@
 ---
 title: Taylor series
 domain: math.calculus
-aliases: ["power series", "Maclaurin series"]
+aliases: ["Maclaurin series", "Taylor polynomial", "Taylor remainder"]
 maps_to: [study-hub/ds-core/calculus]
 ---
 

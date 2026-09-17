@@ -8,7 +8,8 @@ introduces: [continuous-uniform-distribution, exponential-distribution, gamma-di
 requires:
   - {concept: probability-density-function, strength: hard}
   - {concept: improper-integral, strength: hard}
-  - {concept: integration-techniques, strength: hard}
+  - {concept: integration-by-parts, strength: hard}
+  - {concept: substitution-rule, strength: hard}
   - {concept: moment-generating-function, strength: soft}
   - {concept: binomial-distribution, strength: soft}
   - {concept: poisson-distribution, strength: soft}
