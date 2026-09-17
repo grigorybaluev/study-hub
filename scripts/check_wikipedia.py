@@ -32,6 +32,8 @@ def summary(title: str) -> tuple[int, dict | None]:
             return r.status, json.load(r)
     except urllib.error.HTTPError as e:
         return e.code, None
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return 0, None  # network trouble: reported for this slug, the run goes on
 
 
 def main(argv: list[str]) -> int:
@@ -39,6 +41,9 @@ def main(argv: list[str]) -> int:
     only = set(argv)
     problems = 0
     checked = 0
+    for slug in sorted(only - c.concepts.keys()):
+        print(f"{slug}: no such concept")
+        problems += 1
     for slug, doc in sorted(c.concepts.items()):
         if only and slug not in only:
             continue
@@ -49,7 +54,7 @@ def main(argv: list[str]) -> int:
         status, j = summary(title)
         time.sleep(0.1)  # be polite; ~200 requests
         if j is None:
-            print(f"{slug}: {title!r} -> HTTP {status}")
+            print(f"{slug}: {title!r} -> {'HTTP ' + str(status) if status else 'network error'}")
             problems += 1
             continue
         canonical = (j.get("titles") or {}).get("normalized") or j.get("title")
