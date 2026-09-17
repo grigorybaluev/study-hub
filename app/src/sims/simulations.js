@@ -1202,7 +1202,7 @@
   // ── C14. Sequence limit with an ε-band ─────────────────────────
   function calcSequenceLimit() {
     const id = 'calc-sequence-limit';
-    const eps = val(id, 'eps', 0.2), L = 1, a = n => 1 + 2 * (n % 2 ? -1 : 1) / n, K = 60;
+    const eps = val(id, 'eps', 0.2), L = 1, a = n => 1 + 2 * (n % 2 ? -1 : 1) / n, K = 110;   // K ≥ N at the smallest ε (0.02 → N = 101)
     const N = Math.floor(2 / eps) + 1;
     const ns = lin(1, K, K - 1);
     Plotly.newPlot(el(id), [
@@ -1259,7 +1259,7 @@
       { x: [1, K], y: [c, c], mode: 'lines', name: `limit c = ${c}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } },
       { x: ns, y: SA, mode: 'lines+markers', xaxis: 'x2', yaxis: 'y2', name: 'Σ aₙ', line: { color: C_PATH }, marker: { size: 5 } },
       { x: ns, y: SB, mode: 'lines+markers', xaxis: 'x2', yaxis: 'y2', name: 'Σ bₙ (p-series)', line: { color: C_TAN }, marker: { size: 5 } },
-    ], twoRows({ title: `q = ${q.toFixed(1)}:  aₙ/bₙ → ${c},  so Σ 1/(nᵠ + n) and Σ 1/nᵠ ${q > 1 + 1e-9 ? 'both converge (p = q > 1)' : 'both diverge (harmonic)'}`,
+    ], twoRows({ title: `q = ${q.toFixed(1)}:  aₙ/bₙ → ${c}${q > 1 + 1e-9 && q < 1.5 ? ' (slowly: like 1/(1 + n^(1−q)))' : ''},  so Σ 1/(nᵠ + n) and Σ 1/nᵠ ${q > 1 + 1e-9 ? 'both converge (p = q > 1)' : 'both diverge (harmonic)'}`,
                  xaxis: { title: 'n', range: [0, K + 1] }, yaxis: { title: 'ratio', range: [0, 1.1] }, xaxis2: { title: 'n', range: [0, K + 1] }, yaxis2: { title: 'partial sums' } }), cfg());
   }
 
