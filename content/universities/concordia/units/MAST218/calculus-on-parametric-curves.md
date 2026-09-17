@@ -6,8 +6,10 @@ notes: ["Lecture 3 · Wed 16 Sep 2026 · p.1 (second-order derivative, length pr
 weeks: [2]
 textbook: "Stewart, Multivariable Calculus, 9e, 10.2"
 introduces:
+  - {concept: arc-length, perspective: "of a parametric curve, traced exactly once"}
+  - distance-travelled
+  - surface-area
   - surface-of-revolution
-  - {concept: arc-length, perspective: "along a parametric curve"}
 requires:
   - {concept: parametric-curve, strength: hard}
   - {concept: derivative, strength: hard}
