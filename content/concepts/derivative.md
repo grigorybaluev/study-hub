@@ -1,6 +1,7 @@
 ---
 title: Derivative
 domain: math.calculus
+wikipedia: "Derivative"
 aliases: ["differentiation", "product rule", "quotient rule", "implicit differentiation"]
 maps_to: [study-hub/ds-core/calculus]
 ---

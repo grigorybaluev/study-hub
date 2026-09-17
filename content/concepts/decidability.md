@@ -1,6 +1,7 @@
 ---
 title: Decidability
 domain: theory
+wikipedia: "Decidability (logic)"
 aliases: ["undecidability", "recursive language", "recursively enumerable", "reduction"]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---

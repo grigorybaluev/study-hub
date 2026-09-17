@@ -1,6 +1,7 @@
 ---
 title: Poisson distribution
 domain: probability
+wikipedia: "Poisson distribution"
 maps_to: [study-hub/ds-core/distributions]
 ---
 

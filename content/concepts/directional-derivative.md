@@ -1,6 +1,7 @@
 ---
 title: Directional derivative
 domain: math.calculus
+wikipedia: "Directional derivative"
 maps_to: [study-hub/ds-core/calculus]
 ---
 

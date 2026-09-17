@@ -1,6 +1,7 @@
 ---
 title: Arc length
 domain: math.calculus
+wikipedia: "Arc length"
 maps_to: [study-hub/ds-core/calculus]
 ---
 

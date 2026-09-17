@@ -1,6 +1,7 @@
 ---
 title: Inheritance
 domain: programming
+wikipedia: "Inheritance (object-oriented programming)"
 aliases: ["subclass", "overriding"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---

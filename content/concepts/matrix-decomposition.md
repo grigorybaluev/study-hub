@@ -1,6 +1,7 @@
 ---
 title: Matrix decompositions
 domain: math.linear-algebra
+wikipedia: "Matrix decomposition"
 aliases: ["LU", "QR", "SVD", "singular value decomposition"]
 maps_to: [study-hub/ds-core/linear-algebra, study-hub/ds-core/numerical-methods]
 ---

@@ -1,6 +1,7 @@
 ---
 title: Tangent plane and linearization
 domain: math.calculus
+short: "tangent plane"
 generalizes: [linear-approximation]
 maps_to: [study-hub/ds-core/calculus]
 ---

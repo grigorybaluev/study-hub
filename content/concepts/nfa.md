@@ -1,6 +1,8 @@
 ---
 title: Nondeterministic finite automaton
 domain: theory
+wikipedia: "Nondeterministic finite automaton"
+short: "NFA"
 aliases: ["NFA", "subset construction"]
 generalizes: [dfa]
 maps_to: [study-hub/ds-core/theory-of-computation]

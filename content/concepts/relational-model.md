@@ -1,6 +1,7 @@
 ---
 title: Relational model
 domain: data
+wikipedia: "Relational model"
 aliases: ["relation schema", "primary key", "foreign key"]
 maps_to: [study-hub/ds-core/data-modelling]
 ---

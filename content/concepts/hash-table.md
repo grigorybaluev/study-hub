@@ -1,6 +1,7 @@
 ---
 title: Hash tables
 domain: algorithms
+wikipedia: "Hash table"
 aliases: ["hashing", "collision resolution"]
 maps_to: [study-hub/ds-core/data-structures-algorithms]
 ---

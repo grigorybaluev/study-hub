@@ -1,6 +1,7 @@
 ---
 title: Regular expressions
 domain: theory
+wikipedia: "Regular expression"
 aliases: ["regex"]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---

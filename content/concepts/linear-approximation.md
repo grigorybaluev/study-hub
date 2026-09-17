@@ -1,6 +1,7 @@
 ---
 title: Linear approximation
 domain: math.calculus
+wikipedia: "Linear approximation"
 aliases: ["linearization", "differential"]
 maps_to: [study-hub/ds-core/calculus]
 ---

@@ -1,6 +1,7 @@
 ---
 title: Markov chains
 domain: probability
+wikipedia: "Markov chain"
 aliases: ["transition matrix"]
 maps_to: [study-hub/ds-core/stochastic-processes]
 ---

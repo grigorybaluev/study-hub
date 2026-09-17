@@ -1,6 +1,7 @@
 ---
 title: Trigonometric integrals
 domain: math.calculus
+short: "trig integrals"
 aliases: ["powers of sine and cosine", "powers of tangent and secant", "product-to-sum formulas"]
 maps_to: [study-hub/ds-core/calculus]
 ---

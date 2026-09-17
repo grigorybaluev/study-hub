@@ -1,6 +1,7 @@
 ---
 title: Categorical variables
 domain: data
+wikipedia: "Categorical variable"
 aliases: ["categorical", "levels"]
 maps_to: [study-hub/ds-core/data-wrangling]
 ---

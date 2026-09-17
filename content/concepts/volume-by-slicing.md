@@ -1,6 +1,8 @@
 ---
 title: Volume by slicing
 domain: math.calculus
+wikipedia: "Solid of revolution"
+short: "slicing"
 aliases: ["cross-section", "solid of revolution", "disk method", "washer method"]
 maps_to: [study-hub/ds-core/calculus]
 ---

@@ -1,6 +1,7 @@
 ---
 title: Iteration
 domain: programming
+wikipedia: "Iteration"
 aliases: ["loop", "for loop", "while loop", "do-while", "nested loops"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---

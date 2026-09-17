@@ -1,6 +1,7 @@
 ---
 title: Algorithm analysis
 domain: algorithms
+wikipedia: "Analysis of algorithms"
 aliases: ["big-O", "asymptotic notation", "time complexity"]
 maps_to: [study-hub/ds-core/data-structures-algorithms]
 ---

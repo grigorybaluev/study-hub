@@ -1,6 +1,7 @@
 ---
 title: Rules of inference
 domain: math.discrete
+wikipedia: "Rule of inference"
 aliases: ["valid argument", "modus ponens", "modus tollens", "fallacy", "universal instantiation"]
 maps_to: [study-hub/ds-core/discrete-mathematics]
 ---

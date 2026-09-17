@@ -1,6 +1,7 @@
 ---
 title: Conditional probability
 domain: probability
+wikipedia: "Conditional probability"
 aliases: ["P(A|B)", "multiplication rule"]
 maps_to: [study-hub/ds-core/probability-theory]
 ---

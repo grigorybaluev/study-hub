@@ -1,6 +1,7 @@
 ---
 title: Graph traversal
 domain: algorithms
+wikipedia: "Graph traversal"
 aliases: ["DFS", "BFS"]
 maps_to: [study-hub/ds-core/data-structures-algorithms]
 ---

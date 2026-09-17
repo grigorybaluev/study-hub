@@ -1,6 +1,7 @@
 ---
 title: Interfaces
 domain: programming
+wikipedia: "Interface (object-oriented programming)"
 aliases: ["abstract type"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---

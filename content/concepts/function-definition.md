@@ -1,6 +1,7 @@
 ---
 title: Functions and methods
 domain: programming
+wikipedia: "Function (computer programming)"
 aliases: ["method", "parameter", "return value", "scope"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---

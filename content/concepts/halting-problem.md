@@ -1,6 +1,7 @@
 ---
 title: Halting problem
 domain: theory
+wikipedia: "Halting problem"
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

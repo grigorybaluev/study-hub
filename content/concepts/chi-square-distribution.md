@@ -1,6 +1,7 @@
 ---
 title: Chi-square distribution
 domain: probability
+wikipedia: "Chi-squared distribution"
 maps_to: [study-hub/ds-core/distributions, study-hub/ds-core/hypothesis-testing]
 ---
 

@@ -1,6 +1,8 @@
 ---
 title: Surface of revolution
 domain: math.calculus
+wikipedia: "Surface of revolution"
+short: "revolution surface"
 aliases: ["surface area of revolution", "area of a surface of revolution"]
 maps_to: [study-hub/ds-core/calculus]
 ---

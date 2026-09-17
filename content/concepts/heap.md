@@ -1,6 +1,7 @@
 ---
 title: Heap
 domain: algorithms
+wikipedia: "Heap (data structure)"
 aliases: ["binary heap", "heap sort"]
 maps_to: [study-hub/ds-core/data-structures-algorithms]
 ---

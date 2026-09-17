@@ -1,6 +1,8 @@
 ---
 title: Universal Turing machine
 domain: theory
+wikipedia: "Universal Turing machine"
+short: "UTM"
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

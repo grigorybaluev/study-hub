@@ -1,6 +1,7 @@
 ---
 title: Sequence
 domain: math.calculus
+wikipedia: "Sequence"
 aliases: ["limit of a sequence", "bounded sequence", "monotonic sequence", "monotone convergence theorem", "recursive sequence"]
 maps_to: [study-hub/ds-core/calculus]
 ---

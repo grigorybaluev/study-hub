@@ -1,6 +1,7 @@
 ---
 title: Regular languages
 domain: theory
+wikipedia: "Regular language"
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

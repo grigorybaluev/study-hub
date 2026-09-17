@@ -1,6 +1,7 @@
 ---
 title: Parametric curve
 domain: math.calculus
+wikipedia: "Parametric equation"
 aliases: ["parametric equations"]
 maps_to: [study-hub/ds-core/calculus]
 ---

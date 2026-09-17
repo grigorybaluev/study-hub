@@ -1,6 +1,8 @@
 ---
 title: Fundamental theorem of calculus
 domain: math.calculus
+wikipedia: "Fundamental theorem of calculus"
+short: "FTC"
 aliases: ["FTC", "evaluation theorem", "accumulation function", "mean value theorem for integrals"]
 maps_to: [study-hub/ds-core/calculus]
 ---

@@ -1,6 +1,7 @@
 ---
 title: Matrix inverse
 domain: math.linear-algebra
+wikipedia: "Invertible matrix"
 aliases: ["invertible matrix"]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---

@@ -1,6 +1,7 @@
 ---
 title: Series
 domain: math.calculus
+wikipedia: "Series (mathematics)"
 aliases: ["infinite series", "partial sums", "geometric series", "telescoping series", "harmonic series", "divergence test"]
 maps_to: [study-hub/ds-core/calculus]
 ---
