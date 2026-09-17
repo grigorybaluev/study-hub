@@ -833,6 +833,40 @@ public class Main {
 t('unterminated generic arguments in outer.new is a compile error, not a hang', `
 public class Main { class In {} public static void main(String[] args) { Main m = new Main(); Main.In i = m.new In<(); } }`, ``, { expectError: 'compile' });
 
+
+t('type arguments of a user generic class are checked on calls', `
+class Box<T> { private T item; void set(T x) { item = x; } T get() { return item; } }
+public class Main { public static void main(String[] args) { Box<Integer> b = new Box<>(); b.set(41); int n = b.get() + 1; System.out.println(n); b.set("no"); } }`, ``, { expectError: 'compile', errorText: 'String cannot be converted to Integer' });
+
+t('a catch of a superclass before its subclass is a compile error, before anything runs', `
+public class Main { public static void main(String[] args) { System.out.println("x"); try { int a = 1 / 0; } catch (RuntimeException e) { } catch (ArithmeticException e) { } } }`, ``, { expectError: 'compile', errorText: 'has already been caught' });
+
+t('abstract instantiation is refused before the program runs', `
+abstract class S { }
+public class Main { public static void main(String[] args) { System.out.println("printed?"); S s = new S(); } }`, ``, { expectError: 'compile', errorText: 'S is abstract; cannot be instantiated' });
+
+t('a private nested class is not visible outside its outer class', `
+class Bank { private static class Account { } }
+public class Main { public static void main(String[] args) { new Bank.Account(); } }`, ``, { expectError: 'compile', errorText: 'Account has private access in Bank' });
+
+t('a local captured by a lambda must be effectively final', `
+interface F { int f(int x); }
+public class Main { public static void main(String[] args) { int k = 1; F g = x -> x + k; k = 2; System.out.println(g.f(1)); } }`, ``, { expectError: 'compile', errorText: 'effectively final' });
+
+t('return; in a void method; Map.get of a missing key unboxes to a NullPointerException', `
+import java.util.*;
+public class Main {
+  static void f(int x) { if (x > 0) return; System.out.println("non-positive"); }
+  public static void main(String[] args) { f(1); f(0); Map<String, Integer> m = new HashMap<>(); int n = m.get("cow"); }
+}`, `non-positive\n`, { expectError: 'runtime', errorName: 'NullPointerException' });
+
+t('a T-typed local in a bounded generic method accepts the argument type', `
+class Thing implements Comparable<Thing> { int v; Thing(int v) { this.v = v; } public int compareTo(Thing o) { return v - o.v; } }
+public class Main {
+  static <T extends Comparable<T>> T maxOf(T[] items) { T best = items[0]; for (T x : items) if (x.compareTo(best) > 0) best = x; return best; }
+  public static void main(String[] args) { Thing[] ts = { new Thing(3), new Thing(9), new Thing(4) }; System.out.println(maxOf(ts).v); }
+}`, `9\n`);
+
 let pass = 0, fail = 0;
 for (const c of cases) {
   const r = JAVA.run(c.code, c.stdin || '', { maxSteps: 4000 });

@@ -239,7 +239,7 @@
       if (kind === 'class') this.expect('class'); else this.next();
       const name = this.ident();
       const cls = this.newClass(name, line);
-      cls.kind = kind; cls.abstract = mods.abstract || kind === 'interface'; cls.final = mods.final || kind === 'enum';
+      cls.kind = kind; cls.abstract = mods.abstract || kind === 'interface'; cls.final = mods.final || kind === 'enum'; cls.access = mods.access;
       cls.static = !outer || mods.static || kind !== 'class';
       cls.outerName = outer ? outer.name : null;
       if (this.unit.classes.some(c => c.name === name)) throw compileError(`duplicate class: ${name}`, line);
@@ -304,17 +304,18 @@
           continue;
         }
         const type = this.type();
+        const generic = this.tv, tvName = this.tvName;
         let fname = this.ident();
         if (this.is('(')) {
           this.p--; // unread name
-          cls.methods.push(this.methodDecl(mods, cls, type, mline));
+          cls.methods.push(this.methodDecl(mods, cls, type, mline, generic, tvName));
         } else {
           for (;;) { // int a, b[] = {1}, c;
             let ftype = type;
             while (this.accept('[')) { this.expect(']'); ftype += '[]'; }
             const init = this.accept('=') ? this.varInit(ftype) : null;
             const isStatic = mods.static || cls.kind === 'interface';
-            cls.fields.push({ name: fname, type: ftype, init, static: isStatic, final: mods.final || cls.kind === 'interface', line: mline, access: mods.access });
+            cls.fields.push({ name: fname, type: ftype, init, static: isStatic, final: mods.final || cls.kind === 'interface', line: mline, access: mods.access, generic });
             if (!this.accept(',')) break;
             fname = this.ident();
           }
@@ -328,8 +329,8 @@
       if (this.accept('throws')) { do list.push(erase(this.type())); while (this.accept(',')); }
       return list;
     }
-    methodDecl(mods, cls, type, line) {
-      if (type === undefined) { line = this.peek().line; type = this.type(); }
+    methodDecl(mods, cls, type, line, retGeneric, retTvar) {
+      if (type === undefined) { line = this.peek().line; type = this.type(); retGeneric = this.tv; retTvar = this.tvName; }
       const name = this.ident();
       const params = this.params();
       while (this.accept('[')) { this.expect(']'); type += '[]'; }
@@ -344,8 +345,7 @@
         if (inInterface && !mods.static && !mods.default) throw compileError('interface abstract methods cannot have body', line);
         body = this.block();
       }
-      const retGeneric = this.isTypeVar(type);
-      return { name, params, ret: type, static: mods.static, body, line, abstract: body === null, final: mods.final, access: mods.access, throws: throwsList, retGeneric, default: mods.default };
+      return { name, params, ret: type, static: mods.static, body, line, abstract: body === null, final: mods.final, access: mods.access, throws: throwsList, retGeneric: !!retGeneric, retTvar: retTvar || null, default: mods.default };
     }
     params() {
       this.expect('(');
@@ -354,16 +354,16 @@
         do {
           this.modifiers();
           let type = this.type();
+          const generic = this.tv, tvar = this.tvName;
           if (this.accept('...')) type += '[]';
           const name = this.ident();
           while (this.accept('[')) { this.expect(']'); type += '[]'; }
-          ps.push({ type, name, generic: this.isTypeVar(type) });
+          ps.push({ type, name, generic, tvar });
         } while (this.accept(','));
       }
       this.expect(')');
       return ps;
     }
-    isTypeVar(name) { return this.tp.length > 0 && name in this.tp[this.tp.length - 1]; }
     // a type: primitives, names (type variables erased to their bound), generic arguments kept as text, arrays
     type() {
       const t = this.peek();
@@ -372,7 +372,8 @@
       else if (t.t === 'op' && t.v === '?') { this.next(); name = 'Object'; if (this.accept('extends')) name = this.type(); else if (this.accept('super')) this.type(); return name; }
       else if (t.t === 'id') { name = this.next().v; while (this.is('.') && this.peek(1).t === 'id') { this.next(); name = this.next().v; } }
       else throw compileError(`<identifier> expected, found '${t.v}'`, t.line);
-      if (this.tp.length && name in this.tp[this.tp.length - 1]) name = this.tp[this.tp.length - 1][name];
+      let wasTypeVar = false, tvName = null;
+      if (this.tp.length && name in this.tp[this.tp.length - 1]) { tvName = name; name = this.tp[this.tp.length - 1][name]; wasTypeVar = true; }
       if (this.is('<')) {
         this.next();
         const targs = [];
@@ -381,6 +382,7 @@
         if (targs.length) name += '<' + targs.join(',') + '>';
       }
       while (this.is('[') && this.is(']', 1)) { this.next(); this.next(); name += '[]'; }
+      this.tv = wasTypeVar; this.tvName = tvName; // read right after type() by the caller: was this a type variable (erased to its bound)?
       return name;
     }
     isTypeStart(k = 0) {
@@ -416,12 +418,13 @@
     localDecl(mods) {
       const line = this.peek().line;
       const type = this.type();
+      const generic = this.tv;
       const decls = [];
       do {
         const name = this.ident();
         let vt = type; while (this.accept('[')) { this.expect(']'); vt += '[]'; }
         const init = this.accept('=') ? this.varInit(vt) : null;
-        decls.push({ name, type: vt, init });
+        decls.push({ name, type: vt, init, generic });
       } while (this.accept(','));
       return { k: 'VarDecl', decls, final: mods.final, line };
     }
@@ -443,8 +446,8 @@
           case 'for': {
             this.next(); this.expect('(');
             if ((this.isTypeStart() || this.is('final')) && this.forEachColon() >= 0 && this.is(':', this.forEachColon())) {
-              this.accept('final'); const type = this.type(); const name = this.ident(); this.expect(':'); const iter = this.expr(); this.expect(')');
-              return { k: 'ForEach', type, name, iter, body: this.statement(), line };
+              this.accept('final'); const type = this.type(); const generic = this.tv; const name = this.ident(); this.expect(':'); const iter = this.expr(); this.expect(')');
+              return { k: 'ForEach', type, name, iter, body: this.statement(), line, generic };
             }
             let init = null;
             if (!this.is(';')) init = this.isTypeStart() ? this.localDecl({ final: false }) : { k: 'ExprList', exprs: this.exprList(), line };
@@ -862,7 +865,7 @@
   function convert(val, to) {
     to = erase(to);
     if (val.t === to) return val;
-    if (val.t === 'null') { if (!isRef(to)) throw runtimeError('NullPointerException', `Cannot unbox null value (a ${val.st || 'null'} reference holding null was used as ${to})`, 0); return NULL; }
+    if (val.t === 'null') { if (!isRef(to)) throw runtimeError('NullPointerException', `Cannot invoke "java.lang.${val.st || BOX[to]}.${to}Value()" because the value is null`, 0); return NULL; }
     if (isRef(to)) { // boxing, or a reference stored as is
       if (isNum(val.t) || val.t === 'boolean') { if (isBox(to) && UNBOX[to] !== val.t) return box(convert(val, UNBOX[to])); return box(val); }
       return val;
@@ -935,6 +938,7 @@
       this.fsVersion = 0;
       this.fsHistory = { 0: this.fileView() };
       this.link();
+      this.checkStatic();
       this.checkExceptions();
     }
     // ── linking: resolve supertypes, validate the hierarchy, check abstract methods are implemented ──
@@ -1036,6 +1040,40 @@
       return walk(cls);
     }
 
+    // ── static checks javac makes before running anything ──
+    checkStatic() {
+      const walk = (node, fn) => {
+        if (!node || typeof node !== 'object') return;
+        if (node.k) fn(node);
+        for (const key of Object.keys(node)) { const v = node[key]; if (Array.isArray(v)) v.forEach(x => walk(x, fn)); else if (v && typeof v === 'object' && (v.k || key === 'body' || key === 'catches' || key === 'cases')) walk(v, fn); }
+      };
+      const check = node => {
+        if (node.k === 'New' && !node.anon) {
+          const c = this.classes[node.cls];
+          if (c && c.kind === 'interface') throw compileError(`${c.name} is abstract; cannot be instantiated`, node.line);
+          if (c && c.abstract) throw compileError(`${c.name} is abstract; cannot be instantiated`, node.line);
+          if (!c && BUILTIN_INTERFACES.has(node.cls)) throw compileError(`${node.cls} is abstract; cannot be instantiated`, node.line);
+        }
+        if (node.k === 'Try') {
+          const seen = [];
+          for (const c of node.catches) {
+            for (const t of c.types) {
+              if (!this.classes[t] && !BUILTIN_SUPER[t] && t !== 'Throwable') throw compileError(`cannot find symbol: class ${t}`, c.line);
+              if (BUILTIN_SUPER[t]) this.builtinClass(t);
+              if (!this.isSubtype(t, 'Throwable')) throw compileError(`incompatible types: ${t} cannot be converted to Throwable`, c.line);
+              const earlier = seen.find(e => this.isSubtype(t, e));
+              if (earlier) throw compileError(`exception ${t} has already been caught${earlier === t ? '' : ' (by the earlier catch of ' + earlier + ')'}`, c.line);
+            }
+            seen.push(...c.types);
+          }
+        }
+      };
+      for (const c of this.unit.classes) {
+        for (const m of c.methods) if (m.body) walk(m.body, check);
+        for (const k of c.ctors) walk(k.body, check);
+        for (const f of c.fields) walk(f.init, check);
+      }
+    }
     // ── checked exceptions: `unreported exception X; must be caught or declared to be thrown` ──
     checkExceptions() {
       const ctorThrows = (name) => { const c = this.classes[name]; return c ? c.ctors.flatMap(k => k.throws) : []; };
@@ -1171,17 +1209,25 @@
       frame.cls = cls; frame.method = m;
       const depth = this.stack.length;
       if (!m.body) throw compileError(`abstract method ${sigOf(m)} in ${cls.kind} ${cls.name} cannot be accessed directly`, line);
+      const targs = self && self.v && self.v.targs && cls.typeParams.length ? self.v.targs : null; // Box<Integer>: T is Integer for this object
+      const targOf = tvar => { const i = targs ? cls.typeParams.indexOf(tvar) : -1; return i >= 0 && targs[i] ? erase(targs[i]) : null; };
       try {
-        m.params.forEach((p, i) => this.store(frame.env.declare(p.name, p.type, null, false, line), args[i], line, true));
+        m.params.forEach((p, i) => {
+          const want = p.tvar ? targOf(p.tvar) : null;
+          if (want && !assignable(args[i], want, this)) throw compileError(`incompatible types: ${typeName(args[i].st || args[i].t)} cannot be converted to ${want}`, line);
+          const slot = frame.env.declare(p.name, p.type, null, false, line); if (p.generic) slot.generic = true; this.store(slot, args[i], line, true);
+        });
         const sig = yield* this.execBlockIn(m.body, frame.env, true);
         if (this.stack.length === 1 && m.name === 'main') this.snap(null, 'finished'); // main's variables stay visible at the end
         if (sig && sig.sig === 'return') {
-          if (m.ret === 'void') throw compileError('incompatible types: unexpected return value', sig.line);
+          if (m.ret === 'void') { if (sig.value.t !== 'void') throw compileError('incompatible types: unexpected return value', sig.line); return V('void', undefined); }
           const r = sig.value;
           if (r.t === 'void') throw compileError(`incompatible types: missing return value`, sig.line);
           if (!assignable(r, m.ret, this)) throw compileError(`incompatible types: ${typeName(r.st || r.t)} cannot be converted to ${erase(m.ret)}`, sig.line);
           const out = Object.assign({}, convert(r, m.ret)); // a copy: NULL and boxed values are shared
-          if (isRef(erase(m.ret)) && !m.retGeneric) out.st = erase(m.ret); else delete out.st;
+          const retT = m.retTvar ? targOf(m.retTvar) : null;
+          if (retT && out.t !== 'null') out.st = retT; else if (retT && out.t === 'null') out.st = retT;
+          else if (isRef(erase(m.ret)) && !m.retGeneric) out.st = erase(m.ret); else delete out.st;
           return out;
         }
         if (m.ret !== 'void' && m.name !== '<init>') throw compileError(`missing return statement in ${m.name}`, m.line);
@@ -1201,7 +1247,8 @@
         if (isNum(val.t) && isNum(erase(slot.t))) throw compileError(`incompatible types: possible lossy conversion from ${val.t} to ${slot.t}`, line);
         throw compileError(`incompatible types: ${from} cannot be converted to ${slot.t}`, line);
       }
-      const c = convert(val, slot.t);
+      let c;
+      try { c = convert(val, slot.t); } catch (e) { if (e instanceof JavaError && !e.line) e.line = line; throw e; }
       slot.v = c.v; slot.assigned = true;
       if (isRef(erase(slot.t))) { slot.rt = c.t; slot.id = c.id; } else { delete slot.rt; delete slot.id; }
       return c;
@@ -1211,7 +1258,7 @@
       if (slot.v === null) { if (isBox(st)) { const n = V('null', null); n.st = st; return n; } return NULL; }
       const v = V(isRef(st) ? (slot.rt || st) : st, slot.v);
       if (slot.id !== undefined) v.id = slot.id;
-      if (isRef(st) && st !== 'Object') v.st = st;
+      if (isRef(st) && !slot.generic) v.st = st;
       return v;
     }
 
@@ -1308,6 +1355,7 @@
             if (k++ > 0) yield* this.step(s.line, env);
             const scope = new Env(env);
             const slot = scope.declare(s.name, s.type, isDefault(erase(s.type)).v, false, s.line);
+            if (s.generic) slot.generic = true;
             this.store(slot, item, s.line, true);
             const sig = yield* this.exec(s.body, scope);
             if (sig === BREAK) return null;
@@ -1505,7 +1553,7 @@
           if (this.classes[st] && this.classes[e.type] && this.classes[st].kind === 'class' && this.classes[e.type].kind === 'class' && !this.isSubtype(st, e.type) && !this.isSubtype(e.type, st))
             throw compileError(`incompatible types: ${st} cannot be converted to ${e.type}`, e.line);
           const ok = v.t !== 'null' && this.isSubtype(v.t, e.type);
-          if (e.bind) { if (!env.lookup(e.bind)) env.declare(e.bind, e.type, null, false, e.line); const slot = env.lookup(e.bind); if (ok) { this.store(slot, v, e.line, true); slot.uninit = false; } else slot.uninit = true; }
+          if (e.bind) { if (!env.lookup(e.bind)) env.declare(e.bind, e.type, null, false, e.line); const slot = env.lookup(e.bind); if (ok) { const bound = Object.assign({}, v); delete bound.st; this.store(slot, bound, e.line, true); slot.uninit = false; } else slot.uninit = true; }
           return V('boolean', ok);
         }
         case 'Bin': return yield* this.evalBin(e, env);
@@ -1547,6 +1595,7 @@
         case 'Call': return yield* this.call(e, env);
         case 'Lambda': {
           const f = this.stack[this.stack.length - 1];
+          this.markCaptured(e.body || e.expr, env, 'a lambda expression', e.params);
           return V('$Lambda', { id: nextId++, params: e.params, body: e.body, expr: e.expr, env, self: f.self, cls: f.cls });
         }
         case 'New': {
@@ -1554,20 +1603,21 @@
           const targs = e.targs && e.targs.length ? e.targs : (hint ? targsOf(hint) : null);
           const cls = this.classes[e.cls];
           if (cls) {
+            if (cls.access === 'private' && cls.outerName) { const f0 = this.stack[this.stack.length - 1]; if (!f0.cls || !this.sameNest(f0.cls, cls)) throw compileError(`${cls.name} has private access in ${cls.outerName}`, e.line); }
             if (cls.kind === 'interface') throw compileError(`${cls.name} is abstract; cannot be instantiated`, e.line);
             if (cls.kind === 'enum') throw compileError(`enum classes may not be instantiated`, e.line);
             if (cls.abstract && !cls.anon) throw compileError(`${cls.name} is abstract; cannot be instantiated`, e.line);
             const f = this.stack[this.stack.length - 1];
             const extra = {};
-            if (cls.anon || cls.local) { extra.closure = env; extra.outer = f.self; }
+            if (cls.anon || cls.local) { extra.closure = env; extra.outer = f.self; for (const m of cls.methods) this.markCaptured(m.body, env, 'an inner class', m.params.map(p => p.name)); for (const k of cls.ctors) this.markCaptured(k.body, env, 'an inner class', k.params.map(p => p.name)); for (const fd of cls.fields) this.markCaptured(fd.init, env, 'an inner class', []); }
             else if (!cls.static && cls.outerName) { // inner class: needs an enclosing instance
               const outer = e.outerExpr ? yield* this.eval(e.outerExpr, env) : this.enclosingInstance(f, cls.outerName);
               if (!outer) throw compileError(`non-static variable this cannot be referenced from a static context (${cls.name} is an inner class of ${cls.outerName})`, e.line);
               extra.outer = outer;
             }
+            if (targs && cls.typeParams.length) extra.targs = targs;
             const obj = yield* this.instantiate(cls, args, e.line, extra);
             obj.st = cls.anon ? (cls.superName !== 'Object' ? cls.superName : cls.interfaces[0]) : cls.name;
-            if (targs) obj.targs = targs;
             return obj;
           }
           return yield* this.newBuiltin(e.cls, args, targs, e.line, hint);
@@ -1589,6 +1639,17 @@
         case 'ArrayInit': return yield* this.arrayInit(e, env, hint);
         default: throw compileError(`unsupported expression ${e.k}`, e.line);
       }
+    }
+    // every local the body refers to becomes "captured": a later assignment to it is the javac error
+    markCaptured(body, env, kind, shadowed) {
+      const names = new Set();
+      const walk = node => {
+        if (!node || typeof node !== 'object') return;
+        if (node.k === 'Name') names.add(node.name);
+        for (const key of Object.keys(node)) { const v = node[key]; if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') walk(v); }
+      };
+      walk(body);
+      for (const n of names) { if (shadowed.includes(n)) continue; const slot = env.lookup(n); if (slot && !slot.captured) slot.captured = kind; }
     }
     enclosingInstance(frame, outerName) {
       for (let s = frame.self; s && s.v; s = s.v.outer) if (this.isSubtype(s.t, outerName)) return s;
@@ -1812,7 +1873,7 @@
     // new: allocate, then run constructors from the root of the chain down (super(...) first, then field initialisers, then the body)
     *instantiate(cls, args, line, extra) {
       const obj = V(cls.name, { id: nextId++, cls: cls.name, fields: {} });
-      if (extra) { if (extra.closure) obj.v.closure = extra.closure; if (extra.outer) obj.v.outer = extra.outer; if (extra.enumName !== undefined) { obj.v.enumName = extra.enumName; obj.v.ordinal = extra.ordinal; } }
+      if (extra) { if (extra.closure) obj.v.closure = extra.closure; if (extra.outer) obj.v.outer = extra.outer; if (extra.targs) obj.v.targs = extra.targs; if (extra.enumName !== undefined) { obj.v.enumName = extra.enumName; obj.v.ordinal = extra.ordinal; } }
       if (this.isSubtype(cls.name, 'Throwable')) { obj.v.trace = this.stack.map(f => f.name).reverse(); obj.v.line = line; }
       yield* this.construct(cls, obj, args, line);
       return obj;
@@ -1839,7 +1900,12 @@
       frame.cls = cls; frame.ctor = true;
       const depth = this.stack.length;
       try {
-        if (ctor) ctor.params.forEach((p, i) => this.store(frame.env.declare(p.name, p.type, null, false, line), args[i], line, true));
+        const targs = obj.v.targs && cls.typeParams.length ? obj.v.targs : null;
+        if (ctor) ctor.params.forEach((p, i) => {
+          const want = p.tvar && targs ? (cls.typeParams.indexOf(p.tvar) >= 0 ? erase(targs[cls.typeParams.indexOf(p.tvar)] || '') : null) : null;
+          if (want && !assignable(args[i], want, this)) throw compileError(`incompatible types: ${typeName(args[i].st || args[i].t)} cannot be converted to ${want}`, line);
+          const slot = frame.env.declare(p.name, p.type, null, false, line); if (p.generic) slot.generic = true; this.store(slot, args[i], line, true);
+        });
         if (first && first.name === 'this') { // this(...): delegate, then run the rest of the body
           yield* this.step(first.line, frame.env);
           const a2 = []; for (const a of first.args) a2.push(yield* this.eval(a, frame.env));
@@ -2620,7 +2686,7 @@
       const k = c.v.kind;
       const a0 = args[0];
       const items = k === 'list' ? c.v.items : null;
-      const typed = (v, i) => { if (v.t === 'null') return NULL; const out = Object.assign({}, v); const et = this.elemType(c, i || 0); if (et && et !== 'Object') out.st = et; else delete out.st; return out; };
+      const typed = (v, i) => { const et = this.elemType(c, i || 0); if (v.t === 'null') { const n = V('null', null); if (et && isBox(et)) n.st = et; return n; } const out = Object.assign({}, v); if (et && et !== 'Object') out.st = et; else delete out.st; return out; };
       const idx = (a, allowEnd) => { const u = unboxed(a); if (!INTEGRAL.has(u.t) || u.t === 'long') throw compileError(`incompatible types: ${typeName(a.t)} cannot be converted to int`, line); if (u.v < 0 || u.v > items.length - (allowEnd ? 0 : 1)) throw runtimeError('IndexOutOfBoundsException', `Index ${u.v} out of bounds for length ${items.length}`, line); return u.v; };
       const isCmp = a => a && (a.t === '$Lambda' || (this.classes[a.t] && this.isSubtype(a.t, 'Comparator')));
       // methods shared by every collection
@@ -2715,7 +2781,7 @@
           case 'put': return typed(yield* this.mapPut(c, a0, args[1], line), 1);
           case 'putIfAbsent': { const i = yield* this.mapFind(c, a0, line); if (i >= 0) return typed(en[i].val, 1); yield* this.mapPut(c, a0, args[1], line); return NULL; }
           case 'putAll': { for (const x of a0.v.entries) yield* this.mapPut(c, x.k, x.val, line); return V('void'); }
-          case 'get': { const i = yield* this.mapFind(c, a0, line); return i >= 0 ? typed(en[i].val, 1) : NULL; }
+          case 'get': { const i = yield* this.mapFind(c, a0, line); return typed(i >= 0 ? en[i].val : NULL, 1); }
           case 'getOrDefault': { const i = yield* this.mapFind(c, a0, line); return i >= 0 ? typed(en[i].val, 1) : args[1]; }
           case 'containsKey': return V('boolean', (yield* this.mapFind(c, a0, line)) >= 0);
           case 'containsValue': { for (const x of en) if (yield* this.javaEquals(x.val, a0, line)) return V('boolean', true); return V('boolean', false); }
@@ -2800,7 +2866,7 @@
       this.result = null; this.i = 0; this.editing = true;
       this.el = document.getElementById('sim-' + id);
     }
-    usesStdin() { return /\bScanner\b/.test(this.code); }
+    usesStdin() { return /new\s+Scanner\s*\(\s*System\s*\.\s*in\s*\)/.test(this.code); }
     run() {
       this.result = JAVA.run(this.code, this.stdin, { maxSteps: this.cfg.maxSteps || 5000, files: this.files });
       this.i = Math.max(0, this.result.trace.length - 1);
