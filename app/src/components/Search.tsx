@@ -14,7 +14,7 @@ export default function Search() {
   const all = useMemo<Hit[]>(() => [
     ...d.courses.map((c) => ({ kind: "course", title: `${c.code} ${c.title}`, sub: c.kind, to: href.course(c.id), key: c.id })),
     ...d.units.map((u) => ({ kind: "unit", title: u.title, sub: u.course.split("/")[1], to: href.unit(u.id), key: u.id })),
-    ...d.concepts.map((c) => ({ kind: "concept", title: c.title, sub: [c.domain, ...c.aliases].join(" · "), to: href.concept(c.id), key: c.id })),
+    ...d.concepts.map((c) => ({ kind: "concept", title: c.title, sub: [...(c.short ? [c.short] : []), c.domain, ...c.aliases].join(" · "), to: href.concept(c.id), key: c.id })),
     ...d.skills.filter((s) => s.level === "skill").map((s) => ({ kind: "skill", title: s.title, sub: "roadmap", to: href.skill(s.id), key: s.id })),
   ], [d]);
 

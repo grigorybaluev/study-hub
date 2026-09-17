@@ -13,8 +13,8 @@ from pathlib import Path
 import yaml
 
 from schema import (CODE_RE, ROOT, COURSE_KIND, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SLUG_RE, STRENGTH,
-                    UNIT_KIND, UNIT_STATUS, Content, Doc, edge_entries, load, prereq_groups, roadmap_node_ids,
-                    roadmap_root, unit_slug)
+                    UNIT_KIND, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
+                    roadmap_node_ids, roadmap_root, unit_slug)
 
 
 class Report:
@@ -81,11 +81,28 @@ def lint_roadmaps(c: Content, rep: Report) -> set[str]:
 
 
 def lint_concepts(c: Content, rep: Report, roadmap_targets: set[str] = frozenset()):
+    # display names must be unique: a short may not repeat another short or another
+    # concept's title, since views label a concept by `short ?? title`
+    names: dict[str, str] = {str(d.meta.get("title", "")).strip().lower(): s for s, d in c.concepts.items()}
     for slug, doc in c.concepts.items():
         check_fields(doc, "concept", rep)
         if not SLUG_RE.match(slug):
             rep.error(doc.path, f"filename {slug!r} is not a slug")
         check_enum(doc, "domain", DOMAINS, rep)
+        for key in ("short", "wikipedia"):
+            value = doc.meta.get(key)
+            if value is not None and (not isinstance(value, str) or not value.strip()):
+                rep.error(doc.path, f"{key}: must be a non-empty string")
+            elif value is not None and value != value.strip():
+                rep.error(doc.path, f"{key}: has leading or trailing whitespace")
+        short = doc.meta.get("short")
+        if isinstance(short, str) and short.strip():
+            other = names.setdefault(short.strip().lower(), slug)
+            if other != slug:
+                rep.error(doc.path, f"short {short!r} already used as a name by concept {other!r}")
+        wikidata = doc.meta.get("wikidata")
+        if wikidata is not None and not (isinstance(wikidata, str) and WIKIDATA_RE.match(wikidata)):
+            rep.error(doc.path, f"wikidata: {wikidata!r} is not a Q-id")
         for key in ("generalizes", "part_of"):
             for target in doc.meta.get(key) or []:
                 if target not in c.concepts:

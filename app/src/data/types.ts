@@ -10,6 +10,9 @@ export interface ConceptNode {
   domain: string;
   aliases: string[];
   body: string;
+  short?: string;      // unique display name, when the title is too long for dense views
+  wikipedia?: string;  // English article title, with its disambiguator if any
+  wikidata?: string;   // Q-id
 }
 
 export interface CourseNode {
