@@ -2,7 +2,8 @@
 # plotly: ids in the SIMS table of simulations.js (slider-driven Plotly figures).
 # automata: modes of FA.mount in automata.js; a block with `custom: true` picks one via `mode`.
 # java: the Java-subset stepper in java.js; a block with `custom: true` and `engine: java` carries the
-#   program in `code` (and optionally `stdin`).
+#   program in `code` (and optionally `stdin`, and `files` — a map of file name to text that seeds the
+#   virtual file system the program's File/PrintWriter/Scanner(File) see).
 plotly:
   - euler-demo
   - rk4-comparison
