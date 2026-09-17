@@ -946,6 +946,431 @@
   }
 
   // ── Dispatcher ─────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  //  MATH 205 — Integrals, sequences and series
+  // ══════════════════════════════════════════════════════════════
+  const C_FN = '#e5e7eb', C_POS = 'rgba(0,166,81,.45)', C_NEG = 'rgba(248,113,113,.45)',
+        C_BLUE = 'rgba(96,165,250,.45)', C_GOLD = 'rgba(250,204,21,.5)';
+  function lin(a, b, n) { if (!(n > 0)) return [a]; const xs = []; for (let i = 0; i <= n; i++) xs.push(a + (b - a) * i / n); return xs; }
+  function curve(f, a, b, n, opts) { const xs = lin(a, b, n || 300); return Object.assign({ x: xs, y: xs.map(f), mode: 'lines' }, opts); }
+  // Filled region between g (bottom) and f (top) on [a, b], as one closed polygon.
+  function band(f, g, a, b, color, name, n) {
+    const xs = lin(a, b, n || 200), back = xs.slice().reverse();
+    return { x: xs.concat(back), y: xs.map(f).concat(back.map(g)), fill: 'toself', mode: 'lines', line: { color: 'rgba(0,0,0,0)' },
+             fillcolor: color, name: name || '', hoverinfo: 'skip', showlegend: !!name };
+  }
+  // Rectangles [x0, x1] × [0, h] as one trace of null-separated closed polygons.
+  function rects(list, color, name) {
+    const x = [], y = [];
+    for (const [x0, x1, h] of list) { x.push(x0, x0, x1, x1, x0, null); y.push(0, h, h, 0, 0, null); }
+    return { x, y, fill: 'toself', mode: 'lines', line: { color: '#93c5fd', width: 1 }, fillcolor: color, name: name, hoverinfo: 'skip', connectgaps: false };
+  }
+  // Two stacked panels: traces on the lower one use xaxis: 'x2', yaxis: 'y2'.
+  function twoRows(extra) {
+    const base = { height: 560, xaxis: { anchor: 'y' }, yaxis: { domain: [0.57, 1] }, xaxis2: { anchor: 'y2' }, yaxis2: { domain: [0, 0.43] },
+                   legend: { orientation: 'h', y: -0.12 } };
+    const out = Object.assign({}, base, extra);
+    for (const k of ['xaxis', 'yaxis', 'xaxis2', 'yaxis2']) out[k] = ax(Object.assign({}, base[k], (extra && extra[k]) || {}));
+    return layout(out);
+  }
+
+  // ── C1. Riemann sums under y = x² on [0, 2] ───────────────────
+  function calcRiemannSums() {
+    const id = 'calc-riemann-sums';
+    const n = Math.max(1, Math.round(val(id, 'n', 6))), rule = Math.round(val(id, 'rule', 0));
+    const f = x => x * x, a = 0, b = 2, dx = (b - a) / n, exact = 8 / 3;
+    const list = []; let sum = 0;
+    for (let i = 0; i < n; i++) {
+      const x0 = a + i * dx, xs = rule === 0 ? x0 : rule === 1 ? x0 + dx : x0 + dx / 2, h = f(xs);
+      sum += h * dx; list.push([x0, x0 + dx, h]);
+    }
+    const names = ['left endpoints', 'right endpoints', 'midpoints'];
+    Plotly.newPlot(el(id), [
+      rects(list, C_BLUE, `${n} rectangles, ${names[rule]}`),
+      curve(f, a, b, 200, { name: 'y = x²', line: { color: C_FN, width: 2.5 } }),
+    ], layout({ title: `${names[rule]}, n = ${n}:  sum = ${sum.toFixed(4)}    exact 8/3 ≈ ${exact.toFixed(4)}    error ${(sum - exact >= 0 ? '+' : '')}${(sum - exact).toFixed(4)}`,
+                xaxis: ax({ title: 'x', range: [-0.1, 2.1] }), yaxis: ax({ title: 'y', range: [0, 4.3] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C2. Signed area: ∫₀ᵇ sin x dx ─────────────────────────────
+  function calcSignedArea() {
+    const id = 'calc-signed-area';
+    const b = val(id, 'b', 4.5), f = Math.sin, zero = () => 0, pos = Math.min(b, Math.PI);
+    const traces = [curve(f, 0, 2 * Math.PI, 300, { name: 'y = sin x', line: { color: C_FN, width: 2.5 } })];
+    if (pos > 0) traces.push(band(f, zero, 0, pos, C_POS, 'above the axis: counts +'));
+    if (b > Math.PI) traces.push(band(f, zero, Math.PI, b, C_NEG, 'below the axis: counts −'));
+    const I = 1 - Math.cos(b), area = (1 - Math.cos(pos)) + (b > Math.PI ? Math.cos(b) + 1 : 0);
+    Plotly.newPlot(el(id), traces, layout({
+      title: `∫₀ᵇ sin x dx = 1 − cos b = ${I.toFixed(4)}    (unsigned area ${area.toFixed(4)})`,
+      xaxis: ax({ title: 'x', range: [0, 2 * Math.PI] }), yaxis: ax({ title: 'y', range: [-1.2, 1.2] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C3. The family F(x) = sin x + C ───────────────────────────
+  function calcAntiderivativeFamily() {
+    const id = 'calc-antiderivative-family';
+    const C = val(id, 'C', 0), x0 = val(id, 'x0', 1), f = Math.cos, F = x => Math.sin(x) + C, slope = f(x0);
+    const traces = [curve(f, -3.5, 3.5, 300, { name: 'f(x) = cos x', line: { color: C_FN, width: 2.5 } }),
+                    { x: [x0], y: [f(x0)], mode: 'markers', name: `f(x₀) = ${slope.toFixed(3)}`, marker: { color: C_PT, size: 10 } }];
+    for (let c = -2; c <= 2; c++) if (c !== C) traces.push(curve(x => Math.sin(x) + c, -3.5, 3.5, 200, { xaxis: 'x2', yaxis: 'y2', showlegend: false, line: { color: C_GHOST, width: 1, dash: 'dot' }, hoverinfo: 'skip' }));
+    traces.push(curve(F, -3.5, 3.5, 300, { xaxis: 'x2', yaxis: 'y2', name: `F(x) = sin x + ${C}`, line: { color: C_PATH, width: 3 } }));
+    traces.push({ x: [x0 - 0.8, x0 + 0.8], y: [F(x0) - 0.8 * slope, F(x0) + 0.8 * slope], mode: 'lines', xaxis: 'x2', yaxis: 'y2', name: `tangent, slope ${slope.toFixed(3)}`, line: { color: C_TAN, width: 2.5 } });
+    traces.push({ x: [x0], y: [F(x0)], mode: 'markers', xaxis: 'x2', yaxis: 'y2', showlegend: false, marker: { color: C_PT, size: 10 } });
+    Plotly.newPlot(el(id), traces, twoRows({
+      title: `Every member of the family has slope F′(x₀) = f(x₀) = cos(${x0.toFixed(1)}) = ${slope.toFixed(3)}`,
+      xaxis: { title: 'x', range: [-3.5, 3.5] }, yaxis: { title: 'f', range: [-1.3, 1.3] }, xaxis2: { title: 'x', range: [-3.5, 3.5] }, yaxis2: { title: 'F', range: [-4.2, 4.2] } }), cfg());
+  }
+
+  // ── C4. FTC I: the accumulation function g(x) = ∫₀ˣ f ──────────
+  function calcFtcAccumulation() {
+    const id = 'calc-ftc-accumulation';
+    const x = val(id, 'x', 2), f = t => 1.2 + Math.sin(t), g = x => 1.2 * x + 1 - Math.cos(x), X = 2 * Math.PI;
+    const traces = [curve(f, 0, X, 300, { name: 'f(t) = 1.2 + sin t', line: { color: C_FN, width: 2.5 } })];
+    if (x > 0) traces.push(band(f, () => 0, 0, x, C_POS, `∫₀ˣ f(t) dt = ${g(x).toFixed(3)}`));
+    traces.push({ x: [x], y: [f(x)], mode: 'markers', name: `f(x) = ${f(x).toFixed(3)}`, marker: { color: C_PT, size: 10 } });
+    traces.push(curve(g, 0, X, 300, { xaxis: 'x2', yaxis: 'y2', name: 'g(x) = ∫₀ˣ f(t) dt', line: { color: C_PATH, width: 3 } }));
+    traces.push({ x: [x - 0.7, x + 0.7], y: [g(x) - 0.7 * f(x), g(x) + 0.7 * f(x)], mode: 'lines', xaxis: 'x2', yaxis: 'y2', name: `tangent, slope g′(x) = f(x)`, line: { color: C_TAN, width: 2.5 } });
+    traces.push({ x: [x], y: [g(x)], mode: 'markers', xaxis: 'x2', yaxis: 'y2', showlegend: false, marker: { color: C_PT, size: 10 } });
+    Plotly.newPlot(el(id), traces, twoRows({
+      title: `g(${x.toFixed(2)}) = ${g(x).toFixed(3)} (shaded area),   g′(${x.toFixed(2)}) = f(${x.toFixed(2)}) = ${f(x).toFixed(3)}`,
+      xaxis: { title: 't', range: [0, X] }, yaxis: { title: 'f', range: [0, 2.4] }, xaxis2: { title: 'x', range: [0, X] }, yaxis2: { title: 'g', range: [-0.5, 9.5] } }), cfg());
+  }
+
+  // ── C5. Net change: displacement versus distance ──────────────
+  function calcNetChange() {
+    const id = 'calc-net-change';
+    const T = val(id, 'T', 4), v = t => 3 * Math.sin(t), s = t => 3 * (1 - Math.cos(t)), X = 2 * Math.PI;
+    const traces = [curve(v, 0, X, 300, { name: 'v(t) = 3 sin t', line: { color: C_FN, width: 2.5 } })];
+    const p = Math.min(T, Math.PI);
+    if (p > 0) traces.push(band(v, () => 0, 0, p, C_POS, 'moving forward'));
+    if (T > Math.PI) traces.push(band(v, () => 0, Math.PI, T, C_NEG, 'moving backward'));
+    traces.push(curve(s, 0, X, 300, { xaxis: 'x2', yaxis: 'y2', name: 's(t) = ∫₀ᵗ v = 3(1 − cos t)', line: { color: C_PATH, width: 3 } }));
+    traces.push({ x: [T], y: [s(T)], mode: 'markers', xaxis: 'x2', yaxis: 'y2', name: `s(T) = ${s(T).toFixed(3)}`, marker: { color: C_PT, size: 10 } });
+    const disp = s(T), dist = simpson(t => Math.abs(v(t)), 0, T, 600);
+    Plotly.newPlot(el(id), traces, twoRows({
+      title: `displacement ∫₀ᵀ v dt = ${disp.toFixed(3)} = s(T) − s(0)      distance ∫₀ᵀ |v| dt = ${dist.toFixed(3)}`,
+      xaxis: { title: 't', range: [0, X] }, yaxis: { title: 'v', range: [-3.3, 3.3] }, xaxis2: { title: 't', range: [0, X] }, yaxis2: { title: 's', range: [0, 6.5] } }), cfg());
+  }
+
+  // ── C6. Substitution: ∫₀ᵇ 2x cos(x²) dx = ∫₀^{b²} cos u du ──────
+  function calcSubstitution() {
+    const id = 'calc-substitution';
+    const b = val(id, 'b', 1.2), fx = x => 2 * x * Math.cos(x * x), fu = Math.cos, zero = () => 0;
+    const xc = Math.sqrt(Math.PI / 2), uc = Math.PI / 2, b2 = b * b, I = Math.sin(b2);
+    const t = [curve(fx, 0, 1.75, 300, { name: '2x cos(x²)', line: { color: C_FN, width: 2.5 } })];
+    t.push(band(fx, zero, 0, Math.min(b, xc), C_POS, 'x-picture'));
+    if (b > xc) t.push(band(fx, zero, xc, b, C_NEG, ''));
+    t.push(curve(fu, 0, 3.1, 300, { xaxis: 'x2', yaxis: 'y2', name: 'cos u', line: { color: C_FN, width: 2.5 } }));
+    t.push(band(fu, zero, 0, Math.min(b2, uc), C_POS, 'u-picture', 200));
+    if (b2 > uc) t.push(band(fu, zero, uc, b2, C_NEG, ''));
+    for (const tr of t.slice(3)) { tr.xaxis = 'x2'; tr.yaxis = 'y2'; }
+    Plotly.newPlot(el(id), t, layout({
+      title: `∫₀^${b.toFixed(2)} 2x cos(x²) dx  =  ∫₀^${b2.toFixed(2)} cos u du  =  sin(b²) = ${I.toFixed(4)}`,
+      xaxis: ax({ title: 'x', domain: [0, 0.45], range: [0, 1.75], anchor: 'y' }), yaxis: ax({ title: '2x cos(x²)', range: [-3.6, 1.6] }),
+      xaxis2: ax({ title: 'u = x²', domain: [0.55, 1], range: [0, 3.1], anchor: 'y2' }), yaxis2: ax({ title: 'cos u', range: [-1.2, 1.2], anchor: 'x2' }),
+      legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C7. Parts as areas: ∫v du + ∫u dv = u₂v₂ − u₁v₁ ─────────
+  function calcPartsArea() {
+    const id = 'calc-parts-area';
+    const u1 = 0.5, u2 = val(id, 'u2', 1.5), f = u => u * u, v1 = f(u1), v2 = f(u2);
+    const xs = lin(u1, u2, 120), ys = xs.map(f);
+    const A = (u2 ** 3 - u1 ** 3) / 3, B = 2 * (u2 ** 3 - u1 ** 3) / 3;
+    Plotly.newPlot(el(id), [
+      { x: xs.concat([u2, u1]), y: ys.concat([0, 0]), fill: 'toself', mode: 'lines', line: { color: 'rgba(0,0,0,0)' }, fillcolor: C_POS, name: `∫ v du = ${A.toFixed(3)}`, hoverinfo: 'skip' },
+      { x: xs.concat([0, 0]), y: ys.concat([v2, v1]), fill: 'toself', mode: 'lines', line: { color: 'rgba(0,0,0,0)' }, fillcolor: C_BLUE, name: `∫ u dv = ${B.toFixed(3)}`, hoverinfo: 'skip' },
+      curve(f, 0, 2.1, 200, { name: 'v = u²', line: { color: C_FN, width: 2.5 } }),
+      { x: [0, u2, u2, 0, 0], y: [0, 0, v2, v2, 0], mode: 'lines', name: `u₂v₂ = ${(u2 * v2).toFixed(3)}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } },
+      { x: [0, u1, u1, 0, 0], y: [0, 0, v1, v1, 0], mode: 'lines', name: `u₁v₁ = ${(u1 * v1).toFixed(3)}`, line: { color: C_PT, width: 1.5, dash: 'dash' } },
+      { x: [u1, u2], y: [v1, v2], mode: 'markers', showlegend: false, marker: { color: C_PT, size: 9 } },
+    ], layout({ title: `∫v du + ∫u dv = ${A.toFixed(3)} + ${B.toFixed(3)} = ${(A + B).toFixed(3)} = u₂v₂ − u₁v₁ = ${(u2 * v2 - u1 * v1).toFixed(3)}`,
+                xaxis: ax({ title: 'u', range: [0, 2.1] }), yaxis: ax({ title: 'v', range: [0, 4.4] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C8a. Area between sin x and cos x on [0, b] ────────────────
+  function calcAreaBetween() {
+    const id = 'calc-area-between';
+    const b = val(id, 'b', 2.2), c = Math.PI / 4, p1 = Math.min(b, c);
+    const A1 = Math.sin(p1) + Math.cos(p1) - 1, A2 = b > c ? (-Math.cos(b) - Math.sin(b)) + Math.SQRT2 : 0;
+    const t = [curve(Math.cos, 0, Math.PI, 300, { name: 'y = cos x', line: { color: C_FN, width: 2.5 } }),
+               curve(Math.sin, 0, Math.PI, 300, { name: 'y = sin x', line: { color: C_TAN, width: 2.5 } })];
+    if (p1 > 0) t.push(band(Math.cos, Math.sin, 0, p1, C_POS, `cos on top: ${A1.toFixed(4)}`));
+    if (b > c) t.push(band(Math.sin, Math.cos, c, b, C_GOLD, `sin on top: ${A2.toFixed(4)}`));
+    Plotly.newPlot(el(id), t, layout({ title: `A = ∫₀ᵇ |cos x − sin x| dx = ${A1.toFixed(4)} + ${A2.toFixed(4)} = ${(A1 + A2).toFixed(4)}`,
+                xaxis: ax({ title: 'x', range: [0, Math.PI] }), yaxis: ax({ title: 'y', range: [-1.2, 1.2] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C8b. Average value of x² on [0, b] ─────────────────────────
+  function calcAverageValue() {
+    const id = 'calc-average-value';
+    const b = val(id, 'b', 3), f = x => x * x, fav = b * b / 3, c = b / Math.sqrt(3);
+    Plotly.newPlot(el(id), [
+      band(f, () => 0, 0, b, C_POS, `∫₀ᵇ x² dx = ${(b ** 3 / 3).toFixed(3)}`),
+      curve(f, 0, 4.2, 200, { name: 'y = x²', line: { color: C_FN, width: 2.5 } }),
+      { x: [0, b, b, 0, 0], y: [0, 0, fav, fav, 0], mode: 'lines', name: `rectangle of height f_av = ${fav.toFixed(3)}, same area`, line: { color: C_ARROW, width: 2, dash: 'dash' } },
+      { x: [c], y: [fav], mode: 'markers', name: `c = b/√3 = ${c.toFixed(3)}: f(c) = f_av`, marker: { color: C_PT, size: 11 } },
+    ], layout({ title: `f_av = (1/b) ∫₀ᵇ x² dx = b²/3 = ${fav.toFixed(3)},   attained at c = ${c.toFixed(3)}`,
+                xaxis: ax({ title: 'x', range: [0, 4.2] }), yaxis: ax({ title: 'y', range: [0, 17] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C9. ∫ sinᵐx cosⁿx dx on [0, π] ─────────────────────────────
+  function calcTrigPowers() {
+    const id = 'calc-trig-powers';
+    const m = Math.round(val(id, 'm', 3)), n = Math.round(val(id, 'n', 2));
+    const f = x => Math.sin(x) ** m * Math.cos(x) ** n, I = simpson(f, 0, Math.PI, 600);
+    const which = n % 2 ? 'n odd → keep one cos x, u = sin x' : m % 2 ? 'm odd → keep one sin x, u = cos x' : 'both even → half-angle formulas';
+    Plotly.newPlot(el(id), [
+      curve(f, 0, Math.PI, 400, { name: `sin^${m}x · cos^${n}x`, fill: 'tozeroy', fillcolor: C_BLUE, line: { color: C_FN, width: 2.5 } }),
+    ], layout({ title: `∫₀^π sin^${m}x cos^${n}x dx = ${Math.abs(I) < 1e-9 ? '0' : I.toFixed(4)}      ${which}`,
+                xaxis: ax({ title: 'x', range: [0, Math.PI] }), yaxis: ax({ title: 'y', range: [-1.05, 1.05] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C10. Trig substitution: ∫₀^{x₁} √(4 − x²) dx as sector + triangle ──
+  function calcTrigSub() {
+    const id = 'calc-trig-sub';
+    const a = 2, x1 = Math.min(val(id, 'x1', 1.2), a), th = Math.asin(x1 / a), y1 = a * Math.cos(th);
+    const phi = lin(Math.PI / 2 - th, Math.PI / 2, 80);
+    const sector = { x: [0].concat(phi.map(p => a * Math.cos(p)), [0]), y: [0].concat(phi.map(p => a * Math.sin(p)), [0]), fill: 'toself', mode: 'lines',
+                     line: { color: 'rgba(0,0,0,0)' }, fillcolor: C_GOLD, name: `sector, angle θ: 2θ = ${(2 * th).toFixed(4)}`, hoverinfo: 'skip' };
+    const tri = { x: [0, x1, x1, 0], y: [0, 0, y1, 0], fill: 'toself', mode: 'lines', line: { color: 'rgba(0,0,0,0)' }, fillcolor: C_BLUE,
+                  name: `triangle: x₁y₁/2 = ${(x1 * y1 / 2).toFixed(4)}`, hoverinfo: 'skip' };
+    Plotly.newPlot(el(id), [sector, tri,
+      curve(x => Math.sqrt(Math.max(0, a * a - x * x)), 0, a, 200, { name: 'y = √(4 − x²)', line: { color: C_FN, width: 2.5 } }),
+      { x: [0, x1], y: [0, y1], mode: 'lines', name: 'radius to (x₁, y₁)', line: { color: C_PT, width: 2 } },
+      { x: [x1, x1], y: [0, y1], mode: 'lines', showlegend: false, line: { color: C_GHOST, width: 1, dash: 'dot' } },
+    ], layout({ title: `x₁ = 2 sin θ, θ = ${th.toFixed(4)}:   ∫₀^x₁ √(4 − x²) dx = 2θ + 2 sin θ cos θ = ${(2 * th + x1 * y1 / 2).toFixed(4)}`,
+                xaxis: ax({ title: 'x', range: [-0.1, 2.3] }), yaxis: ax({ title: 'y', range: [-0.1, 2.3], scaleanchor: 'x', scaleratio: 1 }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C11. Partial fractions: 1/((x − a)(x − b)) ─────────────────
+  function calcPartialFractions() {
+    const id = 'calc-partial-fractions';
+    const a = val(id, 'a', 1), b = val(id, 'b', -2), same = Math.abs(a - b) < 1e-9;
+    const f = x => 1 / ((x - a) * (x - b));
+    const clip = y => (Math.abs(y) > 8 ? null : y);
+    const xs = lin(-5, 5, 1000).map(x => x + 0.0037);   // avoid landing exactly on a pole
+    const t = [{ x: xs, y: xs.map(x => clip(f(x))), mode: 'lines', name: '1/((x − a)(x − b))', line: { color: C_FN, width: 3 }, connectgaps: false }];
+    let title;
+    if (same) {
+      title = `a = b = ${a}: repeated root — Case II, 1/(x − a)² already is a partial fraction`;
+    } else {
+      const A = 1 / (a - b), B = -A, lin1 = r => (r < 0 ? `(x + ${-r})` : `(x − ${r})`);
+      t.push({ x: xs, y: xs.map(x => clip(A / (x - a))), mode: 'lines', name: `A/${lin1(a)}, A = ${A.toFixed(3)}`, line: { color: C_PATH, width: 2, dash: 'dash' }, connectgaps: false });
+      t.push({ x: xs, y: xs.map(x => clip(B / (x - b))), mode: 'lines', name: `B/${lin1(b)}, B = ${B.toFixed(3)}`, line: { color: C_TAN, width: 2, dash: 'dash' }, connectgaps: false });
+      title = `1/(${lin1(a)}${lin1(b)}) = ${A.toFixed(3)}/${lin1(a)} ${B < 0 ? '−' : '+'} ${Math.abs(B).toFixed(3)}/${lin1(b)}     (A = 1/(a − b), B = 1/(b − a))`;
+    }
+    Plotly.newPlot(el(id), t, layout({ title, xaxis: ax({ title: 'x', range: [-5, 5] }), yaxis: ax({ title: 'y', range: [-6, 6] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C12. Solid of revolution of y = √x as a stack of discs ─────
+  function calcSolidRevolution() {
+    const id = 'calc-solid-revolution';
+    const b = val(id, 'b', 3), n = Math.max(2, Math.round(val(id, 'n', 8))), f = Math.sqrt, dx = b / n;
+    const th = lin(0, 2 * Math.PI, 48), X = [], Y = [], Z = []; let sum = 0;
+    for (let i = 0; i < n; i++) {
+      const x0 = i * dx, x1 = x0 + dx, r = f(x0);          // left endpoints: the disc sum visibly approaches the volume from below
+      sum += Math.PI * r * r * dx;
+      for (const x of [x0, x1]) { X.push(th.map(() => x)); Y.push(th.map(t => r * Math.cos(t))); Z.push(th.map(t => r * Math.sin(t))); }
+    }
+    const xs = lin(0, b, 100);
+    Plotly.newPlot(el(id), [
+      { type: 'surface', x: X, y: Y, z: Z, showscale: false, opacity: 0.85, colorscale: [[0, '#0f5132'], [1, '#34d399']], name: 'discs' },
+      { type: 'scatter3d', mode: 'lines', x: xs, y: xs.map(f), z: xs.map(() => 0), name: 'y = √x', line: { color: C_PT, width: 5 } },
+      { type: 'scatter3d', mode: 'lines', x: xs, y: xs.map(x => -f(x)), z: xs.map(() => 0), showlegend: false, line: { color: C_PT, width: 5 } },
+    ], layout({ title: `disc sum Σ π f(xᵢ)² Δx = ${sum.toFixed(4)}   (n = ${n}, left endpoints)      exact π b²/2 = ${(Math.PI * b * b / 2).toFixed(4)}`,
+                height: 480, legend: { orientation: 'h', y: -0.05 },
+                scene: { aspectmode: 'data', bgcolor: '#111827',
+                         xaxis: { title: 'x', gridcolor: '#232d3f', color: '#c8d0e0', backgroundcolor: '#111827' },
+                         yaxis: { title: 'y', gridcolor: '#232d3f', color: '#c8d0e0', backgroundcolor: '#111827' },
+                         zaxis: { title: 'z', gridcolor: '#232d3f', color: '#c8d0e0', backgroundcolor: '#111827' },
+                         camera: { eye: { x: 1.6, y: 1.3, z: 0.9 } } } }), cfg());
+  }
+
+  // ── C13. Improper p-integral ∫₁ᵗ x⁻ᵖ dx ────────────────────────
+  function calcImproperP() {
+    const id = 'calc-improper-p';
+    const p = val(id, 'p', 2), t = Math.max(1, val(id, 't', 10)), f = x => Math.pow(x, -p);
+    const I = Math.abs(p - 1) < 1e-9 ? Math.log(t) : (Math.pow(t, 1 - p) - 1) / (1 - p);
+    const lim = p > 1 ? `converges to 1/(p − 1) = ${(1 / (p - 1)).toFixed(4)}` : 'diverges: the area grows without bound';
+    Plotly.newPlot(el(id), [
+      band(f, () => 0, 1, t, C_POS, `∫₁ᵗ x⁻ᵖ dx = ${I.toFixed(4)}`, 400),
+      curve(f, 1, 60, 400, { name: `y = 1/x^${p.toFixed(1)}`, line: { color: C_FN, width: 2.5 } }),
+    ], layout({ title: `p = ${p.toFixed(1)}, t = ${t}:  ∫₁ᵗ x⁻ᵖ dx = ${I.toFixed(4)}      as t → ∞: ${lim}`,
+                xaxis: ax({ title: 'x', range: [1, 60] }), yaxis: ax({ title: 'y', range: [0, 1.1] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C14. Sequence limit with an ε-band ─────────────────────────
+  function calcSequenceLimit() {
+    const id = 'calc-sequence-limit';
+    const eps = val(id, 'eps', 0.2), L = 1, a = n => 1 + 2 * (n % 2 ? -1 : 1) / n, K = 60;
+    const N = Math.floor(2 / eps) + 1;
+    const ns = lin(1, K, K - 1);
+    Plotly.newPlot(el(id), [
+      { x: [1, K], y: [L + eps, L + eps], mode: 'lines', name: `L ± ε, ε = ${eps.toFixed(2)}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } },
+      { x: [1, K], y: [L - eps, L - eps], mode: 'lines', showlegend: false, line: { color: C_ARROW, width: 1.5, dash: 'dash' } },
+      { x: [1, K], y: [L, L], mode: 'lines', name: 'L = 1', line: { color: C_GHOST, width: 1 } },
+      { x: ns.filter(n => n < N), y: ns.filter(n => n < N).map(a), mode: 'markers', name: 'before N', marker: { color: C_PT, size: 7 } },
+      { x: ns.filter(n => n >= N), y: ns.filter(n => n >= N).map(a), mode: 'markers', name: 'n ≥ N: inside the band', marker: { color: C_PATH, size: 7 } },
+    ], layout({ title: `aₙ = 1 + 2(−1)ⁿ/n:  |aₙ − 1| = 2/n < ε for every n ≥ N = ${N}`,
+                shapes: [{ type: 'line', x0: N - 0.5, x1: N - 0.5, y0: -0.2, y1: 2.2, line: { color: C_TAN, width: 2 } }],
+                xaxis: ax({ title: 'n', range: [0, K + 1] }), yaxis: ax({ title: 'aₙ', range: [-0.2, 2.2] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C15. Geometric series: terms and partial sums ──────────────
+  function calcGeometricSeries() {
+    const id = 'calc-geometric-series';
+    const a = val(id, 'a', 1), r = val(id, 'r', 0.5), n = Math.max(1, Math.round(val(id, 'n', 12)));
+    const ns = lin(1, n, n - 1), terms = ns.map(k => a * Math.pow(r, k - 1)), S = []; let s = 0;
+    for (const t of terms) { s += t; S.push(s); }
+    const t = [{ x: ns, y: terms, type: 'bar', name: 'terms a rⁿ⁻¹', marker: { color: C_BLUE } },
+               { x: ns, y: S, mode: 'lines+markers', name: 'partial sums Sₙ', line: { color: C_PATH, width: 2.5 }, marker: { color: C_PATH, size: 6 } }];
+    let title;
+    if (Math.abs(r) < 1) { const sum = a / (1 - r); t.push({ x: [1, n], y: [sum, sum], mode: 'lines', name: `a/(1 − r) = ${sum.toFixed(4)}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } });
+      title = `|r| = ${Math.abs(r).toFixed(2)} < 1: Sₙ → a/(1 − r) = ${sum.toFixed(4)}   (S_${n} = ${S[n - 1].toFixed(4)})`; }
+    else title = `|r| = ${Math.abs(r).toFixed(2)} ≥ 1: the series diverges   (S_${n} = ${S[n - 1].toFixed(3)})`;
+    Plotly.newPlot(el(id), t, layout({ title, xaxis: ax({ title: 'n', range: [0, n + 1] }), yaxis: ax({ title: '' }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C16. Integral test on the p-series ──────────────────────────
+  function calcIntegralTest() {
+    const id = 'calc-integral-test';
+    const p = val(id, 'p', 1), n = Math.max(2, Math.round(val(id, 'n', 10))), f = x => Math.pow(x, -p);
+    const list = []; let S = 1, tail = 0;
+    for (let k = 2; k <= n; k++) { const h = f(k); S += h; tail += h; list.push([k - 1, k, h]); }
+    const I = Math.abs(p - 1) < 1e-9 ? Math.log(n) : (Math.pow(n, 1 - p) - 1) / (1 - p);
+    Plotly.newPlot(el(id), [
+      rects(list, C_BLUE, `a₂ + … + aₙ = ${tail.toFixed(4)}`),
+      band(f, () => 0, 1, n, 'rgba(0,166,81,.25)', `∫₁ⁿ x⁻ᵖ dx = ${I.toFixed(4)}`, 300),
+      curve(f, 1, n + 0.5, 300, { name: `y = 1/x^${p.toFixed(1)}`, line: { color: C_FN, width: 2.5 } }),
+    ], layout({ title: `p = ${p.toFixed(1)}:  Sₙ = ${S.toFixed(4)},   a₂+…+aₙ = ${tail.toFixed(4)} ≤ ∫₁ⁿ = ${I.toFixed(4)}   → ${p > 1 ? 'both bounded: converges' : 'both unbounded: diverges'}`,
+                xaxis: ax({ title: 'x', range: [0.5, n + 0.5] }), yaxis: ax({ title: 'y', range: [0, 1.1] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C17. Limit comparison: 1/(nᵠ + n) against 1/nᵠ ──────────────
+  function calcComparison() {
+    const id = 'calc-comparison';
+    const q = val(id, 'q', 2), K = 40, ns = lin(1, K, K - 1);
+    const an = n => 1 / (Math.pow(n, q) + n), bn = n => Math.pow(n, -q);
+    const ratio = ns.map(n => an(n) / bn(n)), SA = [], SB = []; let sa = 0, sb = 0;
+    for (const n of ns) { sa += an(n); sb += bn(n); SA.push(sa); SB.push(sb); }
+    const c = q > 1 + 1e-9 ? 1 : 0.5;
+    Plotly.newPlot(el(id), [
+      { x: ns, y: ratio, mode: 'lines+markers', name: 'aₙ / bₙ', line: { color: C_PATH }, marker: { size: 5 } },
+      { x: [1, K], y: [c, c], mode: 'lines', name: `limit c = ${c}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } },
+      { x: ns, y: SA, mode: 'lines+markers', xaxis: 'x2', yaxis: 'y2', name: 'Σ aₙ', line: { color: C_PATH }, marker: { size: 5 } },
+      { x: ns, y: SB, mode: 'lines+markers', xaxis: 'x2', yaxis: 'y2', name: 'Σ bₙ (p-series)', line: { color: C_TAN }, marker: { size: 5 } },
+    ], twoRows({ title: `q = ${q.toFixed(1)}:  aₙ/bₙ → ${c},  so Σ 1/(nᵠ + n) and Σ 1/nᵠ ${q > 1 + 1e-9 ? 'both converge (p = q > 1)' : 'both diverge (harmonic)'}`,
+                 xaxis: { title: 'n', range: [0, K + 1] }, yaxis: { title: 'ratio', range: [0, 1.1] }, xaxis2: { title: 'n', range: [0, K + 1] }, yaxis2: { title: 'partial sums' } }), cfg());
+  }
+
+  // ── C18. Alternating series Σ(−1)ⁿ⁻¹/nᵖ with the error bound ───
+  function alternatingSum(p) {
+    // partial sums S_K … S_{K+m}, then repeated averaging (Euler's trick) — accurate to many digits for smooth terms
+    const K = 2000, m = 14; let s = 0; const tail = [];
+    for (let n = 1; n <= K + m; n++) { s += (n % 2 ? 1 : -1) * Math.pow(n, -p); if (n >= K) tail.push(s); }
+    let v = tail;
+    for (let i = 0; i < m; i++) { const w = []; for (let j = 0; j + 1 < v.length; j++) w.push((v[j] + v[j + 1]) / 2); v = w; }
+    return v[0];
+  }
+  function calcAlternating() {
+    const id = 'calc-alternating';
+    const p = val(id, 'p', 1), n = Math.max(2, Math.round(val(id, 'n', 10)));
+    const S = alternatingSum(p), ns = lin(1, n, n - 1), Sn = []; let s = 0;
+    for (const k of ns) { s += (k % 2 ? 1 : -1) * Math.pow(k, -p); Sn.push(s); }
+    const bound = Math.pow(n + 1, -p), err = Math.abs(S - Sn[n - 1]);
+    Plotly.newPlot(el(id), [
+      { x: [0.5, n + 0.5, n + 0.5, 0.5], y: [S - bound, S - bound, S + bound, S + bound], fill: 'toself', mode: 'lines', line: { color: 'rgba(0,0,0,0)' }, fillcolor: 'rgba(250,204,21,.18)', name: `S ± aₙ₊₁ (aₙ₊₁ = ${bound.toFixed(4)})`, hoverinfo: 'skip' },
+      { x: ns, y: Sn, mode: 'lines+markers', name: 'partial sums Sₙ', line: { color: C_PATH, width: 2 }, marker: { color: C_PATH, size: 7 } },
+      { x: [0.5, n + 0.5], y: [S, S], mode: 'lines', name: `S ≈ ${S.toFixed(5)}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } },
+    ], layout({ title: `p = ${p.toFixed(1)}:  |S − S_${n}| = ${err.toFixed(5)}  ≤  a_${n + 1} = ${bound.toFixed(5)}`,
+                xaxis: ax({ title: 'n', range: [0.5, n + 0.5] }), yaxis: ax({ title: 'Sₙ' }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C19a. Ratio test on nᵏ/rⁿ ────────────────────────────────────
+  function calcRatioTest() {
+    const id = 'calc-ratio-test';
+    const k = Math.round(val(id, 'k', 2)), r = val(id, 'r', 2), K = 30, ns = lin(1, K, K - 1);
+    const a = n => Math.pow(n, k) / Math.pow(r, n), ratios = ns.map(n => a(n + 1) / a(n)), S = []; let s = 0;
+    for (const n of ns) { s += a(n); S.push(s); }
+    const L = 1 / r, verdict = r > 1 + 1e-9 ? `L = 1/r = ${L.toFixed(3)} < 1: converges absolutely` : 'L = 1: inconclusive (and Σ nᵏ visibly diverges)';
+    Plotly.newPlot(el(id), [
+      { x: ns, y: ratios, mode: 'lines+markers', name: 'aₙ₊₁ / aₙ', line: { color: C_PATH }, marker: { size: 5 } },
+      { x: [1, K], y: [L, L], mode: 'lines', name: `L = 1/r = ${L.toFixed(3)}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } },
+      { x: [1, K], y: [1, 1], mode: 'lines', name: 'the line 1', line: { color: C_PT, width: 1, dash: 'dot' } },
+      { x: ns, y: S, mode: 'lines+markers', xaxis: 'x2', yaxis: 'y2', name: 'partial sums of Σ nᵏ/rⁿ', line: { color: C_TAN }, marker: { size: 5 } },
+    ], twoRows({ title: `aₙ = n^${k}/${r.toFixed(1)}ⁿ:   ${verdict}`,
+                 xaxis: { title: 'n', range: [0, K + 1] }, yaxis: { title: 'ratio', range: [0, Math.max(1.6, Math.min(4, ratios[0] * 1.1))] }, xaxis2: { title: 'n', range: [0, K + 1] }, yaxis2: { title: 'Sₙ' } }), cfg());
+  }
+
+  // ── C19b. Rearranging the alternating harmonic series to a target ──
+  function calcRearrangement() {
+    const id = 'calc-rearrangement';
+    const L = val(id, 'L', 1.5), N = 400;
+    let pos = 1, neg = 2, s = 0; const S = [], nat = []; let sn = 0;
+    for (let i = 1; i <= N; i++) {
+      if (s <= L) { s += 1 / pos; pos += 2; } else { s -= 1 / neg; neg += 2; }
+      S.push(s);
+      sn += (i % 2 ? 1 : -1) / i; nat.push(sn);
+    }
+    const ns = lin(1, N, N - 1);
+    Plotly.newPlot(el(id), [
+      { x: ns, y: nat, mode: 'lines', name: 'natural order → ln 2', line: { color: C_GHOST, width: 1.5 } },
+      { x: ns, y: S, mode: 'lines', name: 'rearranged (greedy toward L)', line: { color: C_PATH, width: 2.5 } },
+      { x: [1, N], y: [Math.LN2, Math.LN2], mode: 'lines', name: `ln 2 = ${Math.LN2.toFixed(4)}`, line: { color: C_GHOST, width: 1, dash: 'dash' } },
+      { x: [1, N], y: [L, L], mode: 'lines', name: `target L = ${L.toFixed(2)}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } },
+    ], layout({ title: `same terms, different order: after ${N} terms the rearranged sum is ${S[N - 1].toFixed(4)} (→ ${L.toFixed(2)}), the natural one ${nat[N - 1].toFixed(4)} (→ ln 2)`,
+                xaxis: ax({ title: 'number of terms used' }), yaxis: ax({ title: 'partial sum', range: [Math.min(-1.3, L - 0.5), Math.max(3.3, L + 0.5)] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C20. Power series Σ xⁿ/n and its interval of convergence ────
+  function calcPowerSeriesInterval() {
+    const id = 'calc-power-series-interval';
+    const N = Math.max(1, Math.round(val(id, 'N', 8))), xs = lin(-1.4, 1.4, 560);
+    const SN = x => { let s = 0, p = 1; for (let n = 1; n <= N; n++) { p *= x; s += p / n; } return s; };
+    const clip = y => (Math.abs(y) > 8 ? null : y);
+    Plotly.newPlot(el(id), [
+      { x: xs, y: xs.map(x => (x < 1 ? clip(-Math.log(1 - x)) : null)), mode: 'lines', name: '−ln(1 − x)', line: { color: C_FN, width: 2.5 }, connectgaps: false },
+      { x: xs, y: xs.map(x => clip(SN(x))), mode: 'lines', name: `S_${N}(x) = Σₙ₌₁^${N} xⁿ/n`, line: { color: C_PATH, width: 2.5 }, connectgaps: false },
+      { x: [-1], y: [-Math.LN2], mode: 'markers', name: 'x = −1: converges to −ln 2', marker: { color: C_PATH, size: 10 } },
+      { x: [1], y: [Math.min(8, SN(1))], mode: 'markers', name: 'x = 1: harmonic series, diverges', marker: { color: C_PT, size: 10, symbol: 'x' } },
+    ], layout({ title: `N = ${N}: inside (−1, 1) the partial sums settle on −ln(1 − x); outside they blow up.  Interval of convergence [−1, 1).`,
+                shapes: [{ type: 'rect', x0: -1, x1: 1, y0: -3, y1: 5, fillcolor: 'rgba(96,165,250,.08)', line: { width: 0 } },
+                         { type: 'line', x0: -1, x1: -1, y0: -3, y1: 5, line: { color: C_TAN, width: 1, dash: 'dot' } },
+                         { type: 'line', x0: 1, x1: 1, y0: -3, y1: 5, line: { color: C_TAN, width: 1, dash: 'dot' } }],
+                xaxis: ax({ title: 'x', range: [-1.4, 1.4] }), yaxis: ax({ title: 'y', range: [-3, 5] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C21. arctan x from the integrated geometric series ──────────
+  function calcArctanSeries() {
+    const id = 'calc-arctan-series';
+    const N = Math.max(0, Math.round(val(id, 'N', 3))), xs = lin(-1.3, 1.3, 520);
+    const SN = x => { let s = 0; for (let n = 0; n <= N; n++) s += (n % 2 ? -1 : 1) * Math.pow(x, 2 * n + 1) / (2 * n + 1); return s; };
+    const clip = y => (Math.abs(y) > 4 ? null : y);
+    Plotly.newPlot(el(id), [
+      curve(Math.atan, -1.3, 1.3, 300, { name: 'arctan x', line: { color: C_FN, width: 2.5 } }),
+      { x: xs, y: xs.map(x => clip(SN(x))), mode: 'lines', name: `Σₙ₌₀^${N} (−1)ⁿ x²ⁿ⁺¹/(2n+1)`, line: { color: C_PATH, width: 2.5 }, connectgaps: false },
+      { x: [1], y: [SN(1)], mode: 'markers', name: `at x = 1: ${SN(1).toFixed(4)} → π/4 = ${(Math.PI / 4).toFixed(4)}`, marker: { color: C_PT, size: 10 } },
+    ], layout({ title: `${N + 1} terms:  the partial sum at x = 1 is ${SN(1).toFixed(4)}, π/4 ≈ ${(Math.PI / 4).toFixed(4)}   (radius of convergence 1)`,
+                shapes: [{ type: 'rect', x0: -1, x1: 1, y0: -2.5, y1: 2.5, fillcolor: 'rgba(96,165,250,.08)', line: { width: 0 } }],
+                xaxis: ax({ title: 'x', range: [-1.3, 1.3] }), yaxis: ax({ title: 'y', range: [-2.5, 2.5] }), legend: { orientation: 'h', y: -0.2 } }), cfg());
+  }
+
+  // ── C22. Taylor polynomials of sin x about a ────────────────────
+  function calcTaylorPolynomials() {
+    const id = 'calc-taylor-polynomials';
+    const n = Math.max(0, Math.round(val(id, 'n', 3))), a = val(id, 'a', 0);
+    const d = [Math.sin(a), Math.cos(a), -Math.sin(a), -Math.cos(a)];   // sin⁽ⁱ⁾(a) cycles with period 4
+    const T = x => { let s = 0, p = 1, fact = 1; for (let i = 0; i <= n; i++) { if (i) { p *= (x - a); fact *= i; } s += d[i % 4] * p / fact; } return s; };
+    const xs = lin(-7, 7, 700), clip = y => (Math.abs(y) > 3 ? null : y);
+    Plotly.newPlot(el(id), [
+      curve(Math.sin, -7, 7, 400, { name: 'sin x', line: { color: C_FN, width: 2.5 } }),
+      { x: xs, y: xs.map(x => clip(T(x))), mode: 'lines', name: `T_${n}(x) about a = ${a.toFixed(2)}`, line: { color: C_PATH, width: 2.5 }, connectgaps: false },
+      { x: [a], y: [Math.sin(a)], mode: 'markers', name: '(a, sin a)', marker: { color: C_PT, size: 10 } },
+      { x: xs, y: xs.map(x => Math.max(1e-12, Math.abs(Math.sin(x) - T(x)))), mode: 'lines', xaxis: 'x2', yaxis: 'y2', name: `|Rₙ(x)| = |sin x − T_${n}(x)|`, line: { color: C_TAN, width: 2 } },
+    ], twoRows({ title: `T_${n}(x) = Σᵢ₌₀^${n} sin⁽ⁱ⁾(a)/i! · (x − a)ⁱ,  a = ${a.toFixed(2)}`,
+                 xaxis: { title: 'x', range: [-7, 7] }, yaxis: { title: 'y', range: [-3, 3] }, xaxis2: { title: 'x', range: [-7, 7] }, yaxis2: { title: '|Rₙ| (log)', type: 'log', range: [-8, 1] } }), cfg());
+  }
+
   const SIMS = {
     'euler-demo':          eulerDemo,
     'rk4-comparison':      rk4Comparison,
@@ -986,6 +1411,31 @@
     'r-logical-filter':    rLogicalFilter,
     'r-matrix-index':      rMatrixIndex,
     'r-roundoff':          rRoundoff,
+    // MATH 205
+    'calc-riemann-sums':   calcRiemannSums,
+    'calc-signed-area':    calcSignedArea,
+    'calc-antiderivative-family': calcAntiderivativeFamily,
+    'calc-ftc-accumulation': calcFtcAccumulation,
+    'calc-net-change':     calcNetChange,
+    'calc-substitution':   calcSubstitution,
+    'calc-parts-area':     calcPartsArea,
+    'calc-area-between':   calcAreaBetween,
+    'calc-average-value':  calcAverageValue,
+    'calc-trig-powers':    calcTrigPowers,
+    'calc-trig-sub':       calcTrigSub,
+    'calc-partial-fractions': calcPartialFractions,
+    'calc-solid-revolution': calcSolidRevolution,
+    'calc-improper-p':     calcImproperP,
+    'calc-sequence-limit': calcSequenceLimit,
+    'calc-geometric-series': calcGeometricSeries,
+    'calc-integral-test':  calcIntegralTest,
+    'calc-comparison':     calcComparison,
+    'calc-alternating':    calcAlternating,
+    'calc-ratio-test':     calcRatioTest,
+    'calc-rearrangement':  calcRearrangement,
+    'calc-power-series-interval': calcPowerSeriesInterval,
+    'calc-arctan-series':  calcArctanSeries,
+    'calc-taylor-polynomials': calcTaylorPolynomials,
   };
 
   window.runSim = function (id, cfg) {
