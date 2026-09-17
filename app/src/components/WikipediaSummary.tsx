@@ -19,7 +19,8 @@ export default function WikipediaSummary({ title }: { title: string }) {
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
-        if (j && typeof j.extract === "string" && j.extract) {
+        // 200 also comes back for disambiguation pages ("X may refer to:") — not a summary
+        if (j && j.type === "standard" && typeof j.extract === "string" && j.extract) {
           setS({ extract: j.extract, url: j.content_urls?.desktop?.page ?? `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}` });
         }
       })
