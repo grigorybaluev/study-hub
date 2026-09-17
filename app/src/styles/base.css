@@ -89,6 +89,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .muted { color: var(--fg-muted); }
 .faint { color: var(--fg-faint); }
 .small { font-size: 0.86rem; }
+/* Wikipedia summary on a concept page: same look as a note callout, capped to prose width */
+blockquote.wiki { max-width: var(--measure); margin: 1.1em 0; padding: 0.8em 1.2em; border-left: 4px solid var(--callout-note-line); background: var(--callout-note-bg); border-radius: 0 var(--radius) var(--radius) 0; }
+blockquote.wiki p { margin: 0.4em 0; }
 
 /* ---------------------------------------------------------------- chips, badges, cards */
 .chip {

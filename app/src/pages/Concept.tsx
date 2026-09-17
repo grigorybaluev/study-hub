@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Badge, ConceptChip, UnitLink } from "../components/Chips";
+import WikipediaSummary from "../components/WikipediaSummary";
 import { edgesIn, edgesOut, href, node, useData } from "../data/load";
 import type { CourseNode, RoadmapSkillNode, UnitNode } from "../data/types";
 
@@ -64,6 +65,7 @@ function ConceptPage({ slug }: { slug: string }) {
         <h1>{c.title}</h1>
         <p className="prose">{c.body}</p>
         {c.aliases.length > 0 && <p className="muted small">Also: {c.aliases.join(", ")}</p>}
+        {c.wikipedia && <WikipediaSummary title={c.wikipedia} />}
 
         <h2>Perspectives</h2>
         {byCourse.size === 0 ? (
