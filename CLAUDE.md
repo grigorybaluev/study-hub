@@ -66,6 +66,26 @@ Concepts
   split only when a unit needs the part separately.
 - A concept nobody introduces is a finding (unmet dependency), reported by derive and
   warned by lint — never author around it.
+- The vocabulary serves the whole roadmap and its postgrad reach, not one program: when
+  judging whether a part is "required on its own", count units that could plausibly be
+  written later (optimization, numerical methods, ML, spatial), not only the ones filed.
+
+Naming (slugs are global and un-namespaced; `domain` is metadata, not part of the ID)
+- A bare single-word slug is fine when the word has one dominant meaning across the
+  roadmap's reach (`matrix`, `gradient`, `recursion`, `queue`).
+- When the concept is the *narrow* meaning of a word that means something else elsewhere
+  in the roadmap, the slug carries the qualifier, Wikipedia-style (`database-normalization`,
+  `conditional-statement`); the bare word stays free for the general concept.
+- Aliases are search terms and may repeat across concepts, but a word that names different
+  objects gets a parenthetical on both sides ("transition matrix (Markov)",
+  "change-of-basis matrix").
+- Probability quantities keep the plain name (`expected-value`, `variance`); statistics
+  estimators take `sample-` (`sample-mean`, `sample-variance`).
+- The same object under two course-specific names is one concept; the other name is an
+  alias (null space / kernel).
+- `short` is an optional display name, unique across concepts; `wikipedia` is the English
+  article title, with its parenthetical disambiguator when the meaning is not the
+  article's primary one ("Kernel (linear algebra)"); `wikidata` is the Q-id.
 
 Units
 - One coherent teaching chunk of one course (~a week or chapter, ~10-12 per course).
@@ -126,6 +146,8 @@ Courses and programs
 ## Content rules
 
 - Own words only. No lecture slides, textbook figures, or copied problem sets.
+- Attributed CC BY-SA 4.0 text (a Wikipedia summary) may be *displayed* by the app, fetched
+  at view time with the article link and licence named; it is never pasted into `content/`.
 - Roadmaps are authored here (CC BY-SA). roadmap.sh's content is under a personal-use-only
   licence: link to it as a reference, never reproduce its titles or structure.
 - Code is MIT; everything under `content/` is CC BY-SA 4.0.
