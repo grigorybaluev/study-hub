@@ -28,6 +28,7 @@ SEASONS = ("fall", "winter", "summer")  # ordered: index within a year
 
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 CODE_RE = re.compile(r"^[A-Z]{4}\d{3}$")
+WIKIDATA_RE = re.compile(r"^Q[1-9]\d*$")
 
 REQUIRED = {
     "concept": {"title", "domain"},
@@ -37,7 +38,7 @@ REQUIRED = {
     "university": {"id", "name"},
 }
 OPTIONAL = {
-    "concept": {"aliases", "generalizes", "part_of", "maps_to"},
+    "concept": {"aliases", "generalizes", "part_of", "maps_to", "short", "wikipedia", "wikidata"},
     "unit": {"kind", "weeks", "textbook", "notes", "introduces", "requires", "reinforces"},
     "course": {"prereqs", "coreqs", "requirements", "source"},
     "program": {"source"},

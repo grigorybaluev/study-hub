@@ -35,10 +35,15 @@ def build(c: Content) -> dict:
     # ---- concepts
     for slug, doc in c.concepts.items():
         m = doc.meta
-        nodes.append({
+        node = {
             "id": slug, "type": "concept", "title": m["title"], "domain": m["domain"],
             "aliases": m.get("aliases") or [], "body": doc.body,
-        })
+        }
+        # optional naming fields: present in the node only when authored
+        for key in ("short", "wikipedia", "wikidata"):
+            if m.get(key):
+                node[key] = m[key]
+        nodes.append(node)
         for target in m.get("generalizes") or []:
             edge(slug, target, "generalizes", provenance="authored")
         for target in m.get("part_of") or []:
