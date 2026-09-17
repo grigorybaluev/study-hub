@@ -173,13 +173,13 @@ code: |
           ObjectInputStream in = new ObjectInputStream(new FileInputStream("roster.dat"));
           ArrayList<Student> back = (ArrayList<Student>) in.readObject();
           Student extra = (Student) in.readObject();
-          in.close();
           System.out.println(back + " " + extra);
           System.out.println(back.get(0) == roster.get(0));
           Student ghost = (Student) in.readObject();
+          in.close();
       }
   }
-note: 'main declares the checked exceptions instead of catching them. The whole list comes back as new objects with the same contents — the identity test prints false. The final read runs past the end of the stream: EOFException. Remove "implements Serializable" from Student and the first writeObject throws NotSerializableException.'
+note: 'main declares the checked exceptions instead of catching them. The whole list comes back as new objects with the same contents — the identity test prints false. The third read runs past the end of the stream: EOFException, and the close() after it never runs — which is what finally is for. Remove "implements Serializable" from Student and the first writeObject throws NotSerializableException.'
 ```
 
 > **Key insight.** Every file program has the same skeleton: open (may fail — checked
