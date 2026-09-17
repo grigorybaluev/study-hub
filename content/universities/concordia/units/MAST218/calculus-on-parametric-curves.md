@@ -5,14 +5,15 @@ status: detailed
 notes: ["Lecture 3 · Wed 16 Sep 2026 · p.1 (second-order derivative, length proposition)", "Lecture 3 · p.2 (length vs distance, surface area, examples 1–2)", "Lecture 3 · p.3 (sphere about the y-axis; sketching method S1–S3)", "Lecture 3 · p.4 (loop example: table, tangents, direction, sketch)", "Lecture 3 · p.5 (length and area of the loop; translations)"]
 weeks: [2]
 textbook: "Stewart, Multivariable Calculus, 9e, 10.2"
-introduces: [surface-of-revolution]
+introduces:
+  - surface-of-revolution
+  - {concept: arc-length, perspective: "along a parametric curve"}
 requires:
   - {concept: parametric-curve, strength: hard}
   - {concept: derivative, strength: hard}
   - {concept: integral, strength: hard}
-  - {concept: integration-techniques, strength: soft}
+  - {concept: substitution-rule, strength: soft}
 reinforces:
-  - {concept: arc-length, perspective: "along a parametric curve"}
   - {concept: derivative, perspective: "second derivative and concavity along a parametric curve"}
 ---
 
