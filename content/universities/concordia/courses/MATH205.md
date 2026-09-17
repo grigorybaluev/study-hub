@@ -9,5 +9,8 @@ requirements: []
 source: concordia-cs-ds-sequence-v3
 ---
 
-Techniques of integration, applications of the integral, sequences and series, and
-Taylor series. Assumed prior knowledge for the program.
+The definite integral and the fundamental theorem; techniques of integration
+(substitution, parts, trigonometric, partial fractions); areas, average values and
+volumes; improper integrals; sequences and series with the convergence tests; power
+series and Taylor series. Assumed prior knowledge for the program. Units follow the 22
+lecture handouts of the course.
