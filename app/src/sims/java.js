@@ -606,7 +606,7 @@
         if (this.is('.') && this.is('new', 1)) { // outer.new Inner(...)
           this.next(); this.next();
           const cls = this.ident();
-          if (this.is('<')) { this.next(); while (!this.is('>') && !this.is('>>')) this.next(); this.closeAngle(); }
+          if (this.is('<')) this.p = this.skipAngles(0);
           e = { k: 'New', cls, args: this.args(), line: t.line, outerExpr: e };
         } else if (this.is('.')) {
           this.next();
@@ -1038,7 +1038,6 @@
 
     // ── checked exceptions: `unreported exception X; must be caught or declared to be thrown` ──
     checkExceptions() {
-      const self = this;
       const ctorThrows = (name) => { const c = this.classes[name]; return c ? c.ctors.flatMap(k => k.throws) : []; };
       const walkBody = (body, handled, declared, where) => {
         const covered = (t, handled) => handled.some(h => this.isSubtype(t, h)) || declared.some(d => this.isSubtype(t, d));
@@ -1101,7 +1100,6 @@
         for (const k of c.ctors) walkBody(k.body, [], k.throws, { cls: c, name: '<init>' });
         for (const f of c.fields) if (f.init && !f.block) walkBody({ k: 'ExprStmt', expr: f.init, line: f.line }, [], [], { cls: c });
       }
-      void self;
     }
 
     // ── snapshots ──
@@ -1182,8 +1180,8 @@
           const r = sig.value;
           if (r.t === 'void') throw compileError(`incompatible types: missing return value`, sig.line);
           if (!assignable(r, m.ret, this)) throw compileError(`incompatible types: ${typeName(r.st || r.t)} cannot be converted to ${erase(m.ret)}`, sig.line);
-          const out = convert(r, m.ret);
-          if (isRef(erase(m.ret)) && !m.retGeneric && erase(m.ret) !== 'Object') out.st = erase(m.ret); else delete out.st;
+          const out = Object.assign({}, convert(r, m.ret)); // a copy: NULL and boxed values are shared
+          if (isRef(erase(m.ret)) && !m.retGeneric) out.st = erase(m.ret); else delete out.st;
           return out;
         }
         if (m.ret !== 'void' && m.name !== '<init>') throw compileError(`missing return statement in ${m.name}`, m.line);
@@ -1396,11 +1394,10 @@
       return null;
     }
     makeException(name, message, line) {
-      const cls = this.builtinClass(name);
+      this.builtinClass(name); // registers the built-in class so isSubtype and catch clauses see it
       const obj = V(name, { id: nextId++, cls: name, fields: { message: { t: 'String', v: message === undefined || message === null ? null : String(message), name: 'message', rt: 'String', id: 'M' + nextId } } });
       obj.v.trace = this.stack.map(f => f.name).reverse();
       obj.v.line = line;
-      void cls;
       return obj;
     }
     builtinClass(name) {
@@ -1485,7 +1482,7 @@
           const v = yield* this.eval(e.e, env);
           if (PRIM.has(e.type)) {
             const u = unboxed(v);
-            if (v.t === 'null' || (v.t === 'Object' || v.st === 'Object') && isBox(v.t)) { if (v.t === 'null') throw runtimeError('NullPointerException', `Cannot unbox null value`, e.line); }
+            if (v.t === 'null') throw runtimeError('NullPointerException', `Cannot unbox null value`, e.line);
             if (!isNum(u.t) && !(u.t === 'boolean' && e.type === 'boolean')) throw compileError(`incompatible types: ${typeName(v.st || v.t)} cannot be converted to ${e.type}`, e.line);
             return convert(u, e.type);
           }

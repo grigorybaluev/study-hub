@@ -823,6 +823,16 @@ public class Main {
   public static void main(String[] args) { System.out.println(bigger(2, 9)); bigger(new Thing(), new Thing()); }
 }`, `9\n`, { expectError: 'compile' });
 
+
+t('a null returned from a typed method does not leak its static type onto null literals', `
+public class Main {
+  static Integer maybe() { return null; }
+  public static void main(String[] args) { Integer a = maybe(); String s = null; int x = null; }
+}`, ``, { expectError: 'compile', errorText: '<null> cannot be converted to int' });
+
+t('unterminated generic arguments in outer.new is a compile error, not a hang', `
+public class Main { class In {} public static void main(String[] args) { Main m = new Main(); Main.In i = m.new In<(); } }`, ``, { expectError: 'compile' });
+
 let pass = 0, fail = 0;
 for (const c of cases) {
   const r = JAVA.run(c.code, c.stdin || '', { maxSteps: 4000 });
