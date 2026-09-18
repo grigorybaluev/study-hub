@@ -100,7 +100,7 @@
           s.cost += s.t + 1; s.cap = ncap; s.a = s.a.slice(0, s.t + 1).concat(Array(ncap - s.t - 1).fill(null));
         }
         s.t++; s.a[s.t] = v; s.cost++; s.pushes++;
-        yield { d: `push(${v}): t ← t + 1 = ${s.t}, S[t] ← ${v}    (size ${s.t + 1}, ${s.grow === 'none' ? '' : 'total cost so far ' + s.cost + ' for ' + s.pushes + ' pushes'})`, hl: { i: s.t, tone: 'ok' } };
+        yield { d: `push(${v}): t ← t + 1 = ${s.t}, S[t] ← ${v}    (size ${s.t + 1}${s.grow === 'none' ? '' : ', total cost so far ' + s.cost + ' for ' + s.pushes + ' pushes'})`, hl: { i: s.t, tone: 'ok' } };
       },
       *pop(s) {
         if (s.t < 0) { yield { d: 'pop(): the stack is empty — throw EmptyStackException', hl: { err: true } }; return; }
