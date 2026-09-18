@@ -1,6 +1,7 @@
 ---
 title: Data visualization
 domain: data
+wikipedia: "Data and information visualization"
 aliases: ["histogram", "box plot", "scatter plot"]
 maps_to: [study-hub/ds-core/data-visualization, study-hub/ds-core/descriptive-statistics]
 ---

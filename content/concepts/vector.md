@@ -1,6 +1,7 @@
 ---
 title: Vector
 domain: math.linear-algebra
+wikipedia: "Euclidean vector"
 aliases: ["norm", "unit vector"]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---

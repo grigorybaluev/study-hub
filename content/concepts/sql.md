@@ -1,6 +1,7 @@
 ---
 title: SQL
 domain: data
+wikipedia: "SQL"
 aliases: ["query language", "views", "triggers"]
 maps_to: [study-hub/ds-core/sql]
 ---

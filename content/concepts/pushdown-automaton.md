@@ -1,6 +1,8 @@
 ---
 title: Pushdown automata
 domain: theory
+wikipedia: "Pushdown automaton"
+short: "PDA"
 aliases: ["PDA", "NPDA", "DPDA"]
 generalizes: [nfa]
 maps_to: [study-hub/ds-core/theory-of-computation]

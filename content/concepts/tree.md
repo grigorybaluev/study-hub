@@ -1,6 +1,7 @@
 ---
 title: Trees
 domain: math.discrete
+wikipedia: "Tree (graph theory)"
 aliases: ["binary tree", "tree traversal"]
 maps_to: [study-hub/ds-core/discrete-mathematics, study-hub/ds-core/data-structures-algorithms]
 ---

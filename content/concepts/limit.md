@@ -1,6 +1,7 @@
 ---
 title: Limit
 domain: math.calculus
+wikipedia: "Limit (mathematics)"
 maps_to: [study-hub/ds-core/calculus]
 ---
 

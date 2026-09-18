@@ -1,6 +1,7 @@
 ---
 title: Polar coordinates
 domain: math.calculus
+wikipedia: "Polar coordinate system"
 maps_to: [study-hub/ds-core/calculus]
 ---
 

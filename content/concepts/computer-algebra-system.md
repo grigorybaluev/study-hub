@@ -1,6 +1,8 @@
 ---
 title: Computer algebra system
 domain: programming
+wikipedia: "Computer algebra system"
+short: "CAS"
 aliases: ["SageMath", "Sage", "CAS", "symbolic computation"]
 maps_to: [study-hub/ds-core/python, study-hub/ds-core/numerical-methods]
 ---

@@ -1,6 +1,7 @@
 ---
 title: Gradient
 domain: math.calculus
+wikipedia: "Gradient"
 maps_to: [study-hub/ds-core/calculus, study-hub/ds-core/optimization]
 ---
 

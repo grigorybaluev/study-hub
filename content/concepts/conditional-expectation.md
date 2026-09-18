@@ -1,6 +1,7 @@
 ---
 title: Conditional expectation
 domain: probability
+wikipedia: "Conditional expectation"
 aliases: ["conditional variance"]
 generalizes: [expected-value]
 maps_to: [study-hub/ds-core/multivariate-probability]

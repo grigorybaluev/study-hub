@@ -1,6 +1,8 @@
 ---
 title: Abstract data type
 domain: algorithms
+wikipedia: "Abstract data type"
+short: "ADT"
 aliases: ["ADT"]
 maps_to: [study-hub/ds-core/data-structures-algorithms]
 ---

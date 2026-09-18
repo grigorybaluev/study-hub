@@ -1,6 +1,7 @@
 ---
 title: Strings
 domain: programming
+wikipedia: "String (computer science)"
 aliases: ["String class", "string methods", "string concatenation", "text processing"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---

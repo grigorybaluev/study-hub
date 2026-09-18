@@ -1,6 +1,8 @@
 ---
 title: Linear transformation
 domain: math.linear-algebra
+wikipedia: "Linear map"
+short: "linear map"
 aliases: ["linear map", "matrix transformation", "linear operator", "kernel", "image"]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---

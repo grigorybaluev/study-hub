@@ -1,6 +1,7 @@
 ---
 title: Power series
 domain: math.calculus
+wikipedia: "Power series"
 aliases: ["radius of convergence", "interval of convergence", "term-by-term differentiation", "analytic function"]
 maps_to: [study-hub/ds-core/calculus]
 ---

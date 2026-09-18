@@ -1,6 +1,8 @@
 ---
 title: Floating-point representation
 domain: systems
+wikipedia: "Floating-point arithmetic"
+short: "floating point"
 aliases: ["IEEE 754", "round-off error"]
 maps_to: [study-hub/ds-core/computing-systems, study-hub/ds-core/numerical-methods]
 ---

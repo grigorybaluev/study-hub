@@ -1,6 +1,8 @@
 ---
 title: Moment-generating function
 domain: probability
+wikipedia: "Moment generating function"
+short: "MGF"
 aliases: ["mgf"]
 maps_to: [study-hub/ds-core/random-variables]
 ---

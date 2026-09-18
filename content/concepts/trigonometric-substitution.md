@@ -1,6 +1,8 @@
 ---
 title: Trigonometric substitution
 domain: math.calculus
+wikipedia: "Trigonometric substitution"
+short: "trig substitution"
 aliases: ["x = a sin θ", "x = a tan θ", "x = a sec θ", "reference triangle"]
 maps_to: [study-hub/ds-core/calculus]
 ---

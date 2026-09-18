@@ -1,6 +1,7 @@
 ---
 title: Diagonalization
 domain: math.linear-algebra
+wikipedia: "Diagonalizable matrix"
 aliases: ["diagonalizable matrix", "similar matrices", "dynamical systems"]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---

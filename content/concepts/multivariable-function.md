@@ -1,6 +1,8 @@
 ---
 title: Function of several variables
 domain: math.calculus
+wikipedia: "Function of several real variables"
+short: "multivariable function"
 aliases: ["level curve", "level surface"]
 maps_to: [study-hub/ds-core/calculus]
 ---

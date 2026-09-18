@@ -1,6 +1,7 @@
 ---
 title: Queue
 domain: algorithms
+wikipedia: "Queue (abstract data type)"
 aliases: ["FIFO", "deque"]
 maps_to: [study-hub/ds-core/data-structures-algorithms]
 ---

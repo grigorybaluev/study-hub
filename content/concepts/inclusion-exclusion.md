@@ -1,6 +1,7 @@
 ---
 title: Inclusion–exclusion
 domain: math.discrete
+wikipedia: "Inclusion–exclusion principle"
 maps_to: [study-hub/ds-core/discrete-mathematics, study-hub/ds-core/probability-theory]
 ---
 

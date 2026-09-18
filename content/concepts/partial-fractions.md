@@ -1,6 +1,8 @@
 ---
 title: Partial fractions
 domain: math.calculus
+wikipedia: "Partial fraction decomposition"
+short: "partial fractions"
 aliases: ["rational function", "partial fraction decomposition", "undetermined coefficients", "polynomial long division"]
 maps_to: [study-hub/ds-core/calculus]
 ---

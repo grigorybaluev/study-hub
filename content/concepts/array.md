@@ -1,6 +1,7 @@
 ---
 title: Arrays
 domain: programming
+wikipedia: "Array (data structure)"
 aliases: ["2-D array"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---

@@ -1,6 +1,7 @@
 ---
 title: Database systems
 domain: data
+wikipedia: "Database"
 aliases: ["DBMS", "data model"]
 maps_to: [study-hub/ds-core/data-modelling]
 ---

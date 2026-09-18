@@ -1,6 +1,7 @@
 ---
 title: Convergence tests
 domain: math.calculus
+wikipedia: "Convergence tests"
 aliases: ["integral test", "p-series", "comparison test", "limit comparison test", "alternating series test", "absolute convergence", "conditional convergence", "ratio test", "root test"]
 maps_to: [study-hub/ds-core/calculus]
 ---

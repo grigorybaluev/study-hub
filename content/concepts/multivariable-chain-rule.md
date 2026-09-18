@@ -1,6 +1,7 @@
 ---
 title: Multivariable chain rule
 domain: math.calculus
+short: "multivariable chain rule"
 generalizes: [chain-rule]
 maps_to: [study-hub/ds-core/calculus]
 ---

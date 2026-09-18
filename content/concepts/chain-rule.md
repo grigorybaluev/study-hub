@@ -1,6 +1,7 @@
 ---
 title: Chain rule
 domain: math.calculus
+wikipedia: "Chain rule"
 maps_to: [study-hub/ds-core/calculus]
 ---
 

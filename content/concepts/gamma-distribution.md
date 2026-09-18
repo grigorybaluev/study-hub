@@ -1,6 +1,7 @@
 ---
 title: Gamma distribution
 domain: probability
+wikipedia: "Gamma distribution"
 aliases: ["gamma function"]
 generalizes: [exponential-distribution, chi-square-distribution]
 maps_to: [study-hub/ds-core/distributions]

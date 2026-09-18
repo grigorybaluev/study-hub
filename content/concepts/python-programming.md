@@ -1,6 +1,7 @@
 ---
 title: Python programming
 domain: programming
+wikipedia: "Python (programming language)"
 aliases: ["Python"]
 maps_to: [study-hub/ds-core/python]
 ---

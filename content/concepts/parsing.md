@@ -1,6 +1,7 @@
 ---
 title: Parsing
 domain: theory
+wikipedia: "Parsing"
 aliases: ["membership algorithm"]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---

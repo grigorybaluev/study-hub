@@ -1,6 +1,8 @@
 ---
 title: Sorting algorithms
 domain: algorithms
+wikipedia: "Sorting algorithm"
+short: "sorting"
 aliases: ["merge sort", "quick sort", "radix sort"]
 maps_to: [study-hub/ds-core/data-structures-algorithms]
 ---

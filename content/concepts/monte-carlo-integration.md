@@ -1,6 +1,8 @@
 ---
 title: Monte Carlo integration
 domain: statistics
+wikipedia: "Monte Carlo integration"
+short: "MC integration"
 aliases: ["importance sampling"]
 maps_to: [study-hub/ds-core/simulation]
 ---

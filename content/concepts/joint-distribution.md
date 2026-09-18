@@ -1,6 +1,8 @@
 ---
 title: Joint, marginal and conditional distributions
 domain: probability
+wikipedia: "Joint probability distribution"
+short: "joint distribution"
 aliases: ["marginal distribution", "conditional distribution", "multivariate distribution"]
 maps_to: [study-hub/ds-core/multivariate-probability]
 ---

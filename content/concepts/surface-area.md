@@ -1,6 +1,7 @@
 ---
 title: Surface area
 domain: math.calculus
+wikipedia: "Surface area"
 aliases: ["area of a surface"]
 generalizes: [surface-of-revolution]
 maps_to: [study-hub/ds-core/calculus]

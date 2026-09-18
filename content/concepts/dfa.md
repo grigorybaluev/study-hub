@@ -1,6 +1,8 @@
 ---
 title: Deterministic finite automaton
 domain: theory
+wikipedia: "Deterministic finite automaton"
+short: "DFA"
 aliases: ["DFA", "finite accepter"]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---

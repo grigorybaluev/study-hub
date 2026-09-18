@@ -1,6 +1,7 @@
 ---
 title: Vector space
 domain: math.linear-algebra
+wikipedia: "Vector space"
 aliases: ["subspace", "vector space axioms", "abstract vector space"]
 generalizes: [vector]
 maps_to: [study-hub/ds-core/linear-algebra]

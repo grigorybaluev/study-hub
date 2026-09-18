@@ -1,6 +1,7 @@
 ---
 title: Linear independence
 domain: math.linear-algebra
+wikipedia: "Linear independence"
 aliases: ["linear dependence", "homogeneous system", "trivial solution"]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---

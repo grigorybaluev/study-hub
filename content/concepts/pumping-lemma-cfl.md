@@ -1,6 +1,8 @@
 ---
 title: Pumping lemma for context-free languages
 domain: theory
+wikipedia: "Pumping lemma for context-free languages"
+short: "pumping lemma (CFL)"
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

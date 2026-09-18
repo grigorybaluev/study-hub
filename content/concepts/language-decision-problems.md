@@ -1,6 +1,8 @@
 ---
 title: Decision problems for languages
 domain: theory
+wikipedia: "Decision problem"
+short: "decision problems"
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

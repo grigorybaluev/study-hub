@@ -1,6 +1,8 @@
 ---
 title: Pointers and manual memory management
 domain: programming
+wikipedia: "Pointer (computer programming)"
+short: "pointers"
 aliases: ["malloc", "memory management"]
 maps_to: [study-hub/ds-core/programming-fundamentals, study-hub/ds-core/computing-systems]
 ---

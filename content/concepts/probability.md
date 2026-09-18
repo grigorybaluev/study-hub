@@ -1,6 +1,7 @@
 ---
 title: Probability
 domain: probability
+wikipedia: "Probability"
 aliases: ["probability axioms", "addition rule"]
 maps_to: [study-hub/ds-core/probability-theory]
 ---

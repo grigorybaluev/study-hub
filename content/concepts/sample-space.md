@@ -1,6 +1,7 @@
 ---
 title: Sample space
 domain: probability
+wikipedia: "Sample space"
 aliases: ["random experiment", "outcome"]
 maps_to: [study-hub/ds-core/probability-theory]
 ---

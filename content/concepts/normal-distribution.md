@@ -1,6 +1,7 @@
 ---
 title: Normal distribution
 domain: probability
+wikipedia: "Normal distribution"
 aliases: ["Gaussian", "standard normal", "z-score"]
 maps_to: [study-hub/ds-core/distributions, study-hub/ds-core/estimation]
 ---

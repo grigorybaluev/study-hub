@@ -1,6 +1,7 @@
 ---
 title: Integral
 domain: math.calculus
+wikipedia: "Integral"
 aliases: ["definite integral", "signed area", "properties of the integral"]
 maps_to: [study-hub/ds-core/calculus]
 ---

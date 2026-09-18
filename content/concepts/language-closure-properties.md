@@ -1,6 +1,7 @@
 ---
 title: Closure properties of language classes
 domain: theory
+short: "closure properties"
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

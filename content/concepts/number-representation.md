@@ -1,6 +1,7 @@
 ---
 title: Number representation
 domain: systems
+wikipedia: "Binary number"
 aliases: ["binary", "hexadecimal", "two's complement"]
 maps_to: [study-hub/ds-core/computing-systems]
 ---

@@ -1,6 +1,7 @@
 ---
 title: Continuity
 domain: math.calculus
+wikipedia: "Continuous function"
 maps_to: [study-hub/ds-core/calculus]
 ---
 

@@ -1,6 +1,8 @@
 ---
 title: Pumping lemma for regular languages
 domain: theory
+wikipedia: "Pumping lemma for regular languages"
+short: "pumping lemma (regular)"
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

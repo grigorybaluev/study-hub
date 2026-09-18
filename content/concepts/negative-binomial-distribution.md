@@ -1,6 +1,8 @@
 ---
 title: Negative binomial distribution
 domain: probability
+wikipedia: "Negative binomial distribution"
+short: "negative binomial"
 generalizes: [geometric-distribution]
 maps_to: [study-hub/ds-core/distributions]
 ---

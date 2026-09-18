@@ -1,6 +1,7 @@
 ---
 title: Programming paradigms
 domain: programming
+wikipedia: "Programming paradigm"
 aliases: ["language evolution"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---

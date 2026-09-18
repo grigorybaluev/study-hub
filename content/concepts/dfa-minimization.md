@@ -1,6 +1,7 @@
 ---
 title: DFA minimization
 domain: theory
+wikipedia: "DFA minimization"
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

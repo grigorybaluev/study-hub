@@ -1,6 +1,7 @@
 ---
 title: Event
 domain: probability
+wikipedia: "Event (probability theory)"
 maps_to: [study-hub/ds-core/probability-theory]
 ---
 

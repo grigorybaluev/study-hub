@@ -1,6 +1,7 @@
 ---
 title: Curvature
 domain: math.calculus
+wikipedia: "Curvature"
 aliases: ["TNB frame"]
 maps_to: [study-hub/ds-core/calculus]
 ---

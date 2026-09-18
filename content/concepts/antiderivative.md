@@ -1,6 +1,7 @@
 ---
 title: Antiderivative
 domain: math.calculus
+wikipedia: "Antiderivative"
 aliases: ["indefinite integral", "table of integrals", "net change theorem"]
 maps_to: [study-hub/ds-core/calculus]
 ---

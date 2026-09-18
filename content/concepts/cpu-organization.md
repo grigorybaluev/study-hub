@@ -1,6 +1,7 @@
 ---
 title: CPU organization
 domain: systems
+wikipedia: "Central processing unit"
 aliases: ["fetch-execute cycle", "datapath"]
 maps_to: [study-hub/ds-core/computing-systems]
 ---

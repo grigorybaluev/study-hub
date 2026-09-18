@@ -1,6 +1,8 @@
 ---
 title: Covariance and correlation
 domain: probability
+wikipedia: "Covariance"
+short: "covariance"
 aliases: ["correlation", "product moment"]
 generalizes: [variance]
 maps_to: [study-hub/ds-core/multivariate-probability]

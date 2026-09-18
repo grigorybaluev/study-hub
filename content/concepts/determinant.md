@@ -1,6 +1,7 @@
 ---
 title: Determinant
 domain: math.linear-algebra
+wikipedia: "Determinant"
 aliases: ["cofactor expansion", "Cramer's rule"]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---

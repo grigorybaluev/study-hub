@@ -1,6 +1,7 @@
 ---
 title: Assembly language
 domain: systems
+wikipedia: "Assembly language"
 aliases: ["addressing modes", "machine code"]
 maps_to: [study-hub/ds-core/computing-systems]
 ---
