@@ -370,17 +370,22 @@
       let name;
       if (t.t === 'kw' && (PRIM.has(t.v) || t.v === 'void')) name = this.next().v;
       else if (t.t === 'op' && t.v === '?') { this.next(); name = 'Object'; if (this.accept('extends')) name = this.type(); else if (this.accept('super')) this.type(); return name; }
-      else if (t.t === 'id') { name = this.next().v; while (this.is('.') && this.peek(1).t === 'id') { this.next(); name = this.next().v; } }
+      else if (t.t === 'id') { name = this.next().v; }
       else throw compileError(`<identifier> expected, found '${t.v}'`, t.line);
       let wasTypeVar = false, tvName = null;
-      if (this.tp.length && name in this.tp[this.tp.length - 1]) { tvName = name; name = this.tp[this.tp.length - 1][name]; wasTypeVar = true; }
-      if (this.is('<')) {
-        this.next();
-        const targs = [];
-        if (!this.is('>') && !this.is('>>') && !this.is('>>>')) { do targs.push(this.type()); while (this.accept(',')); }
-        this.closeAngle();
-        if (targs.length) name += '<' + targs.join(',') + '>';
+      // Outer.Inner, Map.Entry<K,V>, NodeList<String>.Node: keep the last segment with its own type arguments
+      for (;;) {
+        if (this.is('<')) {
+          this.next();
+          const targs = [];
+          if (!this.is('>') && !this.is('>>') && !this.is('>>>')) { do targs.push(this.type()); while (this.accept(',')); }
+          this.closeAngle();
+          if (targs.length) name += '<' + targs.join(',') + '>';
+        }
+        if (this.is('.') && this.peek(1).t === 'id') { this.next(); name = this.next().v; continue; }
+        break;
       }
+      if (this.tp.length && erase(name) in this.tp[this.tp.length - 1] && name === erase(name)) { tvName = name; name = this.tp[this.tp.length - 1][name]; wasTypeVar = true; }
       while (this.is('[') && this.is(']', 1)) { this.next(); this.next(); name += '[]'; }
       this.tv = wasTypeVar; this.tvName = tvName; // read right after type() by the caller: was this a type variable (erased to its bound)?
       return name;
@@ -389,10 +394,9 @@
       const t = this.peek(k);
       if (t.t === 'kw' && PRIM.has(t.v)) return true;
       if (t.t !== 'id') return false;
-      // Name [ ] ... ident  |  Name ident  |  Name<...> ident  |  Name.Name ident
+      // Name [ ] ... ident  |  Name ident  |  Name<...> ident  |  Name.Name ident  |  Name<...>.Name ident
       let j = k + 1;
-      while (this.is('.', j) && this.peek(j + 1).t === 'id') j += 2;
-      if (this.is('<', j)) j = this.skipAngles(j);
+      for (;;) { if (this.is('<', j)) j = this.skipAngles(j); if (this.is('.', j) && this.peek(j + 1).t === 'id') { j += 2; continue; } break; }
       while (this.is('[', j) && this.is(']', j + 1)) j += 2;
       return this.peek(j).t === 'id';
     }
@@ -512,7 +516,7 @@
     forEachColon() { // index of the token after "Type name" in a for header (the ':' of a for-each)
       let j = 0;
       if (this.is('final', 0)) j++;
-      if (this.peek(j).t === 'id') { j++; while (this.is('.', j) && this.peek(j + 1).t === 'id') j += 2; if (this.is('<', j)) j = this.skipAngles(j); }
+      if (this.peek(j).t === 'id') { j++; for (;;) { if (this.is('<', j)) j = this.skipAngles(j); if (this.is('.', j) && this.peek(j + 1).t === 'id') { j += 2; continue; } break; } }
       else if (this.peek(j).t === 'kw' && PRIM.has(this.peek(j).v)) j++;
       else return -1;
       while (this.is('[', j) && this.is(']', j + 1)) j += 2;
@@ -760,7 +764,7 @@
     }
     if (val.t.endsWith('[]')) return `[${val.t.startsWith('int') || val.t.startsWith('String') ? (val.t.startsWith('int') ? 'I' : 'Ljava.lang.String;') : val.t[0].toUpperCase()}@${hexId(val.v.id)}`;
     if (val.v && val.v.kind) return yield* ctx.collectionToString(val, line);
-    if (val.t === 'Entry') return (yield* toStr(val.v.k, ctx, line)) + '=' + (yield* toStr(val.v.val, ctx, line));
+    if (val.t === 'Entry' && val.v && val.v.k !== undefined) return (yield* toStr(val.v.k, ctx, line)) + '=' + (yield* toStr(val.v.val, ctx, line));
     const cls = ctx.classes[val.t];
     if (cls) {
       const m = ctx.findMethod(cls, 'toString', [], line, true);
@@ -788,7 +792,7 @@
       case 'StringBuilder': return `StringBuilder#${val.v.id} ${JSON.stringify(val.v.text)}`;
       case '$Lambda': return 'lambda#' + val.v.id;
       case 'Iterator': case 'ListIterator': return `${val.t}#${val.v.id} (at ${val.v.pos})`;
-      case 'Entry': return `${show(val.v.k, depth + 1)}=${show(val.v.val, depth + 1)}`;
+      case 'Entry': if (val.v && val.v.k !== undefined) return `${show(val.v.k, depth + 1)}=${show(val.v.val, depth + 1)}`; break;
       case 'Class': return 'Class ' + val.v.name;
     }
     if (val.t.endsWith('[]')) {
@@ -2026,7 +2030,7 @@
         case 'Class': if (name === 'getName' || name === 'getSimpleName') return str(obj.v.name); if (name === 'toString') return str(yield* toStr(obj, this, line)); break;
         case 'PrintStream': return yield* this.print(name, args, line);
         case 'Iterator': case 'ListIterator': return yield* this.iteratorMethod(obj, name, args, line);
-        case 'Entry': return yield* this.entryMethod(obj, name, args, line);
+        case 'Entry': if (obj.v && obj.v.k !== undefined) return yield* this.entryMethod(obj, name, args, line); break;
         case 'File': case 'PrintWriter': case 'FileWriter': case 'BufferedWriter': case 'BufferedReader': case 'FileReader': case 'ObjectOutputStream': case 'ObjectInputStream': case 'FileOutputStream': case 'FileInputStream':
           return yield* this.fileMethod(obj, name, args, line);
         case 'Random': return this.randomMethod(obj, name, args, line);
@@ -2780,6 +2784,7 @@
         switch (name) {
           case 'put': return typed(yield* this.mapPut(c, a0, args[1], line), 1);
           case 'putIfAbsent': { const i = yield* this.mapFind(c, a0, line); if (i >= 0) return typed(en[i].val, 1); yield* this.mapPut(c, a0, args[1], line); return NULL; }
+          case 'computeIfAbsent': { const i = yield* this.mapFind(c, a0, line); if (i >= 0) return typed(en[i].val, 1); const v = yield* this.callMethodOn(args[1], 'apply', [a0], line); if (v.t === 'null') return NULL; yield* this.mapPut(c, a0, v, line); const j = yield* this.mapFind(c, a0, line); return typed(en[j].val, 1); }
           case 'putAll': { for (const x of a0.v.entries) yield* this.mapPut(c, x.k, x.val, line); return V('void'); }
           case 'get': { const i = yield* this.mapFind(c, a0, line); return typed(i >= 0 ? en[i].val : NULL, 1); }
           case 'getOrDefault': { const i = yield* this.mapFind(c, a0, line); return i >= 0 ? typed(en[i].val, 1) : args[1]; }

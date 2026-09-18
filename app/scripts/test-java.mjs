@@ -867,6 +867,21 @@ public class Main {
   public static void main(String[] args) { Thing[] ts = { new Thing(3), new Thing(9), new Thing(4) }; System.out.println(maxOf(ts).v); }
 }`, `9\n`);
 
+
+t('qualified generic types, Map.computeIfAbsent, and a user class named Entry', `
+import java.util.*;
+class Book<E> { class Page { E text; Page(E t) { text = t; } } Page make(E t) { return new Page(t); } }
+class Entry { String key; int value; Entry(String k, int v) { key = k; value = v; } public String toString() { return key + ":" + value; } }
+public class Main { public static void main(String[] args) {
+  Book<String> b = new Book<>();
+  Book<String>.Page p = b.make("hello");
+  Map<String, List<Integer>> m = new TreeMap<>();
+  m.computeIfAbsent("a", k -> new ArrayList<>()).add(1);
+  m.computeIfAbsent("a", k -> new ArrayList<>()).add(2);
+  List<Entry> es = new ArrayList<>(); es.add(new Entry("x", 7));
+  System.out.println(p.text + " " + m + " " + es);
+} }`, `hello {a=[1, 2]} [x:7]\n`);
+
 let pass = 0, fail = 0;
 for (const c of cases) {
   const r = JAVA.run(c.code, c.stdin || '', { maxSteps: 4000 });
