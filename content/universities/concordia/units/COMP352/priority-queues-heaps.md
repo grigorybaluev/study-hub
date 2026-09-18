@@ -140,7 +140,7 @@ code: |
           h.removeMin();
       }
   }
-note: 'The whole heap is an ArrayList and three index formulas. Watch a in the Variables panel during insert(1): the key moves up the array along the parent indices 5 → 2 → 0. Removing until empty yields the keys in order — that is heap-sort. The final removeMin on an empty heap throws.'
+note: 'The whole heap is an ArrayList and three index formulas. Watch a in the Variables panel during insert(1), the fourth key: it lands at index 3 and moves up along the parent indices 3 → 1 → 0. Removing until empty yields the keys in order — that is heap-sort. The final removeMin on an empty heap throws.'
 ```
 
 ## Heap-sort and bottom-up construction
