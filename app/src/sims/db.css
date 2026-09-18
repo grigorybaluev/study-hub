@@ -1,0 +1,50 @@
+/* Database engine UI (DB.mount in db.js). Light-on-white like the automata and ds engines. */
+.db-wrap { padding: .8rem 1rem 1rem; font-size: .88rem; color: #1c1c1a; }
+.db-toolbar, .db-playback { display: flex; flex-wrap: wrap; gap: .45rem .6rem; align-items: center; margin-bottom: .6rem; }
+.db-playback { background: #f8f7f3; border: 1px solid #e0e0dc; border-radius: 8px; padding: .5rem .7rem; }
+.db-toolbar .fa-btn, .db-playback .fa-btn { padding: .34rem .7rem; font-size: .8rem; }
+.db-toolbar .fa-btn:disabled, .db-playback .fa-btn:disabled { opacity: .45; cursor: default; }
+.db-step, .db-primary { background: #2f5fd6; }
+.db-step:hover:not(:disabled), .db-primary:hover:not(:disabled) { background: #2563eb; }
+.db-field { display: inline-flex; align-items: center; gap: .35rem; font-weight: 600; color: #5f6368; font-size: .82rem; }
+.db-field.wide { flex: 1 1 100%; flex-direction: column; align-items: stretch; gap: .25rem; }
+.db-input, .db-text { font: inherit; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .86rem; padding: .3rem .5rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1c1c1a; }
+.db-text { width: 100%; box-sizing: border-box; resize: vertical; line-height: 1.5; }
+.db-counter { margin-left: auto; font-size: .78rem; font-weight: 700; color: #5f6368; }
+.db-desc { min-height: 1.6em; line-height: 1.5; padding: .4rem .7rem; margin-bottom: .6rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; color: #1e293b; }
+.db-desc.err { background: #fee2e2; border-color: #fca5a5; color: #7f1d1d; }
+.db-main { min-width: 0; overflow-x: auto; }
+.db-aside { margin-top: .6rem; }
+.db-label { font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5f6368; margin: .3rem 0; }
+.db-tables { display: flex; flex-wrap: wrap; gap: .8rem; align-items: flex-start; }
+.db-table { display: inline-block; max-width: 100%; overflow-x: auto; }
+.db-table-name { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .78rem; font-weight: 700; color: #1e293b; margin-bottom: .2rem; }
+.db-muted { color: #94a3b8; font-weight: 500; }
+.db-table table, .db-mini, .db-chase { border-collapse: collapse; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .8rem; background: #fff; }
+.db-table th, .db-table td, .db-mini th, .db-mini td, .db-chase th, .db-chase td { border: 1px solid #cbd5e1; padding: .18rem .5rem; text-align: left; white-space: nowrap; }
+.db-table th, .db-mini th, .db-chase th { background: #f1f5f9; color: #334155; font-weight: 700; }
+.db-table tr.hl td, .db-mini tr.hl td, .db-chase tr.hl td { background: #fee2e2; }
+.db-table tr.ok td, .db-mini tr.ok td, .db-chase tr.ok td { background: #dcfce7; }
+.db-table th.hl, .db-table td.hl, .db-chase th.hl, .db-chase td.hl { background: #fef3c7; }
+.db-dim .db-table table { opacity: .75; }
+.db-null { color: #94a3b8; font-style: italic; }
+.db-empty { color: #94a3b8; font-style: italic; text-align: center; }
+.db-schema { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .82rem; color: #334155; margin-bottom: .4rem; }
+.db-fds { display: flex; flex-wrap: wrap; gap: .35rem; margin: .3rem 0 .5rem; }
+.db-fd { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .82rem; padding: .15rem .5rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; }
+.db-fd.hl, .db-fd.hi { background: #fee2e2; border-color: #dc2626; }
+.db-fd.ok { background: #dcfce7; border-color: #16a34a; }
+.db-fd.gone { text-decoration: line-through; color: #94a3b8; }
+.db-attrs { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-weight: 700; padding: .05rem .35rem; border-radius: 4px; background: #f1f5f9; }
+.db-attrs.ok { background: #dcfce7; }
+.db-closure { font-size: .95rem; margin: .4rem 0; }
+.db-rels { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+.db-rel { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .82rem; padding: .15rem .5rem; border: 1px solid #94a3b8; border-radius: 6px; background: #fff; }
+.db-rel.hl { background: #dcfce7; border-color: #16a34a; }
+.db-rules { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .82rem; color: #334155; margin-bottom: .5rem; line-height: 1.5; }
+.db-chase sub { font-size: .65em; }
+.db-er { width: 100%; max-height: 420px; background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; display: block; }
+.db-er-name { font-size: 13px; font-weight: 700; text-anchor: middle; fill: #1e293b; font-family: system-ui, sans-serif; }
+.db-er-attr { font-size: 10.5px; text-anchor: middle; fill: #334155; font-family: system-ui, sans-serif; }
+.db-er-attr.key { text-decoration: underline; font-weight: 700; }
+.db-er-role { font-size: 10px; text-anchor: middle; fill: #7c3aed; font-family: system-ui, sans-serif; font-style: italic; }

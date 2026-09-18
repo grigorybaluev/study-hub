@@ -6,6 +6,7 @@ import Plotly from "plotly.js-dist-min";
 import "./automata.css";
 import "./java.css";
 import "./ds.css";
+import "./db.css";
 
 declare global {
   interface Window {
@@ -15,17 +16,19 @@ declare global {
     FA?: unknown;
     JAVA?: unknown;
     DS?: unknown;
+    DB?: unknown;
   }
 }
 
 const VALUES: Record<string, Record<string, number>> = {};
 window.Plotly = Plotly;
 window.ctrlVal = (simId, ctrlId) => VALUES[simId]?.[ctrlId] ?? null;
-// side-effect imports: define window.runSim, window.FA, window.JAVA and window.DS
+// side-effect imports: define window.runSim, window.FA, window.JAVA, window.DS and window.DB
 import "./simulations.js";
 import "./automata.js";
 import "./java.js";
 import "./ds.js";
+import "./db.js";
 
 export interface Control {
   id: string;
