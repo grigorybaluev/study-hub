@@ -392,7 +392,8 @@
     ops: {
       *run(s, args) {
         if (args[0] && RECURSIONS[args[0]]) s.fn = args[0];
-        if (args[1] !== undefined) s.n = Math.max(0, Math.min(asNum(args[1], s.n), s.fn === 'sum' ? s.A.length : 8));
+        if (args[1] !== undefined) s.n = Math.max(s.fn === 'binsum' ? 1 : 0, Math.min(asNum(args[1], s.n), s.fn === 'sum' || s.fn === 'binsum' ? s.A.length : 8));
+        if (s.fn === 'binsum') s.n = Math.max(1, Math.min(s.n, s.A.length));
         s.nodes = []; s.calls = 0; s.maxDepth = 0; s.done = false;
         const R = RECURSIONS[s.fn];
         const self = this;
@@ -532,11 +533,13 @@
     ops: {
       *insert(s, args) {
         const v = asNum(val(args), 0);
+        if (s.sorted !== null) { yield* unsort(s); }
         s.a.push(v); let i = s.a.length - 1;
         yield { d: `insert(${v}): place it in the next free position (the last leaf, index ${i}), keeping the tree complete`, hl: { i, tone: 'warn' } };
         yield* upheap(s, i);
       },
       *removeMin(s) {
+        if (s.sorted !== null) { yield* unsort(s); }
         if (!s.a.length) { yield { d: 'removeMin(): the heap is empty', hl: { err: true } }; return; }
         const m = s.a[0];
         yield { d: `remove${s.max ? 'Max' : 'Min'}(): the root holds ${m}`, hl: { i: 0, tone: 'hi' } };
@@ -546,7 +549,7 @@
       },
       *build(s) {
         const items = s.pending || s.a.slice();
-        s.a = items.slice(); s.pending = null;
+        s.a = items.slice(); s.pending = null; s.sorted = null;
         yield { d: `bottom-up construction: put all ${s.a.length} keys in the array in any order, then fix subtrees from the last internal node up to the root`, hl: { all: 'warn' } };
         for (let i = Math.floor(s.a.length / 2) - 1; i >= 0; i--) { yield { d: `down-heap at index ${i} (key ${s.a[i]}): its two subtrees are already heaps`, hl: { i, tone: 'warn' } }; yield* downheap(s, i, s.a.length); }
         yield { d: `done: a heap in O(n) total — most nodes are near the bottom and travel little`, hl: {} };
@@ -584,6 +587,11 @@
     },
   };
   const better = (s, a, b) => s.max ? a > b : a < b;
+  function* unsort(s) { // after a heap-sort the array is sorted, not a heap: rebuild before the next heap operation
+    s.sorted = null;
+    for (let i = Math.floor(s.a.length / 2) - 1; i >= 0; i--) { let j = i; for (;;) { const l = 2 * j + 1, r = l + 1; if (l >= s.a.length) break; let c = l; if (r < s.a.length && better(s, s.a[r], s.a[l])) c = r; if (better(s, s.a[c], s.a[j])) { [s.a[j], s.a[c]] = [s.a[c], s.a[j]]; j = c; } else break; } }
+    yield { d: 'the array was left sorted by heap-sort; rebuilt as a heap (bottom-up) before continuing', hl: { all: 'warn' } };
+  }
   function heapUpSilent(s, i) { while (i > 0) { const p = Math.floor((i - 1) / 2); if (better(s, s.a[i], s.a[p])) { [s.a[i], s.a[p]] = [s.a[p], s.a[i]]; i = p; } else break; } }
   function* upheap(s, i) {
     while (i > 0) {
@@ -1061,7 +1069,7 @@
       },
       *dijkstra(s, args) {
         reset(s); const start = pick(s, args);
-        if (s.edges.some(e => e.w !== null && e.w < 0)) { yield { d: 'Dijkstra requires non-negative weights (a negative edge could improve a vertex already finalised)', hl: { err: true } }; }
+        if (s.edges.some(e => e.w !== null && e.w < 0)) { yield { d: 'Dijkstra requires non-negative weights (a negative edge could improve a vertex already finalised) — use Bellman-Ford', hl: { err: true } }; return; }
         const D = {}; s.vs.forEach(v => { D[v] = Infinity; }); D[start] = 0;
         const inQ = new Set(s.vs); const show = () => { s.vs.forEach(v => { s.vlabel[v] = D[v] === Infinity ? '∞' : String(D[v]); }); s.side = { title: 'priority queue (vertex: D)', lines: [...inQ].sort((a, b) => D[a] - D[b]).map(v => `${v}: ${D[v] === Infinity ? '∞' : D[v]}`) }; };
         show();
@@ -1074,7 +1082,7 @@
           for (const e of outEdges(s, u)) {
             const w = other(e, u), ei = s.edges.indexOf(e); if (!inQ.has(w)) continue;
             const cand = D[u] + (e.w === null ? 1 : e.w);
-            if (cand < D[w]) { const old = D[w]; D[w] = cand; s.etone[ei] = 'discovery'; for (const f of s.edges) if (f !== e && s.etone[s.edges.indexOf(f)] === 'discovery' && other(f, f.u) === w && f.u !== u && (s.directed ? f.v === w : (f.u === w || f.v === w)) && !inQ.has(f.u === w ? f.v : f.u)) { /* keep */ } show(); yield { d: `relax ${u}→${w}: D[${u}] + w = ${D[u]} + ${e.w === null ? 1 : e.w} = ${cand} < ${old === Infinity ? '∞' : old} → D[${w}] = ${cand}, key updated in the PQ`, hl: { e: ei, v: w } }; }
+            if (cand < D[w]) { const old = D[w]; D[w] = cand; s.etone[ei] = 'discovery'; show(); yield { d: `relax ${u}→${w}: D[${u}] + w = ${D[u]} + ${e.w === null ? 1 : e.w} = ${cand} < ${old === Infinity ? '∞' : old} → D[${w}] = ${cand}, key updated in the PQ`, hl: { e: ei, v: w } }; }
             else yield { d: `edge ${u}→${w}: ${D[u]} + ${e.w === null ? 1 : e.w} = ${cand} is not better than D[${w}] = ${D[w]}`, hl: { e: ei } };
           }
         }

@@ -117,5 +117,12 @@ t('scripted ops run on load and the initial step describes them', () => {
   ok(m.steps[0].d.includes('push(1)'), 'intro'); eq(m.state.t, 1);
 });
 
+t('review regressions: binsum n=0 terminates, heap usable after heap-sort, Dijkstra refuses negative weights', () => {
+  const b = DS.model({ mode: 'call-tree', fn: 'binsum', n: 0, data: [1, 2, 3] }); b.run('run'); ok(b.state.done, 'binsum finished');
+  const h = DS.model({ mode: 'heap', data: [5, 3, 8, 1] }); h.run('heapSort'); h.run('insert', [2]);
+  ok(h.state.sorted === null && h.state.a.every((x, i) => i === 0 || h.state.a[Math.floor((i - 1) / 2)] <= x), 'heap order restored after sort');
+  const g = DS.model({ mode: 'graph', directed: true, edges: ['A-B -2', 'B-C 1'] }); const steps = g.run('dijkstra', ['A']); ok(steps.length === 1 && steps[0].hl.err, 'negative weights refused');
+});
+
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
