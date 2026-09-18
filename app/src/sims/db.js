@@ -22,6 +22,7 @@ function parseTables(cfg) {
   for (const [name, spec] of Object.entries(src)) {
     if (typeof spec === 'string') {
       const lines = spec.split('\n').map(l => l.trim()).filter(Boolean);
+      if (!lines.length) { out[name] = { columns: [], rows: [] }; continue; }
       const columns = lines[0].split(/[\s,]+/);
       const rows = lines.slice(1).map(l => tokens(l).map(coerce));
       out[name] = { columns, rows };
@@ -163,7 +164,9 @@ function raLex(src) {
     const c = src[i];
     if (/\s/.test(c)) { i++; continue; }
     if (c === "'" || c === '"') { let j = i + 1; while (j < src.length && src[j] !== c) j++; out.push({ t: 'str', v: src.slice(i + 1, j) }); i = j + 1; continue; }
-    if (/[0-9]/.test(c) || (c === '-' && /[0-9]/.test(src[i + 1] || '') && (out.length === 0 || /[(,;]|op/.test(out[out.length - 1].t === 'op' ? out[out.length - 1].v : 'x')))) { let j = i + 1; while (j < src.length && /[0-9.]/.test(src[j])) j++; out.push({ t: 'num', v: Number(src.slice(i, j)) }); i = j; continue; }
+    const prev = out[out.length - 1];
+    const negOk = !prev || (prev.t === 'op' && prev.v !== ')'); // "-3" after "(", ",", ";" or a comparison operator is a number, not the minus operator
+    if (/[0-9]/.test(c) || (c === '-' && /[0-9]/.test(src[i + 1] || '') && negOk)) { let j = i + 1; while (j < src.length && /[0-9.]/.test(src[j])) j++; out.push({ t: 'num', v: Number(src.slice(i, j)) }); i = j; continue; }
     const two = src.slice(i, i + 2);
     if (['<=', '>=', '<>', '!='].includes(two)) { out.push({ t: 'op', v: two }); i += 2; continue; }
     if ('(),;=<>'.includes(c)) { out.push({ t: 'op', v: c }); i++; continue; }
@@ -416,7 +419,7 @@ MODES['fd-keys'] = {
   controls: [{ kind: 'text', name: 'x', label: 'test a set', default: '' }, { kind: 'button', label: 'superkey?', op: 'test', args: ['x'] }, { kind: 'button', label: 'find all candidate keys', op: 'keys', primary: true }],
   *test(s, args) {
     const X = uniq(parseAttrs(args[0] || '', s.all)); if (!X.length) { yield { d: 'write a set of attributes', err: true }; return; }
-    const c = closure(X, s.all ? s.fds : s.fds, s.all);
+    const c = closure(X, s.fds, s.all);
     const sk = subset(s.all, c.cur);
     s.tried.push({ X, cur: c.cur, sk });
     if (!sk) { yield { d: `${A(X)}⁺ = ${A(c.cur)} ≠ R: not a superkey`, hl: {} }; return; }
@@ -769,7 +772,7 @@ MODES.er = {
     // relationships (diamonds between the entities)
     for (const r of s.rels) {
       const pts = r.between.map(n => pos[n]).filter(Boolean); if (!pts.length) continue;
-      const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length + (r.between.length === 2 && Math.abs(pts[0][1] - pts[1][1]) < 1 ? 0 : 0);
+      const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
       const hl = s.hl && s.hl.rel === r.name;
       r.between.forEach((n, idx) => { const [x, y] = pos[n]; const arrow = r.arrow.includes(n); const rounded = r.rounded.includes(n); svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${hl ? '#dc2626' : '#1e293b'}" stroke-width="${r.supporting ? 3 : 1.5}" ${arrow ? 'marker-end="url(#db-ah)"' : rounded ? 'marker-end="url(#db-rd)"' : ''}/>`; if (r.roles[idx]) svg += `<text x="${(cx + x) / 2}" y="${(cy + y) / 2 - 5}" class="db-er-role">${esc(r.roles[idx])}</text>`; });
       svg += `<polygon points="${cx},${cy - 22} ${cx + 48},${cy} ${cx},${cy + 22} ${cx - 48},${cy}" fill="${hl ? '#fee2e2' : '#fff'}" stroke="${hl ? '#dc2626' : '#1e293b'}" stroke-width="${r.supporting ? 3 : 1.5}"/><text x="${cx}" y="${cy + 4}" class="db-er-name">${esc(r.name)}</text>`;

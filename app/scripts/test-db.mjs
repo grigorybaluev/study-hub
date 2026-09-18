@@ -41,6 +41,8 @@ await t('ra: projection dedupes, selection, natural join, set ops, division; agr
   await m.run('evaluate', ["(π(title; movie) − π(title; starsIn)) ∪ π(title; starsIn)"]); eq(m.state.final.rows.length, 4, 'infix with grouping');
   await m.run('evaluate', ["union(σ(studioName = 'Fox'; movie), σ(length < 100; movie))"]); eq(m.state.final.rows.length, 3, 'function form still works');
   await m.run('evaluate', ["movie ⋈ starsIn"]); eq(m.state.final.rows.length, 3, 'infix natural join');
+  await m.run('evaluate', ["select(length > -3; movie)"]); eq(m.state.final.rows.length, 4, 'a negative literal after a comparison');
+  const empty = DB.model({ mode: 'ra', tables: { e: '   ' }, expr: 'e' }); await empty.ready; ok(!last(empty).hl.err && empty.state.final.rows.length === 0, 'an empty table spec is an empty relation');
 });
 await t('fd-closure: the deck-4 example, implication check', async () => {
   const m = DB.model({ mode: 'fd-closure', attributes: 'A B C D E H', fds: ['AB -> C', 'BC -> AD', 'D -> E', 'CH -> B'], x: 'AB' }); await m.ready;
