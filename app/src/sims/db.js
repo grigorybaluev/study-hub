@@ -124,7 +124,7 @@ MODES.sql = {
     const stmts = splitStatements(text);
     if (!stmts.length) { yield { d: 'nothing to run', err: true }; db.close(); return; }
     for (const stmt of stmts) {
-      const isQuery = /^\s*(SELECT|WITH|VALUES|EXPLAIN|PRAGMA)\b/i.test(stmt);
+      const isQuery = /^\s*(SELECT|WITH|VALUES|EXPLAIN)\b/i.test(stmt); // PRAGMAs are logged and replayed like DDL
       try {
         if (isQuery) {
           const res = db.exec(stmt);
@@ -334,9 +334,17 @@ function parseAttrs(text, known) {
   const s = String(text).trim();
   if (!s) return [];
   if (/[,\s]/.test(s)) return s.split(/[,\s]+/).filter(Boolean);
-  if (known && known.some(a => a.length > 1) && known.includes(s)) return [s];
-  if (/^[A-Za-z0-9_]+$/.test(s) && (!known || !known.some(a => a.length > 1))) return s.split('');
+  if (known && known.includes(s)) return [s];
+  if (known && known.some(a => a.length > 1)) return [s]; // named attributes: never split a word into letters
+  if (/^[A-Za-z0-9_]+$/.test(s)) return s.split('');
   return [s];
+}
+// the FDs and the attribute list of a block, parsed together so that multi-letter names are kept whole
+function readFds(cfg) {
+  const declared = cfg.attributes ? uniq(parseAttrs(cfg.attributes)) : null;
+  const fds = parseFds(cfg.fds, declared);
+  const all = declared || allAttrs(cfg, fds);
+  return { fds, all };
 }
 function parseFds(text, known) {
   const items = Array.isArray(text) ? text : String(text || '').split(/[;\n]+/);
@@ -381,7 +389,7 @@ const attrsHtml = (xs, tone) => `<span class="db-attrs ${tone || ''}">${esc(A(xs
 
 MODES['fd-closure'] = {
   title: 'Attribute closure',
-  init(cfg) { const fds = parseFds(cfg.fds); const all = allAttrs(cfg, fds); return { fds, all, x: cfg.x ? uniq(parseAttrs(cfg.x, all)) : [], check: cfg.check || '', last: null }; },
+  init(cfg) { const { fds, all } = readFds(cfg); return { fds, all, x: cfg.x ? uniq(parseAttrs(cfg.x, all)) : [], check: cfg.check || '', last: null }; },
   controls: [{ kind: 'text', name: 'x', label: 'X', default: '' }, { kind: 'button', label: 'closure X⁺', op: 'closure', args: ['x'], primary: true }, { kind: 'text', name: 'fd', label: 'X → Y', default: '' }, { kind: 'button', label: 'does F imply it?', op: 'implies', args: ['fd'] }],
   *closure(s, args) {
     const X = args[0] ? uniq(parseAttrs(args[0], s.all)) : s.x;
@@ -415,7 +423,7 @@ MODES['fd-closure'] = {
 
 MODES['fd-keys'] = {
   title: 'Candidate keys',
-  init(cfg) { const fds = parseFds(cfg.fds); const all = allAttrs(cfg, fds); return { fds, all, keys: [], tried: [] }; },
+  init(cfg) { const { fds, all } = readFds(cfg); return { fds, all, keys: [], tried: [] }; },
   controls: [{ kind: 'text', name: 'x', label: 'test a set', default: '' }, { kind: 'button', label: 'superkey?', op: 'test', args: ['x'] }, { kind: 'button', label: 'find all candidate keys', op: 'keys', primary: true }],
   *test(s, args) {
     const X = uniq(parseAttrs(args[0] || '', s.all)); if (!X.length) { yield { d: 'write a set of attributes', err: true }; return; }
@@ -481,7 +489,7 @@ function canonicalCover(fds, all, emit) {
 }
 MODES['fd-cover'] = {
   title: 'Canonical cover',
-  init(cfg) { const fds = parseFds(cfg.fds); const all = allAttrs(cfg, fds); return { fds, all, G: fds.slice(), hl: null, done: false }; },
+  init(cfg) { const { fds, all } = readFds(cfg); return { fds, all, G: fds.slice(), hl: null, done: false }; },
   controls: [{ kind: 'button', label: 'compute the canonical cover', op: 'cover', primary: true }],
   *cover(s) {
     const steps = [];
@@ -501,7 +509,7 @@ function parseDecomposition(text, all) { // "ABC, CD" | "ABC; CD" | "R1(A,B,C); 
 }
 MODES.decomposition = {
   title: 'Decomposition',
-  init(cfg) { const fds = parseFds(cfg.fds); const all = allAttrs(cfg, fds); return { fds, all, parts: parseDecomposition(cfg.decomposition || cfg.parts || '', all), tableau: null, result: null, dp: null }; },
+  init(cfg) { const { fds, all } = readFds(cfg); return { fds, all, parts: parseDecomposition(cfg.decomposition || cfg.parts || '', all), tableau: null, result: null, dp: null }; },
   controls: [{ kind: 'text', name: 'dec', label: 'decomposition (AB, BC)', default: '' }, { kind: 'button', label: 'chase (lossless?)', op: 'chase', args: ['dec'], primary: true }, { kind: 'button', label: 'dependency-preserving?', op: 'preserve', args: ['dec'] }],
   *chase(s, args) {
     if (args[0]) s.parts = parseDecomposition(args[0], s.all);
@@ -558,7 +566,8 @@ MODES.decomposition = {
       const t = s.tableau;
       h += `<table class="db-chase"><thead><tr><th></th>${s.all.map((a, k) => `<th class="${t.hl && t.hl.col === k ? 'hl' : ''}">${esc(a)}</th>`).join('')}</tr></thead><tbody>${t.rows.map((r, i) => `<tr class="${t.hl && t.hl.rows && t.hl.rows.includes(i) ? (s.result && t.hl.rows.length === 1 ? 'ok' : 'hl') : ''}"><th>${esc(A(s.parts[i]))}</th>${r.map((v, k) => `<td class="${t.hl && t.hl.col === k ? 'hl' : ''}">${v.startsWith('b') ? `b<sub>${esc(v.slice(1))}</sub>` : esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
     }
-    if (step.hl && step.hl.fd) h += fdHtml(s.fds, { i: s.fds.indexOf(step.hl.fd), tone: step.hl.tone });
+    h += fdHtml(s.fds, step.hl && step.hl.fd ? { i: s.fds.indexOf(step.hl.fd), tone: step.hl.tone } : null);
+    if (s.dp) h += `<div class="db-label">${s.dp.lost.length ? 'not preserved: ' + s.dp.lost.map(F).join(', ') : 'every FD preserved'}</div>`;
     return { html: h };
   },
 };
@@ -581,7 +590,7 @@ function nfCheck(all, fds) {
 }
 MODES['normal-form'] = {
   title: 'Normal forms',
-  init(cfg) { const fds = parseFds(cfg.fds); const all = allAttrs(cfg, fds); return { fds, all, name: cfg.name || 'R', result: [], keys: [], report: null }; },
+  init(cfg) { const { fds, all } = readFds(cfg); return { fds, all, name: cfg.name || 'R', result: [], keys: [], report: null }; },
   controls: [{ kind: 'button', label: 'which normal form?', op: 'check', primary: true }, { kind: 'button', label: 'decompose into BCNF', op: 'bcnf' }, { kind: 'button', label: '3NF synthesis', op: 'threenf' }],
   *check(s) {
     const r = nfCheck(s.all, s.fds); s.keys = r.keys; s.report = r; s.result = [];
@@ -754,7 +763,8 @@ MODES.er = {
     for (const r of s.rels) {
       if (r.supporting) { s.hl = { rel: r.name }; yield { d: `${r.name} is the supporting relationship of a weak entity set: its attributes are already in that relation, so no relation is needed for it`, hl: {} }; continue; }
       const attrs = []; const keyAttrs = [];
-      r.between.forEach((en, idx) => { const role = r.roles[idx]; for (const k of keyOf(en)) { const nm = `${role || en}.${k.includes('.') ? k.split('.').pop() : k}`; attrs.push(nm); if (!r.arrow.includes(en) || r.arrow.length === r.between.length) keyAttrs.push(nm); } });
+      const arrowAt = (en, role) => r.arrow.includes(en) || (role !== undefined && r.arrow.includes(role));
+      r.between.forEach((en, idx) => { const role = r.roles[idx]; for (const k of keyOf(en)) { const nm = `${role || en}.${k.includes('.') ? k.split('.').pop() : k}`; attrs.push(nm); if (!arrowAt(en, role) || r.arrow.length >= r.between.length) keyAttrs.push(nm); } });
       for (const a of r.attrs) attrs.push(a);
       const manyOne = r.arrow.length && r.arrow.length < r.between.length;
       s.relations.push({ name: r.name, attrs, keys: keyAttrs, from: r.name }); s.hl = { rel: r.name };
@@ -774,7 +784,7 @@ MODES.er = {
       const pts = r.between.map(n => pos[n]).filter(Boolean); if (!pts.length) continue;
       const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
       const hl = s.hl && s.hl.rel === r.name;
-      r.between.forEach((n, idx) => { const [x, y] = pos[n]; const arrow = r.arrow.includes(n); const rounded = r.rounded.includes(n); svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${hl ? '#dc2626' : '#1e293b'}" stroke-width="${r.supporting ? 3 : 1.5}" ${arrow ? 'marker-end="url(#db-ah)"' : rounded ? 'marker-end="url(#db-rd)"' : ''}/>`; if (r.roles[idx]) svg += `<text x="${(cx + x) / 2}" y="${(cy + y) / 2 - 5}" class="db-er-role">${esc(r.roles[idx])}</text>`; });
+      r.between.forEach((n, idx) => { const [x, y] = pos[n]; const arrow = r.arrow.includes(n) || (r.roles[idx] !== undefined && r.arrow.includes(r.roles[idx])); const rounded = r.rounded.includes(n); svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${hl ? '#dc2626' : '#1e293b'}" stroke-width="${r.supporting ? 3 : 1.5}" ${arrow ? 'marker-end="url(#db-ah)"' : rounded ? 'marker-end="url(#db-rd)"' : ''}/>`; if (r.roles[idx]) svg += `<text x="${(cx + x) / 2}" y="${(cy + y) / 2 - 5}" class="db-er-role">${esc(r.roles[idx])}</text>`; });
       svg += `<polygon points="${cx},${cy - 22} ${cx + 48},${cy} ${cx},${cy + 22} ${cx - 48},${cy}" fill="${hl ? '#fee2e2' : '#fff'}" stroke="${hl ? '#dc2626' : '#1e293b'}" stroke-width="${r.supporting ? 3 : 1.5}"/><text x="${cx}" y="${cy + 4}" class="db-er-name">${esc(r.name)}</text>`;
       r.attrs.forEach((a, k) => { const ax = cx + 60 + k * 10, ay = cy + 42 + k * 24; svg += `<line x1="${cx}" y1="${cy + 18}" x2="${ax}" y2="${ay}" stroke="#94a3b8"/><ellipse cx="${ax}" cy="${ay}" rx="${Math.max(24, a.length * 4)}" ry="11" fill="#fff" stroke="#94a3b8"/><text x="${ax}" y="${ay + 4}" class="db-er-attr">${esc(a)}</text>`; });
     }
