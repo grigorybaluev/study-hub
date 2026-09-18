@@ -197,6 +197,10 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
                 rep.error(doc.path, f"sim {cfg['id']!r}: {engine} mode {cfg.get('mode')!r} not in {modes}")
             if engine == "java" and not isinstance(cfg.get("code"), str):
                 rep.error(doc.path, f"sim {cfg['id']!r}: java block needs a `code` string")
+            if engine == "java" and "files" in cfg and not (
+                isinstance(cfg["files"], dict) and all(isinstance(k, str) and isinstance(v, str) for k, v in cfg["files"].items())
+            ):
+                rep.error(doc.path, f"sim {cfg['id']!r}: java `files` must map file names to text")
         elif cfg["id"] not in (registry.get("plotly") or []):
             rep.error(doc.path, f"sim {cfg['id']!r} is not in the registry")
 

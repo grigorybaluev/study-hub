@@ -47,3 +47,7 @@
 .jv-stdin { margin-top: .7rem; display: grid; gap: .3rem; }
 .jv-stdin label { font-size: .78rem; font-weight: 700; color: var(--fg-muted); }
 .jv-stdin-box { width: 100%; box-sizing: border-box; font-family: var(--mono); font-size: .84rem; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-elev); color: var(--fg); resize: vertical; }
+.jv-files { padding: .4rem .5rem; max-height: 260px; overflow: auto; display: grid; gap: .4rem; }
+.jv-file-name { font-family: var(--mono); font-size: .76rem; font-weight: 700; color: var(--fg-muted); margin-bottom: .15rem; }
+.jv-file-body { margin: 0; padding: .35rem .5rem; font-family: var(--mono); font-size: .8rem; line-height: 1.45; background: var(--code-bg); color: var(--code-fg); border-radius: 6px; white-space: pre-wrap; word-break: break-word; max-height: 140px; overflow: auto; }
+.jv-ln.caught { background: rgba(52, 196, 122, .22); box-shadow: inset 3px 0 0 #34c47a; }
