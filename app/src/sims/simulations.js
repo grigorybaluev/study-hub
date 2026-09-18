@@ -1371,6 +1371,86 @@
                  xaxis: { title: 'x', range: [-7, 7] }, yaxis: { title: 'y', range: [-3, 3] }, xaxis2: { title: 'x', range: [-7, 7] }, yaxis2: { title: '|Rₙ| (log)', type: 'log', range: [-8, 1] } }), cfg());
   }
 
+  // ══════════════════════════════════════════════════════════════
+  //  COMP 352 — Analysis of algorithms (growth rates, big-O, amortisation, hashing, sorting bounds)
+  // ══════════════════════════════════════════════════════════════
+  const DS_COLORS = ['#94a3b8', '#60a5fa', '#34d399', '#facc15', '#fb923c', '#f87171', '#c084fc'];
+
+  // ── D1. The seven functions on a log-log plot ──────────────────
+  function dsGrowthRates() {
+    const id = 'ds-growth-rates';
+    const nmax = Math.max(4, Math.round(val(id, 'nmax', 64))), c = val(id, 'c', 1);
+    const fns = [['1', () => 1], ['log n', n => Math.log2(n)], ['n', n => n], ['n log n', n => n * Math.log2(n)], ['n²', n => n * n], ['n³', n => n * n * n], ['2ⁿ', n => Math.pow(2, n)]];
+    const xs = lin(1, nmax, Math.min(200, nmax - 1)).map(x => Math.max(1, Math.round(x))).filter((x, i, a) => a.indexOf(x) === i);
+    const traces = fns.map(([name, f], i) => ({ x: xs, y: xs.map(n => { const y = (i === 2 ? c : 1) * f(n); return Number.isFinite(y) && y < 1e300 ? y : null; }), connectgaps: false, mode: 'lines', name: i === 2 && c !== 1 ? `${c}·n` : name, line: { color: DS_COLORS[i], width: i === 2 ? 3 : 2 } }));
+    Plotly.newPlot(el(id), traces, layout({
+      title: `growth rates up to n = ${nmax}, both axes logarithmic — a straight line is a polynomial; 2ⁿ bends upward whatever the scale`,
+      xaxis: ax({ title: 'n', type: 'log' }), yaxis: ax({ title: 'f(n)', type: 'log' }), legend: { orientation: 'h', y: -0.18 } }), cfg());
+  }
+
+  // ── D2. Big-O witness: f(n) ≤ c·g(n) for n ≥ n₀ ──────────────
+  function dsBigOWitness() {
+    const id = 'ds-big-o-witness';
+    const c = val(id, 'c', 4), n0 = Math.max(1, Math.round(val(id, 'n0', 5)));
+    const f = n => 3 * n * n + 10 * n + 20, g = n => n * n;
+    const xs = lin(1, 40, 39).map(Math.round);
+    const ok = xs.filter(n => n >= n0).every(n => f(n) <= c * g(n));
+    const firstBad = xs.find(n => n >= n0 && f(n) > c * g(n));
+    Plotly.newPlot(el(id), [
+      { x: xs, y: xs.map(f), mode: 'lines+markers', name: 'f(n) = 3n² + 10n + 20', line: { color: '#f87171', width: 2.5 }, marker: { size: 5 } },
+      { x: xs, y: xs.map(n => c * g(n)), mode: 'lines', name: `c·g(n) = ${c}·n²`, line: { color: '#60a5fa', width: 2.5 } },
+      { x: [n0, n0], y: [0, c * g(40)], mode: 'lines', name: `n₀ = ${n0}`, line: { color: '#facc15', width: 2, dash: 'dash' } },
+    ], layout({ title: ok ? `f(n) ≤ ${c}·n² for every n ≥ ${n0}: the pair (c = ${c}, n₀ = ${n0}) witnesses f(n) is O(n²)` : `not yet: at n = ${firstBad}, f(n) = ${f(firstBad)} > ${c}·n² = ${c * g(firstBad)} — raise c or n₀`,
+                xaxis: ax({ title: 'n', range: [0, 41] }), yaxis: ax({ title: 'value', range: [0, Math.max(f(40), c * g(40)) * 1.05] }), legend: { orientation: 'h', y: -0.18 } }), cfg());
+  }
+
+  // ── D3. Growable array: doubling versus incremental growth ────
+  function dsGrowableArray() {
+    const id = 'ds-growable-array';
+    const n = Math.max(8, Math.round(val(id, 'n', 200))), c = Math.max(1, Math.round(val(id, 'c', 8)));
+    const sim = grow => { let cap = 1, total = 0; const cost = [], cum = []; for (let k = 1; k <= n; k++) { let t = 1; if (k > cap) { t += cap; cap = grow(cap); } total += t; cost.push(t); cum.push(total); } return { cost, cum }; };
+    const D = sim(x => 2 * x), I = sim(x => x + c);
+    const xs = lin(1, n, n - 1).map(Math.round);
+    Plotly.newPlot(el(id), [
+      { x: xs, y: D.cost, mode: 'lines', name: 'cost of push k (doubling)', line: { color: '#60a5fa', width: 1.5 } },
+      { x: xs, y: I.cost, mode: 'lines', name: `cost of push k (grow by ${c})`, line: { color: '#f87171', width: 1.5 } },
+      { x: xs, y: D.cum.map((v, i) => v / (i + 1)), mode: 'lines', xaxis: 'x2', yaxis: 'y2', name: 'average cost per push (doubling)', line: { color: '#60a5fa', width: 2.5 } },
+      { x: xs, y: I.cum.map((v, i) => v / (i + 1)), mode: 'lines', xaxis: 'x2', yaxis: 'y2', name: `average cost per push (grow by ${c})`, line: { color: '#f87171', width: 2.5 } },
+    ], twoRows({ title: `${n} pushes: total ${D.cum[n - 1]} steps with doubling (≈ 3 per push, amortised O(1)), ${I.cum[n - 1]} growing by ${c} (≈ n/${2 * c} per push, O(n))`,
+                 xaxis: { title: 'push number k' }, yaxis: { title: 'steps for this push', type: 'log' }, xaxis2: { title: 'push number k' }, yaxis2: { title: 'average steps per push' } }), cfg());
+  }
+
+  // ── D4. Hash table: expected probes against the load factor ───
+  function dsLoadFactor() {
+    const id = 'ds-load-factor';
+    const N = Math.max(4, Math.round(val(id, 'N', 16)));
+    const alphas = lin(0.02, 0.98, 96);
+    const chainHit = a => 1 + a / 2, chainMiss = a => a, linHit = a => 0.5 * (1 + 1 / (1 - a)), linMiss = a => 0.5 * (1 + 1 / ((1 - a) * (1 - a)));
+    Plotly.newPlot(el(id), [
+      { x: alphas, y: alphas.map(chainHit), mode: 'lines', name: 'separate chaining, successful search ≈ 1 + α/2', line: { color: '#34d399', width: 2.5 } },
+      { x: alphas, y: alphas.map(chainMiss), mode: 'lines', name: 'separate chaining, unsuccessful ≈ α', line: { color: '#34d399', width: 2, dash: 'dash' } },
+      { x: alphas, y: alphas.map(linHit), mode: 'lines', name: 'linear probing, successful ≈ ½(1 + 1/(1−α))', line: { color: '#f87171', width: 2.5 } },
+      { x: alphas, y: alphas.map(linMiss), mode: 'lines', name: 'linear probing, unsuccessful ≈ ½(1 + 1/(1−α)²)', line: { color: '#f87171', width: 2, dash: 'dash' } },
+      { x: [0.5, 0.5], y: [0, 6], mode: 'lines', name: 'α = ½ (rehash threshold for open addressing)', line: { color: '#facc15', width: 1.5, dash: 'dot' } },
+    ], layout({ title: `expected probes per search versus load factor α = n/N (here N = ${N}: α = ½ means ${N / 2} keys); chaining degrades gently, probing explodes past ½`,
+                xaxis: ax({ title: 'load factor α', range: [0, 1] }), yaxis: ax({ title: 'expected probes', range: [0, 6] }), legend: { orientation: 'h', y: -0.18 } }), cfg());
+  }
+
+  // ── D5. Comparison-sort lower bound: log₂ n! against n log n ──
+  function dsSortLowerBound() {
+    const id = 'ds-sort-lower-bound';
+    const nmax = Math.max(4, Math.round(val(id, 'nmax', 32)));
+    const xs = lin(2, nmax, nmax - 2).map(Math.round);
+    const logFact = n => { let s = 0; for (let k = 2; k <= n; k++) s += Math.log2(k); return s; };
+    Plotly.newPlot(el(id), [
+      { x: xs, y: xs.map(logFact), mode: 'lines+markers', name: 'log₂ n!  (height of the decision tree must be at least this)', line: { color: '#f87171', width: 2.5 }, marker: { size: 5 } },
+      { x: xs, y: xs.map(n => n * Math.log2(n)), mode: 'lines', name: 'n log₂ n  (merge sort, worst case, is within a constant of this)', line: { color: '#60a5fa', width: 2.5 } },
+      { x: xs, y: xs.map(n => (n / 2) * Math.log2(n / 2)), mode: 'lines', name: '(n/2) log₂ (n/2)  (the easy lower bound on log₂ n!)', line: { color: '#facc15', width: 2, dash: 'dash' } },
+      { x: xs, y: xs.map(n => n * (n - 1) / 2), mode: 'lines', name: 'n(n−1)/2  (insertion sort, worst case)', line: { color: '#94a3b8', width: 1.5, dash: 'dot' } },
+    ], layout({ title: `a decision tree for n keys has n! leaves, so some root-to-leaf path has ≥ log₂ n! comparisons — Ω(n log n) for every comparison sort`,
+                xaxis: ax({ title: 'n' }), yaxis: ax({ title: 'comparisons', range: [0, Math.max(nmax * Math.log2(nmax), 1) * 1.3] }), legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
   const SIMS = {
     'euler-demo':          eulerDemo,
     'rk4-comparison':      rk4Comparison,
@@ -1436,14 +1516,20 @@
     'calc-power-series-interval': calcPowerSeriesInterval,
     'calc-arctan-series':  calcArctanSeries,
     'calc-taylor-polynomials': calcTaylorPolynomials,
+    // COMP 352
+    'ds-growth-rates':     dsGrowthRates,
+    'ds-big-o-witness':    dsBigOWitness,
+    'ds-growable-array':   dsGrowableArray,
+    'ds-load-factor':      dsLoadFactor,
+    'ds-sort-lower-bound': dsSortLowerBound,
   };
 
   window.runSim = function (id, cfg) {
     if (SIMS[id]) {
       try { SIMS[id](); } catch (e) { console.warn('Sim error:', id, e); }
     } else if (cfg && cfg.custom) {
-      // custom simulators mount themselves into #sim-<id>: automata / grammars (default) or the Java stepper
-      const engine = cfg.engine === 'java' ? window.JAVA : window.FA;
+      // custom simulators mount themselves into #sim-<id>: automata / grammars (default), the Java stepper, the data-structure visualiser
+      const engine = cfg.engine === 'java' ? window.JAVA : cfg.engine === 'ds' ? window.DS : window.FA;
       if (engine) try { engine.mount(id, cfg); } catch (e) { console.warn('Sim error:', id, e); }
     }
   };
