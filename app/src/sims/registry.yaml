@@ -1,6 +1,7 @@
 # Simulation registry. lint.py checks every ```sim block in unit bodies against it.
 # plotly: ids in the SIMS table of simulations.js (slider-driven Plotly figures).
 # automata: modes of FA.mount in automata.js; a block with `custom: true` picks one via `mode`.
+# db: the database engine in db.js; `custom: true`, `engine: db`, `mode: <one of db.modes>` (`tables`, `query`, `expr`, `fds`, `program`, `er`, …).
 # ds: the data-structure visualiser in ds.js; `custom: true`, `engine: ds`, `mode: <one of ds.modes>`.
 # java: the Java-subset stepper in java.js; a block with `custom: true` and `engine: java` carries the
 #   program in `code` (and optionally `stdin`, and `files` — a map of file name to text that seeds the
@@ -79,3 +80,6 @@ java:
 #   (`data`, `ops`, `capacity`, `kind`, `algo`, `edges`, …) — see the header of ds.js.
 ds:
   modes: [stack, queue, array-list, linked-list, call-tree, binary-tree, heap, hash-table, bst, avl, sort, graph]
+# db: modes of DB.mount in db.js (database engine): sql runs through sql.js over `tables`; the others are own evaluators.
+db:
+  modes: [sql, ra, fd-closure, fd-keys, fd-cover, decomposition, normal-form, datalog, er]
