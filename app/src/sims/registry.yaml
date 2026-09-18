@@ -1,6 +1,7 @@
 # Simulation registry. lint.py checks every ```sim block in unit bodies against it.
 # plotly: ids in the SIMS table of simulations.js (slider-driven Plotly figures).
 # automata: modes of FA.mount in automata.js; a block with `custom: true` picks one via `mode`.
+# arch: the computer-architecture engine in arch.js; `custom: true`, `engine: arch`, `mode: <one of arch.modes>` plus the mode's keys (see the header of arch.js).
 # db: the database engine in db.js; `custom: true`, `engine: db`, `mode: <one of db.modes>` (`tables`, `query`, `expr`, `fds`, `program`, `er`, …).
 # ds: the data-structure visualiser in ds.js; `custom: true`, `engine: ds`, `mode: <one of ds.modes>`.
 # java: the Java-subset stepper in java.js; a block with `custom: true` and `engine: java` carries the
@@ -83,3 +84,6 @@ ds:
 # db: modes of DB.mount in db.js (database engine): sql runs through sql.js over `tables`; the others are own evaluators.
 db:
   modes: [sql, ra, fd-closure, fd-keys, fd-cover, decomposition, normal-form, datalog, er]
+# arch: modes of ARCH.mount in arch.js (computer architecture): numbers, IEEE 754, error codes, gates and circuits, timing, the bus datapath, a 6502-style CPU, x86-64, cache and I/O.
+arch:
+  modes: [convert, signed, add, multiply, divide, float, float-add, text, parity, hamming, gray, truth-table, circuit, decoder, mux, adder, alu, timing, rtn, cpu, x86, endian, memory-chips, cache, io]
