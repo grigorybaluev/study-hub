@@ -93,6 +93,7 @@
 
   const MODES = {};
   const fail = d => ({ d, hl: { err: true } });
+  const IDLE = '<div class="arch-empty">run to see the figure</div>';
 
   /* ═══════════════════════ NUMBERS ═══════════════════════ */
   MODES.convert = {
@@ -259,7 +260,8 @@
     },
     render(s) {
       if (s.phase === 'idle') return '<div class="arch-empty">enter two operands</div>';
-      if (!s.ab) return '';
+      if (!s.ab) return IDLE;
+      if (!s.bb) return `<div class="arch-line">A = ${bitsHtml(s.ab)} &nbsp; B = ${bitsHtml(s.bOrig)}</div>`;
       const w = s.w, cur = s.phase === 'done' ? -1 : w - s.done;
       const cell = (v, i, cls) => ({ v: v === '' ? '' : String(v), cls: (cls || '') + (i === cur ? ' hl' : '') });
       const carries = [], sums = [];
@@ -307,6 +309,7 @@
         } else {
           const half = pow2(w - 1);
           if (a < -half || a >= half || b < -half || b >= half) { yield fail(`operands must fit in ${w}-bit two's complement (−${half} … ${half - 1})`); return; }
+          if (a === -half) { yield fail(`Booth's algorithm needs −M, and −(−${half}) does not fit in ${w} bits: with an n-bit accumulator the most negative multiplicand is the one case it cannot handle — use ${w + 1} bits`); return; }
           const M = bits(a, w), negM = bits(-a, w);
           let A = '0'.repeat(w), Q = bits(b, w), q1 = 0;
           s.M = M; s.rows.push({ it: 0, A, Q, q1, act: 'initial: A = 0, Q = multiplier, Q₋₁ = 0' });
@@ -955,15 +958,15 @@
       }
     },
     render(s) {
-      if (s.phase === 'idle') return '';
+      if (s.phase === 'idle') return IDLE;
       const n = s.n, N = pow2(n);
       const W = 420, rowH = 22, H = Math.max(140, 40 + N * rowH);
       let g = svgOpen(W, H) + defs();
       const bx = 150, by = 20, bw = 110, bh = H - 40;
       g += rect(bx, by, bw, bh, '#fff', C.ink, 8) + text(bx + bw / 2, by + bh / 2 + 5, `${n}-to-${N}`, 'arch-val');
       const b = s.active === null ? null : bits(s.active, n);
-      for (let i = 0; i < n; i++) { const y = by + bh * (i + 1) / (n + 1); const on = b && b[n - 1 - i] === '1'; g += line(60, y, bx, y, on ? C.hi : C.line, on ? 2.4 : 1.5) + text(45, y + 4, `A${n - 1 - i}` + (b ? '=' + b[n - 1 - i] : ''), 'arch-small', on ? `fill="${C.hi}"` : ''); }
-      for (let k = 0; k < N; k++) { const y = by + 12 + k * ((bh - 24) / Math.max(1, N - 1)); const on = s.active === k; g += line(bx + bw, y, bx + bw + 70, y, on ? C.hi : C.line, on ? 2.4 : 1.5) + text(bx + bw + 78, y + 4, `D${k} = ${s.active === null ? '' : on ? 1 : 0}`, 'arch-small', `text-anchor="start" ${on ? `fill="${C.hi}" font-weight="700"` : ''}`); }
+      for (let i = 0; i < n; i++) { const y = by + bh * (i + 1) / (n + 1); const on = b && b[n - 1 - i] === '1'; g += line(72, y, bx, y, on ? C.hi : C.line, on ? 2.4 : 1.5) + text(66, y + 4, `A${n - 1 - i}` + (b ? '=' + b[n - 1 - i] : ''), 'arch-small', `text-anchor="end" ${on ? `fill="${C.hi}"` : ''}`); }
+      for (let k = 0; k < N; k++) { const y = by + 12 + k * ((bh - 24) / Math.max(1, N - 1)); const on = s.active === k; g += line(bx + bw, y, bx + bw + 56, y, on ? C.hi : C.line, on ? 2.4 : 1.5) + text(bx + bw + 64, y + 4, `D${k} = ${s.active === null ? '' : on ? 1 : 0}`, 'arch-small', `text-anchor="start" ${on ? `fill="${C.hi}" font-weight="700"` : ''}`); }
       g += '</svg>';
       const rows = []; for (let k = 0; k < N; k++) { const bb = bits(k, n); rows.push([...bb].map(c => ({ v: c, cls: 'mono' })).concat(Array.from({ length: N }, (_, j) => ({ v: j === k ? '1' : '', cls: 'mono ' + (j === k ? 'k' : 'muted') })))); }
       const side = table(Array.from({ length: n }, (_, i) => `A${n - 1 - i}`).concat(Array.from({ length: N }, (_, j) => `D${j}`)), rows, { cls: 'arch-grid arch-tiny', rowCls: i => i === s.active ? 'hl' : '' });
@@ -990,13 +993,13 @@
       }
     },
     render(s) {
-      if (s.phase === 'idle') return '';
+      if (s.phase === 'idle') return IDLE;
       const N = s.data.length; const W = 380, H = Math.max(150, 50 + N * 26);
       let g = svgOpen(W, H) + defs();
       const bx = 150, by = 20, bh = H - 60, bw = 70;
       g += `<path d="M ${bx} ${by} L ${bx + bw} ${by + 20} L ${bx + bw} ${by + bh - 20} L ${bx} ${by + bh} z" fill="#fff" stroke="${C.ink}" stroke-width="1.6"/>` + text(bx + bw / 2, by + bh / 2 + 5, 'MUX', 'arch-val');
-      s.data.forEach((d, i) => { const y = by + 14 + i * ((bh - 28) / Math.max(1, N - 1)); const on = s.out !== null && i === s.sel; g += line(70, y, bx, y, on ? C.hi : d ? C.blue : C.line, on ? 2.6 : 1.5) + text(55, y + 4, `D${i} = ${d}`, 'arch-small', on ? `fill="${C.hi}" font-weight="700"` : ''); });
-      const sy = by + bh + 22; for (let k = 0; k < s.n; k++) { const x = bx + 12 + k * 22; const bit = bits(s.sel, s.n)[k]; g += line(x, sy, x, by + bh - (bx + bw - x) * 20 / bw + 0, C.purple, 1.6) + text(x, sy + 12, `S${s.n - 1 - k}=${bit}`, 'arch-idx', `fill="${C.purple}"`); }
+      s.data.forEach((d, i) => { const y = by + 14 + i * ((bh - 28) / Math.max(1, N - 1)); const on = s.out !== null && i === s.sel; g += line(76, y, bx, y, on ? C.hi : d ? C.blue : C.line, on ? 2.6 : 1.5) + text(70, y + 4, `D${i} = ${d}`, 'arch-small', `text-anchor="end" ${on ? `fill="${C.hi}" font-weight="700"` : ''}`); });
+      const sy = by + bh + 22; for (let k = 0; k < s.n; k++) { const x = bx + 14 + k * (s.n > 1 ? (bw - 28) / (s.n - 1) : 0); const bit = bits(s.sel, s.n)[k]; g += line(x, sy, x, by + bh - (bx + bw - x) * 20 / bw, C.purple, 1.6) + text(x, sy + 12, `S${s.n - 1 - k}=${bit}`, 'arch-idx', `fill="${C.purple}"`); }
       const oy = by + bh / 2; g += arrow(bx + bw, oy, bx + bw + 60, oy, s.out ? C.hi : C.ink, s.out ? 2.6 : 1.6, s.out ? 'arch-ah-hi' : 'arch-ah') + text(bx + bw + 66, oy + 4, `Y${s.out === null ? '' : ' = ' + s.out}`, 'arch-val', 'text-anchor="start"');
       return g + '</svg>';
     }
@@ -1021,8 +1024,8 @@
       }
     },
     render(s) {
-      if (s.phase === 'idle') return '';
-      const w = s.a.length; const boxW = 64, gap = 26, x0 = 50, y0 = 60;
+      if (s.phase === 'idle') return IDLE;
+      const w = s.a.length; const boxW = 64, gap = 36, x0 = 84, y0 = 60;
       const W = x0 + w * (boxW + gap) + 40, H = 170;
       let g = svgOpen(W, H) + defs();
       for (let i = 0; i < w; i++) {
@@ -1084,13 +1087,13 @@
       }
     },
     render(s) {
-      if (s.phase === 'idle') return '';
+      if (s.phase === 'idle') return IDLE;
       const W = 420, H = 190; let g = svgOpen(W, H) + defs();
       const x = 130, y = 40;
       g += `<path d="M ${x} ${y} L ${x + 160} ${y} L ${x + 130} ${y + 90} L ${x + 30} ${y + 90} L ${x + 10} ${y + 60} L ${x + 0} ${y + 40} z" fill="#fff" stroke="${C.ink}" stroke-width="1.6"/>`;
       g += text(x + 80, y + 55, 'ALU', 'arch-val');
-      g += arrow(x + 40, y - 30, x + 40, y, C.blue, 1.8, 'arch-ah-blue') + text(x + 40, y - 34, `A = ${s.A}`, 'arch-idx', `fill="${C.blue}"`);
-      g += arrow(x + 120, y - 30, x + 120, y, C.blue, 1.8, 'arch-ah-blue') + text(x + 120, y - 34, `B = ${s.B}`, 'arch-idx', `fill="${C.blue}"`);
+      g += arrow(x + 40, y - 30, x + 40, y, C.blue, 1.8, 'arch-ah-blue') + text(x + 40, y - 34, `A = ${s.A}`, 'arch-idx', `fill="${C.blue}" text-anchor="end"`);
+      g += arrow(x + 120, y - 30, x + 120, y, C.blue, 1.8, 'arch-ah-blue') + text(x + 120, y - 34, `B = ${s.B}`, 'arch-idx', `fill="${C.blue}" text-anchor="start"`);
       g += arrow(x + 200, y + 45, x + 165, y + 45, C.purple, 1.6, 'arch-ah') + text(x + 206, y + 49, s.op, 'arch-small', `text-anchor="start" fill="${C.purple}"`);
       g += arrow(x + 80, y + 90, x + 80, y + 125, s.x ? C.hi : C.line, 1.8, s.x ? 'arch-ah-hi' : 'arch-ah') + text(x + 80, y + 140, `X = ${s.x || '?'}`, 'arch-val', s.x ? `fill="${C.hi}"` : '');
       if (s.flags) ['N', 'Z', 'C', 'V'].forEach((f, i) => { const fx = 20 + i * 26; g += rect(fx, y + 110, 22, 22, s.flags[f] ? C.hiBg : '#fff', s.flags[f] ? C.hi : C.line, 4) + text(fx + 11, y + 125, f + s.flags[f], 'arch-small'); });
@@ -1140,7 +1143,7 @@
       }
     },
     render(s) {
-      if (s.phase === 'idle') return '';
+      if (s.phase === 'idle') return IDLE;
       const D = DEVICES[s.device]; const names = D.inputs.concat(['Q']).concat(s.device === 'rs-latch' ? ["Q'"] : []);
       const T = s.T, slot = 36, x0 = 60, rowH = 44, H = 20 + names.length * rowH + 10, W = x0 + T * slot + 30;
       let g = svgOpen(W, H) + defs();
@@ -1258,8 +1261,8 @@
       const mx = 340, my = 200; const memOn = s.hl.mem;
       g += rect(mx, my, 190, 100, memOn ? C.warnBg : '#fff', memOn ? C.warn : C.ink, 6) + text(mx + 95, my + 18, 'memory', 'arch-small');
       const addrs = Object.keys(s.mem).map(Number).sort((a, b) => a - b).slice(0, 4);
-      addrs.forEach((a, i) => g += text(mx + 12, my + 38 + i * 15, `${hex(a, 2)}: ${s.mem[a]}`, 'arch-idx', `text-anchor="start" ${a === s.regs.MAR && memOn ? `fill="${C.warn}" font-weight="700"` : ''}`));
-      if (Object.keys(s.mem).length > 4) g += text(mx + 12, my + 98, '…', 'arch-idx', 'text-anchor="start"');
+      addrs.forEach((a, i) => g += text(mx + 70, my + 40 + i * 14, `${hex(a, 2)}: ${s.mem[a]}`, 'arch-idx', `text-anchor="start" ${a === s.regs.MAR && memOn ? `fill="${C.warn}" font-weight="700"` : ''}`));
+      if (Object.keys(s.mem).length > 4) g += text(mx + 70, my + 96, '…', 'arch-idx', 'text-anchor="start"');
       g += poly([[170, 30 + 2 * 34 + 13], [200, 30 + 2 * 34 + 13], [200, my + 30], [mx, my + 30]], memOn ? C.warn : C.line, 1.2) + text(mx - 6, my + 26, 'address', 'arch-idx', 'text-anchor="end"');
       g += poly([[170, 30 + 3 * 34 + 13], [190, 30 + 3 * 34 + 13], [190, my + 70], [mx, my + 70]], memOn ? C.warn : C.line, 1.2) + text(mx - 6, my + 66, 'data', 'arch-idx', 'text-anchor="end"');
       g += '</svg>';
@@ -1371,7 +1374,6 @@
       st.regs.PC = a.labels.__start || 0x0200;
       const isr = cfg.isr !== undefined ? a.labels[cfg.isr] : a.labels.irq !== undefined ? a.labels.irq : a.labels.isr;
       if (isr !== undefined) { st.mem[0xFFFE] = isr & 0xFF; st.mem[0xFFFF] = (isr >> 8) & 0xFF; st.isr = isr; }
-      st.codeAddrs = a.items.filter(i => !i.data).map(i => i.addr);
       return st;
     },
     controls: [{ kind: 'textarea', name: 'program', label: 'program', default: '', rows: 8 }, { kind: 'number', name: 'steps', label: 'instructions', default: 200 }, { kind: 'button', label: 'run', op: 'run', args: ['steps'] }],
@@ -1403,18 +1405,18 @@
       if (s.err) return `<div class="arch-empty">assembly error: ${esc(s.err)}</div>`;
       const pc = s.regs.PC;
       const rows = s.listing.map(l => [{ v: h16(l.addr), cls: 'mono muted' }, { v: l.bytes.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ') + (l.len > 8 ? ' …' : ''), cls: 'mono muted' }, { v: esc(l.src), cls: 'mono' + (l.data ? ' muted' : '') }]);
-      const html = table(['addr', 'bytes', 'source'], rows, { cls: 'arch-listing-t', rowCls: i => s.listing[i].addr === pc && !s.listing[i].data ? 'cur' : (s.hl.addr !== undefined && s.listing[i].addr <= s.hl.addr && s.hl.addr < s.listing[i].addr + s.listing[i].len && s.listing[i].data ? 'hl' : '') });
+      const html = table(['addr', 'bytes', 'source'], rows, { cls: 'arch-listing-t', rowCls: i => s.listing[i].addr === pc && !s.listing[i].data && !s.halted ? 'cur' : (s.hl.addr !== undefined && s.listing[i].addr <= s.hl.addr && s.hl.addr < s.listing[i].addr + s.listing[i].len && s.listing[i].data ? 'hl' : '') });
       const r = s.regs;
       let side = `<div class="arch-side-title">registers</div><div class="arch-regs">` + [['A', h8(r.A), r.A], ['X', h8(r.X), r.X], ['Y', h8(r.Y), r.Y], ['S', h8(r.S), r.S], ['PC', h16(r.PC), r.PC]].map(([n, h, d]) => `<div class="${s.hl.reg === n ? 'hl' : ''}"><b>${n}</b> ${h} <span class="arch-muted">${d}</span></div>`).join('') + '</div>';
       side += `<div class="arch-side-title">flags</div><div class="arch-flags">${['N', 'V', 'B', 'D', 'I', 'Z', 'C'].map(f => tag(f + '=' + s.P[f], s.P[f] ? 'blue' : 'muted')).join(' ')}</div>`;
       if (s.micro) side += `<div class="arch-side-title">bus registers</div><div class="arch-regs"><div><b>MAR</b> ${h16(s.ir.MAR)}</div><div><b>MDR</b> ${h8(s.ir.MDR)}</div><div><b>IR</b> ${h8(s.ir.IR)}</div></div>`;
       const stack = []; for (let a = r.S + 1; a <= 0xFF; a++) stack.push(`${h16(0x100 + a)}: ${h8(s.mem[0x100 + a] || 0)}`);
       side += `<div class="arch-side-title">stack (top first)</div><div class="arch-mem">${stack.length ? stack.map(x => `<div>${x}</div>`).join('') : '<div class="arch-empty">empty</div>'}</div>`;
-      const dataAddrs = Object.keys(s.mem).map(Number).filter(a => a < 0x100 || (a >= 0x200 && !s.codeAddrs.some(c => a >= c && a < c + 3 && s.listing.find(l => l.addr === c && !l.data))) ).filter(a => a < 0xFFFE && !(a >= 0x100 && a < 0x200)).sort((a, b) => a - b);
-      const shown = dataAddrs.filter(a => !s.listing.some(l => !l.data && a >= l.addr && a < l.addr + l.len)).slice(0, 24);
+      // everything in memory that is not code, not the stack page and not the vector: data directives and stores
+      const shown = Object.keys(s.mem).map(Number).filter(a => a < 0xFFFE && !(a >= 0x100 && a < 0x200) && !s.listing.some(l => !l.data && a >= l.addr && a < l.addr + l.len)).sort((a, b) => a - b).slice(0, 24);
       if (shown.length) side += `<div class="arch-side-title">memory</div><div class="arch-mem">${shown.map(a => `<div class="${s.hl.addr === a ? 'hl' : ''}">${h16(a)}: ${h8(s.mem[a])} <span class="arch-muted">${s.mem[a]}</span></div>`).join('')}</div>`;
       if (s.out) side += `<div class="arch-side-title">output ($F000)</div><pre class="arch-out">${esc(s.out)}</pre>`;
-      return { html, side };
+      return { html, side, wide: true };
     }
   };
   const packP = (P, b) => (P.N << 7) | (P.V << 6) | 0x20 | (b << 4) | (P.D << 3) | (P.I << 2) | (P.Z << 1) | P.C;
@@ -1633,7 +1635,7 @@
         side += '</div>';
       }
       side += `<div class="arch-side-title">stdout</div><pre class="arch-out">${esc(s.stdout)}${s.exit !== null ? `<span class="arch-muted">[exit ${s.exit}]</span>` : ''}</pre>`;
-      return { html, side };
+      return { html, side, wide: true };
     }
   };
   function* execX86(s) {
@@ -1752,7 +1754,7 @@
       }
     },
     render(s) {
-      if (s.phase === 'idle') return '';
+      if (s.phase === 'idle') return IDLE;
       const col = (lbl, arr) => { const rows = []; for (let i = 0; i < s.bytes.length; i++) rows.push([{ v: hex(s.addr + i, 3), cls: 'mono muted' }, { v: arr ? arr[i] : '', cls: 'mono' + (arr && ((lbl[0] === 'b' && i === 0) || (lbl[0] === 'l' && i === s.bytes.length - 1)) ? ' k' : '') }]); return `<div><div class="arch-side-title">${lbl}</div>${table(['addr', 'byte'], rows, { cls: 'arch-grid' })}</div>`; };
       return `<div class="arch-cols">${col('big-endian', s.big)}${col('little-endian', s.little)}</div><div class="arch-muted">the highlighted byte is the most significant one, ${esc(s.bytes[0] || '')}, in each layout</div>`;
     }
@@ -1789,7 +1791,7 @@
       }
     },
     render(s) {
-      if (s.phase === 'idle' || !s.chip) return '';
+      if (s.phase === 'idle' || !s.chip) return IDLE;
       const { rows, cols, chip } = s; const cw = 74, ch = 44, gx = 18, gy = 16, x0 = 130, y0 = 40;
       const W = x0 + cols * (cw + gx) + 30, H = y0 + rows * (ch + gy) + 40;
       let g = svgOpen(W, H) + defs();
@@ -1801,7 +1803,7 @@
         const on = s.probe && s.probe.row === r;
         g += rect(x, y, cw, ch, on ? C.hiBg : '#fff', on ? C.hi : C.ink, 5) + text(x + cw / 2, y + 18, `${chip.a}×${chip.w}`, 'arch-small') + text(x + cw / 2, y + 34, `D${(cols - 1 - c) * chip.w + chip.w - 1}…D${(cols - 1 - c) * chip.w}`, 'arch-idx');
         if (extra) g += line(90, y + ch / 2, x, y + ch / 2, on ? C.hi : C.line, on ? 2 : 1) ;
-        if (extra && c === 0) g += text(96, y + ch / 2 - 4, `CE${r}`, 'arch-idx', `text-anchor="start" ${on ? `fill="${C.hi}"` : ''}`);
+        if (extra && c === 0) g += text(100, y + ch / 2 - 4, `CE${r}`, 'arch-idx', `text-anchor="start" ${on ? `fill="${C.hi}"` : ''}`);
       }
       g += text(x0 + (cols * (cw + gx) - gx) / 2, H - 8, `${s.mem.w} data lines out: D${s.mem.w - 1}…D0`, 'arch-idx', `fill="${C.blue}"`);
       return g + '</svg>';
@@ -1851,7 +1853,7 @@
       }
     },
     render(s) {
-      if (s.phase === 'idle') return '';
+      if (s.phase === 'idle') return IDLE;
       const rows = [];
       s.sets.forEach((set, si) => set.forEach((l, wi) => rows.push([{ v: s.nsets > 1 ? String(si) : '', cls: 'mono muted' }, { v: s.ways > 1 ? String(wi) : '', cls: 'mono muted' }, { v: String(l.v), cls: 'mono' }, { v: l.v ? String(l.tag) : '', cls: 'mono' }, { v: l.v ? `block ${l.blk} (${l.blk * s.block}–${l.blk * s.block + s.block - 1})` : '', cls: 'muted' }, { v: l.v && s.policy !== 'random' && s.ways > 1 ? String(s.policy === 'lru' ? l.last : l.in) : '', cls: 'mono muted' }])));
       const curRow = s.cur ? (s.cur.idx * s.ways + s.cur.way) : -1;
@@ -1913,7 +1915,7 @@
       }
     },
     render(s) {
-      if (!s.rows) return '';
+      if (!s.rows) return IDLE;
       const T = s.T, slot = 22, x0 = 70, rowH = 34;
       const rowsDef = s.kind === 'dma' ? [['bus', s.rows.bus], ['CPU', s.rows.cpu]] : [['device', s.rows.dev], ['CPU', s.rows.cpu]];
       const H = 30 + rowsDef.length * rowH + 20, W = x0 + T * slot + 20;
@@ -1924,7 +1926,7 @@
         for (let t = 0; t < T; t++) {
           const x = x0 + t * slot;
           if (name === 'device') { if (arr[t]) g += `<path d="M ${x + slot / 2} ${y + 20} l -6 0 l 6 -14 l 6 14 z" fill="${C.hi}"/>`; else g += line(x, y + 20, x + slot, y + 20, '#e2e8f0', 1); }
-          else { const v = arr[t]; if (t > s.cur && s.phase !== 'done') continue; const [bg, st] = colour(v); g += rect(x + 1, y + 2, slot - 2, 22, bg, st, 3); if (v !== 'work' && v !== 'free') g += text(x + slot / 2, y + 17, v === 'service' ? 'svc' : v === 'stall' ? '✕' : v === 'mem' ? 'M' : v === 'dma' ? 'D' : v === 'cpu' ? 'C' : v === 'poll' ? 'P' : v, 'arch-idx', `fill="${st}" font-weight="700"`); }
+          else { const v = arr[t]; if (t > s.cur && s.phase !== 'done' && s.kind !== 'dma') continue; const [bg, st] = colour(v); g += rect(x + 1, y + 2, slot - 2, 22, bg, st, 3); if (v !== 'work' && v !== 'free') g += text(x + slot / 2, y + 17, v === 'service' ? 'svc' : v === 'stall' ? '✕' : v === 'mem' ? 'M' : v === 'dma' ? 'D' : v === 'cpu' ? 'C' : v === 'poll' ? 'P' : v, 'arch-idx', `fill="${st}" font-weight="700"`); }
         }
       });
       for (let t = 0; t < T; t += 2) g += text(x0 + t * slot + slot / 2, H - 4, String(t), 'arch-idx');
@@ -1977,7 +1979,7 @@
       const el = this.el; if (!el) return;
       const step = this.steps[this.i];
       const r = this.mode.render(step.state, step, this);
-      const main = typeof r === 'string' ? r : r.html, side = typeof r === 'string' ? '' : r.side;
+      const main = typeof r === 'string' ? r : r.html, side = typeof r === 'string' ? '' : r.side, wide = typeof r !== 'string' && r.wide;
       const ctrls = this.controls.map(c => {
         if (c.kind === 'button') return `<button class="btn fa-btn arch-op${c.primary ? ' arch-primary' : ''}" data-op="${esc(c.op)}" data-args="${esc((c.args || []).join(','))}">${esc(c.label)}</button>`;
         if (c.kind === 'select') return `<label class="arch-field">${esc(c.label)} <select data-name="${esc(c.name)}">${c.options.map(o => `<option value="${esc(o)}" ${String(this.values[c.name]) === String(o) ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`;
@@ -1996,7 +1998,7 @@
           <span class="arch-counter">step ${this.i} of ${this.steps.length - 1}</span>
         </div>
         <div class="arch-desc ${step.hl && step.hl.err ? 'err' : ''}">${esc(step.d)}</div>
-        <div class="arch-main ${side ? 'with-side' : ''}"><div class="arch-figure">${main}</div>${side ? `<div class="arch-side">${side}</div>` : ''}</div>
+        <div class="arch-main ${side ? 'with-side' : ''}${wide ? ' wide-side' : ''}"><div class="arch-figure">${main}</div>${side ? `<div class="arch-side">${side}</div>` : ''}</div>
       </div>`;
       el.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => { const a = b.dataset.act; if (a === 'reset') { this.seedValues(); this.reset(); } else if (a === 'first') this.goto(0); else if (a === 'back') this.goto(this.i - 1); else if (a === 'step') this.goto(this.i + 1); else this.goto(Infinity); }));
       el.querySelectorAll('[data-name]').forEach(inp => { const h = () => { this.values[inp.dataset.name] = inp.value; }; inp.addEventListener('change', h); inp.addEventListener('input', h); });

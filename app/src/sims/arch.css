@@ -18,6 +18,7 @@
 .arch-desc.err { background: #fee2e2; border-color: #fca5a5; color: #7f1d1d; }
 .arch-main { display: grid; gap: .7rem; }
 .arch-main.with-side { grid-template-columns: minmax(0, 3fr) minmax(190px, 1fr); align-items: start; }
+.arch-main.wide-side { grid-template-columns: minmax(0, 1.4fr) minmax(220px, 1fr); }
 @media (max-width: 720px) { .arch-main.with-side { grid-template-columns: 1fr; } }
 .arch-figure { min-width: 0; overflow-x: auto; }
 .arch-svg { width: 100%; max-height: 460px; background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; display: block; }
@@ -26,7 +27,7 @@
 .arch-small { font-size: 12px; font-weight: 600; }
 .arch-idx { font-size: 10.5px; fill: #64748b; }
 .arch-gate { font-size: 9.5px; font-weight: 700; fill: #475569; }
-.arch-side { border: 1px solid #e0e0dc; border-radius: 8px; background: #f8f7f3; padding: .5rem .7rem; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .78rem; }
+.arch-side { border: 1px solid #e0e0dc; border-radius: 8px; background: #f8f7f3; padding: .5rem .7rem; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .78rem; min-width: 0; overflow-x: auto; }
 .arch-side-title { font-family: inherit; font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5f6368; margin: .45rem 0 .3rem; }
 .arch-side-title:first-child { margin-top: .1rem; }
 .arch-empty { color: #9ca3af; padding: .3rem 0; }
