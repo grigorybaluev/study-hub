@@ -819,6 +819,187 @@
   }
 
 
+  // ── Q9. Two-way table (students × tutorials): conditioning = restricting to one row ──
+  function condTable() {
+    const id = 'cond-table';
+    const a = Math.round(val(id, 'tg', 30)), b = Math.round(val(id, 'tp', 10)), c = Math.round(val(id, 'ug', 15)), d = Math.round(val(id, 'up', 25));
+    const cond = Math.round(val(id, 'cond', 1));   // 0: whole table, 1: row T, 2: row T′
+    const nS = a + b + c + d;
+    const rows = ['T (attended tutorials)', 'T′ (did not attend)'], cols = ['M (passed)', 'M′ (failed)'];
+    const counts = [[a, b], [c, d]];
+    const z = counts.map((r, i) => r.map(() => cond === 0 ? 1 : (cond === 1 && i === 0) || (cond === 2 && i === 1) ? 1 : 0.25));
+    const text = counts.map(r => r.map(String));
+    let title;
+    if (!nS) title = 'the table is empty';
+    else if (cond === 0) title = `whole sample space:  P(M) = n(M)/n(S) = ${a + c}/${nS} = ${((a + c) / nS).toFixed(3)}`;
+    else if (cond === 1) title = a + b ? `reduced sample space T (top row):  P(M | T) = n(T∩M)/n(T) = ${a}/${a + b} = ${(a / (a + b)).toFixed(3)}<br>= P(T∩M)/P(T) = (${a}/${nS}) / (${a + b}/${nS})` : 'P(T) = 0: P(M | T) is undefined';
+    else title = c + d ? `reduced sample space T′ (bottom row):  P(M | T′) = n(T′∩M)/n(T′) = ${c}/${c + d} = ${(c / (c + d)).toFixed(3)}<br>= P(T′∩M)/P(T′) = (${c}/${nS}) / (${c + d}/${nS})` : 'P(T′) = 0: P(M | T′) is undefined';
+    Plotly.newPlot(el(id), [{
+      type: 'heatmap', x: cols, y: rows, z, text, texttemplate: '%{text}', textfont: { size: 20 },
+      colorscale: [[0, '#1f2937'], [0.25, '#1f2937'], [1, '#00a651']], zmin: 0, zmax: 1, showscale: false, xgap: 4, ygap: 4, hoverinfo: 'text',
+    }], layout({ title, xaxis: ax({ side: 'top' }), yaxis: ax({ autorange: 'reversed' }), margin: { t: 110, r: 20, b: 20, l: 170 } }), cfg());
+  }
+
+  // ── Q10. Venn diagram conditioned on B: only B is left ────────
+  function condVenn() {
+    const id = 'cond-venn';
+    const pA = val(id, 'pA', 0.4), pB = val(id, 'pB', 0.5), inAB = val(id, 'pAB', 0.15);
+    const given = Math.round(val(id, 'given', 1));   // 0: none, 1: given B, 2: given A
+    const adj = [];
+    let pAB = inAB;
+    if (pAB > Math.min(pA, pB) + 1e-12) { pAB = Math.min(pA, pB); adj.push(`P(A∩B) → ${pAB.toFixed(2)} (A∩B ⊆ A, B)`); }
+    if (pA + pB - pAB > 1 + 1e-12) { pAB = pA + pB - 1; adj.push(`P(A∩B) → ${pAB.toFixed(2)} (so that P(A∪B) ≤ 1)`); }
+    const f = v => v.toFixed(2);
+    let title;
+    if (given === 0) title = `no conditioning:  P(A) = ${f(pA)},  P(B) = ${f(pB)},  P(A∩B) = ${f(pAB)}`;
+    else if (given === 1) title = pB > 0 ? `given B, the sample space shrinks to B:  P(A | B) = P(A∩B)/P(B) = ${f(pAB)}/${f(pB)} = ${f(pAB / pB)}` : 'P(B) = 0: P(A | B) is undefined';
+    else title = pA > 0 ? `given A, the sample space shrinks to A:  P(B | A) = P(A∩B)/P(A) = ${f(pAB)}/${f(pA)} = ${f(pAB / pA)}` : 'P(A) = 0: P(B | A) is undefined';
+    if (adj.length) title += `<br><span style="color:#facc15">⚠ impossible combination adjusted: ${adj.join('; ')}</span>`;
+    const dimA = given === 1, dimB = given === 2;
+    const ann = [
+      { x: -0.9, y: 0, text: `A ∩ B′<br><b>${f(pA - pAB)}</b>`, font: { color: dimA ? '#64748b' : '#e2e8f0' } },
+      { x: 0, y: 0, text: `A ∩ B<br><b>${f(pAB)}</b>` },
+      { x: 0.9, y: 0, text: `A′ ∩ B<br><b>${f(pB - pAB)}</b>`, font: { color: dimB ? '#64748b' : '#e2e8f0' } },
+      { x: 0, y: -1.55, text: `A′ ∩ B′<br><b>${f(1 - pA - pB + pAB)}</b>`, font: { color: given ? '#64748b' : '#e2e8f0' } },
+      { x: -0.55, y: 1.15, text: '<b>A</b>', font: { size: 16, color: dimA ? '#475569' : '#60a5fa' } },
+      { x: 0.55, y: 1.15, text: '<b>B</b>', font: { size: 16, color: dimB ? '#475569' : '#f87171' } },
+      { x: -2.05, y: 1.6, text: given ? '<b>S</b> (no longer the sample space)' : '<b>S</b>', font: { size: 13, color: given ? '#64748b' : '#e2e8f0' } },
+    ].map(a => Object.assign({ showarrow: false, align: 'center' }, { font: { color: '#e2e8f0', size: 13 } }, a));
+    const shapes = [
+      { type: 'rect', x0: -2.2, y0: -1.85, x1: 2.2, y1: 1.85, line: { color: given ? '#475569' : '#94a3b8', width: 1.5, dash: given ? 'dot' : 'solid' } },
+      { type: 'circle', x0: -1.55, y0: -1.0, x1: 0.45, y1: 1.0, fillcolor: dimA ? 'rgba(96,165,250,.08)' : 'rgba(96,165,250,.28)', line: { color: dimA ? '#475569' : '#60a5fa', width: 2 } },
+      { type: 'circle', x0: -0.45, y0: -1.0, x1: 1.55, y1: 1.0, fillcolor: dimB ? 'rgba(248,113,113,.08)' : 'rgba(248,113,113,.28)', line: { color: dimB ? '#475569' : '#f87171', width: 2 } },
+    ];
+    if (given === 1) shapes.push({ type: 'circle', x0: -0.45, y0: -1.0, x1: 1.55, y1: 1.0, fillcolor: 'rgba(0,0,0,0)', line: { color: '#facc15', width: 4 } });
+    if (given === 2) shapes.push({ type: 'circle', x0: -1.55, y0: -1.0, x1: 0.45, y1: 1.0, fillcolor: 'rgba(0,0,0,0)', line: { color: '#facc15', width: 4 } });
+    Plotly.newPlot(el(id), [{ x: [0], y: [0], mode: 'markers', marker: { opacity: 0 }, hoverinfo: 'skip', showlegend: false }],
+      layout({ title, margin: { t: title.indexOf('<br>') >= 0 ? 80 : 50, r: 10, b: 10, l: 10 }, shapes, annotations: ann,
+        xaxis: ax({ range: [-2.4, 2.4], visible: false }), yaxis: ax({ range: [-2.0, 2.0], visible: false, scaleanchor: 'x', scaleratio: 1 }) }), cfg());
+  }
+
+  // ── Q11. Independence check: P(A∩B) against P(A)·P(B) ─────────
+  function independenceCheck() {
+    const id = 'independence-check';
+    const pA = val(id, 'pA', 0.5), pB = val(id, 'pB', 0.2), inAB = val(id, 'pAB', 0.1);
+    let pAB = inAB; const adj = [];
+    if (pAB > Math.min(pA, pB) + 1e-12) { pAB = Math.min(pA, pB); adj.push(`P(A∩B) → ${pAB.toFixed(3)} (A∩B ⊆ A, B)`); }
+    if (pA + pB - pAB > 1 + 1e-12) { pAB = pA + pB - 1; adj.push(`P(A∩B) → ${pAB.toFixed(3)} (so that P(A∪B) ≤ 1)`); }
+    const prod = pA * pB, indep = Math.abs(pAB - prod) < 1e-9;
+    const f = v => v.toFixed(3);
+    const pAgB = pB > 0 ? pAB / pB : null, pBgA = pA > 0 ? pAB / pA : null;   // null: Plotly leaves the bar out
+    const verdict = indep ? 'independent ✓  (P(A∩B) = P(A)·P(B), so P(A|B) = P(A) and P(B|A) = P(B))' : `dependent  (P(A∩B) = ${f(pAB)} ≠ P(A)·P(B) = ${f(prod)})`;
+    const groups = ['P(A∩B) vs P(A)·P(B)', 'P(A|B) vs P(A)', 'P(B|A) vs P(B)'];
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: groups, y: [pAB, pAgB, pBgA], name: 'actual: P(A∩B), P(A|B), P(B|A)', marker: { color: '#00a651' }, text: [f(pAB), pAgB === null ? 'undef.' : f(pAgB), pBgA === null ? 'undef.' : f(pBgA)], textposition: 'outside', textfont: { color: '#e2e8f0' } },
+      { type: 'bar', x: groups, y: [prod, pA, pB], name: 'if independent: P(A)·P(B), P(A), P(B)', marker: { color: '#60a5fa' }, text: [f(prod), f(pA), f(pB)], textposition: 'outside', textfont: { color: '#e2e8f0' } },
+    ], layout({ title: `A and B are ${verdict}` + (adj.length ? `<br><span style="color:#facc15">⚠ adjusted: ${adj.join('; ')}</span>` : ''),
+                barmode: 'group', yaxis: ax({ range: [0, 1.15], title: 'probability' }), xaxis: ax({}), legend: { orientation: 'h', y: -0.2 }, margin: { t: 70, r: 20, b: 80, l: 55 } }), cfg());
+  }
+
+  // ── Q12. Sampling with vs without replacement ─────────────────
+  function drawReplacement() {
+    const id = 'draw-replacement';
+    const N = Math.round(val(id, 'N', 10)), d0 = Math.round(val(id, 'd', 3)), n = Math.round(val(id, 'n', 2));
+    const d = Math.min(d0, N);
+    const steps = [], without = [], withR = [];
+    let pw = 1, pr = 1;
+    for (let i = 0; i < n; i++) {
+      const cw = (d - i) > 0 && (N - i) > 0 ? (d - i) / (N - i) : 0, cr = d / N;
+      pw *= cw; pr *= cr;
+      steps.push(`draw ${i + 1}`); without.push(cw); withR.push(cr);
+    }
+    const f = v => v.toFixed(4);
+    const frac = (i) => `${Math.max(d - i, 0)}/${N - i}`;
+    const prodW = Array.from({ length: n }, (_, i) => frac(i)).join(' · '), prodR = Array.from({ length: n }, () => `${d}/${N}`).join(' · ');
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: steps, y: without, name: `without replacement: P(all ${n} special) = ${prodW} = ${f(pw)}`, marker: { color: '#00a651' }, text: without.map((v, i) => `${frac(i)} = ${v.toFixed(3)}`), textposition: 'outside', textfont: { color: '#e2e8f0' } },
+      { type: 'bar', x: steps, y: withR, name: `with replacement: P(all ${n} special) = ${prodR} = ${f(pr)}`, marker: { color: '#60a5fa' }, text: withR.map(v => `${d}/${N} = ${v.toFixed(3)}`), textposition: 'outside', textfont: { color: '#e2e8f0' } },
+    ], layout({ title: `${N} items, ${d} special, ${n} drawn in succession: P(special on this draw | all earlier draws special)`,
+                barmode: 'group', yaxis: ax({ range: [0, Math.max(...without, ...withR, 0.05) * 1.35], title: 'conditional probability' }), xaxis: ax({}),
+                legend: { orientation: 'h', y: -0.2 }, margin: { t: 60, r: 20, b: 90, l: 55 } }), cfg());
+  }
+
+  // ── Partition helper: three causes B1, B2, B3 from two sliders ──
+  function partition3(id) {
+    let p1 = val(id, 'p1', 0.5), p2 = val(id, 'p2', 0.3);
+    const adj = [];
+    if (p1 + p2 > 1 + 1e-12) { p2 = 1 - p1; adj.push(`P(B₂) → ${p2.toFixed(2)} (the partition must sum to 1)`); }
+    const p3 = 1 - p1 - p2;
+    const q = [val(id, 'q1', 0.02), val(id, 'q2', 0.05), val(id, 'q3', 0.10)];
+    const prior = [p1, p2, p3], joint = prior.map((p, i) => p * q[i]);
+    const pA = joint.reduce((s, v) => s + v, 0);
+    return { prior, q, joint, pA, adj };
+  }
+
+  // ── Q13. Law of total probability as a tree ───────────────────
+  function totalProbTree() {
+    const id = 'total-prob-tree';
+    const { prior, q, joint, pA, adj } = partition3(id);
+    const f = v => v.toFixed(3), f2 = v => v.toFixed(2);
+    const ys = [0.85, 0.5, 0.15];
+    const lx = [], ly = [], ann = [];
+    prior.forEach((p, i) => {
+      lx.push(0, 1, null); ly.push(0.5, ys[i], null);                      // trunk → Bi
+      lx.push(1, 2, null); ly.push(ys[i], ys[i] + 0.09, null);              // Bi → A
+      lx.push(1, 2, null); ly.push(ys[i], ys[i] - 0.09, null);              // Bi → A′
+      ann.push({ x: 0.5, y: (0.5 + ys[i]) / 2 + 0.035, text: `P(B${i + 1}) = ${f2(p)}`, font: { color: '#facc15' } });
+      ann.push({ x: 1.05, y: ys[i], text: `<b>B${i + 1}</b>`, font: { color: '#e2e8f0', size: 14 }, xanchor: 'right' });
+      ann.push({ x: 1.5, y: ys[i] + 0.075, text: `P(A|B${i + 1}) = ${f2(q[i])}`, font: { color: '#60a5fa', size: 11 } });
+      ann.push({ x: 1.5, y: ys[i] - 0.075, text: `P(A′|B${i + 1}) = ${f2(1 - q[i])}`, font: { color: '#64748b', size: 11 } });
+      ann.push({ x: 2.05, y: ys[i] + 0.09, text: `A: P(B${i + 1})·P(A|B${i + 1}) = ${f2(p)} × ${f2(q[i])} = <b>${f(joint[i])}</b>`, font: { color: '#4ade80', size: 12 }, xanchor: 'left' });
+      ann.push({ x: 2.05, y: ys[i] - 0.09, text: `A′: ${f(p * (1 - q[i]))}`, font: { color: '#64748b', size: 11 }, xanchor: 'left' });
+    });
+    Plotly.newPlot(el(id), [
+      { x: lx, y: ly, mode: 'lines', line: { color: '#a16207', width: 1.5 }, hoverinfo: 'skip', showlegend: false },
+      { x: [0], y: [0.5], mode: 'markers', marker: { color: '#e2e8f0', size: 9 }, hoverinfo: 'skip', showlegend: false },
+      { x: [1, 1, 1], y: ys, mode: 'markers', marker: { color: '#facc15', size: 8 }, hoverinfo: 'skip', showlegend: false },
+      { x: [2, 2, 2], y: ys.map(y => y + 0.09), mode: 'markers', marker: { color: '#4ade80', size: 8 }, hoverinfo: 'skip', showlegend: false },
+      { x: [2, 2, 2], y: ys.map(y => y - 0.09), mode: 'markers', marker: { color: '#64748b', size: 6 }, hoverinfo: 'skip', showlegend: false },
+    ], layout({ title: `P(A) = Σ P(Bᵢ)·P(A|Bᵢ) = ${joint.map(f).join(' + ')} = <b>${f(pA)}</b>  (add the A-leaves)` + (adj.length ? `<br><span style="color:#facc15">⚠ ${adj.join('; ')}</span>` : ''),
+                annotations: ann.map(a => Object.assign({ showarrow: false }, a)),
+                xaxis: ax({ range: [-0.2, 3.6], visible: false }), yaxis: ax({ range: [0, 1], visible: false }), margin: { t: 60, r: 10, b: 10, l: 10 } }), cfg());
+  }
+
+  // ── Q14. Bayes' theorem: prior → posterior ────────────────────
+  function bayesPosterior() {
+    const id = 'bayes-posterior';
+    const { prior, q, joint, pA, adj } = partition3(id);
+    const post = joint.map(j => pA > 0 ? j / pA : NaN);
+    const f = v => v.toFixed(3), f2 = v => v.toFixed(2);
+    const names = ['B₁', 'B₂', 'B₃'];
+    const r = Math.round(val(id, 'r', 3));   // which cause to spell out
+    const k = Math.min(3, Math.max(1, r)) - 1;
+    const title = pA > 0
+      ? `P(${names[k]} | A) = P(${names[k]})·P(A|${names[k]}) / P(A) = ${f2(prior[k])} × ${f2(q[k])} / ${f(pA)} = <b>${f(post[k])}</b>   (prior ${f2(prior[k])})`
+      : 'P(A) = 0: nothing to condition on';
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: names, y: prior, name: 'prior P(Bᵢ) — before knowing A happened', marker: { color: '#facc15' }, text: prior.map(f2), textposition: 'outside', textfont: { color: '#e2e8f0' } },
+      { type: 'bar', x: names, y: post, name: 'posterior P(Bᵢ | A) — after', marker: { color: names.map((_, i) => i === k ? '#00a651' : '#4ade80') }, text: post.map(v => isNaN(v) ? '' : f(v)), textposition: 'outside', textfont: { color: '#e2e8f0' } },
+    ], layout({ title: title + (adj.length ? `<br><span style="color:#facc15">⚠ ${adj.join('; ')}</span>` : ''),
+                barmode: 'group', yaxis: ax({ range: [0, 1.15], title: 'probability' }), xaxis: ax({ title: 'the partition (causes)' }), legend: { orientation: 'h', y: -0.25 }, margin: { t: 70, r: 20, b: 90, l: 55 } }), cfg());
+  }
+
+  // ── Q15. Screening test: P(condition | positive) against the base rate ──
+  function rareDisease() {
+    const id = 'rare-disease';
+    const prev = val(id, 'prev', 0.002), sens = val(id, 'sens', 0.95), spec = val(id, 'spec', 0.98);
+    const pop = 1e6;
+    const D = prev * pop, H = pop - D;
+    const tp = D * sens, fn = D - tp, fp = H * (1 - spec), tn = H - fp;
+    const pPos = tp + fp;
+    const ppv = pPos > 0 ? tp / pPos : NaN;
+    const f = v => v.toFixed(3);
+    const cnt = v => Math.round(v).toLocaleString('en-US');
+    const title = pPos > 0
+      ? `P(D | +) = ${prev}×${sens} / (${prev}×${sens} + ${(1 - prev).toFixed(4)}×${(1 - spec).toFixed(3)}) = <b>${f(ppv)}</b>,  P(D′ | +) = <b>${f(1 - ppv)}</b><br>of ${cnt(pPos)} positives per million people, ${cnt(tp)} are sick and ${cnt(fp)} are false alarms`
+      : 'no positive tests at all';
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: ['test positive', 'test negative'], y: [tp, fn], name: `has the condition D (${cnt(D)} of ${cnt(pop)})`, marker: { color: '#f87171' }, text: [`true +: ${cnt(tp)}`, `missed: ${cnt(fn)}`], textposition: 'outside', textfont: { color: '#e2e8f0' } },
+      { type: 'bar', x: ['test positive', 'test negative'], y: [fp, tn], name: `healthy D′ (${cnt(H)})`, marker: { color: '#60a5fa' }, text: [`false +: ${cnt(fp)}`, `true −: ${cnt(tn)}`], textposition: 'outside', textfont: { color: '#e2e8f0' } },
+    ], layout({ title, barmode: 'group', yaxis: ax({ type: 'log', title: 'people out of 1,000,000 (log scale)', range: [0, 6.5] }), xaxis: ax({}),
+                legend: { orientation: 'h', y: -0.2 }, margin: { t: 80, r: 20, b: 80, l: 70 } }), cfg());
+  }
+
   // ══════════════════════════════════════════════════════════════
   //  STAT 280 — R programming concepts
   // ══════════════════════════════════════════════════════════════
@@ -1483,6 +1664,13 @@
     'coin-event-grid':     coinEventGrid,
     'complement-rule':     complementRule,
     'incl-excl-3':         inclExcl3,
+    'cond-table':          condTable,
+    'cond-venn':           condVenn,
+    'independence-check':  independenceCheck,
+    'draw-replacement':    drawReplacement,
+    'total-prob-tree':     totalProbTree,
+    'bayes-posterior':     bayesPosterior,
+    'rare-disease':        rareDisease,
     // STAT 280
     'r-precedence':        rPrecedence,
     'r-loan':              rLoan,

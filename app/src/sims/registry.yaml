@@ -36,6 +36,13 @@ plotly:
   - coin-event-grid
   - complement-rule
   - incl-excl-3
+  - cond-table
+  - cond-venn
+  - independence-check
+  - draw-replacement
+  - total-prob-tree
+  - bayes-posterior
+  - rare-disease
   - r-precedence
   - r-loan
   - r-function-plot
