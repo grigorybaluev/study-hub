@@ -58,7 +58,10 @@
   // fraction 0 ≤ f < 1 → up to n digits in base b, with the multiplication rows; exact when the last rest is 0
   function fracDigits(f, b, n) {
     const rows = []; let rest = f;
-    for (let i = 0; i < n && rest > 1e-15; i++) { const p = rest * b; const d = Math.floor(p + 1e-12); rows.push({ from: rest, prod: p, d, rest: p - d }); rest = p - d; if (rest < 1e-12) rest = 0; }
+    // multiplying by 2 is exact in doubles; for other bases treat a remainder below 1e-13 of the
+    // original fraction as the arithmetic noise of the last digit, never as a small true value
+    const eps = b === 2 ? 0 : f * 1e-13;
+    for (let i = 0; i < n && rest > 0; i++) { const p = rest * b; let d = Math.floor(p); if (p - d > 1 - eps && eps > 0) { d += 1; } rows.push({ from: rest, prod: p, d, rest: p - d }); rest = p - d; if (rest < eps) rest = 0; }
     return { rows, exact: rest === 0, digits: rows.map(r => DIG[r.d]).join('') };
   }
   const fmtDec = v => { if (v === null || v === undefined) return '?'; if (!Number.isFinite(v)) return v > 0 ? '∞' : v < 0 ? '−∞' : 'NaN'; if (Number.isInteger(v)) return String(v); const s = v.toPrecision(12); return String(parseFloat(s)); };
@@ -342,7 +345,7 @@
         if (s.res) rows.push([{ v: '=', cls: 'lbl' }, { v: bitsHtml(s.res.bits, [...s.res.bits].map(() => 'ok')), cls: 'mono' }, { v: `${s.res.value}`, cls: 'muted' }]);
         return table(null, rows, { cls: 'arch-grid' });
       }
-      return table(['step', 'A', 'Q', 'Q₋₁', 'action'], s.rows.map(r => [r.it, { v: bitsHtml(r.A), cls: 'mono' }, { v: bitsHtml(r.Q, [...r.Q].map((c, i) => i === r.Q.length - 1 ? 'blue' : '')), cls: 'mono' }, { v: String(r.q1), cls: 'mono' }, r.act]), { rowCls: i => i === s.rows.length - 1 && s.phase !== 'done' ? 'hl' : '' }) + (s.res ? `<div class="arch-result">A:Q = ${bitsHtml(s.res.bits)} = <b>${s.res.value}</b></div>` : '') + `<div class="arch-muted">M = ${esc(s.M)}, −M = ${esc(bits(-s.a, s.w))}</div>`;
+      return table(['step', 'A', 'Q', 'Q₋₁', 'action'], s.rows.map(r => [r.it, { v: bitsHtml(r.A), cls: 'mono' }, { v: bitsHtml(r.Q, [...r.Q].map((c, i) => i === r.Q.length - 1 ? 'blue' : '')), cls: 'mono' }, { v: String(r.q1), cls: 'mono' }, r.act]), { rowCls: i => i === s.rows.length - 1 && s.phase !== 'done' ? 'hl' : '' }) + (s.res ? `<div class="arch-result">A:Q = ${bitsHtml(s.res.bits)} = <b>${s.res.value}</b></div>` : '') + (s.M ? `<div class="arch-muted">M = ${esc(s.M)}, −M = ${esc(bits(-s.a, s.w))}</div>` : '');
     }
   };
 
@@ -417,6 +420,8 @@
     out.rounded = false;
     if (rest.indexOf('1') >= 0 || !f.exact) { out.rounded = true; if (roundUp) { const inc = addBits('0' + M, '0'.repeat(m) + '1', m + 1, 0).sum; if (inc[0] === '1') { E += 1; M = '0'.repeat(m); } else M = inc.slice(1); trace.push(`mantissa ${mbits.slice(0, m)}|${rest.slice(0, 3)}… rounds up to ${M}`); } else trace.push(`mantissa ${mbits.slice(0, m)}|${rest.slice(0, 3)}… rounds down (truncated)`); }
     else trace.push(`mantissa: drop the hidden 1, keep ${m} bits → ${M}${mantAll.length < m ? ' (padded with zeros)' : ''}`);
+    if (E >= maxE) { Object.assign(out, { kind: 'inf', E: '1'.repeat(e), M: '0'.repeat(m), Eval: E }); trace.push(`rounding carried into the exponent: ${E} ≥ ${maxE} → overflow, ${sign ? '−' : '+'}∞`); return out; }
+    if (out.kind === 'denormal' && E === 1) { out.kind = 'normal'; hidden = '1'; trace.push('rounding carried into the hidden bit: the value is the smallest normal number'); }
     out.E = bits(E, e); out.M = M; out.Eval = E; out.hidden = hidden;
     return out;
   }
@@ -1130,7 +1135,7 @@
           const at = n => +sig[n][t], prev = n => t ? +sig[n][t - 1] : 0;
           let note = 'hold';
           const edge = D.level ? false : s.edge === 'neg' ? (prev('CLK') === 1 && at('CLK') === 0) : (prev('CLK') === 0 && at('CLK') === 1);
-          if (device === 'rs-latch') { const S = at('S'), R = at('R'); invalid = false; if (S && R) { q = 0; qbar = 0; invalid = true; note = 'S=R=1: invalid, both outputs 0'; } else if (S) { note = q ? 'S=1: already set' : 'S=1: set, Q → 1'; q = 1; qbar = 0; } else if (R) { note = q ? 'R=1: reset, Q → 0' : 'R=1: already clear'; q = 0; qbar = 1; } else { note = invalid ? 'S=R=0 after 1,1: race' : 'S=R=0: hold'; qbar = 1 - q; } }
+          if (device === 'rs-latch') { const S = at('S'), R = at('R'); const wasInvalid = invalid; invalid = false; if (S && R) { q = 0; qbar = 0; invalid = true; note = 'S=R=1: invalid, both outputs 0'; } else if (S) { note = q ? 'S=1: already set' : 'S=1: set, Q → 1'; q = 1; qbar = 0; } else if (R) { note = q ? 'R=1: reset, Q → 0' : 'R=1: already clear'; q = 0; qbar = 1; } else { note = wasInvalid ? 'S=R=0 straight after S=R=1: a race — Q settles to whichever gate is faster (shown as 0)' : 'S=R=0: hold'; qbar = 1 - q; } }
           else if (device === 'd-latch') { const Dv = at('D'), E = at('E'); if (E) { note = q === Dv ? `E=1: Q follows D (${Dv})` : `E=1: Q follows D → ${Dv}`; q = Dv; } else note = 'E=0: hold'; qbar = 1 - q; }
           else if (device === 'd-ff') { if (edge) { const Dv = at('D'); note = `clock edge: sample D=${Dv} → Q=${Dv}`; q = Dv; } else note = at('D') !== q ? `D=${at('D')} but no edge: ignored` : 'no edge: hold'; qbar = 1 - q; }
           else if (device === 't-ff') { if (edge) { if (at('T')) { q = 1 - q; note = `clock edge with T=1: toggle → Q=${q}`; } else note = 'clock edge with T=0: hold'; } else note = 'no edge: hold'; qbar = 1 - q; }
@@ -1301,7 +1306,7 @@
   const MODE_LEN = { imp: 1, acc: 1, imm: 2, zp: 2, zpx: 2, zpy: 2, abs: 3, abx: 3, aby: 3, ind: 3, izx: 2, izy: 2, rel: 2 };
   const h16 = v => '$' + (v & 0xFFFF).toString(16).toUpperCase().padStart(4, '0'), h8 = v => '$' + (v & 0xFF).toString(16).toUpperCase().padStart(2, '0');
   function asm6502(src, opts) {
-    const lines = String(src).split('\n'); const labels = {}; const items = []; const errors = [];
+    const lines = String(src).split('\n'); const labels = {}; const items = []; const errors = []; const sized = {};
     const o = opts || {};
     const evalExpr = (e, strict) => {
       e = e.trim();
@@ -1322,7 +1327,7 @@
       for (let ln = 0; ln < lines.length; ln++) {
         let l = lines[ln].replace(/;.*$/, '').trim(); if (!l) continue;
         let m;
-        if ((m = /^([A-Za-z_.][\w.]*)\s*(?:=|\.?equ)\s*(.+)$/i.exec(l)) && !/^\.(org|byte|word|db|dw|res|ds|text|ascii)\b/i.test(l)) { try { const v = evalExpr(m[2], pass === 1); if (v !== null) labels[m[1]] = v; } catch (e) { if (pass) errors.push(`line ${ln + 1}: ${e.message}`); } continue; }
+        if ((m = /^([A-Za-z_.][\w.]*)(?:\s*=\s*|\s+\.?equ\s+)(.+)$/i.exec(l)) && !/^\.(org|byte|word|db|dw|res|ds|text|ascii)\b/i.test(l)) { try { const v = evalExpr(m[2], pass === 1); if (v !== null) labels[m[1]] = v; } catch (e) { if (pass) errors.push(`line ${ln + 1}: ${e.message}`); } continue; }
         if ((m = /^([A-Za-z_][\w]*):\s*(.*)$/.exec(l))) { labels[m[1]] = pc; l = m[2].trim(); if (!l) continue; }
         if ((m = /^\.?(org)\s+(.+)$/i.exec(l))) { pc = evalExpr(m[2], true); continue; }
         if ((m = /^\.?(byte|db)\s+(.+)$/i.exec(l))) {
@@ -1344,8 +1349,9 @@
           else if ((m = /^\((.+)\),\s*Y$/i.exec(opd))) { mode = 'izy'; val = evalExpr(m[1], pass === 1) || 0; }
           else if ((m = /^\((.+)\)$/.exec(opd))) { mode = 'ind'; val = evalExpr(m[1], pass === 1) || 0; }
           else if (tbl.rel !== undefined) { mode = 'rel'; val = evalExpr(opd, pass === 1); if (val === null) val = pc; }
-          else if ((m = /^(.+),\s*([XY])$/i.exec(opd))) { const v = evalExpr(m[1], pass === 1); const idx = m[2].toUpperCase(); const zpm = idx === 'X' ? 'zpx' : 'zpy', abm = idx === 'X' ? 'abx' : 'aby'; mode = v !== null && v < 256 && tbl[zpm] !== undefined ? zpm : abm; val = v === null ? 0 : v; }
-          else { const v = evalExpr(opd, pass === 1); mode = v !== null && v < 256 && tbl.zp !== undefined ? 'zp' : 'abs'; val = v === null ? 0 : v; }
+          else if ((m = /^(.+),\s*([XY])$/i.exec(opd))) { const v = evalExpr(m[1], pass === 1); const idx = m[2].toUpperCase(); const zpm = idx === 'X' ? 'zpx' : 'zpy', abm = idx === 'X' ? 'abx' : 'aby'; mode = v !== null && v < 256 && tbl[zpm] !== undefined && sized[ln] !== abm ? zpm : abm; val = v === null ? 0 : v; }
+          else { const v = evalExpr(opd, pass === 1); mode = v !== null && v < 256 && tbl.zp !== undefined && sized[ln] !== 'abs' ? 'zp' : 'abs'; val = v === null ? 0 : v; }
+          if (pass === 0) sized[ln] = mode;   // a forward reference sizes as absolute in pass 0; pass 1 must keep that size or every later label moves
         } catch (e) { if (pass) errors.push(`line ${ln + 1}: ${e.message}`); continue; }
         if (mode === null || tbl[mode] === undefined) { if (pass) errors.push(`line ${ln + 1}: ${mn} does not support ${MODE_NAMES[mode] || 'that'} addressing`); continue; }
         if (pass && ['zp', 'zpx', 'zpy', 'izx', 'izy'].includes(mode) && val > 255) { errors.push(`line ${ln + 1}: ${MODE_NAMES[mode]} needs a zero-page address (< $100), got ${h16(val)}`); continue; }
@@ -1647,7 +1653,7 @@
     const setReg = (r, v) => { v = BigInt.asUintN(r.size * 8, v); if (r.size === 8) R[r.i] = v; else if (r.size === 4) R[r.i] = v; else if (r.hi) R[r.i] = (R[r.i] & ~0xFF00n) | (v << 8n); else R[r.i] = (R[r.i] & ~MASK[r.size]) | v; s.hl.reg = r.i; };
     const load = (addr, size) => { let v = 0n; for (let i = size - 1; i >= 0; i--) v = (v << 8n) | BigInt(M[(addr + BigInt(i)).toString()] || 0); return v; };
     const store = (addr, v, size) => { let x = BigInt.asUintN(size * 8, v); for (let i = 0; i < size; i++) { M[(addr + BigInt(i)).toString()] = Number(x & 0xFFn); x >>= 8n; } s.hl.addr = addr; };
-    const evalSym = (t) => { t = t.trim(); const m = /^(.+?)\s*([+-])\s*(.+)$/.exec(t); if (m && !/^-?\d+$/.test(t) && !/^-?0x/i.test(t)) { return m[2] === '+' ? evalSym(m[1]) + evalSym(m[3]) : evalSym(m[1]) - evalSym(m[3]); } if (/^'(.)'$/.test(t)) return BigInt(t.charCodeAt(1)); if (/^-?0x[0-9a-f]+$/i.test(t)) return BigInt(t); if (/^-?\d+$/.test(t)) return BigInt(t); if (/^-?[0-9a-f]+h$/i.test(t)) return BigInt('0x' + t.replace(/h$/i, '')); if (s.equs && s.equs[t] !== undefined) return s.equs[t]; if (s.labels[t] !== undefined) return s.labels[t]; throw new Error(`unknown symbol ${t}`); };
+    const evalSym = (t0) => { const t = t0.replace(/\s+/g, ''); for (let i = t.length - 1; i > 0; i--) if ((t[i] === '+' || t[i] === '-') && !/[+\-*]/.test(t[i - 1])) { const a = evalSym(t.slice(0, i)), b = evalSym(t.slice(i + 1)); return t[i] === '+' ? a + b : a - b; } if (/^'(.)'$/.test(t)) return BigInt(t.charCodeAt(1)); if (/^-?0x[0-9a-f]+$/i.test(t)) return BigInt(t); if (/^-?\d+$/.test(t)) return BigInt(t); if (/^-?[0-9a-f]+h$/i.test(t)) return BigInt('0x' + t.replace(/h$/i, '')); if (s.equs && s.equs[t] !== undefined) return s.equs[t]; if (s.labels[t] !== undefined) return s.labels[t]; throw new Error(`unknown symbol ${t}`); };
     // operand parsing
     const parse = (t) => {
       const raw = t.trim(); let m;
@@ -1718,7 +1724,7 @@
           const a1 = is32 ? getReg(REGMAP.ebx) : R[5], a2 = is32 ? getReg(REGMAP.ecx) : R[4], a3 = is32 ? getReg(REGMAP.edx) : R[3];
           const abi = is32 ? 'int 0x80 (32-bit ABI: number in eax, arguments in ebx, ecx, edx)' : 'syscall (64-bit ABI: number in rax, arguments in rdi, rsi, rdx)';
           if ((is32 && nr === 1) || (!is32 && nr === 60)) { s.halted = true; s.exit = Number(a1 & 0xFFn); d = `${src}: ${abi} → exit(${a1}): the process ends with status ${s.exit}`; }
-          else if ((is32 && nr === 4) || (!is32 && nr === 1)) { let txt = ''; for (let i = 0n; i < a3; i++) txt += String.fromCharCode(M[(a2 + i).toString()] || 0); s.stdout += txt; if (!is32) R[0] = a3; else setReg(REGMAP.eax, a3); d = `${src}: ${abi} → write(${a1}, ${bhex(a2, 8)}, ${a3}): ${a1 === 1n ? 'stdout' : a1 === 2n ? 'stderr' : 'fd ' + a1} receives ${JSON.stringify(txt)}`; }
+          else if ((is32 && nr === 4) || (!is32 && nr === 1)) { if (a3 > 65536n) throw new Error(`write of ${a3} bytes — the length register holds a wrong value`); let txt = ''; for (let i = 0n; i < a3; i++) txt += String.fromCharCode(M[(a2 + i).toString()] || 0); s.stdout += txt; if (!is32) R[0] = a3; else setReg(REGMAP.eax, a3); d = `${src}: ${abi} → write(${a1}, ${bhex(a2, 8)}, ${a3}): ${a1 === 1n ? 'stdout' : a1 === 2n ? 'stderr' : 'fd ' + a1} receives ${JSON.stringify(txt)}`; }
           else if ((is32 && nr === 3) || (!is32 && nr === 0)) { const take = s.stdin.slice(0, Number(a3)); s.stdin = s.stdin.slice(take.length); for (let i = 0; i < take.length; i++) M[(a2 + BigInt(i)).toString()] = take.charCodeAt(i); if (!is32) R[0] = BigInt(take.length); else setReg(REGMAP.eax, BigInt(take.length)); d = `${src}: ${abi} → read(${a1}, buf, ${a3}): ${take.length} byte${take.length === 1 ? '' : 's'} ${JSON.stringify(take)} copied into memory, count returned in ${is32 ? 'eax' : 'rax'}`; }
           else throw new Error(`system call ${nr} is not modelled (exit, write and read are)`);
           break;
@@ -1963,7 +1969,7 @@
     }
     scripted() {
       const ops = Array.isArray(this.cfg.ops) ? this.cfg.ops : [];
-      return ops.map(o => { if (typeof o === 'string') { const [name, ...rest] = o.trim().split(/\s+/); return { name, args: rest.map(x => isNaN(+x) || x === '' ? x : +x) }; } return { name: o.op || o.name, args: o.args || [] }; });
+      return ops.map(o => { if (typeof o === 'string') { const [name, ...rest] = o.trim().split(/\s+/); return { name, args: rest }; } return { name: o.op || o.name, args: o.args || [] }; });   // string args: each op parses its own numbers, so bit strings keep their leading zeros
     }
     scriptText() { const ops = this.scripted(); return ops.length ? `scripted operations ${ops.map(o => o.name + (o.args.length ? '(' + o.args.join(', ') + ')' : '()')).join(', ')} — step through them, then use the controls` : 'step through, then change the inputs and run again'; }
     run(name, args, quiet) {
