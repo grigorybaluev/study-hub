@@ -1,0 +1,89 @@
+/* Computer-architecture engine UI (ARCH.mount in arch.js). Light-on-white like the other steppers; figures use fixed colours. */
+.arch-wrap { padding: .8rem 1rem 1rem; font-size: .88rem; color: #1c1c1a; }
+.arch-toolbar, .arch-playback { display: flex; flex-wrap: wrap; gap: .45rem .6rem; align-items: center; margin-bottom: .6rem; }
+.arch-playback { background: #f8f7f3; border: 1px solid #e0e0dc; border-radius: 8px; padding: .5rem .7rem; }
+.arch-toolbar .fa-btn, .arch-playback .fa-btn { padding: .34rem .7rem; font-size: .8rem; }
+.arch-toolbar .fa-btn:disabled, .arch-playback .fa-btn:disabled { opacity: .45; cursor: default; }
+.arch-step { background: #2f5fd6; }
+.arch-step:hover:not(:disabled) { background: #2563eb; }
+.arch-field { display: inline-flex; align-items: center; gap: .35rem; font-weight: 600; color: #5f6368; font-size: .82rem; }
+.arch-field.arch-wide { flex-basis: 100%; align-items: flex-start; }
+.arch-field select, .arch-input, .arch-text { font: inherit; font-size: .86rem; padding: .28rem .45rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1c1c1a; }
+.arch-input, .arch-text { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; width: 5.5em; }
+.arch-input[type=text] { width: 9em; }
+.arch-input.wide { width: 18em; }
+.arch-text { flex: 1; width: auto; min-width: 20em; font-size: .8rem; line-height: 1.35; tab-size: 8; }
+.arch-counter { margin-left: auto; font-size: .78rem; font-weight: 700; color: #5f6368; }
+.arch-desc { min-height: 1.6em; line-height: 1.5; padding: .4rem .7rem; margin-bottom: .6rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; color: #1e293b; }
+.arch-desc.err { background: #fee2e2; border-color: #fca5a5; color: #7f1d1d; }
+.arch-main { display: grid; gap: .7rem; }
+.arch-main.with-side { grid-template-columns: minmax(0, 3fr) minmax(190px, 1fr); align-items: start; }
+.arch-main.wide-side { grid-template-columns: minmax(0, 1.4fr) minmax(220px, 1fr); }
+@media (max-width: 720px) { .arch-main.with-side { grid-template-columns: 1fr; } }
+.arch-figure { min-width: 0; overflow-x: auto; }
+.arch-svg { width: 100%; max-height: 460px; background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; display: block; }
+.arch-t { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; fill: #1e293b; text-anchor: middle; }
+.arch-val { font-size: 14px; font-weight: 700; }
+.arch-small { font-size: 12px; font-weight: 600; }
+.arch-idx { font-size: 10.5px; fill: #64748b; }
+.arch-gate { font-size: 9.5px; font-weight: 700; fill: #475569; }
+.arch-side { border: 1px solid #e0e0dc; border-radius: 8px; background: #f8f7f3; padding: .5rem .7rem; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .78rem; min-width: 0; overflow-x: auto; }
+.arch-side-title { font-family: inherit; font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5f6368; margin: .45rem 0 .3rem; }
+.arch-side-title:first-child { margin-top: .1rem; }
+.arch-empty { color: #9ca3af; padding: .3rem 0; }
+.arch-muted { color: #64748b; }
+.arch-line { margin: .35rem 0; line-height: 1.7; }
+.arch-result { margin-top: .5rem; padding: .35rem .6rem; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; }
+.arch-cols { display: flex; flex-wrap: wrap; gap: .8rem; align-items: flex-start; }
+.arch-mono, .arch-bits { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .86em; }
+.arch-bits b { font-weight: 600; padding: 0 .04em; }
+.arch-bits b.arch-hi { color: #dc2626; background: #fee2e2; border-radius: 2px; }
+.arch-bits b.arch-ok { color: #15803d; }
+.arch-bits b.arch-blue { color: #2563eb; }
+.arch-bits b.arch-warn { color: #b45309; }
+.arch-bits b.arch-purple { color: #7c3aed; }
+.arch-bits b.arch-muted { color: #94a3b8; }
+.arch-tag { display: inline-block; padding: .05em .45em; border-radius: 4px; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: .82em; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.arch-tag.arch-ok { background: #dcfce7; color: #15803d; border-color: #86efac; }
+.arch-tag.arch-hi { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.arch-tag.arch-blue { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.arch-tag.arch-warn { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+.arch-tag.arch-purple { background: #ede9fe; color: #6d28d9; border-color: #c4b5fd; }
+.arch-tag.cur { outline: 2px solid #f59e0b; }
+.arch-table { border-collapse: collapse; margin: .3rem 0; font-size: .84rem; }
+.arch-table th, .arch-table td { border: 1px solid #cbd5e1; padding: .18rem .5rem; text-align: left; background: #fff; vertical-align: top; }
+.arch-table th { background: #f1f5f9; color: #475569; font-weight: 700; font-size: .76rem; }
+.arch-table td.mono { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; }
+.arch-table td.k { background: #fef3c7; font-weight: 700; }
+.arch-table td.muted, .arch-table td.lbl { color: #64748b; }
+.arch-table td.lbl { font-weight: 700; text-align: right; }
+.arch-table td.hi { background: #fee2e2; color: #b91c1c; font-weight: 700; }
+.arch-table td.ok { color: #15803d; }
+.arch-table td.blue { color: #1d4ed8; }
+.arch-table td.hl, .arch-table tr.hl td { background: #fffbeb; }
+.arch-table tr.hl td.k { background: #fde68a; }
+.arch-table tr.ok td { background: #dcfce7; }
+.arch-table tr.cur td { background: #dbeafe; }
+.arch-grid td { text-align: center; min-width: 1.6em; }
+.arch-grid td.lbl { text-align: right; }
+.arch-tiny { font-size: .72rem; }
+.arch-tiny td, .arch-tiny th { padding: .05rem .3rem; }
+.arch-listing-t { width: 100%; }
+.arch-listing-t td { white-space: pre; }
+.arch-listing { margin: 0; padding-left: 1.6em; }
+.arch-listing li { padding: .05rem 0; }
+.arch-listing li.cur { background: #dbeafe; border-radius: 3px; }
+.arch-regs div, .arch-mem div { padding: .07rem .2rem; border-radius: 3px; white-space: nowrap; }
+.arch-regs div.hl, .arch-mem div.hl { background: #fef3c7; }
+.arch-mem { max-height: 220px; overflow: auto; }
+.arch-out { margin: 0; padding: .35rem .5rem; background: #1c1c1a; color: #e5e7eb; border-radius: 6px; font-size: .78rem; min-height: 1.6em; white-space: pre-wrap; }
+.arch-flags { margin: .3rem 0; }
+.arch-fields { display: flex; gap: .35rem; margin: .5rem 0; flex-wrap: wrap; }
+.arch-fields .arch-field { display: inline-flex; flex-direction: column; gap: .1rem; padding: .3rem .5rem; border-radius: 6px; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-weight: 700; font-size: .95rem; letter-spacing: .04em; border: 1px solid; }
+.arch-fields .arch-field small { font-family: inherit; font-weight: 600; font-size: .62rem; letter-spacing: .02em; opacity: .8; }
+.arch-fields .arch-fs { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+.arch-fields .arch-fe { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+.arch-fields .arch-fm { background: #dcfce7; border-color: #86efac; color: #15803d; }
+.arch-fields .arch-field.hl { outline: 2px solid #f59e0b; }
+.arch-trace { margin: .3rem 0 0; padding-left: 1.4em; line-height: 1.5; }
+.arch-trace-list { line-height: 1.9; }

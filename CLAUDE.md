@@ -19,7 +19,7 @@ content/
 build/    schema.py, build_graph.py, derive.py, lint.py   -> graph.json, derived.json (never hand-edited)
 analytics/ report generator and notebooks
 app/      Vite + React + TS + Cytoscape.js, reads graph.json and derived.json
-app/src/sims/   simulation engines (simulations.js, automata.js) + registry.yaml checked by lint
+app/src/sims/   simulation engines (simulations.js, automata.js, java.js, ds.js, db.js, arch.js) + registry.yaml checked by lint
 ```
 
 ## Commands
