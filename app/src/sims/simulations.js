@@ -819,21 +819,21 @@
   }
 
 
-  // ── Q9. Two-way table: conditioning = restricting to one row ──
+  // ── Q9. Two-way table (students × tutorials): conditioning = restricting to one row ──
   function condTable() {
     const id = 'cond-table';
-    const a = Math.round(val(id, 'tg', 16)), b = Math.round(val(id, 'tp', 4)), c = Math.round(val(id, 'ug', 10)), d = Math.round(val(id, 'up', 20));
+    const a = Math.round(val(id, 'tg', 30)), b = Math.round(val(id, 'tp', 10)), c = Math.round(val(id, 'ug', 15)), d = Math.round(val(id, 'up', 25));
     const cond = Math.round(val(id, 'cond', 1));   // 0: whole table, 1: row T, 2: row T′
     const nS = a + b + c + d;
-    const rows = ['T (10 years or more)', 'T′ (less than 10 years)'], cols = ['G (good service)', 'G′ (poor service)'];
+    const rows = ['T (attended tutorials)', 'T′ (did not attend)'], cols = ['M (passed)', 'M′ (failed)'];
     const counts = [[a, b], [c, d]];
     const z = counts.map((r, i) => r.map(() => cond === 0 ? 1 : (cond === 1 && i === 0) || (cond === 2 && i === 1) ? 1 : 0.25));
     const text = counts.map(r => r.map(String));
     let title;
     if (!nS) title = 'the table is empty';
-    else if (cond === 0) title = `whole sample space:  P(G) = n(G)/n(S) = ${a + c}/${nS} = ${((a + c) / nS).toFixed(3)}`;
-    else if (cond === 1) title = a + b ? `reduced sample space T (top row):  P(G | T) = n(T∩G)/n(T) = ${a}/${a + b} = ${(a / (a + b)).toFixed(3)}<br>= P(T∩G)/P(T) = (${a}/${nS}) / (${a + b}/${nS})` : 'P(T) = 0: P(G | T) is undefined';
-    else title = c + d ? `reduced sample space T′ (bottom row):  P(G | T′) = n(T′∩G)/n(T′) = ${c}/${c + d} = ${(c / (c + d)).toFixed(3)}<br>= P(T′∩G)/P(T′) = (${c}/${nS}) / (${c + d}/${nS})` : 'P(T′) = 0: P(G | T′) is undefined';
+    else if (cond === 0) title = `whole sample space:  P(M) = n(M)/n(S) = ${a + c}/${nS} = ${((a + c) / nS).toFixed(3)}`;
+    else if (cond === 1) title = a + b ? `reduced sample space T (top row):  P(M | T) = n(T∩M)/n(T) = ${a}/${a + b} = ${(a / (a + b)).toFixed(3)}<br>= P(T∩M)/P(T) = (${a}/${nS}) / (${a + b}/${nS})` : 'P(T) = 0: P(M | T) is undefined';
+    else title = c + d ? `reduced sample space T′ (bottom row):  P(M | T′) = n(T′∩M)/n(T′) = ${c}/${c + d} = ${(c / (c + d)).toFixed(3)}<br>= P(T′∩M)/P(T′) = (${c}/${nS}) / (${c + d}/${nS})` : 'P(T′) = 0: P(M | T′) is undefined';
     Plotly.newPlot(el(id), [{
       type: 'heatmap', x: cols, y: rows, z, text, texttemplate: '%{text}', textfont: { size: 20 },
       colorscale: [[0, '#1f2937'], [0.25, '#1f2937'], [1, '#00a651']], zmin: 0, zmax: 1, showscale: false, xgap: 4, ygap: 4, hoverinfo: 'text',
@@ -880,7 +880,7 @@
   // ── Q11. Independence check: P(A∩B) against P(A)·P(B) ─────────
   function independenceCheck() {
     const id = 'independence-check';
-    const pA = val(id, 'pA', 0.25), pB = val(id, 'pB', 0.5), inAB = val(id, 'pAB', 0.125);
+    const pA = val(id, 'pA', 0.5), pB = val(id, 'pB', 0.2), inAB = val(id, 'pAB', 0.1);
     let pAB = inAB; const adj = [];
     if (pAB > Math.min(pA, pB) + 1e-12) { pAB = Math.min(pA, pB); adj.push(`P(A∩B) → ${pAB.toFixed(3)} (A∩B ⊆ A, B)`); }
     if (pA + pB - pAB > 1 + 1e-12) { pAB = pA + pB - 1; adj.push(`P(A∩B) → ${pAB.toFixed(3)} (so that P(A∪B) ≤ 1)`); }
@@ -899,7 +899,7 @@
   // ── Q12. Sampling with vs without replacement ─────────────────
   function drawReplacement() {
     const id = 'draw-replacement';
-    const N = Math.round(val(id, 'N', 52)), d0 = Math.round(val(id, 'd', 4)), n = Math.round(val(id, 'n', 2));
+    const N = Math.round(val(id, 'N', 10)), d0 = Math.round(val(id, 'd', 3)), n = Math.round(val(id, 'n', 2));
     const d = Math.min(d0, N);
     const steps = [], without = [], withR = [];
     let pw = 1, pr = 1;
@@ -921,11 +921,11 @@
 
   // ── Partition helper: three causes B1, B2, B3 from two sliders ──
   function partition3(id) {
-    let p1 = val(id, 'p1', 0.6), p2 = val(id, 'p2', 0.3);
+    let p1 = val(id, 'p1', 0.5), p2 = val(id, 'p2', 0.3);
     const adj = [];
     if (p1 + p2 > 1 + 1e-12) { p2 = 1 - p1; adj.push(`P(B₂) → ${p2.toFixed(2)} (the partition must sum to 1)`); }
     const p3 = 1 - p1 - p2;
-    const q = [val(id, 'q1', 0.09), val(id, 'q2', 0.20), val(id, 'q3', 0.06)];
+    const q = [val(id, 'q1', 0.02), val(id, 'q2', 0.05), val(id, 'q3', 0.10)];
     const prior = [p1, p2, p3], joint = prior.map((p, i) => p * q[i]);
     const pA = joint.reduce((s, v) => s + v, 0);
     return { prior, q, joint, pA, adj };
@@ -967,7 +967,7 @@
     const post = joint.map(j => pA > 0 ? j / pA : NaN);
     const f = v => v.toFixed(3), f2 = v => v.toFixed(2);
     const names = ['B₁', 'B₂', 'B₃'];
-    const r = Math.round(val(id, 'r', 2));   // which cause to spell out
+    const r = Math.round(val(id, 'r', 3));   // which cause to spell out
     const k = Math.min(3, Math.max(1, r)) - 1;
     const title = pA > 0
       ? `P(${names[k]} | A) = P(${names[k]})·P(A|${names[k]}) / P(A) = ${f2(prior[k])} × ${f2(q[k])} / ${f(pA)} = <b>${f(post[k])}</b>   (prior ${f2(prior[k])})`
@@ -979,10 +979,10 @@
                 barmode: 'group', yaxis: ax({ range: [0, 1.15], title: 'probability' }), xaxis: ax({ title: 'the partition (causes)' }), legend: { orientation: 'h', y: -0.25 }, margin: { t: 70, r: 20, b: 90, l: 55 } }), cfg());
   }
 
-  // ── Q15. Rare disease: P(no disease | positive test) ──────────
+  // ── Q15. Screening test: P(condition | positive) against the base rate ──
   function rareDisease() {
     const id = 'rare-disease';
-    const prev = val(id, 'prev', 0.0001), sens = val(id, 'sens', 0.98), spec = val(id, 'spec', 0.97);
+    const prev = val(id, 'prev', 0.002), sens = val(id, 'sens', 0.95), spec = val(id, 'spec', 0.98);
     const pop = 1e6;
     const D = prev * pop, H = pop - D;
     const tp = D * sens, fn = D - tp, fp = H * (1 - spec), tn = H - fp;
@@ -994,7 +994,7 @@
       ? `P(D | +) = ${prev}×${sens} / (${prev}×${sens} + ${(1 - prev).toFixed(4)}×${(1 - spec).toFixed(3)}) = <b>${f(ppv)}</b>,  P(D′ | +) = <b>${f(1 - ppv)}</b><br>of ${cnt(pPos)} positives per million people, ${cnt(tp)} are sick and ${cnt(fp)} are false alarms`
       : 'no positive tests at all';
     Plotly.newPlot(el(id), [
-      { type: 'bar', x: ['test positive', 'test negative'], y: [tp, fn], name: `has the disease D (${cnt(D)} of ${cnt(pop)})`, marker: { color: '#f87171' }, text: [`true +: ${cnt(tp)}`, `missed: ${cnt(fn)}`], textposition: 'outside', textfont: { color: '#e2e8f0' } },
+      { type: 'bar', x: ['test positive', 'test negative'], y: [tp, fn], name: `has the condition D (${cnt(D)} of ${cnt(pop)})`, marker: { color: '#f87171' }, text: [`true +: ${cnt(tp)}`, `missed: ${cnt(fn)}`], textposition: 'outside', textfont: { color: '#e2e8f0' } },
       { type: 'bar', x: ['test positive', 'test negative'], y: [fp, tn], name: `healthy D′ (${cnt(H)})`, marker: { color: '#60a5fa' }, text: [`false +: ${cnt(fp)}`, `true −: ${cnt(tn)}`], textposition: 'outside', textfont: { color: '#e2e8f0' } },
     ], layout({ title, barmode: 'group', yaxis: ax({ type: 'log', title: 'people out of 1,000,000 (log scale)', range: [0, 6.5] }), xaxis: ax({}),
                 legend: { orientation: 'h', y: -0.2 }, margin: { t: 80, r: 20, b: 80, l: 70 } }), cfg());

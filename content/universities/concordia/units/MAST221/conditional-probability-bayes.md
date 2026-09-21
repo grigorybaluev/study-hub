@@ -3,8 +3,8 @@ title: Conditional probability, independence and Bayes' theorem
 order: 3
 status: detailed
 weeks: [2]
-notes: ["Textbook §2.6 (Examples 15–21) · Notes Lec 3 (Wed 16 Sep 2026) p.2: Ex. 2.17, 2.18, the three-event multiplication rule", "Notes Lec 3 p.1: the theorem that independence survives complements, with the proof · p.3: Ex. 2.21, 2.27, 2.34 · Textbook §2.7 (Examples 22–24)", "Notes Lec 3 p.3: the law of total probability with the proof · Textbook §2.8 (Examples 25–26)", "Textbook §2.8 (Theorem 13, Examples 27–28) — Bayes' theorem was not yet in the lecture notes"]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 2.6-2.8"
+notes: ["Notes Lec 3 (Wed 16 Sep 2026) p.1: independence survives complements, with the proof", "Notes Lec 3 p.2: conditional probabilities satisfy the postulates; the three-event multiplication rule", "Notes Lec 3 p.3: the law of total probability with the proof; Bayes' theorem not yet covered in class"]
+textbook: ""
 introduces: [conditional-probability, independence, bayes-theorem]
 requires:
   - {concept: probability, strength: hard}
@@ -13,56 +13,56 @@ requires:
 reinforces: []
 ---
 
-"The probability that a lawyer earns more than 75 000 dollars" has no single answer: it depends on
-which lawyers we are talking about — all graduates, those licensed, those in practice. Every
-probability is relative to a sample space, and **conditioning** is the act of changing that
-sample space in the middle of a problem. This unit follows the textbook's order: what
-$P(A \mid B)$ means and how to compute it, the multiplication rule that turns it around,
-independence as the case where conditioning changes nothing, and finally the two theorems
-that let us compute a probability through intermediate stages (total probability) and reason
-backwards from an effect to its cause (Bayes).
+"What is the probability that a student passes the midterm?" has no single answer until we
+say *which* students: everyone enrolled, those who came to the tutorials, those who did the
+assignments. A probability is always relative to a sample space, and **conditioning** is the
+act of swapping that sample space for a smaller one in the middle of a problem. This unit
+builds everything on that one move: what $P(A \mid B)$ means and how to compute it, how to
+chain conditional probabilities to get joint ones, what it means for the move to change
+nothing (independence), and how to reason through an intermediate stage forwards (total
+probability) and backwards (Bayes).
 
-## Conditional probability
+## Conditioning is a change of sample space
 
-### A reduced sample space
+### A two-way table
 
-The textbook's opening example is a table of 50 car dealers, classified by how long they have
-been in business and by the quality of their warranty service:
+Eighty students took a course. Cross-classify them by whether they attended the tutorials
+($T$) and whether they passed the midterm ($M$):
 
-|  | good service $G$ | poor service $G'$ | total |
+|  | passed $M$ | failed $M'$ | total |
 |---|---|---|---|
-| in business 10 years or more, $T$ | 16 | 4 | 20 |
-| in business less than 10 years, $T'$ | 10 | 20 | 30 |
-| total | 26 | 24 | 50 |
+| attended tutorials $T$ | 30 | 10 | 40 |
+| did not attend $T'$ | 15 | 25 | 40 |
+| total | 45 | 35 | 80 |
 
-Pick a dealer at random (all 50 equally likely): $P(G) = 26/50 = 0.52$. Now pick at random
-among the *established* dealers only. The sample space has shrunk to the top row — 20
-dealers — and 16 of them give good service:
+Pick one of the 80 at random: $P(M) = 45/80 = 0.5625$. Now pick at random among the
+*tutorial-goers* only. The sample space is the top row — 40 students — and 30 of them passed:
 
-$$P(G \mid T) = \frac{n(T \cap G)}{n(T)} = \frac{16}{20} = 0.80.$$
+$$P(M \mid T) = \frac{n(T \cap M)}{n(T)} = \frac{30}{40} = 0.75.$$
 
-Dividing numerator and denominator by $n(S) = 50$ rewrites this in terms of probabilities on
-the *original* sample space, $P(G \mid T) = P(T \cap G)/P(T) = 0.32/0.40$, and that quotient
-is the definition.
+Divide the numerator and the denominator by $n(S) = 80$ and the same quotient reads
+$P(T \cap M)/P(T) = 0.375/0.5$: a ratio of two probabilities on the *original* sample space.
+That ratio is the definition.
 
 ```sim
 id: cond-table
 controls:
-  - {id: tg, label: "n(T ∩ G)", min: 0, max: 40, step: 1, default: 16, decimals: 0}
-  - {id: tp, label: "n(T ∩ G′)", min: 0, max: 40, step: 1, default: 4, decimals: 0}
-  - {id: ug, label: "n(T′ ∩ G)", min: 0, max: 40, step: 1, default: 10, decimals: 0}
-  - {id: up, label: "n(T′ ∩ G′)", min: 0, max: 40, step: 1, default: 20, decimals: 0}
+  - {id: tg, label: "n(T ∩ M)", min: 0, max: 60, step: 1, default: 30, decimals: 0}
+  - {id: tp, label: "n(T ∩ M′)", min: 0, max: 60, step: 1, default: 10, decimals: 0}
+  - {id: ug, label: "n(T′ ∩ M)", min: 0, max: 60, step: 1, default: 15, decimals: 0}
+  - {id: up, label: "n(T′ ∩ M′)", min: 0, max: 60, step: 1, default: 25, decimals: 0}
   - {id: cond, label: "condition on (0: nothing, 1: T, 2: T′)", min: 0, max: 2, step: 1, default: 1, decimals: 0}
-note: "The four cells are the textbook's dealer table. Conditioning on T keeps only the top row lit: P(G | T) counts good-service dealers among those 20 alone. Set the last slider to 2 for P(G | T′) = 10/30 (Example 16), or to 0 to get back the unconditional P(G) = 26/50. Make one row empty to see why the definition needs P(T) ≠ 0."
+note: "The four cells are the students table. Conditioning on T keeps only the top row lit: P(M | T) counts the passes among those 40 alone. Set the last slider to 2 for P(M | T′) = 15/40, or to 0 to get back the unconditional P(M) = 45/80. Empty a row to see why the definition needs P(T) ≠ 0."
 ```
 
 > **Definition — conditional probability.** For events $A$ and $B$ in a sample space $S$ with
 > $P(A) \neq 0$, the conditional probability of $B$ given $A$ is
 > $$P(B \mid A) = \frac{P(A \cap B)}{P(A)}.$$
-> Nothing in the definition needs equally likely outcomes; the table only motivated it.
+> The table motivated it with equally likely students, but the definition does not need
+> equally likely outcomes.
 
-The Venn-diagram picture: given $B$, the region outside $B$ is discarded, and what is left of
-$A$ is $A \cap B$, measured against the new whole, $B$.
+In a Venn diagram, conditioning on $B$ throws away everything outside $B$; what is left of
+$A$ is $A \cap B$, and it is measured against the new whole, $B$.
 
 ```sim
 id: cond-venn
@@ -74,77 +74,82 @@ controls:
 note: "The yellow outline is the reduced sample space; everything outside it is greyed out and the box S is no longer the whole. P(A | B) is the share of B taken up by A ∩ B. Switch to 'given A' to see that P(B | A) is a different number with the same numerator — the two conditionals only agree when P(A) = P(B)."
 ```
 
-> **Example — a loaded die (textbook Example 17).** A die shows 1, 2, 3, 4, 5, 6 with
-> probabilities $\tfrac29, \tfrac19, \tfrac29, \tfrac19, \tfrac29, \tfrac19$. Let $A$ = "more
-> than 3" and $B$ = "a perfect square", so $A = \{4, 5, 6\}$, $B = \{1, 4\}$ and
-> $A \cap B = \{4\}$. Then $P(B) = \tfrac29 + \tfrac19 = \tfrac13$, while
-> $$P(B \mid A) = \frac{P(A \cap B)}{P(A)} = \frac{1/9}{4/9} = \frac14.$$
-> Check it the "reduced sample space" way: inside $A$ the odd face 5 is twice as likely as
-> each even face, so the weights are $v, 2v, v$ with $4v = 1$, and the square 4 has
-> probability $\tfrac14$. Same answer, no formula.
+> **Example — a weighted die.** A die is weighted so that face $k$ comes up with probability
+> $k/21$ (the weights $1, 2, \dots, 6$ sum to 21). Let $A$ = "more than 3" $= \{4, 5, 6\}$ and
+> $B$ = "even" $= \{2, 4, 6\}$. Then $P(A) = 15/21$, $P(B) = 12/21$ and
+> $A \cap B = \{4, 6\}$ has probability $10/21$, so
+> $$P(B \mid A) = \frac{P(A \cap B)}{P(A)} = \frac{10/21}{15/21} = \frac{10}{15} = \frac23.$$
+> The reduced-sample-space check: inside $A$ the faces 4, 5, 6 keep their relative weights
+> $4 : 5 : 6$, and the even ones account for $4 + 6 = 10$ of the 15. Same answer, no formula —
+> and notice $P(B \mid A) = 2/3 > P(B) = 4/7$: learning that the roll was high makes "even"
+> more likely, because 6 carries the most weight.
 
-> **Example — shipping (Example 18).** $P(\text{ready on time}) = 0.80$ and
-> $P(\text{ready and delivered on time}) = 0.72$, so
-> $P(D \mid R) = 0.72/0.80 = 0.90$. The reverse, $P(R \mid D)$, cannot be found from these two
-> numbers alone — it needs $P(D)$. Keep this asymmetry in mind for Bayes' theorem.
+> **Example — one direction only.** A courier dispatches 70 % of parcels on the day they are
+> received, and 56 % of all parcels are both dispatched the same day and delivered the next.
+> So $P(\text{next day} \mid \text{same day}) = 0.56/0.70 = 0.80$. The reverse,
+> $P(\text{same day} \mid \text{next day})$, cannot be found from these two numbers: it needs
+> $P(\text{next day})$, the overall next-day rate. Keep this asymmetry in mind — Bayes'
+> theorem is the tool that supplies the missing piece.
 
-### Conditional probabilities are probabilities
+### A conditional probability is a probability
 
-Exercise 2.17, worked in class (Notes Lec 3 p.2): fix $B$ with $P(B) \neq 0$; then
-$P(\,\cdot \mid B)$ satisfies the three postulates.
+Fix $B$ with $P(B) \neq 0$. The lecture checked (Notes Lec 3 p.2) that $P(\,\cdot \mid B)$
+satisfies the three postulates, so it is a probability measure in its own right:
 
-- $P(A \mid B) \ge 0$, because $P(A \cap B) \ge 0$ and $P(B) > 0$.
-- $P(B \mid B) = P(B \cap B)/P(B) = 1$: the new sample space is certain.
-- For mutually exclusive $A_1, A_2, \dots$ the union rule holds too:
+- $P(A \mid B) \ge 0$, since $P(A \cap B) \ge 0$ and $P(B) > 0$.
+- $P(B \mid B) = P(B \cap B)/P(B) = 1$: the new sample space is the certain event.
+- For mutually exclusive $A_1, A_2, \dots$ the sum rule holds:
   $P(A_1 \cup A_2 \cup \cdots \mid B) = P((A_1 \cap B) \cup (A_2 \cap B) \cup \cdots)/P(B) = P(A_1 \mid B) + P(A_2 \mid B) + \cdots$,
-  since the $A_i \cap B$ are again mutually exclusive.
+  because the pieces $A_i \cap B$ are again mutually exclusive.
 
 So every rule of the previous unit — complements, the addition rule, inclusion–exclusion —
-holds with "$\mid B$" appended to each term. What does *not* hold is any rule about the
-condition itself. Exercise 2.18: is $P(B \mid A) + P(B \mid A') = 1$? Sometimes. With the four
-regions of a Venn diagram each of probability $\tfrac14$,
-$P(B \mid A) + P(B \mid A') = \tfrac{1/4}{1/2} + \tfrac{1/4}{1/2} = 1$; make the regions
-unequal and it fails — $A$ and $A'$ are different sample spaces, and there is no reason the two
-fractions should add up to anything in particular.
+holds with "$\mid B$" appended to every term. Rules about the *condition* are another matter.
+Does $P(B \mid A) + P(B \mid A') = 1$? Only by accident: if the four regions
+$A \cap B$, $A \cap B'$, $A' \cap B$, $A' \cap B'$ have probabilities $0.3, 0.2, 0.3, 0.2$,
+then $P(B \mid A) + P(B \mid A') = 0.6 + 0.6 = 1.2$. The events $A$ and $A'$ are two
+different sample spaces, and nothing ties the two fractions together.
 
-> **Note — Ex. 2.34 (Notes Lec 3 p.3).** $P(A \cup B) \ge 1 - P(A') - P(B')$. Proof:
-> $P(A \cup B) = 1 - P(A' \cap B')$ and $P(A' \cap B') \le P(A') + P(B')$ by the addition
-> rule. This kind of bound (Bonferroni) is what you reach for when the intersection is unknown.
+> **Note — a bound without the intersection (Notes Lec 3 p.3).**
+> $P(A \cup B) \ge 1 - P(A') - P(B')$, because $P(A \cup B) = 1 - P(A' \cap B')$ and
+> $P(A' \cap B') \le P(A') + P(B')$ by the addition rule. Bounds of this kind (Bonferroni's)
+> are what you reach for when $P(A \cap B)$ is unknown.
 
-## The multiplication rule
+## Chaining: the multiplication rule
 
-Multiply the definition by $P(A)$ and the conditional probability becomes a tool for
-computing joint probabilities in stages.
+Multiply the definition through by $P(A)$ and it becomes a way to compute joint
+probabilities in stages: the probability that both happen is the probability of the first
+times the probability of the second *given* the first.
 
-> **Theorem 9 — multiplication rule.** If $P(A) \neq 0$,
+> **Multiplication rule.** If $P(A) \neq 0$,
 > $$P(A \cap B) = P(A)\,P(B \mid A),$$
 > and by symmetry $P(A \cap B) = P(B)\,P(A \mid B)$ when $P(B) \neq 0$.
 
-> **Example — two aces (Example 20).** Draw two cards from a deck.
-> *Without replacement:* $P(\text{ace, ace}) = \frac{4}{52} \cdot \frac{3}{51} = \frac1{221}$ —
-> the second factor is a conditional probability, computed on the 51-card deck that remains.
-> *With replacement:* $\frac{4}{52} \cdot \frac{4}{52} = \frac1{169}$. The textbook adds that the
-> temporal order is a convenience, not a requirement: the probability that the first card was
-> an ace given that the second is an ace is also $\tfrac{3}{51}$.
+> **Example — an urn, with and without replacement.** An urn holds 3 red and 7 blue balls;
+> two are drawn. *Without replacement:* $P(\text{red, red}) = \frac{3}{10} \cdot \frac{2}{9} = \frac{1}{15}$
+> — the second factor is a conditional probability, computed on the 9 balls that remain.
+> *With replacement:* $\frac{3}{10} \cdot \frac{3}{10} = \frac{9}{100}$. The order of the two
+> events is a convenience, not a requirement: the probability that the *first* ball was red
+> given that the *second* is red is also $\tfrac29$.
 
 ```sim
 id: draw-replacement
 controls:
-  - {id: N, label: items N, min: 2, max: 100, step: 1, default: 52, decimals: 0}
-  - {id: d, label: special items d, min: 1, max: 20, step: 1, default: 4, decimals: 0}
+  - {id: N, label: items N, min: 2, max: 100, step: 1, default: 10, decimals: 0}
+  - {id: d, label: special items d, min: 1, max: 20, step: 1, default: 3, decimals: 0}
   - {id: n, label: draws n, min: 1, max: 5, step: 1, default: 2, decimals: 0}
-note: "Each bar is the probability that the next draw is special, given every earlier draw was: without replacement the numerator and denominator both drop by one per draw (4/52, then 3/51), with replacement nothing changes. The legend multiplies the bars — the multiplication rule chained n times. Defaults give the two-aces example; N = 100, d = 15, n = 2 is the shape of the television-set example, N = 20, d = 5, n = 3 the fuses (1/114)."
+note: "Each bar is the probability that the next draw is special, given every earlier draw was: without replacement the numerator and denominator both drop by one per draw (3/10, then 2/9), with replacement nothing changes. The legend multiplies the bars — the multiplication rule chained n times. Defaults are the urn; N = 12, d = 4, n = 3 is the faulty-sticks example (1/55); N = 52, d = 4 is a deck of cards with its aces."
 ```
 
-For three events the rule chains: write $A \cap B \cap C = (A \cap B) \cap C$ and apply
-Theorem 9 twice (Notes Lec 3 p.2, textbook Theorem 10). Provided $P(A \cap B) \neq 0$,
+For three events the rule chains: write $A \cap B \cap C = (A \cap B) \cap C$ and apply the
+rule twice (Notes Lec 3 p.2). Provided $P(A \cap B) \neq 0$,
 
 $$P(A \cap B \cap C) = P(A \cap B)\,P(C \mid A \cap B) = P(A)\,P(B \mid A)\,P(C \mid A \cap B).$$
 
-> **Example — fuses (Example 21).** 20 fuses, 5 defective, 3 drawn without replacement. All
-> three defective: $\frac{5}{20} \cdot \frac{4}{19} \cdot \frac{3}{18} = \frac{1}{114}$. Each
-> factor is conditioned on everything before it. The same pattern extends to $k$ events by
-> induction (Exercise 2.19 does four).
+> **Example — faulty sticks.** A batch of 12 USB sticks contains 4 faulty ones; three are
+> taken out in succession. All three faulty:
+> $\frac{4}{12} \cdot \frac{3}{11} \cdot \frac{2}{10} = \frac{24}{1320} = \frac{1}{55}$.
+> Each factor is conditioned on everything drawn before it. The same pattern extends to $k$
+> events by induction — one more conditional factor per event.
 
 ```python
 from fractions import Fraction
@@ -154,45 +159,48 @@ def all_special(N, d, n, replace=False):
     for i in range(n):
         p *= Fraction(d, N) if replace else Fraction(d - i, N - i)
     return p
-print(all_special(52, 4, 2), all_special(52, 4, 2, replace=True))   # 1/221 1/169
-print(all_special(20, 5, 3))                                         # 1/114
+print(all_special(10, 3, 2), all_special(10, 3, 2, replace=True))   # 1/15 9/100
+print(all_special(12, 4, 3))                                         # 1/55
 ```
 
 ## Independence
 
-Informally, $A$ and $B$ are independent when knowing that one happened does not change the
-probability of the other: $P(B \mid A) = P(B)$. Substituting that into the multiplication rule
-gives $P(A \cap B) = P(A) P(B)$, and the textbook takes the product form as the definition —
-it is symmetric, and it still makes sense when $P(A) = 0$ or $P(B) = 0$.
+Informally, $A$ and $B$ are independent when learning that one happened does not change the
+probability of the other: $P(B \mid A) = P(B)$. Put that into the multiplication rule and the
+joint probability becomes a plain product, $P(A \cap B) = P(A)P(B)$. The product form is the
+one we take as the definition: it is symmetric in $A$ and $B$, and it still makes sense when
+$P(A)$ or $P(B)$ is zero.
 
 > **Definition — independence.** $A$ and $B$ are **independent** if and only if
 > $$P(A \cap B) = P(A)\,P(B).$$
 > Otherwise they are **dependent**.
 
-> **Example — three coins (Example 22).** Eight equally likely outcomes. $A$ = "heads on the
-> first two tosses" $= \{HHH, HHT\}$, $B$ = "tail on the third" $= \{HHT, HTT, THT, TTT\}$,
-> $C$ = "exactly two tails" $= \{HTT, THT, TTH\}$.
-> $P(A)P(B) = \tfrac14 \cdot \tfrac12 = \tfrac18 = P(A \cap B)$: independent.
-> $P(B)P(C) = \tfrac12 \cdot \tfrac38 = \tfrac{3}{16} \neq \tfrac14 = P(B \cap C)$: dependent —
-> a tail on the third toss makes "exactly two tails" more likely.
+> **Example — two dice.** Roll two fair dice (36 equally likely pairs). Let $A$ = "the first
+> die is even" ($P(A) = \tfrac12$), $B$ = "the sum is 7" ($P(B) = \tfrac{6}{36}$) and
+> $C$ = "the sum is 8" ($P(C) = \tfrac{5}{36}$).
+> $A \cap B = \{(2,5), (4,3), (6,1)\}$ has probability $\tfrac{3}{36} = \tfrac12 \cdot \tfrac{6}{36}$:
+> $A$ and $B$ are independent — a sum of 7 can be reached from any first roll, so the first
+> die's parity says nothing about it.
+> $A \cap C = \{(2,6), (4,4), (6,2)\}$ has probability $\tfrac{3}{36}$, but
+> $P(A)P(C) = \tfrac{5}{72} \neq \tfrac{6}{72}$: dependent — a sum of 8 needs both dice even or
+> both odd, and there are three even-even pairs against two odd-odd ones.
 
 ```sim
 id: independence-check
 controls:
-  - {id: pA, label: P(A), min: 0, max: 1, step: 0.005, default: 0.25, decimals: 3}
-  - {id: pB, label: P(B), min: 0, max: 1, step: 0.005, default: 0.5, decimals: 3}
-  - {id: pAB, label: "P(A ∩ B)", min: 0, max: 1, step: 0.005, default: 0.125, decimals: 3}
-note: "Three tests of the same fact, side by side: P(A∩B) against P(A)·P(B), P(A|B) against P(A), P(B|A) against P(B). Independence is one equation, so all three pairs agree or none does. The defaults are A and B of the three-coin example; set P(A) = 0.5, P(B) = 0.375, P(A∩B) = 0.25 for the dependent pair B, C. Mutually exclusive events with positive probabilities (P(A∩B) = 0) are always dependent."
+  - {id: pA, label: P(A), min: 0, max: 1, step: 0.005, default: 0.5, decimals: 3}
+  - {id: pB, label: P(B), min: 0, max: 1, step: 0.005, default: 0.2, decimals: 3}
+  - {id: pAB, label: "P(A ∩ B)", min: 0, max: 1, step: 0.005, default: 0.1, decimals: 3}
+note: "Three tests of the same fact, side by side: P(A∩B) against P(A)·P(B), P(A|B) against P(A), P(B|A) against P(B). Independence is one equation, so all three pairs agree or none does. The defaults are an independent pair; nudge P(A∩B) to 0.15 or 0.05 and every comparison breaks at once. Mutually exclusive events with positive probabilities (P(A∩B) = 0) are always dependent — one happening rules the other out."
 ```
 
-Exercise 2.21 (Notes Lec 3 p.3) shows the two informal versions agree: if $P(B \mid A) = P(B)$
-and $P(B) \neq 0$, then $P(A \cap B)/P(A) = P(B)$ gives $P(A \cap B)/P(B) = P(A)$, i.e.
-$P(A \mid B) = P(A)$.
+The two informal versions agree (Notes Lec 3 p.3): if $P(B \mid A) = P(B)$ with
+$P(B) \neq 0$, then $P(A \cap B)/P(A) = P(B)$ rearranges to $P(A \cap B)/P(B) = P(A)$, i.e.
+$P(A \mid B) = P(A)$. Whichever event you condition on, the other is unmoved.
 
 ### Independence survives complements
 
-The theorem the lecture built up in full (Notes Lec 3 p.1; textbook Theorem 11 and
-Exercise 2.22):
+The theorem the lecture proved in full (Notes Lec 3 p.1):
 
 > **Theorem.** If $A$ and $B$ are independent, then so are (1) $A$ and $B'$, (2) $A'$ and $B$,
 > (3) $A'$ and $B'$.
@@ -207,119 +215,129 @@ addition rule,
 
 $$P(A' \cap B') = 1 - P(A \cup B) = 1 - [P(A) + P(B) - P(A)P(B)] = P(A') - P(B)\,[1 - P(A)] = P(A')\,[1 - P(B)] = P(A')\,P(B'). \qquad \blacksquare$$
 
-Contrapositive (Exercise 2.23): if $A$ and $B$ are dependent, so are $A$ and $B'$.
+Read the other way: if $A$ and $B$ are dependent, so are $A$ and $B'$ — dependence cannot be
+removed by looking at the complement.
 
 ### More than two events
 
 > **Definition.** Events $A_1, \dots, A_k$ are independent if and only if the probability of
 > the intersection of *any* 2, 3, …, $k$ of them is the product of their probabilities.
 
-For three events that is four equations, not one: the three pairwise products *and*
-$P(A \cap B \cap C) = P(A)P(B)P(C)$. The textbook's Example 23 has three events each of
-probability $\tfrac12$ with every pairwise intersection of probability $\tfrac14$ but
-$P(A \cap B \cap C) = \tfrac14 \neq \tfrac18$: pairwise independent, not independent. The
-reverse failure is possible too (Exercise 2.24). Exercise 2.27, from the notes: if $A$, $B$, $C$
-are independent then $A$ and $B \cap C$ are independent, since
-$P(A \cap (B \cap C)) = P(A)P(B)P(C) = P(A)\,P(B \cap C)$.
+For three events that is four equations, not one. Pairwise independence does not give the
+fourth: toss two fair coins and let $A$ = "first is heads", $B$ = "second is heads",
+$C$ = "the two coins agree". Each has probability $\tfrac12$, each pair intersects in one of
+the four outcomes ($\tfrac14 = \tfrac12 \cdot \tfrac12$), so any two are independent — yet
+$A \cap B \cap C$ is the single outcome $HH$, with probability $\tfrac14 \neq \tfrac18$.
+Knowing any one of the three tells you nothing; knowing two tells you the third. In the
+other direction, from the notes: if $A$, $B$, $C$ are independent then so are $A$ and
+$B \cap C$, since $P(A \cap (B \cap C)) = P(A)P(B)P(C) = P(A)\,P(B \cap C)$.
 
-When independence *is* given, joint probabilities are just products (Example 24): three
-heads in three tosses, $(\tfrac12)^3 = \tfrac18$; four sixes then a non-six in five rolls,
-$(\tfrac16)^4 \cdot \tfrac56 = \tfrac{5}{7776}$. The order matters in the second one — "four
-sixes and a non-six in any order" is five times as likely, one term per position of the
-non-six. This is the seed of the binomial distribution later in the course.
+When independence *is* given, joint probabilities are just products. A free-throw shooter
+makes 70 % of her shots, each independent of the last. Three makes in a row:
+$0.7^3 = 0.343$. Two makes then a miss, in that order: $0.7 \cdot 0.7 \cdot 0.3 = 0.147$. Two
+makes and a miss *in any order*: three times that, one term per position of the miss,
+$0.441$. That factor of three is the seed of the binomial distribution later in the course.
 
 ```python
 from fractions import Fraction
 from math import comb
-p, n, k = Fraction(3, 4), 3, 1          # a hit with probability 3/4, three shots, exactly one hit
-print(p**k * (1 - p)**(n - k))          # hit then two misses, in that order: 3/64
-print(comb(n, k) * p**k * (1 - p)**(n - k))   # one hit in any order: 9/64
+p, n, k = Fraction(7, 10), 3, 2          # a make with probability 0.7, three shots, exactly two makes
+print(p**k * (1 - p)**(n - k))           # make, make, miss in that order: 147/1000
+print(comb(n, k) * p**k * (1 - p)**(n - k))   # two makes in any order: 441/1000
 ```
 
-## The law of total probability
+## Through a partition: forwards and backwards
 
-Often an outcome is reached through an intermediate stage with several alternatives, and we
-know the probability of the outcome *within* each alternative.
+Many probabilities are reached through an intermediate stage: first one of several things
+happens, then the outcome depends on which. Going forwards through the stage is the law of
+total probability; going backwards — from the outcome to the stage — is Bayes' theorem.
 
-> **Example — the strike (Example 25).** A job is delayed by a strike with probability 0.60;
-> it finishes on time with probability 0.85 if there is no strike and 0.35 if there is. With
-> $A$ = "on time" and $B$ = "strike",
-> $$P(A) = P(A \cap B) + P(A \cap B') = P(B)\,P(A \mid B) + P(B')\,P(A \mid B') = 0.60 \cdot 0.35 + 0.40 \cdot 0.85 = 0.55.$$
+### Forwards
+
+> **Example — fog.** A flight is delayed by fog on 20 % of mornings. It leaves on time with
+> probability 0.9 when the morning is clear and 0.4 when it is foggy. With $A$ = "on time"
+> and $F$ = "fog",
+> $$P(A) = P(A \cap F) + P(A \cap F') = P(F)\,P(A \mid F) + P(F')\,P(A \mid F') = 0.2 \cdot 0.4 + 0.8 \cdot 0.9 = 0.80.$$
 
 The general statement uses a **partition** of $S$: events $B_1, \dots, B_k$ that are pairwise
 mutually exclusive and whose union is $S$ (Notes Lec 3 p.3).
 
-> **Theorem 12 — total probability (rule of elimination).** If $B_1, \dots, B_k$ partition $S$
-> and every $P(B_i) \neq 0$, then for any event $A$
+> **Law of total probability.** If $B_1, \dots, B_k$ partition $S$ and every $P(B_i) \neq 0$,
+> then for any event $A$
 > $$P(A) = \sum_{i=1}^{k} P(B_i)\,P(A \mid B_i).$$
 
 **Proof (as in the notes).** $A = A \cap S = A \cap (B_1 \cup \cdots \cup B_k) = (A \cap B_1) \cup \cdots \cup (A \cap B_k)$,
 and these pieces are mutually exclusive because the $B_i$ are. So $P(A) = \sum_i P(A \cap B_i)$,
 and the multiplication rule turns each term into $P(B_i)\,P(A \mid B_i)$. $\blacksquare$
 
-> **Example — rental cars (Example 26).** A firm rents 60 % of its cars from agency 1, 30 %
-> from agency 2, 10 % from agency 3; the proportions needing an oil change are 9 %, 20 %, 6 %.
-> $$P(A) = 0.60 \cdot 0.09 + 0.30 \cdot 0.20 + 0.10 \cdot 0.06 = 0.054 + 0.060 + 0.006 = 0.12.$$
+> **Example — three mills.** A bakery buys 50 % of its flour from mill 1, 30 % from mill 2
+> and 20 % from mill 3. The fraction of batches below specification is 2 % at mill 1, 5 % at
+> mill 2 and 10 % at mill 3. A batch picked at random is below spec with probability
+> $$P(A) = 0.5 \cdot 0.02 + 0.3 \cdot 0.05 + 0.2 \cdot 0.10 = 0.010 + 0.015 + 0.020 = 0.045.$$
 
 ```sim
 id: total-prob-tree
 controls:
-  - {id: p1, label: "P(B₁)", min: 0, max: 1, step: 0.01, default: 0.6, decimals: 2}
+  - {id: p1, label: "P(B₁)", min: 0, max: 1, step: 0.01, default: 0.5, decimals: 2}
   - {id: p2, label: "P(B₂)  (B₃ takes the rest)", min: 0, max: 1, step: 0.01, default: 0.3, decimals: 2}
-  - {id: q1, label: "P(A | B₁)", min: 0, max: 1, step: 0.01, default: 0.09, decimals: 2}
-  - {id: q2, label: "P(A | B₂)", min: 0, max: 1, step: 0.01, default: 0.2, decimals: 2}
-  - {id: q3, label: "P(A | B₃)", min: 0, max: 1, step: 0.01, default: 0.06, decimals: 2}
-note: "The tree of the rental-car example: the first level is the partition (which agency), the second the conditional probabilities of an oil change. Each green leaf is a product P(Bᵢ)·P(A | Bᵢ); P(A) is their sum, because the leaves are the disjoint pieces A ∩ Bᵢ. Set P(B₁) = 0.6, P(B₂) = 0.4, P(A|B₁) = 0.35, P(A|B₂) = 0.85 for the strike example (0.55), with the third branch empty."
+  - {id: q1, label: "P(A | B₁)", min: 0, max: 1, step: 0.01, default: 0.02, decimals: 2}
+  - {id: q2, label: "P(A | B₂)", min: 0, max: 1, step: 0.01, default: 0.05, decimals: 2}
+  - {id: q3, label: "P(A | B₃)", min: 0, max: 1, step: 0.01, default: 0.1, decimals: 2}
+note: "The tree of the three mills: the first level is the partition (which mill), the second the conditional probability of a below-spec batch. Each green leaf is a product P(Bᵢ)·P(A | Bᵢ); P(A) is their sum, because the leaves are the disjoint pieces A ∩ Bᵢ. Set P(B₁) = 0.2, P(B₂) = 0.8, P(A|B₁) = 0.4, P(A|B₂) = 0.9 for the fog example (0.80), with the third branch empty."
 ```
 
-## Bayes' theorem
+### Backwards
 
-Now reverse the question. Given that a delivered car needs an oil change, what is the
-probability it came from agency 2? We know $P(A \mid B_2)$ and want $P(B_2 \mid A)$ — the
-asymmetry from the shipping example, resolved by supplying $P(A)$ through the theorem above.
+Now reverse the question: a batch turns out to be below spec — which mill did it come from?
+We know $P(A \mid B_3)$ and want $P(B_3 \mid A)$, the courier's asymmetry again. The
+definition of $P(B_3 \mid A)$ needs $P(A \cap B_3)$ and $P(A)$, and we now have both: the
+multiplication rule gives the numerator, the law of total probability the denominator.
 
-> **Theorem 13 — Bayes' theorem.** If $B_1, \dots, B_k$ partition $S$ with every
-> $P(B_i) \neq 0$, and $P(A) \neq 0$, then for each $r$
+> **Bayes' theorem.** If $B_1, \dots, B_k$ partition $S$ with every $P(B_i) \neq 0$, and
+> $P(A) \neq 0$, then for each $r$
 > $$P(B_r \mid A) = \frac{P(B_r)\,P(A \mid B_r)}{\sum_{i=1}^{k} P(B_i)\,P(A \mid B_i)}.$$
 
-**Proof.** $P(B_r \mid A) = P(A \cap B_r)/P(A)$ by definition; the numerator is
-$P(B_r)\,P(A \mid B_r)$ by the multiplication rule and the denominator is Theorem 12.
-$\blacksquare$ In tree language: the probability that $A$ was reached along branch $r$ is
-that branch's leaf divided by the sum of all the $A$-leaves.
+**Proof.** $P(B_r \mid A) = P(A \cap B_r)/P(A)$; expand the numerator by the multiplication
+rule and the denominator by total probability. $\blacksquare$ In the tree: the probability
+that $A$ was reached along branch $r$ is that branch's leaf divided by the sum of all the
+$A$-leaves.
 
-> **Example — rental cars again (Example 27).**
-> $$P(B_2 \mid A) = \frac{0.30 \cdot 0.20}{0.054 + 0.060 + 0.006} = \frac{0.060}{0.120} = 0.5.$$
-> Agency 2 supplies 30 % of the cars but half of the ones that need an oil change: the
-> **prior** $P(B_2) = 0.30$ has been updated by the evidence to the **posterior** 0.50.
+> **Example — three mills, backwards.**
+> $$P(B_3 \mid A) = \frac{0.2 \cdot 0.10}{0.010 + 0.015 + 0.020} = \frac{0.020}{0.045} \approx 0.44.$$
+> Mill 3 supplies a fifth of the flour but is behind almost half of the bad batches: the
+> **prior** $P(B_3) = 0.20$ has been updated by the evidence to the **posterior** 0.44,
+> while mill 1's share drops from 0.50 to $0.010/0.045 \approx 0.22$.
 
 ```sim
 id: bayes-posterior
 controls:
-  - {id: p1, label: "P(B₁)", min: 0, max: 1, step: 0.01, default: 0.6, decimals: 2}
+  - {id: p1, label: "P(B₁)", min: 0, max: 1, step: 0.01, default: 0.5, decimals: 2}
   - {id: p2, label: "P(B₂)  (B₃ takes the rest)", min: 0, max: 1, step: 0.01, default: 0.3, decimals: 2}
-  - {id: q1, label: "P(A | B₁)", min: 0, max: 1, step: 0.01, default: 0.09, decimals: 2}
-  - {id: q2, label: "P(A | B₂)", min: 0, max: 1, step: 0.01, default: 0.2, decimals: 2}
-  - {id: q3, label: "P(A | B₃)", min: 0, max: 1, step: 0.01, default: 0.06, decimals: 2}
-  - {id: r, label: "spell out P(Bᵣ | A) for r", min: 1, max: 3, step: 1, default: 2, decimals: 0}
+  - {id: q1, label: "P(A | B₁)", min: 0, max: 1, step: 0.01, default: 0.02, decimals: 2}
+  - {id: q2, label: "P(A | B₂)", min: 0, max: 1, step: 0.01, default: 0.05, decimals: 2}
+  - {id: q3, label: "P(A | B₃)", min: 0, max: 1, step: 0.01, default: 0.1, decimals: 2}
+  - {id: r, label: "spell out P(Bᵣ | A) for r", min: 1, max: 3, step: 1, default: 3, decimals: 0}
 note: "Same sliders as the tree. Yellow bars are the prior P(Bᵢ), green bars the posterior P(Bᵢ | A); the posteriors always sum to 1 because the Bᵢ still partition the reduced sample space A. A cause whose conditional P(A | Bᵢ) is above the overall P(A) gains probability, one below loses. Make all three P(A | Bᵢ) equal and the posterior collapses onto the prior — A then carries no information about the cause."
 ```
 
-> **Example — a rare disease (Example 28).** A disease affects 0.01 % of a population. A test
-> is positive for 98 % of carriers and for 3 % of non-carriers. For a person who tests
-> positive,
-> $$P(D' \mid +) = \frac{0.9999 \cdot 0.03}{0.0001 \cdot 0.98 + 0.9999 \cdot 0.03} = \frac{0.029997}{0.000098 + 0.029997} \approx 0.997.$$
-> Almost every positive result is a false alarm, even with a good test, because the healthy
-> group is ten thousand times larger than the sick one. Counting people makes this obvious:
-> in a million, 100 are sick and about 98 test positive; of the 999 900 healthy, about
-> 29 997 test positive.
+### Base rates
+
+> **Example — a screening test.** A condition affects 0.2 % of a population. A screening test
+> detects it in 95 % of those who have it (sensitivity) and comes back negative for 98 % of
+> those who do not (specificity). Someone tests positive:
+> $$P(D \mid +) = \frac{0.002 \cdot 0.95}{0.002 \cdot 0.95 + 0.998 \cdot 0.02} = \frac{0.0019}{0.0019 + 0.01996} \approx 0.087.$$
+> Nine positives in ten are false alarms, with a test that is right 95–98 % of the time. The
+> reason is the base rate: the healthy group is five hundred times larger than the affected
+> one, so its 2 % of false positives (about 19 960 per million) swamps the 95 % of true
+> positives (about 1 900 per million).
 
 ```sim
 id: rare-disease
 controls:
-  - {id: prev, label: "prevalence P(D)", min: 0.0001, max: 0.05, step: 0.0001, default: 0.0001, decimals: 4}
-  - {id: sens, label: "sensitivity P(+ | D)", min: 0.5, max: 1, step: 0.005, default: 0.98, decimals: 3}
-  - {id: spec, label: "specificity P(− | D′)", min: 0.5, max: 1, step: 0.005, default: 0.97, decimals: 3}
-note: "A million people sorted by truth and by test result (log scale, or the sick would be invisible). P(D | +) is the red 'test positive' bar measured against the blue one next to it. At the textbook's numbers the false positives outnumber the true positives 300 to 1. Raise the prevalence to 0.05 and the same test becomes useful; raise the specificity to 0.999 and it becomes useful even for the rare disease — false positives, not missed cases, are what a screening test for a rare condition has to fight."
+  - {id: prev, label: "prevalence P(D)", min: 0.0001, max: 0.05, step: 0.0001, default: 0.002, decimals: 4}
+  - {id: sens, label: "sensitivity P(+ | D)", min: 0.5, max: 1, step: 0.005, default: 0.95, decimals: 3}
+  - {id: spec, label: "specificity P(− | D′)", min: 0.5, max: 1, step: 0.005, default: 0.98, decimals: 3}
+note: "A million people sorted by truth and by test result (log scale, or the affected would be invisible). P(D | +) is the red 'test positive' bar measured against the blue one next to it. At the defaults the false positives outnumber the true positives ten to one. Raise the prevalence to 0.05 and the same test becomes useful; raise the specificity to 0.999 and it becomes useful even at 0.2 % — false positives, not missed cases, are what a screening test for a rare condition has to fight."
 ```
 
 ```python
@@ -328,20 +346,21 @@ def posterior(prior, likelihood):
     joint = [p * q for p, q in zip(prior, likelihood)]
     pA = sum(joint)
     return [j / pA for j in joint], pA
-post, pA = posterior([0.6, 0.3, 0.1], [0.09, 0.20, 0.06])
-print(round(pA, 3), [round(x, 3) for x in post])         # 0.12 [0.45, 0.5, 0.05]
-post, _ = posterior([0.0001, 0.9999], [0.98, 0.03])
-print(round(post[1], 3))                                  # 0.997 — P(no disease | positive)
+post, pA = posterior([0.5, 0.3, 0.2], [0.02, 0.05, 0.10])
+print(round(pA, 3), [round(x, 3) for x in post])         # 0.045 [0.222, 0.333, 0.444]
+post, _ = posterior([0.002, 0.998], [0.95, 0.02])
+print(round(post[0], 3))                                  # 0.087 — P(condition | positive)
 ```
 
-The textbook closes with a warning that is worth repeating: the *theorem* is beyond dispute
-— it is two lines from the definition — but the *prior* probabilities $P(B_i)$ it consumes
-are an input, and arguments about Bayesian reasoning are arguments about where those come
-from. Reasoning "from effect to cause" is only as good as the causes' base rates.
+Bayes' theorem itself is two lines from the definition and beyond dispute. What it consumes
+is a set of **prior** probabilities $P(B_i)$, and those are an input: the base rate of the
+condition, the mills' shares. Reasoning backwards from an effect to its cause is only as
+good as the base rates it starts from — which is why every screening decision starts by
+asking how common the condition is.
 
 **Equations**
 
-- *Conditional probability*: $P(B \mid A) = P(A \cap B)/P(A)$, $P(A) \neq 0$; the postulates hold for $P(\,\cdot \mid B)$.
+- *Conditional probability*: $P(B \mid A) = P(A \cap B)/P(A)$, $P(A) \neq 0$; $P(\,\cdot \mid B)$ satisfies the postulates.
 - *Multiplication rule*: $P(A \cap B) = P(A)P(B \mid A) = P(B)P(A \mid B)$; $P(A \cap B \cap C) = P(A)P(B \mid A)P(C \mid A \cap B)$.
 - *Independence*: $P(A \cap B) = P(A)P(B)$ ⟺ $P(B \mid A) = P(B)$ ⟺ $P(A \mid B) = P(A)$; then $A, B'$ and $A', B$ and $A', B'$ are independent too. For $k$ events, every sub-collection must multiply.
 - *Total probability*: $P(A) = \sum_i P(B_i)P(A \mid B_i)$ over a partition $B_1, \dots, B_k$.
@@ -355,7 +374,6 @@ from. Reasoning "from effect to cause" is only as good as the causes' base rates
 
 ## Further reading
 
-- Miller & Miller, *John E. Freund's Mathematical Statistics with Applications*, 8e, §2.6–2.8 — Examples 15–28 and Exercises 17–34 are the ones the lecture worked from.
 - [Conditional probability](https://en.wikipedia.org/wiki/Conditional_probability) and [Independence (probability theory)](https://en.wikipedia.org/wiki/Independence_(probability_theory)) — Wikipedia, including the pairwise-vs-mutual distinction.
-- [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem) — Wikipedia; the drug-testing example there is the rare-disease computation with different numbers.
-- [Base rate fallacy](https://en.wikipedia.org/wiki/Base_rate_fallacy) — why the rare-disease result surprises people, and the natural-frequency presentation used in the last sim.
+- [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem) — Wikipedia; its drug-testing example is the screening computation with other numbers.
+- [Base rate fallacy](https://en.wikipedia.org/wiki/Base_rate_fallacy) — why the screening result surprises people, and the natural-frequency presentation used in the last sim.
