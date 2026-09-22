@@ -48,10 +48,10 @@ program: |
   section .text
   global _start
   _start:
-      mov rax, 60        ; system call 60 is exit
-      mov rdi, 7         ; exit status
+      mov eax, 60        ; system call 60 is exit (writing eax clears the top of rax)
+      mov edi, 7         ; exit status
       syscall
-note: "The smallest complete program: two register loads and a system call. It does nothing visible except end the process with status 7, which a shell shows with echo $?. Stepping shows each register change; the last step names the call the kernel performed. Assembled, the three lines become 12 bytes — mov with a 32-bit immediate is five bytes, syscall two."
+note: "The smallest complete program: two register loads and a system call. It does nothing visible except end the process with status 7, which a shell shows with echo $?. Stepping shows each register change; the last step names the call the kernel performed. Assembled, the three lines become 12 bytes — a mov of a 32-bit immediate into eax or edi is five bytes, syscall two; writing the 32-bit half clears the upper half, which is why the 64-bit register need not be named."
 ```
 
 ## Registers and operands

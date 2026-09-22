@@ -106,7 +106,7 @@ engine: arch
 mode: truth-table
 expr: "A B + Cin (A ⊕ B)"
 vars: [A, B, Cin]
-note: "The carry-out of a full adder as a truth table, one row per step, then its two normal forms: the minterms of the five rows where the output is 1, and the maxterms of the three rows where it is 0. Type any expression — juxtaposition is AND, + is OR, an apostrophe negates (x'), ⊕ or ^ is XOR — and the table and forms follow."
+note: "The carry-out of a full adder as a truth table, one row per step, then its two normal forms: the minterms of the four rows where the output is 1, and the maxterms of the four rows where it is 0. Type any expression — juxtaposition is AND, + is OR, an apostrophe negates (x'), ⊕ or ^ is XOR — and the table and forms follow."
 ```
 
 Both normal forms have a regular circuit shape: a row of NOT gates, a row of ANDs (or ORs),

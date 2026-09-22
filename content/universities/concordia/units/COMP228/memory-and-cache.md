@@ -154,7 +154,7 @@ block: 4
 bits: 8
 policy: lru
 trace: "3 7 11 3 19 7 35 3"
-note: "Two sets of two ways: the address now splits as tag, one set bit, offset. Blocks 0, 4 and 8 all fall in set 0 but the set has two lines, and LRU keeps the recently reused block 0 while evicting the other. By the seventh access three blocks are fighting over two ways and block 0 loses anyway: all three mappings end this trace with two hits, because associativity only helps when the working set fits. Try the trace 3 7 3 11 3 19 3 instead: LRU keeps the block that keeps coming back and scores three hits, while FIFO and the direct-mapped cache score two."
+note: "Two sets of two ways: the address now splits as tag, one set bit, offset. Blocks 0, 4 and 8 all fall in set 0 but the set has two lines, and LRU keeps the recently reused block 0 while evicting the other. By the seventh access three blocks are fighting over two ways and block 0 loses anyway: all three mappings end this trace with two hits, because associativity only helps when the working set fits. Try the trace 3 7 3 11 3 19 3 instead: two-way LRU keeps the block that keeps coming back and scores three hits, while two-way FIFO and the direct-mapped cache score two."
 ```
 
 ## Beyond the cache

@@ -138,7 +138,7 @@ note: "The same three characters one layer down: a program deals in characters, 
 
 **Equations**
 
-- *Binary prefixes*: $2^{10} = 1024$ (kibi), $2^{20}$ (mebi), $2^{30}$ (gibi); decimal $10^3$, $10^6$, $10^9$ are 2.4 %, 4.9 %, 7.4 % smaller.
+- *Binary prefixes*: $2^{10} = 1024$ (kibi), $2^{20}$ (mebi), $2^{30}$ (gibi) are 2.4 %, 4.9 %, 7.4 % larger than the decimal $10^3$, $10^6$, $10^9$.
 - *Word sizes*: a $w$-bit word takes $2^w$ distinct values; 8 bits give 256, 32 bits about $4.3 \times 10^9$, 64 bits about $1.8 \times 10^{19}$.
 
 > **Key insight.** The stored-program idea is what makes a computer general: the program is

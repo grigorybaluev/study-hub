@@ -99,7 +99,7 @@ a: 0.1
 b: 0.2
 exp: 8
 mant: 23
-note: "0.1 + 0.2 in single precision: unpack, align (the smaller exponent's significand shifts right one place), add, renormalise, round, pack. Neither input is exactly representable, the sum picks up a rounding error of its own, and the result is not the stored 0.3 — which is why comparing floating-point values with == is a bug and a tolerance is used instead."
+note: "0.1 + 0.2 in single precision: unpack, align (the smaller exponent's significand shifts right one place), add, renormalise, round, pack. Neither input is exactly representable and the sum picks up a rounding error of its own — about 7 parts in a billion here. In single precision the rounded result happens to coincide with the stored 0.3, so == would pass by luck; in double precision, the format Java and Python use (11/52, beyond what this stepper can show), it does not, and 0.1 + 0.2 == 0.3 is false. That is why floating-point comparisons use a tolerance."
 ```
 
 The lecture's list of peculiarities follows from this: fractions that terminate in one base
