@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 import lint
-from schema import ROOT, SEASONS, Content, answer_label, edge_entries, load, prereq_groups, roadmap_root, unit_slug
+from schema import ROOT, SEASONS, Content, answer_text, edge_entries, load, prereq_groups, roadmap_root, unit_slug
 
 OUT = ROOT / "graph.json"
 SCHEMA_VERSION = 1
@@ -133,7 +133,7 @@ def build(c: Content) -> dict:
             "id": mid, "title": g["title"], "description": g.get("description"), "start": g["start"],
             "nodes": [{"id": n["id"], "kind": n["kind"], "label": n["label"], "concept": n.get("concept")}
                       for n in g["nodes"]],
-            "edges": [{"from": e["from"], "to": e["to"], "label": answer_label(e.get("label"))} for e in g["edges"]],
+            "edges": [{"from": e["from"], "to": e["to"], "label": answer_text(e.get("label"))} for e in g["edges"]],
         })
 
     nodes.sort(key=lambda n: (n["type"], n["id"]))

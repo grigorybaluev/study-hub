@@ -1,0 +1,17 @@
+id: bcnf-decomposition
+title: Normalising a relation to BCNF
+description: >-
+  Find the keys with attribute closures, then look for a functional dependency whose left side is
+  not a superkey. Each violation splits the relation in two along its closure; repeat on the pieces
+  until none remains.
+start: keys
+nodes:
+  - {id: keys, kind: method, label: "Compute closures X⁺ to find the candidate keys", concept: functional-dependency}
+  - {id: violation, kind: decision, label: "A non-trivial X → Y where X is not a superkey?"}
+  - {id: split, kind: method, label: "Split R into X⁺ and X ∪ (R − X⁺)", concept: normalization}
+  - {id: bcnf, kind: end, label: "Every piece is in BCNF (check which FDs are preserved)"}
+edges:
+  - {from: keys, to: violation}
+  - {from: violation, to: split, label: "yes"}
+  - {from: violation, to: bcnf, label: "no"}
+  - {from: split, to: keys}

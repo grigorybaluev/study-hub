@@ -1,0 +1,31 @@
+id: extrema-two-variables
+title: Finding and classifying extrema of f(x, y)
+description: >-
+  The setting chooses the method: a constraint calls for Lagrange multipliers, a closed bounded
+  region for comparing interior critical points with the boundary, and a free problem for the
+  second-derivative test at each critical point.
+start: constraint
+nodes:
+  - {id: constraint, kind: decision, label: "Is there a constraint g(x, y) = k?"}
+  - {id: lagrange, kind: method, label: "Solve ∇f = λ∇g with g = k, compare f", concept: lagrange-multipliers}
+  - {id: region, kind: decision, label: "Extreme values on a closed, bounded region?"}
+  - {id: compare, kind: method, label: "Critical points inside + extremes on the boundary", concept: multivariable-optimization}
+  - {id: critical, kind: method, label: "Solve f_x = 0 and f_y = 0", concept: partial-derivative}
+  - {id: second, kind: decision, label: "D = f_xx f_yy − f_xy² at the point"}
+  - {id: found, kind: end, label: "Largest and smallest values found"}
+  - {id: minimum, kind: end, label: "Local minimum"}
+  - {id: maximum, kind: end, label: "Local maximum"}
+  - {id: saddle, kind: end, label: "Saddle point"}
+  - {id: inconclusive, kind: end, label: "Test inconclusive: look at f near the point"}
+edges:
+  - {from: constraint, to: lagrange, label: "yes"}
+  - {from: constraint, to: region, label: "no"}
+  - {from: lagrange, to: found}
+  - {from: region, to: compare, label: "yes"}
+  - {from: region, to: critical, label: "no"}
+  - {from: compare, to: found}
+  - {from: critical, to: second}
+  - {from: second, to: minimum, label: "D > 0, f_xx > 0"}
+  - {from: second, to: maximum, label: "D > 0, f_xx < 0"}
+  - {from: second, to: saddle, label: "D < 0"}
+  - {from: second, to: inconclusive, label: "D = 0"}

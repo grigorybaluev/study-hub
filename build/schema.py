@@ -108,6 +108,13 @@ def edge_entries(value) -> list[dict]:
 YAML_BOOL = {"yes": "yes", "true": "yes", "on": "yes", "no": "no", "false": "no", "off": "no"}
 
 
+def answer_text(v) -> str | None:
+    """How an answer is shown: as authored, except that PyYAML's booleans become yes/no."""
+    if isinstance(v, bool):
+        return "yes" if v else "no"
+    return None if v is None else str(v)
+
+
 def answer_label(v) -> str | None:
     """A method-graph edge label or a step's answer. PyYAML reads bare yes/no as booleans; the app's
     YAML 1.2 parser keeps them as strings, so both sides compare the normalised text."""

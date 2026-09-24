@@ -1,0 +1,28 @@
+id: linear-system
+title: Solving a linear system Ax = b
+description: >-
+  An invertible square matrix gives the one solution directly. Otherwise row reduction decides
+  everything: a contradictory row means no solution, free variables mean infinitely many, and
+  neither means exactly one.
+start: square
+nodes:
+  - {id: square, kind: decision, label: "Is A square with det A ≠ 0?"}
+  - {id: inverse, kind: method, label: "x = A⁻¹b, the unique solution", concept: matrix-inverse}
+  - {id: reduce, kind: method, label: "Row-reduce [A | b] to echelon form", concept: linear-system}
+  - {id: contradiction, kind: decision, label: "A row [0 … 0 | c] with c ≠ 0?"}
+  - {id: free, kind: decision, label: "Any free variables (columns without a pivot)?"}
+  - {id: parametrise, kind: method, label: "Name the free variables, solve for the pivots", concept: linear-combination-span}
+  - {id: back-substitute, kind: method, label: "Back-substitute: one solution"}
+  - {id: solved, kind: end, label: "Solution set found: check in the original equations"}
+  - {id: none, kind: end, label: "Inconsistent: no solution"}
+edges:
+  - {from: square, to: inverse, label: "yes"}
+  - {from: square, to: reduce, label: "no"}
+  - {from: inverse, to: solved}
+  - {from: reduce, to: contradiction}
+  - {from: contradiction, to: none, label: "yes"}
+  - {from: contradiction, to: free, label: "no"}
+  - {from: free, to: parametrise, label: "yes"}
+  - {from: free, to: back-substitute, label: "no"}
+  - {from: parametrise, to: solved}
+  - {from: back-substitute, to: solved}

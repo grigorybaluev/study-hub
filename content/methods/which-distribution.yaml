@@ -1,0 +1,41 @@
+id: which-distribution
+title: Choosing a discrete distribution
+description: >-
+  Decide what is being counted before choosing a formula: successes in a fixed number of trials,
+  events in a stretch of time or space, or trials until a success. Drawing from a finite lot without
+  replacement breaks independence, which is why it gets its own branch.
+start: fixed
+nodes:
+  - {id: fixed, kind: decision, label: "Is the number of trials fixed in advance?"}
+  - {id: lot, kind: decision, label: "Drawing from a finite lot without replacement?"}
+  - {id: hypergeometric, kind: method, label: "Hypergeometric h(x; n, N, M)", concept: hypergeometric-distribution}
+  - {id: two, kind: decision, label: "Two outcomes per trial?"}
+  - {id: binomial, kind: method, label: "Binomial b(x; n, θ)", concept: binomial-distribution}
+  - {id: multinomial, kind: method, label: "Multinomial", concept: multinomial-distribution}
+  - {id: events, kind: decision, label: "Counting events in a stretch of time or space?"}
+  - {id: poisson, kind: method, label: "Poisson p(x; λ), λ = rate × length", concept: poisson-distribution}
+  - {id: waiting, kind: decision, label: "Counting trials until the k-th success?"}
+  - {id: first, kind: decision, label: "Is k = 1?"}
+  - {id: geometric, kind: method, label: "Geometric g(x; θ)", concept: geometric-distribution}
+  - {id: negative-binomial, kind: method, label: "Negative binomial b*(x; k, θ)", concept: negative-binomial-distribution}
+  - {id: model, kind: end, label: "Model chosen: read off pmf, mean, variance"}
+  - {id: custom, kind: end, label: "No standard model: build the pmf from the sample space"}
+edges:
+  - {from: fixed, to: lot, label: "yes"}
+  - {from: fixed, to: events, label: "no"}
+  - {from: lot, to: hypergeometric, label: "yes"}
+  - {from: lot, to: two, label: "no"}
+  - {from: hypergeometric, to: model}
+  - {from: two, to: binomial, label: "yes"}
+  - {from: two, to: multinomial, label: "no"}
+  - {from: binomial, to: model}
+  - {from: multinomial, to: model}
+  - {from: events, to: poisson, label: "yes"}
+  - {from: events, to: waiting, label: "no"}
+  - {from: poisson, to: model}
+  - {from: waiting, to: first, label: "yes"}
+  - {from: waiting, to: custom, label: "no"}
+  - {from: first, to: geometric, label: "yes"}
+  - {from: first, to: negative-binomial, label: "no"}
+  - {from: geometric, to: model}
+  - {from: negative-binomial, to: model}
