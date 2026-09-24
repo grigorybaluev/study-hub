@@ -22,6 +22,42 @@
     return out;
   }
   const M = FA.machines = {};
+  FA.expand = expand;
+  /** A machine for a static diagram (#111): `{machine: id}` from the library above, or an inline spec
+   *  `{type, states, start, finals, trans}` where states are "q0 60 120, q1 …" (id x y) or bare ids
+   *  (then laid out on a row, or on a circle for more than four states). */
+  FA.fromSpec = function (spec) {
+    if (spec.machine) {
+      const lib = M[spec.machine];
+      if (!lib) throw new Error('unknown machine ' + spec.machine);
+      return crop(Object.assign({}, lib, { states: lib.states.map(q => Object.assign({}, q)) }));   // a copy: the simulator keeps its canvas
+    }
+    const list = v => (Array.isArray(v) ? v.map(String) : String(v || '').split(',')).map(x => x.trim()).filter(Boolean);
+    const items = list(spec.states).map(x => x.split(/\s+/));
+    let states;
+    if (items.every(a => a.length >= 3)) {
+      states = items.map(a => S(a[0], +a[1], +a[2]));
+      const bad = states.find(q => !Number.isFinite(q.x) || !Number.isFinite(q.y));
+      if (bad) throw new Error('state ' + bad.id + ': coordinates must be numbers ("q0 60 120")');
+    }
+    else if (items.length <= 4) states = items.map((a, i) => S(a[0], 90 + i * 150, 120));
+    else { const n = items.length, cx = 240, cy = 170, r = 125; states = items.map((a, i) => S(a[0], Math.round(cx + r * Math.cos(Math.PI + 2 * Math.PI * i / n)), Math.round(cy + r * Math.sin(Math.PI + 2 * Math.PI * i / n)))); }
+    const m = { id: spec.id || 'inline', type: spec.type || 'dfa', name: spec.name || '', states,
+      start: spec.start || states[0].id, finals: list(spec.finals),
+      trans: expand(Array.isArray(spec.trans) ? spec.trans.join(';') : String(spec.trans || '')), curves: spec.curves || {} };
+    const known = new Set(states.map(q => q.id)), unknown = [m.start, ...m.finals, ...m.trans.flatMap(t => [t.from, t.to])].find(id => !known.has(id));
+    if (unknown) throw new Error('state ' + unknown + ' is used but not listed in states');
+    m.alphabet = [...new Set(m.trans.map(t => t.sym).filter(x => x !== LAMBDA))].sort();
+    return crop(m);
+  };
+  // shrink the canvas to the states, leaving room for the start arrow (left) and self-loops (top)
+  function crop(m) {
+    const xs = m.states.map(q => q.x), ys = m.states.map(q => q.y);
+    const left = Math.min(...xs) - 70, top = Math.min(...ys) - 90;
+    m.states.forEach(q => { q.x -= left; q.y -= top; });
+    m.w = Math.max(...xs) - left + 45; m.h = Math.max(...ys) - top + 45;
+    return m;
+  }
   function def(m) { m.alphabet = m.alphabet || [...new Set(m.trans.map(t => t.sym).filter(s => s !== LAMBDA))].sort(); M[m.id] = m; return m; }
 
   // Lecture 1 p.96 / Lecture 2 p.5 — the running DFA example, L = {abba}
@@ -300,8 +336,10 @@
   const R = 22;
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function stateText(label) { return esc(label).replace(/^q(\d+)$/, 'q<tspan baseline-shift="sub" font-size="11">$1</tspan>'); }
+  let drawCount = 0;   // marker ids must be unique per drawing: a hidden first SVG would otherwise take the arrowheads with it
   function drawMachine(m, hl) {
     hl = hl || {};
+    const uid = 'fa' + (++drawCount);
     const act = new Set(hl.states || []), dead = new Set(hl.dead || []), grey = new Set(hl.grey || []), color = hl.color || {};
     const actEdges = new Set(hl.edges || []);
     const pos = {}; m.states.forEach(s => { pos[s.id] = s; });
@@ -315,7 +353,7 @@
       const label = syms.join(',');
       const active = syms.some(s => actEdges.has(f + '|' + s + '|' + t));
       const cls = 'fa-edge' + (active ? ' active' : '');
-      const mk = active ? 'url(#fa-arrow-a)' : 'url(#fa-arrow)';
+      const mk = active ? 'url(#' + uid + '-arrow-a)' : 'url(#' + uid + '-arrow)';
       if (f === t) {
         const d = 'M ' + (P.x - 10) + ' ' + (P.y - rr + 3) + ' C ' + (P.x - 42) + ' ' + (P.y - rr - 52) + ', ' + (P.x + 42) + ' ' + (P.y - rr - 52) + ', ' + (P.x + 10) + ' ' + (P.y - rr + 3);
         out += '<path d="' + d + '" class="' + cls + '" marker-end="' + mk + '"/><text x="' + P.x + '" y="' + (P.y - rr - 46) + '" class="fa-label">' + esc(label) + '</text>';
@@ -340,13 +378,13 @@
       const isFinal = m.finals.includes(s.id);
       const fill = act.has(s.id) ? '#fca5a5' : dead.has(s.id) ? '#e5e7eb' : (color[s.id] || '#ffffff');
       const stroke = act.has(s.id) ? '#dc2626' : grey.has(s.id) ? '#9ca3af' : '#1e293b';
-      if (s.id === m.start) out += '<path d="M ' + (s.x - rr - 34) + ' ' + s.y + ' L ' + (s.x - rr - 3) + ' ' + s.y + '" class="fa-edge fa-start" marker-end="url(#fa-arrow)"/>';
+      if (s.id === m.start) out += '<path d="M ' + (s.x - rr - 34) + ' ' + s.y + ' L ' + (s.x - rr - 3) + ' ' + s.y + '" class="fa-edge fa-start" marker-end="url(#' + uid + '-arrow)"/>';
       out += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + rr + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + (act.has(s.id) ? 3 : 2) + '"' + (grey.has(s.id) ? ' stroke-dasharray="4 3"' : '') + '/>';
       if (isFinal) out += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + (rr - 5) + '" fill="none" stroke="' + stroke + '" stroke-width="2"/>';
       out += '<text x="' + s.x + '" y="' + (s.y + 5) + '" class="fa-state' + (m.bigLabels ? ' small' : '') + (dead.has(s.id) || grey.has(s.id) ? ' muted' : '') + '">' + stateText(s.label) + '</text>';
       if (dead.has(s.id)) out += '<text x="' + (s.x + rr - 4) + '" y="' + (s.y - rr + 8) + '" class="fa-hang">✕</text>';
     });
-    const defs = '<defs><marker id="fa-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/></marker><marker id="fa-arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker></defs>';
+    const defs = '<defs><marker id="' + uid + '-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/></marker><marker id="' + uid + '-arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker></defs>';
     return '<svg class="fa-svg" viewBox="0 0 ' + (m.w || 640) + ' ' + (m.h || 300) + '" preserveAspectRatio="xMidYMid meet">' + defs + out + '</svg>';
   }
   FA.drawMachine = drawMachine;
@@ -452,7 +490,7 @@
         '<label class="fa-field">Input w <input class="fa-input" type="text" value="' + esc(this.input) + '" spellcheck="false" onchange="' + at + ".setInput(this.value)\" onkeyup=\"if(event.key==='Enter')" + at + '.setInput(this.value)"> <small>Σ = {' + m.alphabet.join(', ') + '}</small></label>' +
         (this.ignored ? '<span class="fa-verdict reject">symbols not in Σ ignored: ' + esc(this.ignored.join(' ')) + '</span>' : '') +
         '<button class="btn fa-btn fa-secondary" onclick="' + at + '.toggleMulti()">' + (this.showMulti ? 'Hide multiple run' : 'Multiple run…') + '</button>' +
-        '</div>' +
+        '</div>' + multi +                                  // under the toolbar, where the button is
         this.controlsHTML() +
         tapeHTML(this.input, s.pos, s.hung) +
         drawMachine(m, { states: s.states, dead: s.dead, edges }) +
@@ -461,7 +499,7 @@
         '<div class="fa-line"><b>Trace:</b> ' + trace + '</div>' +
         '<div class="fa-line"><b>Extended transition function:</b> ' + dstar + (s.note && this.i > 0 ? ' &nbsp;<span class="fa-note">(' + esc(s.note) + ')</span>' : '') + '</div>' +
         (finished ? '<div class="fa-line fa-final">' + verdict + '</div>' : idle) +
-        '</div>' + multi + '</div>';
+        '</div></div>';
     }
     multiHTML() {
       const at = this.at(); const m = this.m();

@@ -3,8 +3,9 @@
 import { Link, useParams } from "react-router-dom";
 import Markdown from "../components/Markdown";
 import math from "../design/math.md?raw";
+import theory from "../design/theory.md?raw";
 
-const SPECIMENS: Record<string, string> = { math };
+const SPECIMENS: Record<string, string> = { math, theory };
 
 export default function Design() {
   const { kind = "" } = useParams();
@@ -13,7 +14,7 @@ export default function Design() {
     <article>
       <div className="crumbs">Design › {kind}</div>
       <p className="muted small">
-        Specimens: {Object.keys(SPECIMENS).map((k) => <Link key={k} to={`/design/${k}`}>{k}</Link>)}
+        Specimens: {Object.keys(SPECIMENS).map((k, i) => <span key={k}>{i > 0 && " · "}<Link to={`/design/${k}`}>{k}</Link></span>)}
       </p>
       {source
         ? <div className={`unit-body prose pages-${kind}`}><Markdown key={kind} source={source} /></div>

@@ -273,12 +273,27 @@ def container_problems(body: str) -> list[str]:
     return problems
 
 
+# machine ids of the automata engine's library, for ```automaton blocks that name one
+_FA_JS = ROOT / "app" / "src" / "sims" / "automata.js"
+FA_MACHINES = set(re.findall(r"def\(\{ id: '([\w-]+)'", _FA_JS.read_text(encoding="utf-8"))) if _FA_JS.exists() else set()
+
+
 def lint_unit_structure(doc: Doc, pages: str | None, rep: Report):
     """Unit-page design (#89): container names always; for a designed kind, what is left to convert."""
     body = blank_fences(doc.body)
     for problem in container_problems(doc.body):
         rep.error(doc.path, problem)
-    if pages != "math":
+    for m in re.finditer(r"^```automaton\n(.*?)^```", doc.body, re.M | re.S):   # static diagrams (#111)
+        try:
+            spec = yaml.safe_load(m.group(1))
+        except yaml.YAMLError as e:
+            rep.error(doc.path, f"automaton block is not valid YAML: {e}")
+            continue
+        if not isinstance(spec, dict) or not (spec.get("machine") or (spec.get("states") and spec.get("trans"))):
+            rep.error(doc.path, "automaton block needs `machine: <id>` or inline `states` and `trans`")
+        elif spec.get("machine") and spec["machine"] not in FA_MACHINES:
+            rep.error(doc.path, f"automaton block: unknown machine {spec['machine']!r} (not defined in app/src/sims/automata.js)")
+    if pages not in ("math", "theory"):   # theory inherits the math design (#111)
         return
     legacy = len(LEGACY_CALLOUT_RE.findall(body))
     if legacy:
