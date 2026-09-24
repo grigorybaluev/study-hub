@@ -14,6 +14,7 @@ import type { Nodes, PhrasingContent, Root } from "mdast";
 import type {} from "mdast-util-directive";
 import type {} from "mdast-util-math";
 import MathFit from "./MathFit";
+import { splitSpacers } from "./mathSplit";
 import type { VFile } from "vfile";
 
 // Plotly + the engines are heavy; load them only when a page actually contains a simulation.
@@ -85,12 +86,33 @@ function remarkMathFit() {
   return (tree: Root, file: VFile) => {
     const source = String(file);
     const walk = (node: Nodes) => {
-      const doubled = node.type === "inlineMath" && node.position !== undefined && source.startsWith("$$", node.position.start.offset);
-      if (node.type === "math" || doubled) {
-        node.data = { hName: node.type === "math" ? "div" : "span", hProperties: { className: ["math-fit-src"], dataTex: node.value }, hChildren: [] };
-        return;
+      if (!("children" in node)) return;
+      const kids = node.children as Nodes[];
+      for (let i = 0; i < kids.length; i++) {
+        const k = kids[i];
+        const doubled = k.type === "inlineMath" && k.position !== undefined && source.startsWith("$$", k.position.start.offset);
+        // inline math that is really a display: stacked formulas (gathered)
+        const stacked = k.type === "inlineMath" && /^\\begin\{gathered\}/.test(k.value.trim());
+        if (k.type === "math" || doubled || stacked) {
+          k.data = { hName: k.type === "math" ? "div" : "span", hProperties: { className: ["math-fit-src"], dataTex: k.value }, hChildren: [] };
+          continue;
+        }
+        // inline independent formulas separated by \qquad / \quad: separate formulas with a breakable
+        // em space between them, so a narrow line can wrap there (inline math only breaks at relations)
+        if (k.type === "inlineMath") {
+          const pieces = splitSpacers(k.value);
+          if (pieces.length > 1) {
+            const seq: Nodes[] = [];
+            // each piece needs the same hast data remark-math gave the original, or KaTeX never sees it
+            const math = (value: string) => ({ type: "inlineMath", value, data: { hName: "code", hProperties: { className: ["language-math", "math-inline"] }, hChildren: [{ type: "text", value }] } }) as Nodes;
+            pieces.forEach((p, n) => { if (n) seq.push({ type: "text", value: "\u2003" } as Nodes); seq.push(math(p)); });
+            kids.splice(i, 1, ...seq);
+            i += seq.length - 1;
+          }
+          continue;
+        }
+        walk(k);
       }
-      if ("children" in node) node.children.forEach(walk);
     };
     walk(tree);
   };
