@@ -16,7 +16,7 @@ export default function Design() {
         Specimens: {Object.keys(SPECIMENS).map((k) => <Link key={k} to={`/design/${k}`}>{k}</Link>)}
       </p>
       {source
-        ? <div className={`unit-body prose pages-${kind}`}><Markdown source={source} /></div>
+        ? <div className={`unit-body prose pages-${kind}`}><Markdown key={kind} source={source} /></div>
         : <p>No specimen for “{kind}” yet.</p>}
     </article>
   );

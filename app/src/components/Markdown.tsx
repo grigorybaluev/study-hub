@@ -12,6 +12,8 @@ import rehypeHighlight from "rehype-highlight";
 import YAML from "yaml";
 import type { Nodes, PhrasingContent, Root } from "mdast";
 import type {} from "mdast-util-directive";
+import type {} from "mdast-util-math";
+import MathFit from "./MathFit";
 import type { VFile } from "vfile";
 
 // Plotly + the engines are heavy; load them only when a page actually contains a simulation.
@@ -50,9 +52,10 @@ function remarkBlocks() {
           const hasLabel = first?.type === "paragraph" && !!first.data?.directiveLabel;
           const title = hasLabel ? first.children : [];
           if (hasLabel) child.children.shift();   // also an empty [] label
-          child.data = { hName: "section", hProperties: { className: ["blk", `blk-${child.name}`] } };
+          const collapsed = COLLAPSED.has(child.name);
+          child.data = { hName: collapsed ? "details" : "section", hProperties: { className: ["blk", `blk-${child.name}`] } };
           child.children.unshift({
-            type: "paragraph", data: { hName: "header", hProperties: { className: ["blk-head"] } },
+            type: "paragraph", data: { hName: collapsed ? "summary" : "header", hProperties: { className: ["blk-head"] } },
             children: [
               { type: "strong", data: { hProperties: { className: ["blk-label"] } }, children: [{ type: "text", value: Object.hasOwn(BLOCKS, child.name) ? BLOCKS[child.name] : child.name }] },
               ...(title.length ? [{ type: "emphasis", data: { hName: "span", hProperties: { className: ["blk-title"] } }, children: title } as PhrasingContent] : []),
@@ -65,6 +68,47 @@ function remarkBlocks() {
     };
     walk(tree);
   };
+}
+
+/** Proofs and solutions start collapsed: the reader opens them (#89). */
+const COLLAPSED = new Set(["proof", "solution"]);
+
+/**
+ * Display math renders through MathFit, which breaks a formula that is too wide instead of scrolling.
+ * A one-line `$$…$$` is parsed as inline math, but its author meant a display, so it gets the same
+ * treatment (as a block-level span inside its paragraph).
+ */
+function remarkMathFit() {
+  return (tree: Root, file: VFile) => {
+    const source = String(file);
+    const walk = (node: Nodes) => {
+      const doubled = node.type === "inlineMath" && node.position !== undefined && source.startsWith("$$", node.position.start.offset);
+      if (node.type === "math" || doubled) {
+        node.data = { hName: node.type === "math" ? "div" : "span", hProperties: { className: ["math-fit-src"], dataTex: node.value }, hChildren: [] };
+        return;
+      }
+      if ("children" in node) node.children.forEach(walk);
+    };
+    walk(tree);
+  };
+}
+
+/** Inline math that is taller than a line (fractions, sums, integrals, nested scripts). */
+const TALL = /\\(?:d?frac|tfrac|sum|prod|int|iint|oint|lim|sqrt|binom|displaystyle|begin|overbrace|underbrace)(?![A-Za-z])|[\^_]\{[^}]*[\^_]/;
+
+/** Paragraphs (and list items) with tall inline math get more line spacing: class math-dense. */
+function remarkMathDense() {
+  const tall = (node: Nodes): boolean =>
+    (node.type === "inlineMath" && !node.data?.hProperties?.dataTex && TALL.test(node.value)) || ("children" in node && node.children.some(tall));
+  const mark = (node: Nodes) => {
+    const cls = (node.data?.hProperties?.className as string[] | undefined) ?? [];
+    node.data = { ...node.data, hProperties: { ...node.data?.hProperties, className: [...cls, "math-dense"] } };
+  };
+  const walk = (node: Nodes) => {
+    if ((node.type === "paragraph" || node.type === "listItem") && tall(node)) mark(node);
+    if ("children" in node) node.children.forEach(walk);
+  };
+  return (tree: Root) => walk(tree);
 }
 
 /** Marks a python code block that directly follows a sim block (anywhere in the tree) as that sim's code. */
@@ -100,7 +144,7 @@ function textOf(children: ReactNode): string {
 export default function Markdown({ source }: { source: string }) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkSimCode]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkMathFit, remarkMathDense, remarkSimCode]}
       rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim"] }]]}
       components={{
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,
@@ -114,6 +158,12 @@ export default function Markdown({ source }: { source: string }) {
           }
           return <code className={className} {...rest}>{children}</code>;
         },
+        div: ({ node: _node, className, ...rest }) => className === "math-fit-src"
+          ? <MathFit tex={String((rest as Record<string, unknown>)["data-tex"] ?? "")} />
+          : <div className={className} {...rest} />,
+        span: ({ node: _node, className, ...rest }) => className === "math-fit-src"
+          ? <MathFit tex={String((rest as Record<string, unknown>)["data-tex"] ?? "")} as="span" />
+          : <span className={className} {...rest} />,
         pre: ({ children }) => {
           // unwrap <pre> around a sim block so the Sim renders as a block element
           const only = Children.toArray(children)[0];

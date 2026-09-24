@@ -80,7 +80,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .sidebar ul { list-style: none; padding: 0; margin: 0; }
 .sidebar li { margin: 0.2em 0; }
 @media (max-width: 900px) {
-  .with-sidebar { grid-template-columns: 1fr; }
+  .with-sidebar { grid-template-columns: minmax(0, 1fr); }   /* minmax: a wide formula must not widen the column */
   .sidebar { position: static; }
 }
 .prose { max-width: var(--measure); }
@@ -164,7 +164,14 @@ blockquote.wiki p { margin: 0.4em 0; }
 .unit-body :is(.blk-theorem, .blk-lemma, .blk-proposition, .blk-corollary) { border-color: var(--blk-stmt-border); border-left: 4px solid var(--blk-stmt-line); background: var(--blk-stmt-bg); }
 .unit-body :is(.blk-theorem, .blk-lemma, .blk-proposition, .blk-corollary) > .blk-head .blk-label { color: var(--blk-stmt-line); }
 .unit-body .blk-proof { border: 0; border-left: 2px solid var(--line); border-radius: 0; background: transparent; padding: 0.2em 0 0.2em 1.1em; }
-.unit-body .blk-proof::after { content: "∎"; display: block; text-align: right; color: var(--fg-muted); margin-top: -1.2em; }
+.unit-body .blk-proof[open]::after { content: "∎"; display: block; text-align: right; color: var(--fg-muted); margin-top: -1.2em; }
+/* collapsed blocks (proof, solution): the header is the clickable summary */
+.unit-body details.blk > summary.blk-head { cursor: pointer; list-style: none; user-select: none; margin: 0; }
+.unit-body details.blk > summary.blk-head::-webkit-details-marker { display: none; }
+.unit-body details.blk > summary.blk-head::before { content: ""; align-self: center; border-style: solid; border-color: transparent transparent transparent currentColor; border-width: 0.3em 0 0.3em 0.45em; color: var(--fg-muted); transition: transform 0.15s; }
+.unit-body details.blk[open] > summary.blk-head { margin-bottom: 0.45em; }
+.unit-body details.blk[open] > summary.blk-head::before { transform: rotate(90deg); }
+.unit-body details.blk > summary.blk-head:hover .blk-label { color: var(--accent); }
 .unit-body .blk-example { border: 1px dashed var(--callout-example-border); }
 .unit-body .blk-example > .blk-head .blk-label { color: var(--callout-example-title); }
 .unit-body .blk-solution { margin: 0.9em 0 0; padding: 0.7em 0 0; border: 0; border-top: 1px dashed var(--callout-example-border); border-radius: 0; background: transparent; }
@@ -181,6 +188,10 @@ blockquote.wiki p { margin: 0.4em 0; }
 .unit-body.pages-math p, .unit-body.pages-math li { line-height: 1.75; }
 .unit-body.pages-math .katex-display { margin: 0.9em 0; }
 .unit-body.pages-math .blk .katex-display { margin: 0.7em 0; }
+.unit-body span.math-fit { display: block; }
+/* tall inline math (fractions, sums, integrals): 20% more line spacing (#89) */
+.unit-body .math-dense { line-height: 1.95; }
+.unit-body.pages-math .math-dense { line-height: 2.1; }
 .unit-body .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.2em 0; }
 .unit-body img { max-width: 100%; }
 .unit-list { list-style: none; padding: 0; margin: 0; }
