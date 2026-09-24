@@ -9,6 +9,7 @@ Content is authored as markdown/YAML; the graph is a build artifact; the site is
 ```
 content/
   concepts/<slug>.md                  global concept vocabulary (shared by all universities)
+  methods/<id>.yaml                   method graphs: flowcharts for choosing a method (solution maps)
   roadmaps/<roadmap>.yaml             skill roadmaps: areas -> skills (ds-core is our own)
   universities/<uni>/
     university.yaml                   name, assumed_prior courses, sources
@@ -121,7 +122,10 @@ Units
   a sim block (only blank lines between) is that sim's code: it renders collapsed under the
   sim as "Show Python code". `verified: [interface, content]` in a sim block records the two
   hand checks of #93 (each only after it was actually done); until both are there the sim
-  shows "Needs verification". Lecture notes are written directly into units.
+  shows "Needs verification". A worked solution can be a ```` ```solution-map ```` block
+  (`id`, `method`, `task`, `steps: [{node, answer, text}]`): it steps through the solution beside
+  a method graph from `content/methods/`, and lint checks that the steps walk that graph
+  (rules and specimens: `/design/solution-map`). Lecture notes are written directly into units.
 
 Courses and programs
 - `kind: core | assumed_prior | external`. Assumed-prior courses (MATH 203/204/205) have
