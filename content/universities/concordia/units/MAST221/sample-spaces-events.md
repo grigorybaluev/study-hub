@@ -19,33 +19,49 @@ to combine them.
 
 ### Random experiment
 
-> **Definition.** A **random experiment** is a process or activity which produces a number of possible outcomes. The outcomes cannot be predicted with absolute certainty.
-> Standard examples from the slides and the lecture:
-> - **Example 1 — two coins.** Flip two coins and observe the possible outcomes of heads and tails. (In the notes: *coin flipping*, with $X$ = number of heads.)
-> - **Example 2 — marbles.** Select two marbles *without replacement* from a bag containing 1 white, 1 red and 2 green marbles.
-> - **Example 3 — two dice.** Roll two dice and observe the *sum* of the points on the top faces.
-> - **A die.** One die has $S = \{1, 2, \dots, 6\}$: $6^1 = 6$ outcomes. Two dice: $6^2 = 36$ outcomes.
-> All of the above are considered **experiments**.
+:::definition[Random experiment]
+A **random experiment** is a process or activity which produces a number of possible outcomes. The outcomes cannot be predicted with absolute certainty.
+:::
+
+Standard examples from the slides and the lecture:
+
+- **Example 1 — two coins.** Flip two coins and observe the possible outcomes of heads and tails. (In the notes: *coin flipping*, with $X$ = number of heads.)
+- **Example 2 — marbles.** Select two marbles *without replacement* from a bag containing 1 white, 1 red and 2 green marbles.
+- **Example 3 — two dice.** Roll two dice and observe the *sum* of the points on the top faces.
+- **A die.** One die has $S = \{1, 2, \dots, 6\}$: $6^1 = 6$ outcomes. Two dice: $6^2 = 36$ outcomes.
+
+All of the above are considered **experiments**.
 
 ### Sample space
 
-> **Definition.** The **sample space** $S$ is the set (list) of *all possible outcomes* of the experiment: $$S = \{e_1, e_2, e_3, \dots\}$$ Each $e_i$ is an **element of $S$**, also called a **sample point**.
-> The outcomes listed in a sample space must be
-> - **mutually exclusive** — distinct and non-overlapping: two events having *no elements in common* (in a Venn diagram, two circles that do not touch);
-> - **exhaustive** — including *all* possibilities (together they fill up $S$).
+:::definition[Sample space]
+The **sample space** $S$ is the set (list) of *all possible outcomes* of the experiment:
 
-> **Example — a card.** The experiment is to select a card from an ordinary deck of playing cards (no jokers). The sample space consists of the 52 cards: 13 clubs, 13 spades, 13 hearts and 13 diamonds.
+$$
+S = \{e_1, e_2, e_3, \dots\}
+$$
 
-> **Example — drivers.** The experiment is to select a driver randomly from all drivers in the age category 18–25. The sample space is the set of *all drivers aged 18–25*. (Events for this experiment are on the next page.)
+Each $e_i$ is an **element of $S$**, also called a **sample point**. The outcomes listed in a sample space must be
+- **mutually exclusive** — distinct and non-overlapping: two events having *no elements in common* (in a Venn diagram, two circles that do not touch);
+- **exhaustive** — including *all* possibilities (together they fill up $S$).
+:::
 
-> **Note.** Choosing the sample space is a modelling decision. For two dice you can take $S$ = the 36 ordered pairs $(i,j)$, or $S$ = the 11 possible sums $\{2,\dots,12\}$. Both are valid sample spaces, but only the first one has *equally likely* outcomes — which is what makes the counting formula of Unit 2 work.
+:::example[a card]
+The experiment is to select a card from an ordinary deck of playing cards (no jokers). The sample space consists of the 52 cards: 13 clubs, 13 spades, 13 hearts and 13 diamonds.
+:::
 
-> **Key insight.** Write S so that its outcomes are mutually exclusive (no overlap) and exhaustive (nothing missing). Whenever you can, choose S so that its outcomes are equally likely — e.g. ordered pairs for two dice, not sums.
+:::example[drivers]
+The experiment is to select a driver randomly from all drivers in the age category 18–25. The sample space is the set of *all drivers aged 18–25*. (Events for this experiment are on the next page.)
+:::
 
-**Equations**
+:::note
+Choosing the sample space is a modelling decision. For two dice you can take $S$ = the 36 ordered pairs $(i,j)$, or $S$ = the 11 possible sums $\{2,\dots,12\}$. Both are valid sample spaces, but only the first one has *equally likely* outcomes — which is what makes the counting formula of Unit 2 work.
+:::
 
+:::equations
 - *Sample space*: $S = \{e_1, e_2, e_3, \dots\}$ — Set of all possible outcomes; each eᵢ is a sample point.
 - *Number of outcomes for k dice*: $n(S) = 6^k \qquad (6^1 = 6,\ 6^2 = 36)$ — Each die has 6 faces; the outcomes multiply.
+:::
 
 ```sim
 id: sample-space-tree
@@ -94,26 +110,42 @@ tree('HT', 2, ax)          # try tree(range(1, 7), 2, ax) for two dice
 plt.show()
 ```
 
+:::insight
+Write $S$ so that its outcomes are mutually exclusive (no overlap) and exhaustive (nothing missing). Whenever you can, choose S so that its outcomes are equally likely — e.g. ordered pairs for two dice, not sums.
+:::
+
 ## Events — Simple & Compound
 
 ### Events
 
-> **Definition.** An **event** is a subset of the sample space. An event can be classified as
-> - a **simple event** — a subset which contains *exactly one* element of the sample space; or
-> - a **compound event** — a subset of *two or more* elements.
+:::definition[Event]
+An **event** is a subset of the sample space. An event can be classified as
+- a **simple event** — a subset which contains *exactly one* element of the sample space; or
+- a **compound event** — a subset of *two or more* elements.
+:::
 
-> **Example — a card.** Select a card from an ordinary 52-card deck.
-> - A **simple** event: the selected card is the two of clubs.
-> - A **compound** event: the selected card is red. There are 26 red cards, so there are 26 simple events comprising this compound event.
+:::example[a card]
+Select a card from an ordinary 52-card deck.
+- A **simple** event: the selected card is the two of clubs.
+- A **compound** event: the selected card is red. There are 26 red cards, so there are 26 simple events comprising this compound event.
+:::
 
-> **Example 2 — drivers.** Select a driver randomly from all drivers aged 18–25. Identify the sample space, a simple event and a compound event.
-> **Solution.** The sample space is the set of all drivers aged 18–25. A simple event is “Joe Smith”. A compound event is “all drivers age 23”.
+::::example[drivers]
+Select a driver randomly from all drivers aged 18–25. Identify the sample space, a simple event and a compound event.
 
-### Example — describe the sample space for rolling two dice
+:::solution
+The sample space is the set of all drivers aged 18–25. A simple event is “Joe Smith”. A compound event is “all drivers age 23”.
+:::
+::::
 
-> **Example.**
-> You can use a **tree diagram** to determine the sample space. There are six outcomes on the first die, $\{1,2,3,4,5,6\}$, represented by six branches starting from the “tree trunk”. For *each* of these there are six outcomes for the second die, represented by six further branches. Therefore there are $6 \times 6 = 36$ outcomes.
-> Sample space of all possible outcomes when two dice are tossed:
+### The sample space for rolling two dice
+
+::::example[Describe the sample space for rolling two dice]
+List every outcome of rolling two dice.
+
+:::solution
+You can use a **tree diagram** to determine the sample space. There are six outcomes on the first die, $\{1,2,3,4,5,6\}$, represented by six branches starting from the “tree trunk”. For *each* of these there are six outcomes for the second die, represented by six further branches. Therefore there are $6 \times 6 = 36$ outcomes.
+Sample space of all possible outcomes when two dice are tossed:
 
 | (1,1) | (1,2) | (1,3) | (1,4) | (1,5) | (1,6) |
 |---|---|---|---|---|---|
@@ -126,13 +158,13 @@ plt.show()
 The pair $(i,j)$ means $i$ on the *first* die and $j$ on the *second*. So $(1,6)$ and $(6,1)$ are **different** outcomes — this matters when we count in the next unit.
 
 In this sample space, “the first die shows 3” is a compound event with 6 elements (row 3 of the table); “the sum is 7” is a compound event with 6 elements (the anti-diagonal); “double six” $= \{(6,6)\}$ is a simple event.
+:::
+::::
 
-> **Key insight.** Events are sets, so everything you know about sets (subsets, unions, intersections, complements) applies to events. A simple event is a single outcome; the probability of any event will be built up from the simple events it contains.
-
-**Equations**
-
+:::equations
 - *Event as a subset*: $E \subseteq S,\qquad \text{simple: } |E| = 1,\quad \text{compound: } |E| \ge 2$ — An event is a subset of the sample space.
 - *Multiplication (tree) principle*: $n(S) = 6 \cdot 6 = 36 \quad\text{for two dice}$ — Six branches for the first die, six more for each of them.
+:::
 
 ```sim
 id: dice-sum-grid
@@ -158,6 +190,10 @@ print('first die is 3:', first_is_3)
 print('sum is 7      :', sum_is_7)
 print('double six    :', double_six)
 ```
+
+:::insight
+Events are sets, so everything you know about sets (subsets, unions, intersections, complements) applies to events. A simple event is a single outcome; the probability of any event will be built up from the simple events it contains.
+:::
 
 ## Further reading
 

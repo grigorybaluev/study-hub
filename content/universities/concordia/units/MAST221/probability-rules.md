@@ -29,39 +29,67 @@ We first consider the theoretical approach.
 
 ### The equally likely assumption
 
-> **Definition.**
-> The **equally likely assumption** means that all simple events have the same probability. If there are $n$ simple events, each has probability $1/n$. This is a **theoretical probability**.
-> The **probability of an event** is the sum of the probabilities of the simple events that constitute the event. Under the equally likely assumption, the probability of a compound event is the number of elements in the event divided by the number of elements of the sample space:
->  $$P(E) = \frac{n(E)}{n(S)}$$
-> (In the notes: $P(A) = \dfrac{n(m)}{n(S)}$, with $n(m)$ the number of favourable outcomes.)
+:::definition[Equally likely outcomes]
+The **equally likely assumption** means that all simple events have the same probability. If there are $n$ simple events, each has probability $1/n$. This is a **theoretical probability**.
+:::
 
-> **Example — sum of 7.** Find the probability of a sum of 7 when two dice are rolled.
-> **Solution.** Look back at the 36-outcome sample space: $n(S) = 36$. Six of these 36 possibilities give a sum of 7: $$E = \{(1,6),\ (6,1),\ (2,5),\ (5,2),\ (4,3),\ (3,4)\}$$ The outcome $(1,6)$ is different from $(6,1)$: $(1,6)$ means a one on the first die and a six on the second, while $(6,1)$ is a six on the first and a one on the second. The answer is
->  $$P(E) = \frac{n(E)}{n(S)} = \frac{6}{36} = \frac{1}{6}.$$
+:::definition[Probability of an event]
+The **probability of an event** is the sum of the probabilities of the simple events that constitute the event. Under the equally likely assumption, the probability of a compound event is the number of elements in the event divided by the number of elements of the sample space:
+
+$$
+P(E) = \frac{n(E)}{n(S)}
+$$
+
+(In the notes: $P(A) = \dfrac{n(m)}{n(S)}$, with $n(m)$ the number of favourable outcomes.)
+:::
 
 ### Steps for finding the probability of an event $E$
 
-> **Steps.**
-> **Step 1.** Set up an appropriate sample space $S$ for the experiment.
-> **Step 2.** Assign acceptable probabilities to the simple events in $S$ (theoretically or empirically).
-> **Step 3.** To obtain the probability of an arbitrary event $E$, *add* the probabilities of the simple events in $E$.
+:::steps[Finding P(E)]
+1. Set up an appropriate sample space $S$ for the experiment.
+2. Assign acceptable probabilities to the simple events in $S$ (theoretically or empirically).
+3. To obtain the probability of an arbitrary event $E$, *add* the probabilities of the simple events in $E$.
+:::
 
-> **Example — at least one head.** Toss two coins. Find the probability of at least one head appearing.
-> **Solution.** “At least one head” is interpreted as “one head or two heads”. This is a theoretical probability.
-> - **Step 1:** the sample space is $\{HH, HT, TH, TT\}$ — four possible outcomes.
-> - **Step 2:** how many outcomes are in the event “at least one head”? Three: $\{HH, HT, TH\}$.
-> - **Step 3:** $P(E) = \dfrac{n(E)}{n(S)} = \dfrac{3}{4} = 0.75 = 75\%$.
+::::example[sum of 7]
+Find the probability of a sum of 7 when two dice are rolled.
 
-> **Note.** Step 3 is why the sample space must be chosen with equally likely outcomes: “add the probabilities of the simple events” only collapses to “count and divide” when each simple event has the same probability $1/n(S)$.
+:::solution
+Look back at the 36-outcome sample space: $n(S) = 36$. Six of these 36 possibilities give a sum of 7:
 
-> **Key insight.** Theoretical probability = counting: P(E) = n(E)/n(S), valid only when the simple events of S are equally likely. Always list S first, then count the outcomes in E.
+$$
+E = \{(1,6),\ (6,1),\ (2,5),\ (5,2),\ (4,3),\ (3,4)\}
+$$
 
-**Equations**
+The outcome $(1,6)$ is different from $(6,1)$: $(1,6)$ means a one on the first die and a six on the second, while $(6,1)$ is a six on the first and a one on the second. The answer is
 
+$$
+P(E) = \frac{n(E)}{n(S)} = \frac{6}{36} = \frac{1}{6}.
+$$
+:::
+::::
+
+::::example[at least one head]
+Toss two coins. Find the probability of at least one head appearing.
+
+:::solution
+“At least one head” is interpreted as “one head or two heads”. This is a theoretical probability.
+- **Step 1:** the sample space is $\{HH, HT, TH, TT\}$ — four possible outcomes.
+- **Step 2:** how many outcomes are in the event “at least one head”? Three: $\{HH, HT, TH\}$.
+- **Step 3:** $P(E) = \dfrac{n(E)}{n(S)} = \dfrac{3}{4} = 0.75 = 75\%$.
+:::
+::::
+
+:::note
+Step 3 is why the sample space must be chosen with equally likely outcomes: “add the probabilities of the simple events” only collapses to “count and divide” when each simple event has the same probability $1/n(S)$.
+:::
+
+:::equations
 - *Equally likely simple events*: $P(e_i) = \frac{1}{n} \quad (i = 1,\dots,n)$ — n = n(S) simple events, each with the same probability.
 - *Probability of an event*: $P(E) = \sum_{e_i \in E} P(e_i) = \frac{n(E)}{n(S)}$ — Sum of the simple events in E; equals the counting ratio under the equally likely assumption.
 - *Sum of 7 with two dice*: $P(\text{sum}=7) = \frac{6}{36} = \frac{1}{6}$ — (1,6),(6,1),(2,5),(5,2),(3,4),(4,3).
 - *At least one head, two coins*: $P(\ge 1\ H) = \frac{3}{4} = 0.75$ — {HH, HT, TH} out of {HH, HT, TH, TT}.
+:::
 
 ```sim
 id: coin-event-grid
@@ -89,17 +117,28 @@ coins = ['HH', 'HT', 'TH', 'TT']
 print('P(at least one H) =', Fraction(sum('H' in c for c in coins), len(coins)))  # 3/4
 ```
 
+:::insight
+Theoretical probability = counting: $P(E) = n(E)/n(S)$, valid only when the simple events of $S$ are equally likely. Always list $S$ first, then count the outcomes in $E$.
+:::
+
 ## Empirical Probability & Simulation
 
 ### Relative frequency
 
-> **Definition.**
-> If we conduct an experiment $n$ times and event $E$ occurs with frequency $f(E)$, then the ratio
->  $$\frac{f(E)}{n}$$
-> is called the **relative frequency** or **approximate empirical probability** of the occurrence of event $E$ in $n$ trials.
-> Empirical probability relies upon the *long-run* relative frequency of an event.
-> - Out of the last 1000 statistics students, 150 received an A. Thus the empirical probability that a student receives an A is $150/1000 = 0.15$.
-> - The batting average of a major-league ball player can be interpreted as the probability that he gets a hit on a given time at bat.
+:::definition[Relative frequency]
+If we conduct an experiment $n$ times and event $E$ occurs with frequency $f(E)$, then the ratio
+
+$$
+\frac{f(E)}{n}
+$$
+
+is called the **relative frequency** or **approximate empirical probability** of the occurrence of event $E$ in $n$ trials.
+:::
+
+Empirical probability relies upon the *long-run* relative frequency of an event.
+
+- Out of the last 1000 statistics students, 150 received an A. Thus the empirical probability that a student receives an A is $150/1000 = 0.15$.
+- The batting average of a major-league ball player can be interpreted as the probability that he gets a hit on a given time at bat.
 
 ### Theoretical versus empirical probability
 
@@ -109,26 +148,34 @@ The theoretical probability of an event should be close to the **experimental pr
 
 ### Simulation and empirical probabilities
 
-> **Example.**
-> We can use the random-number feature of a graphing calculator to simulate 100 rolls of two dice. Determine the empirical probabilities of the following events and compare them with the theoretical probabilities:
-> - (A) $E_1$ = a sum of 7 turns up;
-> - (B) $E_2$ = a sum of 11 turns up.
-> **Solution.** A graphing calculator can select a random integer from 1 to 6; each of the six integers is equally likely. By selecting a random integer from 1 to 6 and adding it to a second random integer from 1 to 6, we simulate rolling two dice and recording the sum:
-> `randInt(1,6)+randInt(1,6)` → one roll (e.g. 6).   `randInt(1,6,100)+randInt(1,6,100)→L1` → 100 rolls stored in list $L_1$: `{6 6 3 12 9 6 6 …}`
-> Plotting a histogram of $L_1$, an outcome of 7 is the highest bar; it occurs 20 times out of 100. Therefore
-> - empirical $P(E_1) = 20/100 = 0.20$; theoretical $P(E_1) = 6/36 \approx 0.167$;
-> - empirical $P(E_2) = 6/100 = 0.06$; theoretical $P(E_2) = 2/36 \approx 0.056$.
-> **Note:** if you simulate this experiment on your own calculator, you should *not* expect to get the same empirical probabilities.
+::::example[Simulating 100 rolls of two dice]
+We can use the random-number feature of a graphing calculator to simulate 100 rolls of two dice. Determine the empirical probabilities of the following events and compare them with the theoretical probabilities:
+- (A) $E_1$ = a sum of 7 turns up;
+- (B) $E_2$ = a sum of 11 turns up.
 
-> **Note.** Run the simulation below several times at $n = 100$ and watch the empirical values jump around the theoretical ones; then push $n$ to a few thousand and watch them settle. That settling is the “long-run” in “long-run relative frequency”.
+:::solution
+A graphing calculator can select a random integer from 1 to 6; each of the six integers is equally likely. By selecting a random integer from 1 to 6 and adding it to a second random integer from 1 to 6, we simulate rolling two dice and recording the sum:
 
-> **Key insight.** Empirical probability = relative frequency f(E)/n from real (or simulated) trials. It fluctuates from run to run, but as n grows it approaches the theoretical probability — which is what the theoretical number means in the first place.
+`randInt(1,6)+randInt(1,6)` → one roll (e.g. 6).   `randInt(1,6,100)+randInt(1,6,100)→L1` → 100 rolls stored in list $L_1$: `{6 6 3 12 9 6 6 …}`
 
-**Equations**
+Plotting a histogram of $L_1$, an outcome of 7 is the highest bar; it occurs 20 times out of 100. Therefore
 
+- empirical $P(E_1) = 20/100 = 0.20$; theoretical $P(E_1) = 6/36 \approx 0.167$;
+- empirical $P(E_2) = 6/100 = 0.06$; theoretical $P(E_2) = 2/36 \approx 0.056$.
+
+If you simulate this experiment on your own calculator, you should *not* expect to get the same empirical probabilities.
+:::
+::::
+
+:::note
+Run the simulation below several times at $n = 100$ and watch the empirical values jump around the theoretical ones; then push $n$ to a few thousand and watch them settle. That settling is the “long-run” in “long-run relative frequency”.
+:::
+
+:::equations
 - *Relative frequency*: $P(E) \approx \frac{f(E)}{n}$ — f(E) = number of trials in which E occurred, out of n trials.
 - *Long-run interpretation*: $\frac{f(E)}{n} \;\longrightarrow\; P(E) \quad \text{as } n \to \infty$ — Relative frequency approaches the theoretical probability for many repetitions.
-- *The 100-roll simulation*: $\begin{gathered} \hat P(E_1) = \tfrac{20}{100} = 0.20 \quad\text{vs}\quad \tfrac{6}{36} \approx 0.167 \\[4pt] \hat P(E_2) = \tfrac{6}{100} = 0.06 \quad\text{vs}\quad \tfrac{2}{36} \approx 0.056 \end{gathered}$ — One particular run from the slides; yours will differ.
+- *The 100-roll simulation*: $\hat P(E_1) = \tfrac{20}{100} = 0.20 \quad\text{vs}\quad \tfrac{6}{36} \approx 0.167$ and $\hat P(E_2) = \tfrac{6}{100} = 0.06 \quad\text{vs}\quad \tfrac{2}{36} \approx 0.056$ — One particular run from the slides; yours will differ.
+:::
 
 ```sim
 id: empirical-dice
@@ -158,39 +205,66 @@ for n in (100, 1000, 100_000):
           f'P(E2=sum 11) ~ {p11:.3f} (theory {2/36:.3f})')
 ```
 
+:::insight
+Empirical probability = relative frequency $f(E)/n$ from real (or simulated) trials. It fluctuates from run to run, but as $n$ grows it approaches the theoretical probability — which is what the theoretical number means in the first place.
+:::
+
 ## Properties of Probability, Complements & ∅
 
 ### Some properties of probability
 
-> **Definition.**  $$0 \le P(E) \le 1$$ $$P(E_1) + P(E_2) + P(E_3) + \dots = 1$$
-> In the notes, for an event $A$: $\;P(A) \ge 0$, $\;0 \le P(A) \le 1$, and for the simple events $A_1, \dots, A_n$ of $S$: $P(A_1) + P(A_2) + \dots + P(A_n) = 1$.
-> - The **first property** states that the probability of any event will always be a number between 0 and 1 (inclusive). If $P(E) = 0$, we say that $E$ is an **impossible event**. If $P(E) = 1$, we call $E$ a **certain event**. (Some have said that there are two certainties in life: death and taxes.)
-> - The **second property** states that the sum of the probabilities of all simple events of the sample space must equal 1.
+:::proposition[Properties of probability]
+$$
+0 \le P(E) \le 1
+\qquad
+P(E_1) + P(E_2) + P(E_3) + \dots = 1
+$$
+
+In the notes, for an event $A$: $\;P(A) \ge 0$, $\;0 \le P(A) \le 1$, and for the simple events $A_1, \dots, A_n$ of $S$: $P(A_1) + P(A_2) + \dots + P(A_n) = 1$.
+- The **first property** states that the probability of any event will always be a number between 0 and 1 (inclusive). If $P(E) = 0$, we say that $E$ is an **impossible event**. If $P(E) = 1$, we call $E$ a **certain event**. (Some have said that there are two certainties in life: death and taxes.)
+- The **second property** states that the sum of the probabilities of all simple events of the sample space must equal 1.
+:::
 
 ### Consequence 1 — complements
 
-> **Example.**
-> Let $A'$ denote the complement of $A$ (everything in $S$ that is not in $A$). Since $A$ and $A'$ are mutually exclusive and together fill $S$,
->  $$S = A \cup A' \;\Rightarrow\; P(S) = P(A \cup A') \;\Rightarrow\; P(A) + P(A') = 1 .$$
-> So $P(A') = 1 - P(A)$ — often the fastest way to compute “at least one …” probabilities.
+::::corollary[Complement rule]
+Let $A'$ denote the complement of $A$ (everything in $S$ that is not in $A$). Then $P(A') = 1 - P(A)$ — often the fastest way to compute “at least one …” probabilities.
+
+:::proof
+Since $A$ and $A'$ are mutually exclusive and together fill $S$,
+
+$$
+S = A \cup A' \;\Rightarrow\; P(S) = P(A \cup A') \;\Rightarrow\; P(A) + P(A') = 1 .
+$$
+:::
+::::
 
 ### Consequence 2 — the empty event
 
-> **Example.**
-> $S = S \cup \varnothing$, and $S$, $\varnothing$ are mutually exclusive, so
->  $$P(S) = P(S) + P(\varnothing).$$
-> But $P(S) = 1$, hence $1 = 1 + P(\varnothing) \;\Rightarrow\; P(\varnothing) = 0$.
+::::corollary[The empty event]
+$P(\varnothing) = 0$.
 
-> **Note.** These two derivations use only “probabilities of mutually exclusive events add” — the additivity rule that the counting formula $P(E) = n(E)/n(S)$ makes obvious, and which the next unit turns into the general addition rule.
+:::proof
+$S = S \cup \varnothing$, and $S$, $\varnothing$ are mutually exclusive, so
 
-> **Key insight.** Probabilities live in [0, 1], the whole sample space has probability 1, and probabilities of mutually exclusive events add. Everything else — P(A′) = 1 − P(A), P(∅) = 0, the addition rule — is derived from these.
+$$
+P(S) = P(S) + P(\varnothing).
+$$
 
-**Equations**
+But $P(S) = 1$, hence $1 = 1 + P(\varnothing) \;\Rightarrow\; P(\varnothing) = 0$.
+:::
+::::
 
+:::note
+These two derivations use only “probabilities of mutually exclusive events add” — the additivity rule that the counting formula $P(E) = n(E)/n(S)$ makes obvious, and which the next unit turns into the general addition rule.
+:::
+
+:::equations
 - *Range*: $0 \le P(E) \le 1$ — P(E) = 0: impossible event; P(E) = 1: certain event.
 - *Total probability*: $\sum_i P(E_i) = 1 \quad\text{over all simple events } E_i \text{ of } S$ — Equivalent to P(S) = 1.
 - *Complement*: $S = A \cup A' \;\Rightarrow\; P(A) + P(A') = 1$ — A and A′ are mutually exclusive and exhaustive.
 - *Empty event*: $S = S \cup \varnothing \;\Rightarrow\; P(S) = P(S) + P(\varnothing) \;\Rightarrow\; P(\varnothing) = 0$ — Uses P(S) = 1.
+:::
 
 ```sim
 id: complement-rule
@@ -234,6 +308,10 @@ plt.title("Every bar has total length 1: P(A) + P(A') = 1")
 plt.show()
 ```
 
+:::insight
+Probabilities live in $[0, 1]$, the whole sample space has probability 1, and probabilities of mutually exclusive events add. Everything else — $P(A') = 1 - P(A)$, $P(\varnothing) = 0$, the addition rule — is derived from these.
+:::
+
 ## Counting with Venn Diagrams
 
 ### Four regions
@@ -249,29 +327,46 @@ Two events $A$, $B$ in a sample space $S$ split $S$ into **four mutually exclusi
 
 Because the regions do not overlap, counts simply add up:
 
-> **Definition.**  $$n(A) = n(A \cap B') + n(A \cap B)$$ $$n(B) = n(A' \cap B) + n(A \cap B)$$ $$\begin{gathered} n(A \cup B) = n(A \cap B') + n(A \cap B) + n(A' \cap B) \\[4pt] = n(A) + n(B) - n(A \cap B) \end{gathered}$$ $$n(A' \cap B') = n(S) - n(A \cup B)$$
-> The third line is the key one: adding $n(A)$ and $n(B)$ counts the overlap $A \cap B$ *twice*, so it is subtracted once.
+:::proposition[Counting with the four regions]
+$$
+n(A) = n(A \cap B') + n(A \cap B)
+\qquad
+n(B) = n(A' \cap B) + n(A \cap B)
+$$
+
+$$
+n(A \cup B) = n(A \cap B') + n(A \cap B) + n(A' \cap B) = n(A) + n(B) - n(A \cap B)
+$$
+
+$$
+n(A' \cap B') = n(S) - n(A \cup B)
+$$
+
+The third line is the key one: adding $n(A)$ and $n(B)$ counts the overlap $A \cap B$ *twice*, so it is subtracted once.
+:::
 
 ### Mutually exclusive events
 
 If $A$ and $B$ are mutually exclusive (the circles do not touch), then $n(A \cap B) = 0$ and
- $$n(A \cup B) = n(A) + n(B).$$
+
+$$
+n(A \cup B) = n(A) + n(B).
+$$
 
 ### Two set identities (exercise 3 in the notes)
 
-> **Example.**
-> - **3(a)** $\;(A \cap B) \cup (A \cap B') = A$ — the two halves of $A$ (inside $B$ and outside $B$) reassemble $A$.
-> - **3(c)** $\;A \cup (A' \cap B) = A \cup B$ — $A$ together with “the part of $B$ not already in $A$” is exactly $A \cup B$. Moreover $A$ and $A' \cap B$ are *mutually exclusive*, which is what makes this identity useful for probabilities on the next page.
+:::proposition[Two set identities]
+- **3(a)** $\;(A \cap B) \cup (A \cap B') = A$ — the two halves of $A$ (inside $B$ and outside $B$) reassemble $A$.
+- **3(c)** $\;A \cup (A' \cap B) = A \cup B$ — $A$ together with “the part of $B$ not already in $A$” is exactly $A \cup B$. Moreover $A$ and $A' \cap B$ are *mutually exclusive*, which is what makes this identity useful for probabilities on the next page.
+:::
 
-> **Key insight.** Split S into the four disjoint regions and everything becomes bookkeeping. The overlap A∩B is inside both n(A) and n(B), so n(A∪B) = n(A) + n(B) − n(A∩B); when A and B are mutually exclusive the correction term is 0.
-
-**Equations**
-
-- *Count of A, of B*: $\begin{gathered} n(A) = n(A\cap B') + n(A\cap B) \\[4pt] n(B) = n(A'\cap B) + n(A\cap B) \end{gathered}$ — Each set is the union of its two disjoint pieces.
+:::equations
+- *Count of A, of B*: $n(A) = n(A\cap B') + n(A\cap B)$ and $n(B) = n(A'\cap B) + n(A\cap B)$ — Each set is the union of its two disjoint pieces.
 - *Count of the union*: $n(A\cup B) = n(A) + n(B) - n(A\cap B)$ — Overlap counted twice → subtract once.
 - *Neither*: $n(A'\cap B') = n(S) - n(A\cup B)$ — Everything outside both circles.
 - *Mutually exclusive*: $A\cap B = \varnothing \;\Rightarrow\; n(A\cup B) = n(A) + n(B)$ — No overlap to correct for.
-- *Identities 3(a), 3(c)*: $\begin{gathered} (A\cap B)\cup(A\cap B') = A \\[4pt] A\cup(A'\cap B) = A\cup B \end{gathered}$ — Used in the proofs on the next page.
+- *Identities 3(a), 3(c)*: $(A\cap B)\cup(A\cap B') = A$ and $A\cup(A'\cap B) = A\cup B$ — Used in the proofs of the next part.
+:::
 
 ```sim
 id: venn-counts
@@ -305,41 +400,84 @@ assert A | ((Sset - A) & B) == A | B
 print('identities 3(a), 3(c) hold')
 ```
 
+:::insight
+Split $S$ into the four disjoint regions and everything becomes bookkeeping. The overlap $A \cap B$ is inside both $n(A)$ and $n(B)$, so $n(A \cup B) = n(A) + n(B) - n(A \cap B)$; when $A$ and $B$ are mutually exclusive the correction term is 0.
+:::
+
 ## The Addition Rule & Monotonicity
 
 ### From counts to probabilities
 
 Every counting identity becomes a probability identity after dividing by $n(S)$, because $P(E) = n(E)/n(S)$. Start from identity 3(c), $A \cup (A' \cap B) = A \cup B$, where $A$ and $A' \cap B$ are mutually exclusive:
- $$\begin{gathered} \frac{n\big(A \cup (A' \cap B)\big)}{n(S)} = \frac{n(A \cup B)}{n(S)} \\[8pt] \Rightarrow\quad \frac{n(A)}{n(S)} + \frac{n(A' \cap B)}{n(S)} = \frac{n(A \cup B)}{n(S)} \end{gathered}$$
 
-> **Definition.**  $$P(A) + P(A' \cap B) = P(A \cup B)$$
+$$
+\frac{n\big(A \cup (A' \cap B)\big)}{n(S)} = \frac{n(A \cup B)}{n(S)}
+\quad\Longrightarrow\quad
+\frac{n(A)}{n(S)} + \frac{n(A' \cap B)}{n(S)} = \frac{n(A \cup B)}{n(S)}
+$$
+
+:::lemma
+$$
+P(A) + P(A' \cap B) = P(A \cup B)
+$$
+:::
 
 ### Theorem 1 — monotonicity
 
-> **Definition.**
-> If $A$ and $B$ are two events in a sample space $S$ and $A \subset B$, then $P(A) \le P(B)$.
+::::theorem[Monotonicity]
+If $A$ and $B$ are two events in a sample space $S$ and $A \subset B$, then $P(A) \le P(B)$.
 
-> **Example — Proof.** Since $A \subset B$, we can write $B = A \cup (A' \cap B)$ (the small circle $A$ inside the big circle $B$, plus the ring around it), and the two pieces are mutually exclusive. Therefore $$P(B) = P\big(A \cup (A' \cap B)\big) = P(A) + P(A' \cap B).$$ Since $P(A' \cap B) \ge 0$ (probabilities are never negative), $P(B) \ge P(A)$. $\blacksquare$
+:::proof
+Since $A \subset B$, we can write $B = A \cup (A' \cap B)$ (the small circle $A$ inside the big circle $B$, plus the ring around it), and the two pieces are mutually exclusive. Therefore
+
+$$
+P(B) = P\big(A \cup (A' \cap B)\big) = P(A) + P(A' \cap B).
+$$
+
+Since $P(A' \cap B) \ge 0$ (probabilities are never negative), $P(B) \ge P(A)$.
+:::
+::::
 
 ### Theorem 2 — the addition rule
 
-> **Definition.**  $$P(A \cup B) = P(A) + P(B) - P(A \cap B)$$
+::::theorem[Addition rule]
+$$
+P(A \cup B) = P(A) + P(B) - P(A \cap B)
+$$
 
-> **Example — Proof (via the three regions).** From the counting page, $$n(A \cup B) = n(A \cap B') + n(A \cap B) + n(A' \cap B).$$ Divide by $n(S)$: $$\begin{gathered} \frac{n(A \cup B)}{n(S)} = \frac{n(A \cap B')}{n(S)} + \frac{n(A \cap B)}{n(S)} + \frac{n(A' \cap B)}{n(S)} \\[8pt] \Rightarrow\quad P(A \cup B) = P(A \cap B') + P(A \cap B) + P(A' \cap B). \end{gathered}$$ Now use $P(A \cap B') = P(A) - P(A \cap B)$ and $P(A' \cap B) = P(B) - P(A \cap B)$ (each from identity 3(a) applied to $A$ and to $B$): $$\begin{gathered} P(A \cup B) = \big[P(A) - P(A \cap B)\big] + P(A \cap B) + \big[P(B) - P(A \cap B)\big] \\[6pt] = P(A) + P(B) - P(A \cap B). \quad\blacksquare \end{gathered}$$
+:::proof
+*Via the three regions.* From the counting part,
 
-> **Example — Proof (via identity 3(c)).** $P(A \cup B) = P(A) + P(A' \cap B)$ from the top of the page, and $P(A' \cap B) = P(B) - P(A \cap B)$; substituting gives the same formula.
-> **Special case.** If $A$ and $B$ are mutually exclusive, $P(A \cap B) = 0$ and the rule reduces to $P(A \cup B) = P(A) + P(B)$ — the additivity we used in Unit 2.
+$$
+n(A \cup B) = n(A \cap B') + n(A \cap B) + n(A' \cap B).
+$$
 
-> **Key insight.** P(A ∪ B) = P(A) + P(B) − P(A ∩ B): "or" means add, but subtract the overlap so it is not counted twice. Both proofs in the lecture are just the Venn-region counts divided by n(S).
+Divide by $n(S)$:
 
-> **Caution.** P(A ∪ B) = P(A) + P(B) is only true when A and B are mutually exclusive. For overlapping events you must subtract P(A ∩ B) — forgetting this can even give a "probability" greater than 1.
+$$
+P(A \cup B) = P(A \cap B') + P(A \cap B) + P(A' \cap B).
+$$
 
-**Equations**
+Now use $P(A \cap B') = P(A) - P(A \cap B)$ and $P(A' \cap B) = P(B) - P(A \cap B)$ (each from identity 3(a) applied to $A$ and to $B$):
 
+$$
+P(A \cup B) = \big[P(A) - P(A \cap B)\big] + P(A \cap B) + \big[P(B) - P(A \cap B)\big] = P(A) + P(B) - P(A \cap B).
+$$
+
+*Via identity 3(c).* $P(A \cup B) = P(A) + P(A' \cap B)$ by the lemma above, and $P(A' \cap B) = P(B) - P(A \cap B)$; substituting gives the same formula.
+:::
+::::
+
+:::corollary[Mutually exclusive events]
+If $A$ and $B$ are mutually exclusive, $P(A \cap B) = 0$ and the rule reduces to $P(A \cup B) = P(A) + P(B)$ — the additivity used above.
+:::
+
+:::equations
 - *Disjoint decomposition of a union*: $P(A) + P(A'\cap B) = P(A\cup B)$ — A and A′∩B are mutually exclusive and their union is A∪B (identity 3(c)).
 - *Theorem 1 (monotonicity)*: $A \subset B \;\Rightarrow\; P(A) \le P(B)$ — Because P(B) = P(A) + P(A′∩B) and P(A′∩B) ≥ 0.
 - *Theorem 2 (addition rule)*: $P(A\cup B) = P(A) + P(B) - P(A\cap B)$ — General rule for the probability of "A or B".
 - *Mutually exclusive case*: $A\cap B = \varnothing \;\Rightarrow\; P(A\cup B) = P(A) + P(B)$ — Overlap term vanishes.
+:::
 
 ```sim
 id: prob-union
@@ -371,27 +509,65 @@ print('P(A)+P(A\'∩B)    =', P(A) + P(B - A))               # disjoint decompos
 print('C ⊂ D:', C <= D, ' P(C) =', P(C), '<= P(D) =', P(D))  # Theorem 1
 ```
 
+:::caution
+$P(A \cup B) = P(A) + P(B)$ is only true when $A$ and $B$ are mutually exclusive. For overlapping events you must subtract $P(A \cap B)$ — forgetting this can even give a "probability" greater than 1.
+:::
+
+
+:::insight
+$P(A \cup B) = P(A) + P(B) - P(A \cap B)$: "or" means add, but subtract the overlap so it is not counted twice. Both proofs in the lecture are just the Venn-region counts divided by $n(S)$.
+:::
+
 ## Inclusion–Exclusion for Three Events
 
 ### The formula
 
-> **Definition.**
-> If $A$, $B$ and $C$ are three events in a sample space $S$, then
->  $$\begin{gathered} P(A \cup B \cup C) = P(A) + P(B) + P(C) \\[4pt] - P(A \cap B) - P(A \cap C) - P(B \cap C) \\[4pt] + P(A \cap B \cap C). \end{gathered}$$
-> Add the singles, subtract the pairs (each pairwise overlap was counted twice), add back the triple (it was added three times, then subtracted three times, so it has to go back in once).
+::::theorem[Inclusion–exclusion for three events]
+If $A$, $B$ and $C$ are three events in a sample space $S$, then
 
-### Derivation (as in the lecture)
+$$
+\begin{aligned}
+P(A \cup B \cup C) &= P(A) + P(B) + P(C) \\
+  &\quad - P(A \cap B) - P(A \cap C) - P(B \cap C) \\
+  &\quad + P(A \cap B \cap C).
+\end{aligned}
+$$
 
-> **Example.**
-> **Step 1.** Treat $B \cup C$ as a single event and apply the two-event addition rule:
->  $$P\big[A \cup (B \cup C)\big] = P(A) + P(B \cup C) - P\big[A \cap (B \cup C)\big].$$
-> **Step 2.** Expand $P(B \cup C)$ with the addition rule again:
->  $$= P(A) + P(B) + P(C) - P(B \cap C) - P\big[A \cap (B \cup C)\big].$$
-> **Step 3.** Distribute the intersection over the union, $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$, and apply the addition rule to *these* two events:
->  $$\begin{gathered} P\big[(A \cap B) \cup (A \cap C)\big] = P(A \cap B) + P(A \cap C) - P\big((A \cap B) \cap (A \cap C)\big) \\[6pt] = P(A \cap B) + P(A \cap C) - P(A \cap B \cap C), \end{gathered}$$
-> because $(A \cap B) \cap (A \cap C) = A \cap B \cap C$.
-> **Step 4.** Substitute Step 3 into Step 2:
->  $$\begin{gathered} P(A \cup B \cup C) = P(A) + P(B) + P(C) - P(B \cap C) \\[4pt] - \big[P(A \cap B) + P(A \cap C) - P(A \cap B \cap C)\big] \\[8pt] = P(A) + P(B) + P(C) - P(A \cap B) - P(A \cap C) - P(B \cap C) + P(A \cap B \cap C). \quad\blacksquare \end{gathered}$$
+Add the singles, subtract the pairs (each pairwise overlap was counted twice), add back the triple (it was added three times, then subtracted three times, so it has to go back in once).
+
+:::proof
+The derivation from the lecture, in four steps.
+
+**Step 1.** Treat $B \cup C$ as a single event and apply the two-event addition rule:
+
+$$
+P\big[A \cup (B \cup C)\big] = P(A) + P(B \cup C) - P\big[A \cap (B \cup C)\big].
+$$
+
+**Step 2.** Expand $P(B \cup C)$ with the addition rule again:
+
+$$
+P(A \cup B \cup C) = P(A) + P(B) + P(C) - P(B \cap C) - P\big[A \cap (B \cup C)\big].
+$$
+
+**Step 3.** Distribute the intersection over the union, $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$, and apply the addition rule to *these* two events:
+
+$$
+P\big[(A \cap B) \cup (A \cap C)\big] = P(A \cap B) + P(A \cap C) - P\big((A \cap B) \cap (A \cap C)\big) = P(A \cap B) + P(A \cap C) - P(A \cap B \cap C),
+$$
+
+because $(A \cap B) \cap (A \cap C) = A \cap B \cap C$.
+
+**Step 4.** Substitute Step 3 into Step 2:
+
+$$
+\begin{aligned}
+P(A \cup B \cup C) &= P(A) + P(B) + P(C) - P(B \cap C) - \big[P(A \cap B) + P(A \cap C) - P(A \cap B \cap C)\big] \\
+  &= P(A) + P(B) + P(C) - P(A \cap B) - P(A \cap C) - P(B \cap C) + P(A \cap B \cap C).
+\end{aligned}
+$$
+:::
+::::
 
 ### Reading it off the Venn diagram
 
@@ -405,15 +581,15 @@ Three circles cut $S$ into $8$ regions (7 inside the circles plus the outside). 
 
 Every region of $A \cup B \cup C$ ends up counted exactly once — which is what a correct formula for $P(A \cup B \cup C)$ must do.
 
-> **Note.** The same pattern continues for $n$ events (alternating sums over all $k$-fold intersections) — the general *inclusion–exclusion principle*. Week 1 stops at three events.
+:::note
+The same pattern continues for $n$ events (alternating sums over all $k$-fold intersections) — the general *inclusion–exclusion principle*. Week 1 stops at three events.
+:::
 
-> **Key insight.** Inclusion–exclusion for three events is nothing new: it is the two-event addition rule applied twice, plus the distributive law A∩(B∪C) = (A∩B)∪(A∩C). The sign pattern +singles −pairs +triple makes every region count exactly once.
-
-**Equations**
-
-- *Three-event addition rule*: $\begin{gathered} P(A\cup B\cup C) = P(A)+P(B)+P(C) \\[4pt] - P(A\cap B) - P(A\cap C) - P(B\cap C) \\[4pt] + P(A\cap B\cap C) \end{gathered}$ — Inclusion–exclusion for three events.
+:::equations
+- *Three-event addition rule*: $P(A\cup B\cup C) = P(A)+P(B)+P(C) - P(A\cap B) - P(A\cap C) - P(B\cap C) + P(A\cap B\cap C)$ — Inclusion–exclusion for three events.
 - *Distributive law*: $A\cap(B\cup C) = (A\cap B)\cup(A\cap C)$ — Needed to expand the last term in Step 1.
-- *Key intermediate step*: $\begin{gathered} P\big[(A\cap B)\cup(A\cap C)\big] \\[4pt] = P(A\cap B) + P(A\cap C) - P(A\cap B\cap C) \end{gathered}$ — Two-event rule; (A∩B)∩(A∩C) = A∩B∩C.
+- *Key intermediate step*: $P\big[(A\cap B)\cup(A\cap C)\big] = P(A\cap B) + P(A\cap C) - P(A\cap B\cap C)$ — Two-event rule; (A∩B)∩(A∩C) = A∩B∩C.
+:::
 
 ```sim
 id: incl-excl-3
@@ -466,6 +642,10 @@ plt.xticks(list(x), regions); plt.ylabel('times counted'); plt.legend()
 plt.title('Inclusion-exclusion: every region ends up counted exactly once')
 plt.show()
 ```
+
+:::insight
+Inclusion–exclusion for three events is nothing new: it is the two-event addition rule applied twice, plus the distributive law $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$. The sign pattern +singles −pairs +triple makes every region count exactly once.
+:::
 
 ## Further reading
 
