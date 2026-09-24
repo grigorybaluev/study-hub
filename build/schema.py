@@ -104,12 +104,19 @@ def edge_entries(value) -> list[dict]:
     return out
 
 
+# YAML 1.1 boolean spellings (PyYAML) that YAML 1.2 (the app) keeps as text; SolutionMap.tsx has the same map
+YAML_BOOL = {"yes": "yes", "true": "yes", "on": "yes", "no": "no", "false": "no", "off": "no"}
+
+
 def answer_label(v) -> str | None:
     """A method-graph edge label or a step's answer. PyYAML reads bare yes/no as booleans; the app's
     YAML 1.2 parser keeps them as strings, so both sides compare the normalised text."""
     if isinstance(v, bool):
         return "yes" if v else "no"
-    return None if v is None else str(v)
+    if v is None:
+        return None
+    t = str(v).strip().lower()
+    return YAML_BOOL.get(t, t)
 
 
 def roadmap_root(data: dict, rid: str) -> str:

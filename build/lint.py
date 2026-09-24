@@ -263,12 +263,13 @@ def lint_methods(c: Content, rep: Report):
             kinds[n["id"]] = n.get("kind")
         out: dict[str, list[dict]] = {k: [] for k in kinds}
         for e in edges:
-            if not isinstance(e, dict) or e.get("from") not in kinds or e.get("to") not in kinds:
+            if not isinstance(e, dict) or not isinstance(e.get("from"), str) or not isinstance(e.get("to"), str) \
+                    or e["from"] not in kinds or e["to"] not in kinds:
                 rep.error(where, f"edge {e!r}: `from` and `to` must be nodes of this graph")
                 continue
             out[e["from"]].append(e)
         start = g.get("start")
-        if start not in kinds:
+        if not isinstance(start, str) or start not in kinds:
             rep.error(where, f"`start` {start!r} must name a node")
             continue
         for nid, kind in kinds.items():
@@ -309,7 +310,7 @@ def lint_solution_maps(c: Content, body: str, where, rep: Report):
         verified = cfg.get("verified", [])
         if not (isinstance(verified, list) and all(v in SIM_CHECKS for v in verified)):
             rep.error(where, f"{name}: verified must be a list of {list(SIM_CHECKS)}")
-        g = c.methods.get(cfg.get("method"))
+        g = c.methods.get(cfg["method"]) if isinstance(cfg.get("method"), str) else None
         if g is None:
             rep.error(where, f"{name}: method {cfg.get('method')!r} is not in content/methods/")
             continue
@@ -321,6 +322,9 @@ def lint_solution_maps(c: Content, body: str, where, rep: Report):
             continue
         kinds = {n["id"]: n.get("kind") for n in g.get("nodes") or [] if isinstance(n, dict) and "id" in n}
         edges = [e for e in g.get("edges") or [] if isinstance(e, dict)]
+        for st in steps:
+            if not isinstance(st.get("node"), str):
+                st["node"] = repr(st.get("node"))      # reported below as not in the graph
         for i, st in enumerate(steps, 1):
             if st.get("node") not in kinds:
                 rep.error(where, f"{name} step {i}: node {st.get('node')!r} is not in method {g.get('id')!r}")

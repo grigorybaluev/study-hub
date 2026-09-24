@@ -14,8 +14,14 @@ import NeedsVerification from "./NeedsVerification";
 interface Step { node: string; answer?: string | boolean; text: string }
 interface MapConfig { id: string; method: string; task: string; steps: Step[]; note?: string; verified?: string[] }
 
-/** Same normalisation as build/schema.py answer_label: bare yes/no may arrive as booleans. */
-const answerOf = (v: unknown): string | null => (typeof v === "boolean" ? (v ? "yes" : "no") : v == null ? null : String(v));
+/** Same normalisation as build/schema.py answer_label: case-folded, YAML 1.1 boolean spellings to yes/no. */
+const YAML_BOOL: Record<string, string> = { yes: "yes", true: "yes", on: "yes", no: "no", false: "no", off: "no" };
+const answerOf = (v: unknown): string | null => {
+  if (typeof v === "boolean") return v ? "yes" : "no";
+  if (v == null) return null;
+  const t = String(v).trim().toLowerCase();
+  return YAML_BOOL[t] ?? t;
+};
 
 /** The edge each step leaves by: from its node to the next step's node, with its answer if it is a decision. */
 function takenEdges(g: MethodGraph, steps: Step[]): (number | null)[] {
@@ -23,7 +29,7 @@ function takenEdges(g: MethodGraph, steps: Step[]): (number | null)[] {
   return steps.slice(0, -1).map((s, i) => {
     const next = steps[i + 1].node;
     const idx = g.edges.findIndex((e) => e.from === s.node && e.to === next
-      && (kind.get(s.node) !== "decision" || e.label === answerOf(s.answer)));
+      && (kind.get(s.node) !== "decision" || answerOf(e.label) === answerOf(s.answer)));
     return idx < 0 ? null : idx;
   });
 }
