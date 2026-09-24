@@ -8,6 +8,7 @@
 const SPACERS = ["\\qquad", "\\quad"];
 const RELATIONS = [
   "\\Longleftrightarrow", "\\Longrightarrow", "\\Rightarrow", "\\implies", "\\iff",
+  "\\longrightarrow", "\\rightarrow", "\\to", "\\mapsto",
   "\\approx", "\\equiv", "\\leq", "\\geq", "\\neq", "\\le", "\\ge", "\\ne", "=", "<", ">",
 ];
 

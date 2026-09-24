@@ -93,6 +93,29 @@ function remarkMathFit() {
   };
 }
 
+/**
+ * Keeps punctuation right after short inline math on the same line as the math, so a comma never
+ * starts a line on its own. Long inline math is left alone: it must stay free to wrap on a phone.
+ */
+function remarkMathPunct() {
+  const walk = (node: Nodes) => {
+    if (!("children" in node) || (node.data?.hProperties?.className as string[] | undefined)?.includes("math-nowrap")) return;   // not into our own wrappers
+    const kids = node.children as Nodes[];
+    for (let i = 0; i < kids.length - 1; i++) {
+      const math = kids[i], next = kids[i + 1];
+      if (math.type !== "inlineMath" || math.data?.hProperties?.dataTex || math.value.length > 40) continue;
+      if (next.type !== "text") continue;
+      const punct = /^[,.;:!?)]+/.exec(next.value)?.[0];
+      if (!punct) continue;
+      next.value = next.value.slice(punct.length);
+      kids[i] = { type: "emphasis", data: { hName: "span", hProperties: { className: ["math-nowrap"] } },
+                  children: [math, { type: "text", value: punct }] } as Nodes;
+    }
+    kids.forEach(walk);
+  };
+  return (tree: Root) => walk(tree);
+}
+
 /** Inline math that is taller than a line (fractions, sums, integrals, nested scripts). */
 const TALL = /\\(?:d?frac|tfrac|sum|prod|int|iint|oint|lim|sqrt|binom|displaystyle|begin|overbrace|underbrace)(?![A-Za-z])|[\^_]\{[^}]*[\^_]/;
 
@@ -144,7 +167,7 @@ function textOf(children: ReactNode): string {
 export default function Markdown({ source }: { source: string }) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkMathFit, remarkMathDense, remarkSimCode]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkMathFit, remarkMathDense, remarkMathPunct, remarkSimCode]}
       rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim"] }]]}
       components={{
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,

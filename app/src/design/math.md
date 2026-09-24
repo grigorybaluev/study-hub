@@ -59,13 +59,15 @@ Lint rejects any other name.
   1. between independent formulas, written with `\qquad` (or `\quad`) between them: each goes on
      its own centred line (a relation such as `\Longrightarrow` standing alone between two formulas
      starts the next line);
-  2. then before each relation of a chain (`=`, `\le`, `\Rightarrow`, …), aligned on the relation.
+  2. then before each relation of a chain (`=`, `\le`, `\Rightarrow`, `\to`, …), aligned on the relation.
 
   So write independent formulas side by side with `\qquad`, and chains on one line: the page puts
   them on one line when there is room and breaks them when there is not (on a phone, or in a
   narrow block). An `aligned` you wrote yourself also breaks each row before its `&=` when a
   row is too wide. A formula with no break point at all is shrunk (to 75 % at most) before it
   would scroll; if that is not enough, split it by hand with `aligned`.
+- **Punctuation stays with its math.** A comma or full stop right after short inline math never
+  starts a line on its own; the renderer keeps it on the line with the formula.
 - Never a bare `$` in prose (write "75 dollars").
 
 ## Specimens
@@ -204,6 +206,8 @@ print(round(riemann(lambda x: x * x, 0, 2, 6), 4))   # 2.037 (left endpoints)
 
 ## Change log
 
+- 2026-09-24: `\to`, `\rightarrow`, `\mapsto` are break points too (a circle's "equation → centre, radius"
+  line scrolled on a phone); punctuation after short inline math no longer wraps onto its own line (#89).
 - 2026-09-23: proofs and solutions collapsed by default; paragraphs with tall inline math get 20 %
   more line spacing; display math breaks at independent-formula and relation points, centred,
   instead of scrolling sideways, shrinking to 75 % only when it has no break point; a one-line
