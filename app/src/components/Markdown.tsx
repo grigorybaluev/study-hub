@@ -29,6 +29,7 @@ const BLOCKS: Record<string, string> = {
   definition: "Definition", theorem: "Theorem", lemma: "Lemma", proposition: "Proposition", corollary: "Corollary",
   proof: "Proof", example: "Example", solution: "Solution", note: "Note", remark: "Remark", caution: "Caution",
   insight: "Key insight", steps: "Steps", equations: "Equations",
+  algorithm: "Algorithm", machine: "Machine", trace: "Trace", exercise: "Exercise",
 };
 
 /**

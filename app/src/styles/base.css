@@ -186,15 +186,26 @@ blockquote.wiki p { margin: 0.4em 0; }
 .unit-body .blk-equations { background: var(--bg-sunken); }
 .unit-body .blk-equations ul { margin: 0; padding-left: 1.1em; }
 .unit-body .blk-equations li { margin: 0.35em 0; }
+/* theory blocks (#111): a procedure card, a machine spec, a run, a practice question */
+.unit-body .blk-algorithm { border: 1px solid var(--line); border-left: 4px solid var(--fg-muted); background: var(--bg-sunken); }
+.unit-body .blk-algorithm ol { padding-left: 1.4em; }
+.unit-body .blk-algorithm ol li::marker { font-weight: 700; color: var(--fg-muted); }
+.unit-body .blk-machine { border: 1.5px solid var(--callout-def-border); background: var(--bg-elev); }
+.unit-body .blk-machine > .blk-head .blk-label { color: var(--callout-def-line); }
+.unit-body .blk-machine table { margin: 0.6em 0 0.2em; font-variant-numeric: tabular-nums; }
+.unit-body .blk-trace { border: 0; border-left: 3px solid var(--callout-steps-line); border-radius: 0; background: transparent; padding: 0.2em 0 0.2em 1em; }
+.unit-body .blk-trace > .blk-head .blk-label { color: var(--callout-steps-line); }
+.unit-body .blk-exercise { border: 1.5px dashed var(--callout-steps-line); background: var(--callout-steps-bg); }
+.unit-body .blk-exercise > .blk-head .blk-label { color: var(--callout-steps-line); }
 /* math pages: LaTeX-dense text needs air */
-.unit-body.pages-math p, .unit-body.pages-math li { line-height: 1.75; }
-.unit-body.pages-math .katex-display { margin: 0.9em 0; }
-.unit-body.pages-math .blk .katex-display { margin: 0.7em 0; }
+.unit-body:is(.pages-math, .pages-theory) :is(p, li) { line-height: 1.75; }
+.unit-body:is(.pages-math, .pages-theory) .katex-display { margin: 0.9em 0; }
+.unit-body:is(.pages-math, .pages-theory) .blk .katex-display { margin: 0.7em 0; }
 .unit-body span.math-fit { display: block; }
 .unit-body .math-nowrap { white-space: nowrap; }
 /* tall inline math (fractions, sums, integrals): 20% more line spacing (#89) */
 .unit-body .math-dense { line-height: 1.95; }
-.unit-body.pages-math .math-dense { line-height: 2.1; }
+.unit-body:is(.pages-math, .pages-theory) .math-dense { line-height: 2.1; }
 .unit-body .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.2em 0; }
 .unit-body img { max-width: 100%; }
 .unit-list { list-style: none; padding: 0; margin: 0; }

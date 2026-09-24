@@ -22,6 +22,7 @@ LABELS = {
     "definition": "definition", "theorem": "theorem", "lemma": "lemma", "proposition": "proposition",
     "corollary": "corollary", "proof": "proof", "example": "example", "solution": "solution",
     "note": "note", "remark": "remark", "caution": "caution", "key insight": "insight", "steps": "steps",
+    "observation": "remark", "question": "exercise", "exercise": "exercise", "algorithm": "algorithm",
 }
 HEAD_RE = re.compile(r"^\*\*(?P<label>[^*]+?)\*\*\s*(?P<rest>.*)$")
 FENCE_RE = re.compile(r"^```")

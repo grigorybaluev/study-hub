@@ -278,7 +278,7 @@ def lint_unit_structure(doc: Doc, pages: str | None, rep: Report):
     body = blank_fences(doc.body)
     for problem in container_problems(doc.body):
         rep.error(doc.path, problem)
-    if pages != "math":
+    if pages not in ("math", "theory"):   # theory inherits the math design (#111)
         return
     legacy = len(LEGACY_CALLOUT_RE.findall(body))
     if legacy:

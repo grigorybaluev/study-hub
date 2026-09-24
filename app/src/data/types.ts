@@ -26,7 +26,7 @@ export interface CourseNode {
   requirements: string[];
   source: string | null;
   /** Which unit-page design applies (#89); null until the course is assigned one. */
-  pages: "math" | "programming" | "systems" | "data" | null;
+  pages: "math" | "theory" | "programming" | "systems" | "data" | null;
   body: string;
 }
 
