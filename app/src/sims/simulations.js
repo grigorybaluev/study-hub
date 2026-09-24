@@ -1118,6 +1118,345 @@
                 legend: { orientation: 'h', y: -0.2 }, margin: { t: 80, r: 20, b: 80, l: 70 } }), cfg());
   }
 
+  // ── Distribution helpers (MAST 221, units 4–11) ───────────────
+  // Binomial pmf in log space, so (1 − p)^n cannot underflow for large n.
+  function binomPmf(n, p) {
+    const out = new Array(n + 1).fill(0);
+    if (p <= 0) { out[0] = 1; return out; }
+    if (p >= 1) { out[n] = 1; return out; }
+    for (let k = 0; k <= n; k++) out[k] = Math.exp(lchoose(n, k) + k * Math.log(p) + (n - k) * Math.log(1 - p));
+    return out;
+  }
+  // Poisson pmf on 0..K by P(k+1) = P(k)·λ/(k+1).
+  function poisPmf(lam, K) {
+    const out = [Math.exp(-lam)];
+    for (let k = 0; k < K; k++) out.push(out[k] * lam / (k + 1));
+    return out;
+  }
+  function choose(n, k) {
+    if (k < 0 || k > n) return 0;
+    let c = 1;
+    for (let i = 1; i <= Math.min(k, n - k); i++) c = c * (n - Math.min(k, n - k) + i) / i;
+    return Math.round(c);
+  }
+  // log Γ(x) for x > 0 (Lanczos, g = 7), accurate to ~1e-13.
+  function lgamma(x) {
+    const g = 7, c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
+                      12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+    if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lgamma(1 - x);
+    x -= 1;
+    let a = c[0];
+    const t = x + g + 0.5;
+    for (let i = 1; i < 9; i++) a += c[i] / (x + i);
+    return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+  }
+  function lchoose(n, k) { return lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1); }
+  // Standard normal distribution function Φ(z), via erf (Abramowitz–Stegun 7.1.26, error < 1.5e-7).
+  function Phi(z) {
+    const x = Math.abs(z) / Math.SQRT2, t = 1 / (1 + 0.3275911 * x);
+    const erf = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return z >= 0 ? 0.5 * (1 + erf) : 0.5 * (1 - erf);
+  }
+  const phi = z => Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI);
+  function frac(num, den) { if (num === 0) return '0'; const g = gcd(num, den); return den / g === 1 ? `${num / g}` : `${num / g}/${den / g}`; }
+  const C_BAR = '#00a651', C_DIM = '#475569';
+  // Step graph of a distribution function with jumps at xs (sorted) of sizes ps, drawn on [lo, hi].
+  function cdfSteps(xs, ps, lo, hi, color, xa, ya) {
+    const sx = [], sy = [], ox = [], oy = [], cx = [], cy = [];
+    let F = 0, left = lo;
+    xs.forEach((x, i) => {
+      sx.push(left, x, null); sy.push(F, F, null);
+      ox.push(x); oy.push(F);
+      F += ps[i];
+      cx.push(x); cy.push(F);
+      left = x;
+    });
+    sx.push(left, hi); sy.push(F, F);
+    const extra = xa ? { xaxis: xa, yaxis: ya } : {};
+    return [
+      Object.assign({ x: sx, y: sy, mode: 'lines', line: { color, width: 2.5 }, hoverinfo: 'skip', showlegend: false }, extra),
+      Object.assign({ x: ox, y: oy, mode: 'markers', marker: { color: '#111827', size: 7, line: { color, width: 2 } }, hoverinfo: 'skip', showlegend: false }, extra),
+      Object.assign({ x: cx, y: cy, mode: 'markers', marker: { color, size: 7 }, hoverinfo: 'skip', showlegend: false }, extra),
+    ];
+  }
+
+  // ── Q16. A discrete random variable: its pmf and its distribution function ──
+  function rvPmfCdf() {
+    const id = 'rv-pmf-cdf';
+    const ex = Math.round(val(id, 'ex', 0)), n = Math.max(1, Math.round(val(id, 'n', 3))), x = val(id, 'x', 1.5);
+    let xs = [], cnt = [], den, name;
+    if (ex === 0) { den = 1 << n; for (let k = 0; k <= n; k++) { xs.push(k); cnt.push(choose(n, k)); } name = `X = number of heads in ${n} toss${n > 1 ? 'es' : ''}`; }
+    else if (ex === 1) { den = 36; for (let s = 2; s <= 12; s++) { xs.push(s); cnt.push(6 - Math.abs(s - 7)); } name = 'X = sum of two dice'; }
+    else { den = 1 << 12; for (let k = 1; k <= 12; k++) { xs.push(k); cnt.push(1 << (12 - k)); } name = 'X = tosses until the first head (k ≤ 12 shown)'; }
+    const ps = cnt.map(c => c / den);
+    let num = 0; xs.forEach((v, i) => { if (v <= x) num += cnt[i]; });
+    const F = num / den;
+    const lo = Math.min(-1, xs[0] - 1), hi = xs[xs.length - 1] + 1;
+    const title = `${name}<br>F(${x}) = P(X ≤ ${x}) = ${frac(num, den)} = ${F.toFixed(4)}`;
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: xs, y: ps, marker: { color: xs.map(v => v <= x ? C_BAR : C_DIM) }, name: 'p(x) = P(X = x)', width: 0.6,
+        text: cnt.map(c => frac(c, den)), textposition: 'outside', textfont: { size: 10, color: '#c8d0e0' }, hoverinfo: 'x+y' },
+      ...cdfSteps(xs, ps, lo, hi, '#60a5fa', 'x2', 'y2'),
+      { x: [x, x], y: [0, 1.05], xaxis: 'x2', yaxis: 'y2', mode: 'lines', line: { color: C_ARROW, dash: 'dash', width: 1.5 }, name: `x = ${x}`, hoverinfo: 'skip' },
+      { x: [x], y: [F], xaxis: 'x2', yaxis: 'y2', mode: 'markers', marker: { color: C_ARROW, size: 11, symbol: 'diamond' }, name: 'F(x)', hoverinfo: 'skip' },
+    ], twoRows({ title, margin: { t: 70, r: 20, b: 40, l: 55 },
+      xaxis: { range: [lo, hi], dtick: 1, title: 'x' }, yaxis: { title: 'p(x)', range: [0, Math.max(...ps) * 1.25] },
+      xaxis2: { range: [lo, hi], dtick: 1, title: 'x' }, yaxis2: { title: 'F(x)', range: [-0.05, 1.08] }, showlegend: false }), cfg());
+  }
+
+  // ── Q17. A density: probability is area, and F(b) − F(a) ──────
+  function densityArea() {
+    const id = 'density-area';
+    const d = Math.round(val(id, 'dens', 1)), n = Math.max(1, Math.round(val(id, 'n', 2)));
+    let a = val(id, 'a', 1), b = val(id, 'b', 2);
+    if (a > b) [a, b] = [b, a];
+    const c = (n + 1) * (2 * n + 1) / n;
+    const D = [
+      { name: 'pointer: f(x) = 1 on (0, 1]', f: x => (x > 0 && x <= 1 ? 1 : 0), F: x => Math.min(1, Math.max(0, x)) },
+      { name: 'f(x) = e^(−x) for x > 0', f: x => (x > 0 ? Math.exp(-x) : 0), F: x => (x > 0 ? 1 - Math.exp(-x) : 0) },
+      { name: 'triangle: f(x) = 1 − |x| on (−1, 1]', f: x => (Math.abs(x) < 1 ? 1 - Math.abs(x) : 0),
+        F: x => (x <= -1 ? 0 : x <= 0 ? (x + 1) * (x + 1) / 2 : x <= 1 ? 1 - (1 - x) * (1 - x) / 2 : 1) },
+      { name: `f(x) = c·xⁿ(1 − xⁿ) on [0, 1], n = ${n}, c = ${c.toFixed(3)}`, f: x => (x >= 0 && x <= 1 ? c * Math.pow(x, n) * (1 - Math.pow(x, n)) : 0),
+        F: x => { const u = Math.min(1, Math.max(0, x)); return c * (Math.pow(u, n + 1) / (n + 1) - Math.pow(u, 2 * n + 1) / (2 * n + 1)); } },
+    ][d];
+    const lo = -1.5, hi = 4, Fa = D.F(a), Fb = D.F(b), P = Fb - Fa;
+    const ys = lin(lo, hi, 800).map(D.f), top = Math.max(1.05, ...ys) * 1.1;
+    Plotly.newPlot(el(id), [
+      band(D.f, () => 0, a, b, C_POS, `area = ${P.toFixed(4)}`, 400),
+      curve(D.f, lo, hi, 800, { name: 'density f(x)', line: { color: C_FN, width: 2 }, hoverinfo: 'skip' }),
+      curve(D.F, lo, hi, 400, { name: 'F(x)', line: { color: '#60a5fa', width: 2.5 }, xaxis: 'x2', yaxis: 'y2', hoverinfo: 'skip' }),
+      { x: [a, b], y: [Fa, Fb], xaxis: 'x2', yaxis: 'y2', mode: 'markers+text', text: [`F(a) = ${Fa.toFixed(3)}`, `F(b) = ${Fb.toFixed(3)}`],
+        textposition: ['bottom right', 'top left'], textfont: { color: '#e2e8f0', size: 11 }, marker: { color: C_ARROW, size: 9 }, showlegend: false, hoverinfo: 'skip' },
+      { x: [b, b], y: [Fa, Fb], xaxis: 'x2', yaxis: 'y2', mode: 'lines', line: { color: C_ARROW, width: 4 }, name: 'F(b) − F(a)', hoverinfo: 'skip' },
+    ], twoRows({ title: `${D.name}<br>P(${a} < X ≤ ${b}) = F(${b}) − F(${a}) = ${Fb.toFixed(4)} − ${Fa.toFixed(4)} = ${P.toFixed(4)}`,
+      margin: { t: 70, r: 20, b: 40, l: 55 }, xaxis: { range: [lo, hi], title: 'x' }, yaxis: { range: [0, top], title: 'f(x)' },
+      xaxis2: { range: [lo, hi], title: 'x' }, yaxis2: { range: [-0.05, 1.1], title: 'F(x)' } }), cfg());
+  }
+
+  // ── Q18. A joint pmf: marginals, a conditional pmf, independence ──
+  function jointPmf() {
+    const id = 'joint-pmf';
+    const ex = Math.round(val(id, 'ex', 0)), y0 = Math.round(val(id, 'y', 1));
+    let outcomes, fx, fy, den, lx, ly;
+    if (ex === 0) {
+      outcomes = ['HHH', 'HHT', 'HTH', 'HTT', 'THH', 'THT', 'TTH', 'TTT'];
+      fx = s => s.split('H').length - 1; fy = s => s.indexOf('H') + 1; den = 8;
+      lx = 'X = number of heads'; ly = 'Y = toss of the first head (0 if none)';
+    } else if (ex === 1) {
+      outcomes = []; for (let i = 1; i <= 4; i++) for (let j = 1; j <= 4; j++) outcomes.push([i, j]);
+      fx = o => o[0]; fy = o => o[0] + o[1]; den = 16;
+      lx = 'X = first roll'; ly = 'Y = sum of the two rolls (four-sided die)';
+    } else {
+      outcomes = ['HHH', 'HHT', 'HTH', 'HTT', 'THH', 'THT', 'TTH', 'TTT'];
+      fx = s => (s[0] === 'H' ? 1 : 0); fy = s => s.slice(1).split('H').length - 1; den = 8;
+      lx = 'X = heads on toss 1'; ly = 'Y = heads on tosses 2–3';
+    }
+    const cnt = {}, xsSet = new Set(), ysSet = new Set();
+    outcomes.forEach(o => { const x = fx(o), y = fy(o); xsSet.add(x); ysSet.add(y); cnt[x + ',' + y] = (cnt[x + ',' + y] || 0) + 1; });
+    const xs = [...xsSet].sort((p, q) => p - q), ys = [...ysSet].sort((p, q) => p - q);
+    const c = (x, y) => cnt[x + ',' + y] || 0;
+    const cx = xs.map(x => ys.reduce((s, y) => s + c(x, y), 0)), cy = ys.map(y => xs.reduce((s, x) => s + c(x, y), 0));
+    let indep = true;
+    xs.forEach((x, i) => ys.forEach((y, j) => { if (c(x, y) * den !== cx[i] * cy[j]) indep = false; }));
+    const z = xs.map(x => ys.map(y => c(x, y) / den));
+    const text = xs.map(x => ys.map(y => frac(c(x, y), den)));
+    const jy = ys.indexOf(y0);
+    const traces = [
+      { type: 'heatmap', x: ys.map(String), y: xs.map(String), z, text, texttemplate: '%{text}', textfont: { size: 13 },
+        colorscale: [[0, '#1f2937'], [1, '#00a651']], showscale: false, xgap: 3, ygap: 3, hoverinfo: 'text', xaxis: 'x', yaxis: 'y' },
+      { type: 'bar', orientation: 'h', y: xs.map(String), x: cx.map(v => v / den), name: 'marginal p_X(x)', marker: { color: C_DIM },
+        text: cx.map(v => frac(v, den)), textposition: 'outside', textfont: { color: '#c8d0e0', size: 11 }, xaxis: 'x2', yaxis: 'y2' },
+    ];
+    let title;
+    if (jy >= 0) {
+      traces.push({ type: 'bar', orientation: 'h', y: xs.map(String), x: xs.map(x => c(x, y0) / cy[jy]), name: `conditional p(x | Y = ${y0})`,
+        marker: { color: C_BAR }, text: xs.map(x => frac(c(x, y0), cy[jy])), textposition: 'outside', textfont: { color: '#c8d0e0', size: 11 }, xaxis: 'x2', yaxis: 'y2' });
+      title = `p_Y(${y0}) = ${frac(cy[jy], den)};  p(x | ${y0}) = p(x, ${y0}) / p_Y(${y0}) is column y = ${y0} rescaled to sum 1`;
+    } else title = `P(Y = ${y0}) = 0: p(x | ${y0}) is undefined — pick a value in the table's columns`;
+    title += `<br>${indep ? 'independent: every cell equals p_X(x)·p_Y(y)' : 'dependent: some cell differs from p_X(x)·p_Y(y)'}`;
+    const shapes = jy >= 0 ? [{ type: 'rect', xref: 'x', yref: 'y', x0: jy - 0.5, x1: jy + 0.5, y0: -0.5, y1: xs.length - 0.5, line: { color: C_ARROW, width: 3 } }] : [];
+    Plotly.newPlot(el(id), traces, layout({ title, shapes, barmode: 'group',
+      xaxis: ax({ domain: [0, 0.55], title: ly, type: 'category', side: 'bottom' }), yaxis: ax({ title: lx, type: 'category', autorange: 'reversed' }),
+      xaxis2: ax({ domain: [0.65, 1], range: [0, 1.15], title: 'probability' }), yaxis2: ax({ anchor: 'x2', type: 'category', autorange: 'reversed' }),
+      legend: { orientation: 'h', y: -0.25 }, margin: { t: 70, r: 20, b: 90, l: 60 } }), cfg());
+  }
+
+  // ── Q19. Chebyshev's bound against the true tail ──────────────
+  function chebyshevBound() {
+    const id = 'chebyshev-bound';
+    const d = Math.round(val(id, 'dist', 3)), k = val(id, 'k', 2);
+    const sd = Math.sqrt(35 / 12);
+    const D = [
+      { name: 'fair die (μ = 3.5, σ = 1.708)', tail: k => [1, 2, 3, 4, 5, 6].filter(x => Math.abs(x - 3.5) >= k * sd - 1e-12).length / 6 },
+      { name: 'uniform on (0, 1) (μ = 1/2, σ = 1/√12)', tail: k => Math.max(0, 1 - k / Math.sqrt(3)) },
+      { name: 'exponential, f(x) = e^(−x) (μ = σ = 1)', tail: k => Math.exp(-(1 + k)) + (k < 1 ? 1 - Math.exp(-(1 - k)) : 0) },
+      { name: 'standard normal (μ = 0, σ = 1)', tail: k => 2 * (1 - Phi(k)) },
+      { name: 'P(X = ±2) = 1/8, P(X = 0) = 3/4 (μ = 0, σ = 1)', tail: k => (k <= 2 + 1e-12 ? 0.25 : 0) },
+    ][d];
+    const ks = lin(1, 5, 800);
+    const exact = D.tail(k), bound = 1 / (k * k);
+    Plotly.newPlot(el(id), [
+      { x: ks, y: ks.map(t => 1 / (t * t)), mode: 'lines', name: 'Chebyshev bound 1/k²', line: { color: C_ARROW, width: 2, dash: 'dash' } },
+      { x: ks, y: ks.map(D.tail), mode: 'lines', name: 'true P(|X − μ| ≥ kσ)', line: { color: C_BAR, width: 2.5, shape: 'hv' } },
+      { x: [k, k], y: [exact, bound], mode: 'markers', marker: { color: [C_BAR, C_ARROW], size: 11 }, showlegend: false, hoverinfo: 'skip' },
+      { x: [k, k], y: [0, 1.02], mode: 'lines', line: { color: C_DIM, width: 1 }, showlegend: false, hoverinfo: 'skip' },
+    ], layout({ title: `${D.name}<br>k = ${k.toFixed(2)}:  P(|X − μ| ≥ kσ) = ${exact.toFixed(4)}  ≤  1/k² = ${bound.toFixed(4)}`,
+      xaxis: ax({ title: 'k (distance from the mean in standard deviations)', range: [1, 5] }), yaxis: ax({ title: 'probability', range: [0, 1.02] }),
+      legend: { orientation: 'h', y: -0.22 }, margin: { t: 70, r: 20, b: 80, l: 55 } }), cfg());
+  }
+
+  // ── Q20. Moment-generating function and its Maclaurin polynomials ──
+  function mgfTaylor() {
+    const id = 'mgf-taylor';
+    const d = Math.round(val(id, 'dist', 0)), lam = val(id, 'lam', 2), r = Math.round(val(id, 'r', 2));
+    const fact = m => { let f = 1; for (let i = 2; i <= m; i++) f *= i; return f; };
+    let M, mom, name, tmax = 1.5;
+    if (d === 0) {
+      name = 'f(x) = C(3, x)/8, x = 0, 1, 2, 3'; M = t => Math.pow((1 + Math.exp(t)) / 2, 3);
+      mom = j => [0, 1, 2, 3].reduce((s, x) => s + Math.pow(x, j) * choose(3, x) / 8, 0);
+    } else if (d === 1) {
+      name = `Poisson, λ = ${lam}`; M = t => Math.exp(lam * (Math.exp(t) - 1));
+      const p = poisPmf(lam, 200); mom = j => p.reduce((s, q, x) => s + Math.pow(x, j) * q, 0);
+    } else if (d === 2) {
+      name = 'exponential, f(x) = e^(−x): M(t) = 1/(1 − t), t < 1'; M = t => (t < 1 ? 1 / (1 - t) : NaN); mom = j => fact(j); tmax = 0.95;
+    } else {
+      name = 'standard normal: M(t) = e^(t²/2)'; M = t => Math.exp(t * t / 2);
+      mom = j => (j % 2 ? 0 : fact(j) / (Math.pow(2, j / 2) * fact(j / 2)));
+    }
+    const mu = [1]; for (let j = 1; j <= 6; j++) mu.push(mom(j));
+    const T = t => { let s = 0; for (let j = 0; j <= r; j++) s += mu[j] * Math.pow(t, j) / fact(j); return s; };
+    const ts = lin(-1.5, tmax, 400);
+    const f = v => (Math.abs(v - Math.round(v)) < 1e-9 ? String(Math.round(v)) : v.toFixed(3));
+    const coef = mu.slice(0, r + 1).map((m, j) => j === 0 ? '1' : `${f(m)}·t${j > 1 ? '^' + j : ''}/${j}!`).join(' + ');
+    Plotly.newPlot(el(id), [
+      { x: ts, y: ts.map(M), mode: 'lines', name: 'M(t) = E[e^(tX)]', line: { color: C_FN, width: 3 } },
+      { x: ts, y: ts.map(T), mode: 'lines', name: `Maclaurin polynomial of degree ${r}`, line: { color: C_BAR, width: 2, dash: 'dash' } },
+      { x: [0], y: [1], mode: 'markers', marker: { color: C_ARROW, size: 9 }, name: 'M(0) = 1' },
+    ], layout({ title: `${name}<br>μ′₁ = M′(0) = ${f(mu[1])},  μ′₂ = M″(0) = ${f(mu[2])},  σ² = μ′₂ − μ′₁² = ${f(mu[2] - mu[1] * mu[1])}`,
+      xaxis: ax({ title: 't', range: [-1.5, 1.5] }), yaxis: ax({ title: 'M(t)', range: [0, 5] }),
+      annotations: [{ x: 0.02, y: 0.97, xref: 'paper', yref: 'paper', xanchor: 'left', showarrow: false, align: 'left', font: { size: 11, color: '#c8d0e0' },
+        text: `degree ${r}: ${coef}` }],
+      legend: { orientation: 'h', y: -0.22 }, margin: { t: 70, r: 20, b: 80, l: 55 } }), cfg());
+  }
+
+  // ── Q21. Covariance: the sign of (x − x̄)(y − ȳ) in each quadrant ──
+  function covarianceScatter() {
+    const id = 'covariance-scatter';
+    const rho = val(id, 'rho', 0.6), sx = val(id, 'sx', 1), sy = val(id, 'sy', 1), n = Math.max(5, Math.round(val(id, 'n', 300)));
+    const gauss = () => { let u = 0; while (u === 0) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random()); };
+    const X = [], Y = [];
+    for (let i = 0; i < n; i++) { const z1 = gauss(), z2 = gauss(); X.push(sx * z1); Y.push(sy * (rho * z1 + Math.sqrt(Math.max(0, 1 - rho * rho)) * z2)); }
+    const mx = X.reduce((s, v) => s + v, 0) / n, my = Y.reduce((s, v) => s + v, 0) / n;
+    const prod = X.map((x, i) => (x - mx) * (Y[i] - my));
+    const cov = prod.reduce((s, v) => s + v, 0) / (n - 1);
+    const vx = X.reduce((s, v) => s + (v - mx) ** 2, 0) / (n - 1), vy = Y.reduce((s, v) => s + (v - my) ** 2, 0) / (n - 1);
+    const r = cov / Math.sqrt(vx * vy), R = 3.5 * Math.max(sx, sy);
+    const covT = rho * sx * sy, varSum = sx * sx + sy * sy + 2 * covT;
+    Plotly.newPlot(el(id), [
+      { x: X, y: Y, mode: 'markers', marker: { size: 5, color: prod.map(p => (p >= 0 ? C_BAR : '#f87171')), opacity: 0.75 }, name: 'green: (x − x̄)(y − ȳ) > 0, red: < 0', hoverinfo: 'skip' },
+      { x: [-R, R], y: [my, my], mode: 'lines', line: { color: C_DIM, dash: 'dot' }, showlegend: false, hoverinfo: 'skip' },
+      { x: [mx, mx], y: [-R, R], mode: 'lines', line: { color: C_DIM, dash: 'dot' }, showlegend: false, hoverinfo: 'skip' },
+    ], layout({ title: `sample cov = ${cov.toFixed(3)} (model ρσ_Xσ_Y = ${covT.toFixed(3)}),  sample r = ${r.toFixed(3)} (model ρ = ${rho.toFixed(2)})<br>Var(X + Y) = σ_X² + σ_Y² + 2 cov(X, Y) = ${varSum.toFixed(3)}`,
+      xaxis: ax({ title: 'x', range: [-R, R] }), yaxis: ax({ title: 'y', range: [-R, R], scaleanchor: 'x', scaleratio: 1 }),
+      legend: { orientation: 'h', y: -0.2 }, margin: { t: 70, r: 20, b: 70, l: 55 } }), cfg());
+  }
+
+  // ── Q22. Binomial(n, p) against Poisson(λ = np) ───────────────
+  function binomialPoisson() {
+    const id = 'binomial-poisson';
+    const n = Math.max(1, Math.round(val(id, 'n', 12))), p = val(id, 'p', 0.5), lam = n * p;
+    const K = Math.min(n, Math.ceil(lam + 5 * Math.sqrt(lam + 1) + 5));
+    const b = binomPmf(n, p).slice(0, K + 1), q = poisPmf(lam, K);
+    const ks = b.map((_, k) => k);
+    const diff = Math.max(...ks.map(k => Math.abs(b[k] - q[k])));
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: ks, y: b, name: `binomial(n = ${n}, p = ${p.toFixed(2)})`, marker: { color: C_BAR } },
+      { x: ks, y: q, mode: 'markers+lines', name: `Poisson(λ = np = ${lam.toFixed(2)})`, line: { color: '#f87171', width: 1 }, marker: { color: '#f87171', size: 7 } },
+    ], layout({ title: `binomial: mean np = ${lam.toFixed(2)}, variance np(1 − p) = ${(lam * (1 - p)).toFixed(3)}  |  Poisson: mean = variance = ${lam.toFixed(2)}<br>largest gap between the two pmfs: ${diff.toFixed(4)}`,
+      xaxis: ax({ title: 'k', range: [-0.6, K + 0.6] }), yaxis: ax({ title: 'P(X = k)' }), bargap: 0.2,
+      legend: { orientation: 'h', y: -0.2 }, margin: { t: 70, r: 20, b: 70, l: 55 } }), cfg());
+  }
+
+  // ── Q23. Hypergeometric (without replacement) against binomial (with) ──
+  function hypergeomBinomial() {
+    const id = 'hypergeom-binomial';
+    const N = Math.max(2, Math.round(val(id, 'N', 20))), M = Math.min(N, Math.max(0, Math.round(val(id, 'frac', 0.3) * N))), n = Math.min(N, Math.max(1, Math.round(val(id, 'n', 5))));
+    const th = M / N, ks = [], h = [];
+    for (let x = 0; x <= n; x++) { ks.push(x); h.push(x > M || n - x > N - M ? 0 : Math.exp(lchoose(M, x) + lchoose(N - M, n - x) - lchoose(N, n))); }
+    const b = binomPmf(n, th);
+    const vh = n * th * (1 - th) * (N - n) / (N - 1), vb = n * th * (1 - th);
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: ks, y: h, name: `hypergeometric: ${n} drawn without replacement from N = ${N} with M = ${M} successes`, marker: { color: C_BAR } },
+      { x: ks, y: b, mode: 'markers+lines', name: `binomial(n = ${n}, θ = M/N = ${th.toFixed(3)})`, line: { color: '#f87171', width: 1 }, marker: { color: '#f87171', size: 7 } },
+    ], layout({ title: `both means = nM/N = ${(n * th).toFixed(3)}<br>variance: hypergeometric ${vh.toFixed(3)} = binomial ${vb.toFixed(3)} × (N − n)/(N − 1) = × ${((N - n) / (N - 1)).toFixed(3)}`,
+      xaxis: ax({ title: 'x = successes in the sample', dtick: 1, range: [-0.6, n + 0.6] }), yaxis: ax({ title: 'probability' }), bargap: 0.2,
+      legend: { orientation: 'h', y: -0.22 }, margin: { t: 70, r: 20, b: 90, l: 55 } }), cfg());
+  }
+
+  // ── Q24. Standardizing a normal variable ──────────────────────
+  function normalStandardize() {
+    const id = 'normal-standardize';
+    const mu = val(id, 'mu', 1.5), s = val(id, 'sigma', 2.5);
+    let a = val(id, 'a', 0), b = val(id, 'b', 4);
+    if (a > b) [a, b] = [b, a];
+    const za = (a - mu) / s, zb = (b - mu) / s, P = Phi(zb) - Phi(za);
+    const f = x => phi((x - mu) / s) / s;
+    const clip = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const X0 = -10, X1 = 10, Z0 = -4, Z1 = 4;
+    Plotly.newPlot(el(id), [
+      band(f, () => 0, clip(a, X0, X1), clip(b, X0, X1), C_POS, '', 300),
+      curve(f, X0, X1, 600, { name: `X ~ n(μ = ${mu}, σ = ${s})`, line: { color: C_FN, width: 2 }, hoverinfo: 'skip' }),
+      Object.assign(band(phi, () => 0, clip(za, Z0, Z1), clip(zb, Z0, Z1), C_BLUE, '', 300), { xaxis: 'x2', yaxis: 'y2' }),
+      curve(phi, Z0, Z1, 400, { name: 'Z = (X − μ)/σ ~ n(0, 1)', line: { color: '#60a5fa', width: 2 }, xaxis: 'x2', yaxis: 'y2', hoverinfo: 'skip' }),
+    ], twoRows({ title: `P(${a} < X ≤ ${b}) = Φ(${zb.toFixed(2)}) − Φ(${za.toFixed(2)}) = ${Phi(zb).toFixed(4)} − ${Phi(za).toFixed(4)} = ${P.toFixed(4)}<br>z = (x − μ)/σ:  ${a} → ${za.toFixed(2)},  ${b} → ${zb.toFixed(2)}`,
+      margin: { t: 70, r: 20, b: 40, l: 55 }, xaxis: { range: [X0, X1], title: 'x' }, yaxis: { title: 'density of X', rangemode: 'tozero' },
+      xaxis2: { range: [Z0, Z1], title: 'z' }, yaxis2: { title: 'density of Z', range: [0, 0.45] } }), cfg());
+  }
+
+  // ── Q25. Normal approximation to the binomial, with and without the continuity correction ──
+  function normalApproxBinomial() {
+    const id = 'normal-approx-binomial';
+    const n = Math.max(1, Math.round(val(id, 'n', 20))), p = val(id, 'p', 0.3), k = Math.min(n, Math.max(0, Math.round(val(id, 'k', 5))));
+    const b = binomPmf(n, p), mu = n * p, s = Math.sqrt(n * p * (1 - p));
+    const ks = b.map((_, x) => x);
+    const exact = b.slice(0, k + 1).reduce((t, v) => t + v, 0);
+    const cc = Phi((k + 0.5 - mu) / s), raw = Phi((k - mu) / s);
+    const lo = Math.max(-0.5, Math.floor(mu - 5 * s)), hi = Math.min(n + 0.5, Math.ceil(mu + 5 * s));
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: ks, y: b, width: 1, marker: { color: ks.map(x => (x <= k ? C_BAR : C_DIM)), line: { color: '#111827', width: 1 } }, name: `binomial(${n}, ${p.toFixed(2)}); green bars sum to P(X ≤ ${k})` },
+      curve(x => phi((x - mu) / s) / s, lo, hi, 400, { name: `normal, μ = np = ${mu.toFixed(2)}, σ = √(np(1 − p)) = ${s.toFixed(3)}`, line: { color: C_FN, width: 2 }, hoverinfo: 'skip' }),
+      { x: [k + 0.5, k + 0.5], y: [0, Math.max(...b) * 1.1], mode: 'lines', line: { color: C_ARROW, dash: 'dash' }, name: `x = k + ½ = ${k + 0.5}`, hoverinfo: 'skip' },
+    ], layout({ title: `exact P(X ≤ ${k}) = ${exact.toFixed(4)}   |   Φ((k + ½ − np)/σ) = ${cc.toFixed(4)}   |   no correction Φ((k − np)/σ) = ${raw.toFixed(4)}<br>np = ${mu.toFixed(1)}, n(1 − p) = ${(n * (1 - p)).toFixed(1)}${Math.min(mu, n * (1 - p)) < 5 ? ' — below 5: expect a poor fit' : ''}`,
+      xaxis: ax({ title: 'x', range: [lo, hi] }), yaxis: ax({ title: 'probability' }), bargap: 0,
+      legend: { orientation: 'h', y: -0.22 }, margin: { t: 70, r: 20, b: 90, l: 55 } }), cfg());
+  }
+
+  // ── Q26. Gamma and beta densities as their parameters move ────
+  function gammaBetaShapes() {
+    const id = 'gamma-beta-shapes';
+    const fam = Math.round(val(id, 'fam', 0)), al = val(id, 'alpha', 2), be = val(id, 'beta', 1);
+    let f, lo, hi, title;
+    if (fam === 0) {
+      const lc = -lgamma(al) - al * Math.log(be);
+      f = x => (x > 0 ? Math.exp(lc + (al - 1) * Math.log(x) - x / be) : 0);
+      lo = 0; hi = Math.max(8, al * be + 5 * Math.sqrt(al) * be);
+      const special = al === 1 ? `α = 1: exponential with θ = β = ${be}` : Math.abs(be - 2) < 1e-9 ? `β = 2: chi-square with ν = 2α = ${2 * al} degrees of freedom` : '';
+      title = `gamma(α = ${al}, β = ${be}): mean αβ = ${(al * be).toFixed(3)}, variance αβ² = ${(al * be * be).toFixed(3)}${special ? '<br>' + special : ''}`;
+    } else {
+      const lc = lgamma(al + be) - lgamma(al) - lgamma(be);
+      f = x => (x > 0 && x < 1 ? Math.exp(lc + (al - 1) * Math.log(x) + (be - 1) * Math.log(1 - x)) : 0);
+      lo = 0; hi = 1;
+      const m = al / (al + be), v = al * be / ((al + be) ** 2 * (al + be + 1));
+      title = `beta(α = ${al}, β = ${be}): mean α/(α + β) = ${m.toFixed(3)}, variance = ${v.toFixed(4)}${al === 1 && be === 1 ? '<br>α = β = 1: the uniform density on (0, 1)' : ''}`;
+    }
+    const xs = lin(lo, hi, 600).slice(1, -1), ys = xs.map(f);
+    const top = Math.min(6, Math.max(...ys.filter(Number.isFinite)) * 1.15 || 1);
+    Plotly.newPlot(el(id), [
+      { x: xs, y: ys, mode: 'lines', fill: 'tozeroy', fillcolor: C_POS, line: { color: C_FN, width: 2 }, name: 'density', hoverinfo: 'skip' },
+    ], layout({ title, xaxis: ax({ title: 'x', range: [lo, hi] }), yaxis: ax({ title: 'f(x)', range: [0, top] }), showlegend: false,
+      margin: { t: 70, r: 20, b: 50, l: 55 } }), cfg());
+  }
+
   // ══════════════════════════════════════════════════════════════
   //  STAT 280 — R programming concepts
   // ══════════════════════════════════════════════════════════════
@@ -1793,6 +2132,17 @@
     'total-prob-tree':     totalProbTree,
     'bayes-posterior':     bayesPosterior,
     'rare-disease':        rareDisease,
+    'rv-pmf-cdf':          rvPmfCdf,
+    'density-area':        densityArea,
+    'joint-pmf':           jointPmf,
+    'chebyshev-bound':     chebyshevBound,
+    'mgf-taylor':          mgfTaylor,
+    'covariance-scatter':  covarianceScatter,
+    'binomial-poisson':    binomialPoisson,
+    'hypergeom-binomial':  hypergeomBinomial,
+    'normal-standardize':  normalStandardize,
+    'normal-approx-binomial': normalApproxBinomial,
+    'gamma-beta-shapes':   gammaBetaShapes,
     // STAT 280
     'r-precedence':        rPrecedence,
     'r-loan':              rLoan,
