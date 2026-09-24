@@ -18,15 +18,23 @@ and integrate the pieces — each of which is a logarithm, a power, or an arctan
 
 ## Polynomials and their roots
 
-> **Definition.** $P_n(x) = a_n x^n + a_{n-1}x^{n-1} + \dots + a_1 x + a_0$ with $a_n \ne 0$ is a **polynomial of degree $n$**. A number $b$ is a **root** if $P_n(b) = 0$; then $P_n(x) = (x - b)\,P_{n-1}(x)$. The root has **multiplicity $m$** if $P_n(x) = (x - b)^m P_{n-m}(x)$ with $P_{n-m}(b) \ne 0$; multiplicity 1 is a **simple root**.
+:::definition[Polynomial, root, multiplicity]
+$P_n(x) = a_n x^n + a_{n-1}x^{n-1} + \dots + a_1 x + a_0$ with $a_n \ne 0$ is a **polynomial of degree $n$**. A number $b$ is a **root** if $P_n(b) = 0$; then $P_n(x) = (x - b)\,P_{n-1}(x)$. The root has **multiplicity $m$** if $P_n(x) = (x - b)^m P_{n-m}(x)$ with $P_{n-m}(b) \ne 0$; multiplicity 1 is a **simple root**.
+:::
 
-> **Statement.** Every real polynomial factors into linear factors $ax + b$ and irreducible quadratic factors $ax^2 + bx + c$ (discriminant $b^2 - 4ac < 0$), counted with multiplicity.
+:::theorem[Factorisation of real polynomials]
+Every real polynomial factors into linear factors $ax + b$ and irreducible quadratic factors
+$ax^2 + bx + c$ (discriminant $b^2 - 4ac < 0$), counted with multiplicity. (A consequence of
+the fundamental theorem of algebra; not proved in this course.)
+:::
 
 Irreducible quadratics cannot be avoided: $x^2 + 1$ has no real root.
 
 ## Rational functions
 
-> **Definition.** A **rational function** is a quotient of polynomials $\dfrac{P_n(x)}{Q_m(x)}$. It is **proper** if $n < m$ and **improper** if $n \ge m$.
+:::definition[Rational function]
+A **rational function** is a quotient of polynomials $\dfrac{P_n(x)}{Q_m(x)}$. It is **proper** if $n < m$ and **improper** if $n \ge m$.
+:::
 
 An improper fraction must first be reduced by polynomial long division:
 $$\frac{P_n(x)}{Q_m(x)} = S_{n-m}(x) + \frac{R(x)}{Q_m(x)}, \qquad \deg R < m .$$
@@ -35,7 +43,10 @@ method below.
 
 ## The decomposition
 
-> **Statement.** A proper rational function $\dfrac{P(x)}{Q(x)}$ is a sum of **partial fractions** of the two shapes $\dfrac{A}{(ax + b)^i}$ and $\dfrac{Ax + B}{(ax^2 + bx + c)^i}$, one group per factor of $Q$.
+:::theorem[Partial-fraction decomposition]
+A proper rational function $\dfrac{P(x)}{Q(x)}$ is a sum of **partial fractions** of the two
+shapes $\dfrac{A}{(ax + b)^i}$ and $\dfrac{Ax + B}{(ax^2 + bx + c)^i}$, one group per factor of $Q$.
+:::
 
 The four cases, by what $Q$ contains:
 
@@ -51,10 +62,66 @@ linear numerator: $\dfrac{Ax + B}{ax^2 + bx + c}$.
 **Case IV — a repeated irreducible quadratic** $(ax^2 + bx + c)^r$ contributes
 $$\frac{A_1x + B_1}{ax^2 + bx + c} + \frac{A_2x + B_2}{(ax^2 + bx + c)^2} + \dots + \frac{A_rx + B_r}{(ax^2 + bx + c)^r}.$$
 
-The unknown constants are found by the **method of undetermined coefficients**: put
-the right-hand side over the common denominator $Q$, equate numerators, and either
-compare coefficients of each power of $x$ or plug in convenient values of $x$ (the roots
-of $Q$ kill all but one term — the "cover-up" shortcut for Case I).
+:::steps[Undetermined coefficients]
+1. Divide first if the fraction is improper.
+2. Factor $Q$ and write one group of terms per factor, as in Cases I–IV.
+3. Put the right-hand side over the common denominator $Q$ and equate numerators.
+4. Compare coefficients of each power of $x$, or plug in convenient values of $x$ — the roots
+   of $Q$ kill all but one term (the "cover-up" shortcut for Case I).
+5. Integrate each piece: a logarithm, a power, or an arctangent.
+:::
+
+::::example[Case I — distinct linear factors]
+Find $\displaystyle\int \frac{x + 5}{x^2 + x - 2}\,dx$.
+
+:::solution
+Factor: $x^2 + x - 2 = (x - 1)(x + 2)$, and write
+
+$$
+\frac{x + 5}{(x-1)(x+2)} = \frac{A}{x - 1} + \frac{B}{x + 2}
+\quad\Longrightarrow\quad
+x + 5 = A(x + 2) + B(x - 1).
+$$
+
+At $x = 1$: $6 = 3A$, $A = 2$; at $x = -2$: $3 = -3B$, $B = -1$. Hence the integral is
+$2\ln|x - 1| - \ln|x + 2| + C$.
+:::
+::::
+
+::::example[Case II — a repeated linear factor]
+Find $\displaystyle\int \frac{x\,dx}{(x + 1)^2}$.
+
+:::solution
+$\dfrac{x}{(x + 1)^2} = \dfrac{A}{x + 1} + \dfrac{B}{(x + 1)^2}$ gives $x = A(x + 1) + B$;
+comparing coefficients, $A = 1$, $B = -1$. So
+
+$$
+\int \frac{x\,dx}{(x + 1)^2} = \ln|x + 1| + \frac{1}{x + 1} + C .
+$$
+:::
+::::
+
+::::example[Case III — an irreducible quadratic]
+Find $\displaystyle\int \frac{2x^2 - x + 4}{x^3 + 4x}\,dx$.
+
+:::solution
+$x^3 + 4x = x(x^2 + 4)$, so
+
+$$
+\frac{2x^2 - x + 4}{x(x^2 + 4)} = \frac{A}{x} + \frac{Bx + C}{x^2 + 4}
+\quad\Longrightarrow\quad
+2x^2 - x + 4 = A(x^2 + 4) + (Bx + C)x .
+$$
+
+So $A + B = 2$, $C = -1$, $4A = 4$: $A = 1$, $B = 1$, $C = -1$. Then
+
+$$
+\int \Big(\frac{1}{x} + \frac{x - 1}{x^2 + 4}\Big)dx = \ln|x| + \frac12\ln(x^2 + 4) - \frac12\tan^{-1}\frac{x}{2} + C ,
+$$
+
+the quadratic piece splitting into a $u = x^2 + 4$ substitution and an arctangent.
+:::
+::::
 
 ```sim
 id: calc-partial-fractions
@@ -76,24 +143,21 @@ for a, b in ((1, -2), (3, 3)):                           # the sim's default a =
 #   (x - 3)**(-2)
 ```
 
-> **Example — Case I.** $\displaystyle\int \frac{x + 5}{x^2 + x - 2}\,dx = \int \frac{x + 5}{(x - 1)(x + 2)}\,dx$. Write $\dfrac{x + 5}{(x-1)(x+2)} = \dfrac{A}{x - 1} + \dfrac{B}{x + 2}$, so $x + 5 = A(x + 2) + B(x - 1)$. At $x = 1$: $6 = 3A$, $A = 2$; at $x = -2$: $3 = -3B$, $B = -1$. Hence the integral is $2\ln|x - 1| - \ln|x + 2| + C$.
+:::caution
+Three routine slips: forgetting long division when the fraction is
+improper; writing a constant instead of $Ax + B$ over a quadratic; and giving a
+repeated factor only one term. Count the unknowns — there must be exactly $\deg Q$ of
+them.
+:::
 
-> **Example — Case II.** $\dfrac{x}{(x + 1)^2} = \dfrac{A}{x + 1} + \dfrac{B}{(x + 1)^2}$ gives $x = A(x + 1) + B$; comparing coefficients, $A = 1$, $B = -1$. So $\displaystyle\int \frac{x\,dx}{(x + 1)^2} = \ln|x + 1| + \frac{1}{x + 1} + C$.
+:::note
+The integrals that appear are always of three kinds: $\int \frac{dx}{ax + b} = \frac1a\ln|ax + b|$, $\int \frac{dx}{(ax + b)^i} = \frac{(ax + b)^{1 - i}}{a(1 - i)}$ for $i \ge 2$, and, after completing the square, $\int \frac{dx}{u^2 + k^2} = \frac1k\tan^{-1}\frac{u}{k}$ together with $\int \frac{u\,du}{u^2 + k^2} = \frac12\ln(u^2 + k^2)$.
+:::
 
-> **Example — Case III.** $\dfrac{2x^2 - x + 4}{x^3 + 4x} = \dfrac{2x^2 - x + 4}{x(x^2 + 4)} = \dfrac{A}{x} + \dfrac{Bx + C}{x^2 + 4}$. Numerators: $2x^2 - x + 4 = A(x^2 + 4) + (Bx + C)x$, so $A + B = 2$, $C = -1$, $4A = 4$: $A = 1$, $B = 1$, $C = -1$. Then
-> $\displaystyle\int \Big(\frac{1}{x} + \frac{x - 1}{x^2 + 4}\Big)dx = \ln|x| + \frac12\ln(x^2 + 4) - \frac12\tan^{-1}\frac{x}{2} + C$ — the quadratic piece splits into a $u = x^2 + 4$ substitution and an arctangent.
-
-> **Caution.** Three routine slips: forgetting long division when the fraction is
-> improper; writing a constant instead of $Ax + B$ over a quadratic; and giving a
-> repeated factor only one term. Count the unknowns — there must be exactly $\deg Q$ of
-> them.
-
-> **Note.** The integrals that appear are always of three kinds: $\int \frac{dx}{ax + b} = \frac1a\ln|ax + b|$, $\int \frac{dx}{(ax + b)^i} = \frac{(ax + b)^{1 - i}}{a(1 - i)}$ for $i \ge 2$, and, after completing the square, $\int \frac{dx}{u^2 + k^2} = \frac1k\tan^{-1}\frac{u}{k}$ together with $\int \frac{u\,du}{u^2 + k^2} = \frac12\ln(u^2 + k^2)$.
-
-**Equations**
-
+:::equations
 - improper $\Rightarrow$ divide first: $\dfrac{P}{Q} = S + \dfrac{R}{Q}$, $\ \deg R < \deg Q$
 - $(ax+b)^r \to \displaystyle\sum_{i=1}^{r}\frac{A_i}{(ax+b)^i}$, $\quad (ax^2+bx+c)^r \to \displaystyle\sum_{i=1}^{r}\frac{A_ix + B_i}{(ax^2+bx+c)^i}$
+:::
 
 ## Further reading
 

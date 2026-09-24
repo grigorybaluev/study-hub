@@ -20,38 +20,74 @@ bound on the error of a partial sum.
 
 ## Alternating series
 
-> **Definition.** An **alternating series** has the form $\displaystyle\sum_{n=1}^{\infty}(-1)^{n-1}a_n = a_1 - a_2 + a_3 - a_4 + \dots$ with every $a_n > 0$. (The version starting with a minus sign, $\sum (-1)^n a_n$, is the same up to an overall sign.)
+:::definition[Alternating series]
+An **alternating series** has the form $\displaystyle\sum_{n=1}^{\infty}(-1)^{n-1}a_n = a_1 - a_2 + a_3 - a_4 + \dots$ with every $a_n > 0$. (The version starting with a minus sign, $\sum (-1)^n a_n$, is the same up to an overall sign.)
+:::
 
 The **alternating harmonic series** $1 - \tfrac12 + \tfrac13 - \tfrac14 + \dots$ is the
 model case.
 
 ## The alternating series test
 
-> **Theorem (alternating series test).** If the alternating series $\sum (-1)^{n-1}a_n$, $a_n > 0$, satisfies
-> (i) $a_{n+1} \le a_n$ for all $n$ (the sizes decrease), and
-> (ii) $\lim_{n \to \infty} a_n = 0$,
-> then the series **converges**.
+::::theorem[Alternating series test]
+If the alternating series $\sum (-1)^{n-1}a_n$, $a_n > 0$, satisfies
 
-*Why.* The even partial sums $S_2, S_4, \dots$ increase (each adds $a_{2k+1} - a_{2k+2} \ge 0$) and stay below $a_1$; the odd ones $S_1, S_3, \dots$ decrease and stay above $0$. Both
-converge by the monotone convergence theorem, and $S_{2k+1} - S_{2k} = a_{2k+1} \to 0$ forces
-the two limits to agree.
+1. $a_{n+1} \le a_n$ for all $n$ (the sizes decrease), and
+2. $\lim_{n \to \infty} a_n = 0$,
 
-> **Example.** The alternating harmonic series: $a_n = 1/n$ decreases to $0$, so it converges (its sum turns out to be $\ln 2$). The harmonic series itself diverges — the signs make all the difference.
-> $\displaystyle\sum (-1)^n\frac{n}{n + 1}$: $a_n \to 1 \ne 0$, so condition (ii) fails; by the divergence test the series diverges.
-> $\displaystyle\sum (-1)^{n-1}\frac{n^2}{n^3 + 1}$: $a_n \to 0$, and $f(x) = x^2/(x^3 + 1)$ has $f'(x) < 0$ for $x \ge 2$, so the terms decrease from $n = 2$ on. Converges.
+then the series **converges**.
 
-> **Caution.** Condition (i) is not automatic from (ii). Check it — with $a_{n+1} \le a_n$
-> directly, or with $f'(x) \le 0$ — and remember that "eventually decreasing" is enough.
-> Without (i) the test does not apply, and an alternating series with $a_n \to 0$ can
-> diverge.
+:::proof
+The even partial sums $S_2, S_4, \dots$ increase (each adds $a_{2k+1} - a_{2k+2} \ge 0$) and stay
+below $a_1$; the odd ones $S_1, S_3, \dots$ decrease and stay above $0$. Both converge by the
+monotone convergence theorem, and $S_{2k+1} - S_{2k} = a_{2k+1} \to 0$ forces the two limits to
+agree.
+:::
+::::
+
+::::example[Three alternating series]
+Decide whether $\displaystyle\sum \frac{(-1)^{n-1}}{n}$, $\displaystyle\sum (-1)^n\frac{n}{n + 1}$ and $\displaystyle\sum (-1)^{n-1}\frac{n^2}{n^3 + 1}$ converge.
+
+:::solution
+- The alternating harmonic series: $a_n = 1/n$ decreases to $0$, so it converges (its sum
+  turns out to be $\ln 2$). The harmonic series itself diverges — the signs make all the
+  difference.
+- $a_n = \frac{n}{n+1} \to 1 \ne 0$, so condition 2 fails; by the divergence test the series
+  diverges.
+- $a_n \to 0$, and $f(x) = x^2/(x^3 + 1)$ has $f'(x) < 0$ for $x \ge 2$, so the terms decrease
+  from $n = 2$ on. It converges.
+:::
+::::
+
+:::caution
+Condition 1 is not automatic from condition 2. Check it — with $a_{n+1} \le a_n$
+directly, or with $f'(x) \le 0$ — and remember that "eventually decreasing" is enough.
+Without condition 1 the test does not apply, and an alternating series with $a_n \to 0$ can
+diverge.
+:::
 
 ## The estimation theorem
 
-> **Theorem (alternating series estimation).** If $S = \sum (-1)^{n-1}a_n$ satisfies (i) and (ii), then the remainder after $n$ terms obeys $|R_n| = |S - S_n| \le a_{n+1}$.
+::::theorem[Alternating series estimation]
+If $S = \sum (-1)^{n-1}a_n$ satisfies conditions 1 and 2, then the remainder after $n$ terms
+obeys $|R_n| = |S - S_n| \le a_{n+1}$.
 
-The partial sums hop back and forth across $S$, each hop shorter than the last; so $S$
-lies between any two consecutive partial sums, and the distance from $S_n$ to $S$ is at
-most the size of the next hop.
+:::proof
+The partial sums hop back and forth across $S$, each hop shorter than the last; so $S$ lies
+between any two consecutive partial sums, and the distance from $S_n$ to $S$ is at most the
+size of the next hop.
+:::
+::::
+
+::::example[How many terms?]
+How many terms of $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n-1}}{n^3}$ guarantee an error below $0.001$?
+
+:::solution
+Need $a_{n+1} = \dfrac{1}{(n+1)^3} \le 0.001$, i.e. $n + 1 \ge 10$: nine terms suffice. Compare
+$\sum (-1)^{n-1}/n$, where $a_{n+1} \le 0.001$ needs a thousand terms — alternating
+convergence can be very slow.
+:::
+::::
 
 ```sim
 id: calc-alternating
@@ -74,17 +110,18 @@ print(f'S_10 = {S_n(1, n):.5f}, |S − S_10| = {abs(S - S_n(1, n)):.5f} <= a_11 
 #   S_10 = 0.64563, |S − S_10| = 0.04751 <= a_11 = 0.09091
 ```
 
-> **Example.** How many terms of $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n-1}}{n^3}$ guarantee an error below $0.001$? Need $a_{n+1} = \dfrac{1}{(n+1)^3} \le 0.001$, i.e. $n + 1 \ge 10$: nine terms suffice. Compare the harmonic-like $\sum (-1)^{n-1}/n$, where $a_{n+1} \le 0.001$ needs a thousand terms — alternating convergence can be very slow.
 
-> **Key insight.** The estimation theorem is the first *quantitative* statement about a
-> series' sum in the course: it says not just "converges" but "here is a number, and
-> here is how far it can be from the truth". Taylor series will need exactly this kind
-> of bound to be useful for computation.
+:::insight
+The estimation theorem is the first *quantitative* statement about a
+series' sum in the course: it says not just "converges" but "here is a number, and
+here is how far it can be from the truth". Taylor series will need exactly this kind
+of bound to be useful for computation.
+:::
 
-**Equations**
-
+:::equations
 - $\sum (-1)^{n-1}a_n$ with $a_n \downarrow 0$ converges
 - $|S - S_n| \le a_{n+1}$; $\ S$ lies between $S_n$ and $S_{n+1}$
+:::
 
 ## Further reading
 

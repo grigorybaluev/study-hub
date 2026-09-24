@@ -20,13 +20,42 @@ both produce the vocabulary (converge, diverge, compare) that series will reuse.
 
 ## Type I: infinite intervals
 
-> **Definition.** (a) If $\int_a^t f(x)\,dx$ exists for every $t \ge a$, then $\displaystyle\int_a^{\infty} f(x)\,dx = \lim_{t \to \infty}\int_a^t f(x)\,dx$, provided the limit exists.
-> (b) Likewise $\displaystyle\int_{-\infty}^{b} f(x)\,dx = \lim_{t \to -\infty}\int_t^b f(x)\,dx$.
-> The integral is **convergent** if the limit exists (as a finite number) and **divergent** otherwise.
-> (c) If both $\int_a^{\infty} f$ and $\int_{-\infty}^{a} f$ converge, $\displaystyle\int_{-\infty}^{\infty} f(x)\,dx = \int_{-\infty}^{a} f(x)\,dx + \int_a^{\infty} f(x)\,dx$ for any $a$.
+:::definition[Improper integral of type I]
+(a) If $\int_a^t f(x)\,dx$ exists for every $t \ge a$, then $\displaystyle\int_a^{\infty} f(x)\,dx = \lim_{t \to \infty}\int_a^t f(x)\,dx$, provided the limit exists.
+(b) Likewise $\displaystyle\int_{-\infty}^{b} f(x)\,dx = \lim_{t \to -\infty}\int_t^b f(x)\,dx$.
+The integral is **convergent** if the limit exists (as a finite number) and **divergent** otherwise.
+(c) If both $\int_a^{\infty} f$ and $\int_{-\infty}^{a} f$ converge, $\displaystyle\int_{-\infty}^{\infty} f(x)\,dx = \int_{-\infty}^{a} f(x)\,dx + \int_a^{\infty} f(x)\,dx$ for any $a$.
+:::
 
-> **Example — the $p$-integral.** $\displaystyle\int_1^{\infty}\frac{dx}{x^p}$. For $p \ne 1$: $\displaystyle\int_1^t x^{-p}\,dx = \frac{t^{1-p} - 1}{1 - p}$. As $t \to \infty$, $t^{1-p} \to 0$ if $p > 1$ and $\to \infty$ if $p < 1$. For $p = 1$: $\int_1^t dx/x = \ln t \to \infty$.
-> So $\displaystyle\int_1^{\infty}\frac{dx}{x^p}$ **converges to $\dfrac{1}{p - 1}$ when $p > 1$ and diverges when $p \le 1$.**
+::::example[The $p$-integral]
+For which $p$ does $\displaystyle\int_1^{\infty}\frac{dx}{x^p}$ converge, and to what?
+
+:::solution
+For $p \ne 1$:
+
+$$
+\int_1^t x^{-p}\,dx = \frac{t^{1-p} - 1}{1 - p} .
+$$
+
+As $t \to \infty$, $t^{1-p} \to 0$ if $p > 1$ and $\to \infty$ if $p < 1$. For $p = 1$:
+$\int_1^t dx/x = \ln t \to \infty$. So the integral **converges to $\dfrac{1}{p - 1}$ when
+$p > 1$ and diverges when $p \le 1$.**
+:::
+::::
+
+::::example[Both ends infinite]
+Evaluate $\displaystyle\int_{-\infty}^{\infty}\frac{dx}{1 + x^2}$.
+
+:::solution
+Split at $0$ and take each limit separately:
+
+$$
+\lim_{t \to -\infty}\big[\tan^{-1}x\big]_t^0 + \lim_{t \to \infty}\big[\tan^{-1}x\big]_0^t = \frac{\pi}{2} + \frac{\pi}{2} = \pi .
+$$
+
+The total area under a curve that never touches the axis is finite.
+:::
+::::
 
 ```sim
 id: calc-improper-p
@@ -52,46 +81,83 @@ for p in (2, 1, 0.5):                                    # the sim's default is 
 #   p = 0.5: 4.3246 61.2456 1998.0000 → ∞
 ```
 
-> **Key insight.** $f(x) \to 0$ is *not* enough for convergence: $1/x \to 0$ but its
-> integral from $1$ diverges. The integrand must go to zero *fast enough* — faster than
-> $1/x$, which is what $p > 1$ says.
+:::insight
+$f(x) \to 0$ is *not* enough for convergence: $1/x \to 0$ but its
+integral from $1$ diverges. The integrand must go to zero *fast enough* — faster than
+$1/x$, which is what $p > 1$ says.
+:::
 
-> **Example.** $\displaystyle\int_{-\infty}^{\infty}\frac{dx}{1 + x^2} = \lim_{t \to -\infty}\big[\tan^{-1}x\big]_t^0 + \lim_{t \to \infty}\big[\tan^{-1}x\big]_0^t = \frac{\pi}{2} + \frac{\pi}{2} = \pi$ — the total area under a curve that never touches the axis is finite.
-
-> **Caution.** $\int_{-\infty}^{\infty} f$ is **not** $\lim_{t \to \infty}\int_{-t}^{t} f$. The symmetric limit of $\int_{-t}^t x\,dx$ is $0$, but $\int_0^{\infty} x\,dx$ diverges, so $\int_{-\infty}^{\infty} x\,dx$ diverges. The two halves must converge separately.
+:::caution
+$\int_{-\infty}^{\infty} f$ is **not** $\lim_{t \to \infty}\int_{-t}^{t} f$. The symmetric limit of $\int_{-t}^t x\,dx$ is $0$, but $\int_0^{\infty} x\,dx$ diverges, so $\int_{-\infty}^{\infty} x\,dx$ diverges. The two halves must converge separately.
+:::
 
 ## Type II: unbounded integrands
 
-> **Definition.** (a) If $f$ is continuous on $[a, b)$ and discontinuous at $b$: $\displaystyle\int_a^b f(x)\,dx = \lim_{t \to b^-}\int_a^t f(x)\,dx$.
-> (b) If $f$ is continuous on $(a, b]$ and discontinuous at $a$: $\displaystyle\int_a^b f(x)\,dx = \lim_{t \to a^+}\int_t^b f(x)\,dx$.
-> Convergent if the limit exists, divergent otherwise.
-> (c) If the discontinuity is at an interior point $c$ and both $\int_a^c f$ and $\int_c^b f$ converge, $\displaystyle\int_a^b f = \int_a^c f + \int_c^b f$.
+:::definition[Improper integral of type II]
+(a) If $f$ is continuous on $[a, b)$ and discontinuous at $b$: $\displaystyle\int_a^b f(x)\,dx = \lim_{t \to b^-}\int_a^t f(x)\,dx$.
+(b) If $f$ is continuous on $(a, b]$ and discontinuous at $a$: $\displaystyle\int_a^b f(x)\,dx = \lim_{t \to a^+}\int_t^b f(x)\,dx$.
+Convergent if the limit exists, divergent otherwise.
+(c) If the discontinuity is at an interior point $c$ and both $\int_a^c f$ and $\int_c^b f$ converge, $\displaystyle\int_a^b f = \int_a^c f + \int_c^b f$.
+:::
 
-> **Example.** $\displaystyle\int_0^1 \frac{dx}{\sqrt{x}} = \lim_{t \to 0^+}\big[2\sqrt{x}\big]_t^1 = 2 - 0 = 2$: converges. But $\displaystyle\int_0^1\frac{dx}{x} = \lim_{t \to 0^+}\big[\ln x\big]_t^1 = 0 - (-\infty)$: diverges. Near $0$ the $p$-integral behaves the *opposite* way: $\int_0^1 x^{-p}\,dx$ converges exactly when $p < 1$.
+::::example[Blow-up at an endpoint]
+Decide whether $\displaystyle\int_0^1 \frac{dx}{\sqrt{x}}$ and $\displaystyle\int_0^1\frac{dx}{x}$ converge.
 
-> **Caution — the invisible discontinuity.** $\displaystyle\int_{-1}^{2}\frac{dx}{x^2}$ looks like an ordinary integral; applying Part II blindly gives $\big[-1/x\big]_{-1}^{2} = -\tfrac32$, a negative "area" for a positive function. The integrand is unbounded at $x = 0$; split there, and $\int_{-1}^{0} x^{-2}\,dx$ already diverges. **Always check the integrand for blow-ups inside the interval before evaluating.**
+:::solution
+$$
+\int_0^1 \frac{dx}{\sqrt{x}} = \lim_{t \to 0^+}\big[2\sqrt{x}\big]_t^1 = 2 - 0 = 2
+\qquad
+\int_0^1\frac{dx}{x} = \lim_{t \to 0^+}\big[\ln x\big]_t^1 = 0 - (-\infty)
+$$
+
+The first converges, the second diverges. Near $0$ the $p$-integral behaves the *opposite*
+way to near $\infty$: $\int_0^1 x^{-p}\,dx$ converges exactly when $p < 1$.
+:::
+::::
+
+:::caution[The invisible discontinuity]
+$\displaystyle\int_{-1}^{2}\frac{dx}{x^2}$ looks like an ordinary integral; applying Part II blindly gives $\big[-1/x\big]_{-1}^{2} = -\tfrac32$, a negative "area" for a positive function. The integrand is unbounded at $x = 0$; split there, and $\int_{-1}^{0} x^{-2}\,dx$ already diverges. **Always check the integrand for blow-ups inside the interval before evaluating.**
+:::
 
 ## Convergence tests
 
 When no antiderivative is available, compare with an integral whose behaviour is known.
 
-> **Theorem (comparison test).** Suppose $f$ and $g$ are continuous with $f(x) \ge g(x) \ge 0$ for $x \ge a$.
-> (a) If $\int_a^{\infty} f(x)\,dx$ converges, so does $\int_a^{\infty} g(x)\,dx$.
-> (b) If $\int_a^{\infty} g(x)\,dx$ diverges, so does $\int_a^{\infty} f(x)\,dx$.
+:::theorem[Comparison test for integrals]
+Suppose $f$ and $g$ are continuous with $f(x) \ge g(x) \ge 0$ for $x \ge a$.
+(a) If $\int_a^{\infty} f(x)\,dx$ converges, so does $\int_a^{\infty} g(x)\,dx$.
+(b) If $\int_a^{\infty} g(x)\,dx$ diverges, so does $\int_a^{\infty} f(x)\,dx$.
+:::
 
 Smaller than a convergent one converges; bigger than a divergent one diverges. The other
 two combinations say nothing.
 
-> **Theorem (limit comparison test).** If $f, g \ge 0$ are continuous on $[a, \infty)$ and $\displaystyle\lim_{x \to \infty}\frac{f(x)}{g(x)} = L$ with $0 < L < \infty$, then $\int_a^{\infty} f$ and $\int_a^{\infty} g$ either both converge or both diverge.
+:::theorem[Limit comparison test for integrals]
+If $f, g \ge 0$ are continuous on $[a, \infty)$ and
 
-> **Example.** $\displaystyle\int_1^{\infty} e^{-x^2}\,dx$ converges: for $x \ge 1$, $e^{-x^2} \le e^{-x}$, and $\int_1^{\infty} e^{-x}\,dx = e^{-1}$ converges. (This is how the normal distribution gets a finite total probability.)
-> $\displaystyle\int_1^{\infty}\frac{dx}{\sqrt{x^2 + 1}}$ diverges: the ratio to $1/x$ tends to $1$, and $\int_1^{\infty} dx/x$ diverges.
+$$
+\lim_{x \to \infty}\frac{f(x)}{g(x)} = L \quad\text{with } 0 < L < \infty ,
+$$
 
-**Equations**
+then $\int_a^{\infty} f$ and $\int_a^{\infty} g$ either both converge or both diverge.
+:::
 
+::::example[Deciding without integrating]
+Decide whether $\displaystyle\int_1^{\infty} e^{-x^2}\,dx$ and $\displaystyle\int_1^{\infty}\frac{dx}{\sqrt{x^2 + 1}}$ converge.
+
+:::solution
+For $x \ge 1$, $e^{-x^2} \le e^{-x}$, and $\int_1^{\infty} e^{-x}\,dx = e^{-1}$ converges, so the
+first converges by comparison. (This is how the normal distribution gets a finite total
+probability.) For the second, the ratio to $1/x$ tends to $1$ and $\int_1^{\infty} dx/x$
+diverges, so it diverges by limit comparison.
+:::
+::::
+
+:::equations
 - $\displaystyle\int_a^{\infty} f = \lim_{t \to \infty}\int_a^t f$; $\quad\displaystyle\int_a^b f = \lim_{t \to b^-}\int_a^t f$ when $f$ blows up at $b$
 - $\displaystyle\int_1^{\infty}\frac{dx}{x^p}$ converges iff $p > 1$; $\quad\displaystyle\int_0^1\frac{dx}{x^p}$ converges iff $p < 1$
 - $0 \le g \le f$: $\int f$ converges $\Rightarrow$ $\int g$ converges; $\int g$ diverges $\Rightarrow$ $\int f$ diverges
+:::
 
 ## Further reading
 

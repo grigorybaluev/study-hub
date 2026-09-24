@@ -24,11 +24,21 @@ Slice the region between $y = f(x)$ (top) and $y = g(x)$ (bottom) into thin vert
 strips of width $\Delta x$. Each strip is nearly a rectangle of height $f(x_i^*) - g(x_i^*)$,
 so the area is a Riemann-sum limit:
 
-> **Statement 1.** If $f$ and $g$ are continuous and $f(x) \ge g(x)$ on $[a, b]$, the area between the curves from $x = a$ to $x = b$ is $A = \displaystyle\int_a^b \big[f(x) - g(x)\big]\,dx$.
+::::proposition[Area between curves]
+1. If $f$ and $g$ are continuous and $f(x) \ge g(x)$ on $[a, b]$, the area between the curves
+   from $x = a$ to $x = b$ is $A = \displaystyle\int_a^b \big[f(x) - g(x)\big]\,dx$.
+2. Without the ordering assumption, $A = \displaystyle\int_a^b \big|f(x) - g(x)\big|\,dx$ — in
+   practice, find where the curves cross, split the interval there, and put the upper curve
+   first on each piece.
+3. For a region bounded on the left and right by $x = g(y)$ and $x = f(y)$ between $y = c$ and
+   $y = d$, use horizontal strips: $A = \displaystyle\int_c^d \big|f(y) - g(y)\big|\,dy$.
 
-> **Statement 2.** Without the ordering assumption, $A = \displaystyle\int_a^b \big|f(x) - g(x)\big|\,dx$ — in practice, find where the curves cross, split the interval there, and put the upper curve first on each piece.
-
-> **Statement 3.** For a region bounded on the left and right by $x = g(y)$ and $x = f(y)$ between $y = c$ and $y = d$, use horizontal strips: $A = \displaystyle\int_c^d \big|f(y) - g(y)\big|\,dy$.
+:::proof
+Each strip is nearly a rectangle of height $|f(x_i^*) - g(x_i^*)|$ and width $\Delta x$, so the
+area is the limit of $\sum |f(x_i^*) - g(x_i^*)|\,\Delta x$ — the integral in 2, which is the
+integral in 1 when $f \ge g$. For 3, the same argument with strips of height $\Delta y$.
+:::
+::::
 
 ```sim
 id: calc-area-between
@@ -56,16 +66,44 @@ print(f'whole [0, π]: {sum(area(pi)):.4f}  (= 2√2)')
 #   whole [0, π]: 2.8284  (= 2√2)
 ```
 
-> **Example.** Area between $y = \sin x$ and $y = \cos x$ from $0$ to $\pi/2$. They cross where $\tan x = 1$, i.e. $x = \pi/4$. On $[0, \pi/4]$ cosine is on top, on $[\pi/4, \pi/2]$ sine is:
-> $A = \displaystyle\int_0^{\pi/4}(\cos x - \sin x)\,dx + \int_{\pi/4}^{\pi/2}(\sin x - \cos x)\,dx = \big[\sin x + \cos x\big]_0^{\pi/4} + \big[-\cos x - \sin x\big]_{\pi/4}^{\pi/2} = (\sqrt2 - 1) + (\sqrt2 - 1) = 2\sqrt2 - 2$.
+::::example[Curves that cross]
+Find the area between $y = \sin x$ and $y = \cos x$ from $0$ to $\pi/2$.
 
-> **Example — integrate in $y$.** The region bounded by $y = x - 1$ and $y^2 = 2x + 6$. Solving for $x$: right curve $x = y + 1$, left curve $x = \tfrac12 y^2 - 3$; they meet where $y + 1 = \tfrac12 y^2 - 3$, i.e. $y = -2$ and $y = 4$. So
-> $A = \displaystyle\int_{-2}^{4}\Big[(y + 1) - \big(\tfrac12 y^2 - 3\big)\Big]dy = \int_{-2}^4\Big(-\tfrac12 y^2 + y + 4\Big)dy = 18$.
-> Vertical strips would need two integrals (the lower boundary switches from the parabola to the line at $x = -1$); horizontal strips need one.
+:::solution
+They cross where $\tan x = 1$, i.e. $x = \pi/4$. On $[0, \pi/4]$ cosine is on top, on
+$[\pi/4, \pi/2]$ sine is:
 
-> **Caution.** $\int_a^b (f - g)\,dx$ with the curves in the wrong order gives a negative
-> "area". A negative answer to an area question means the order or the crossing points
-> were missed — recheck before moving on.
+$$
+\begin{aligned}
+A &= \int_0^{\pi/4}(\cos x - \sin x)\,dx + \int_{\pi/4}^{\pi/2}(\sin x - \cos x)\,dx \\
+  &= \big[\sin x + \cos x\big]_0^{\pi/4} + \big[-\cos x - \sin x\big]_{\pi/4}^{\pi/2} \\
+  &= (\sqrt2 - 1) + (\sqrt2 - 1) = 2\sqrt2 - 2 .
+\end{aligned}
+$$
+:::
+::::
+
+::::example[Integrate in $y$]
+Find the area of the region bounded by $y = x - 1$ and $y^2 = 2x + 6$.
+
+:::solution
+Solve both for $x$: the right curve is $x = y + 1$, the left curve $x = \tfrac12 y^2 - 3$; they
+meet where $y + 1 = \tfrac12 y^2 - 3$, i.e. $y = -2$ and $y = 4$. So
+
+$$
+A = \int_{-2}^{4}\Big[(y + 1) - \big(\tfrac12 y^2 - 3\big)\Big]dy = \int_{-2}^4\Big(-\tfrac12 y^2 + y + 4\Big)dy = 18 .
+$$
+
+Vertical strips would need two integrals (the lower boundary switches from the parabola to
+the line at $x = -1$); horizontal strips need one.
+:::
+::::
+
+:::caution
+$\int_a^b (f - g)\,dx$ with the curves in the wrong order gives a negative
+"area". A negative answer to an area question means the order or the crossing points
+were missed — recheck before moving on.
+:::
 
 ## Average value of a function
 
@@ -74,9 +112,18 @@ $n$ points spaced $\Delta x = (b - a)/n$ apart, average the samples, and rewrite
 $\frac{1}{n} = \frac{\Delta x}{b - a}$: the average is $\frac{1}{b-a}\sum f(x_i^*)\Delta x$, a
 Riemann sum. In the limit:
 
-> **Definition.** The **average value** of $f$ on $[a, b]$ is $f_{\text{av}} = \dfrac{1}{b - a}\displaystyle\int_a^b f(x)\,dx$.
+:::definition[Average value]
+The **average value** of $f$ on $[a, b]$ is
 
-> **Theorem (mean value theorem for integrals).** If $f$ is continuous on $[a, b]$, there is a $c \in [a, b]$ with $f(c) = f_{\text{av}}$, i.e. $\displaystyle\int_a^b f(x)\,dx = f(c)\,(b - a)$.
+$$
+f_{\text{av}} = \frac{1}{b - a}\int_a^b f(x)\,dx .
+$$
+:::
+
+:::theorem[Mean value theorem for integrals]
+If $f$ is continuous on $[a, b]$, there is a $c \in [a, b]$ with $f(c) = f_{\text{av}}$, i.e.
+$\displaystyle\int_a^b f(x)\,dx = f(c)\,(b - a)$. (Proved in lecture 4.)
+:::
 
 Geometrically: a rectangle of height $f(c)$ on the base $[a, b]$ has exactly the area
 under the curve — the part of the curve above the line $y = f_{\text{av}}$ balances the
@@ -102,16 +149,29 @@ print('f_av =', fav, ' c =', round(c, 3), ' f(c) =', round(c**2, 3))
 #   f_av = 3  c = 1.732  f(c) = 3.0
 ```
 
-> **Example.** Average of $f(x) = 1 + x^2$ on $[-1, 2]$: $f_{\text{av}} = \frac{1}{3}\displaystyle\int_{-1}^{2}(1 + x^2)\,dx = \frac{1}{3}\Big[x + \tfrac{x^3}{3}\Big]_{-1}^{2} = \frac{1}{3}\cdot 6 = 2$. The value $2$ is attained where $1 + c^2 = 2$, i.e. $c = 1$ (the other root, $-1$, is also in the interval).
+::::example[An average and where it is attained]
+Find the average value of $f(x) = 1 + x^2$ on $[-1, 2]$, and every $c$ where $f(c) = f_{\text{av}}$.
 
-> **Key insight.** The average value is the height that makes a rectangle out of the
-> region. Later this becomes the expected value of a continuous random variable: the
-> integral of $x$ against a density is exactly a weighted average of this kind.
+:::solution
+$$
+f_{\text{av}} = \frac{1}{3}\int_{-1}^{2}(1 + x^2)\,dx = \frac{1}{3}\Big[x + \tfrac{x^3}{3}\Big]_{-1}^{2} = \frac{1}{3}\cdot 6 = 2 .
+$$
 
-**Equations**
+It is attained where $1 + c^2 = 2$, i.e. $c = 1$ — and the other root, $c = -1$, is also in
+the interval.
+:::
+::::
 
+:::insight
+The average value is the height that makes a rectangle out of the
+region. Later this becomes the expected value of a continuous random variable: the
+integral of $x$ against a density is exactly a weighted average of this kind.
+:::
+
+:::equations
 - $A = \displaystyle\int_a^b \big|f(x) - g(x)\big|\,dx$ (vertical strips), $\ A = \displaystyle\int_c^d \big|f(y) - g(y)\big|\,dy$ (horizontal strips)
 - $f_{\text{av}} = \dfrac{1}{b-a}\displaystyle\int_a^b f(x)\,dx = f(c)$ for some $c \in [a, b]$
+:::
 
 ## Further reading
 
