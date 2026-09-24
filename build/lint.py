@@ -12,9 +12,9 @@ from pathlib import Path
 
 import yaml
 
-from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH,
+from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH, METHOD_NODE_KINDS,
                     UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
-                    roadmap_node_ids, roadmap_root, unit_slug)
+                    roadmap_node_ids, roadmap_root, unit_slug, answer_label)
 
 
 class Report:
@@ -228,6 +228,124 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
             rep.error(doc.path, f"sim {cfg['id']!r} is not in the registry")
 
 
+# --------------------------------------------------------------------------- method graphs and solution maps (#91)
+SOLMAP_BLOCK_RE = re.compile(r"^```solution-map\n(.*?)^```", re.M | re.S)
+
+
+def lint_methods(c: Content, rep: Report):
+    """content/methods/<id>.yaml: a flowchart of how to choose a method. Nodes are decisions
+    (their outgoing edges are the answers), methods, and ends; `start` names the entry node."""
+    for mid, g in c.methods.items():
+        where = f"content/methods/{mid}.yaml"
+        if not SLUG_RE.match(mid):
+            rep.error(where, "file name must be a slug")
+        if g.get("id", mid) != mid:
+            rep.error(where, f"id {g.get('id')!r} must match the file name")
+        if not isinstance(g.get("title"), str):
+            rep.error(where, "needs a `title`")
+        nodes, edges = g.get("nodes"), g.get("edges")
+        if not isinstance(nodes, list) or not nodes or not isinstance(edges, list):
+            rep.error(where, "needs non-empty `nodes` and an `edges` list")
+            continue
+        kinds: dict[str, str] = {}
+        for n in nodes:
+            if not isinstance(n, dict) or not isinstance(n.get("id"), str) or not SLUG_RE.match(n["id"]):
+                rep.error(where, f"node {n!r} needs a slug `id`")
+                continue
+            if n["id"] in kinds:
+                rep.error(where, f"duplicate node {n['id']!r}")
+            if n.get("kind") not in METHOD_NODE_KINDS:
+                rep.error(where, f"node {n['id']!r}: kind must be one of {sorted(METHOD_NODE_KINDS)}")
+            if not isinstance(n.get("label"), str) or not n["label"].strip():
+                rep.error(where, f"node {n['id']!r} needs a `label`")
+            if n.get("concept") is not None and n["concept"] not in c.concepts:
+                rep.error(where, f"node {n['id']!r}: concept {n['concept']!r} does not exist")
+            kinds[n["id"]] = n.get("kind")
+        out: dict[str, list[dict]] = {k: [] for k in kinds}
+        for e in edges:
+            if not isinstance(e, dict) or not isinstance(e.get("from"), str) or not isinstance(e.get("to"), str) \
+                    or e["from"] not in kinds or e["to"] not in kinds:
+                rep.error(where, f"edge {e!r}: `from` and `to` must be nodes of this graph")
+                continue
+            out[e["from"]].append(e)
+        start = g.get("start")
+        if not isinstance(start, str) or start not in kinds:
+            rep.error(where, f"`start` {start!r} must name a node")
+            continue
+        for nid, kind in kinds.items():
+            labels = [answer_label(e.get("label")) for e in out[nid]]
+            if kind == "decision":
+                if len(out[nid]) < 2:
+                    rep.error(where, f"decision {nid!r} needs at least two answers (outgoing edges)")
+                if not all(isinstance(l, str) and l for l in labels) or len(set(labels)) != len(labels):
+                    rep.error(where, f"decision {nid!r}: every outgoing edge needs a distinct `label` (the answer)")
+            elif kind == "end" and out[nid]:
+                rep.error(where, f"end node {nid!r} has outgoing edges")
+            elif kind == "method" and not out[nid]:
+                rep.error(where, f"method {nid!r} leads nowhere; point it at an end or a next decision")
+        seen, todo = {start}, [start]
+        while todo:
+            for e in out[todo.pop()]:
+                if e["to"] not in seen:
+                    seen.add(e["to"])
+                    todo.append(e["to"])
+        for nid in kinds:
+            if nid not in seen:
+                rep.warn(where, f"node {nid!r} cannot be reached from start")
+
+
+def lint_solution_maps(c: Content, body: str, where, rep: Report):
+    """A ```solution-map block walks its method graph: first step at `start`, each next step along
+    an edge (a decision step names the edge's answer), last step at an end node."""
+    for m in SOLMAP_BLOCK_RE.finditer(body):
+        try:
+            cfg = yaml.safe_load(m.group(1))
+        except yaml.YAMLError as e:
+            rep.error(where, f"solution-map block is not valid YAML: {e}")
+            continue
+        if not isinstance(cfg, dict) or not cfg.get("id"):
+            rep.error(where, "solution-map block needs an `id`")
+            continue
+        name = f"solution-map {cfg['id']!r}"
+        verified = cfg.get("verified", [])
+        if not (isinstance(verified, list) and all(v in SIM_CHECKS for v in verified)):
+            rep.error(where, f"{name}: verified must be a list of {list(SIM_CHECKS)}")
+        g = c.methods.get(cfg["method"]) if isinstance(cfg.get("method"), str) else None
+        if g is None:
+            rep.error(where, f"{name}: method {cfg.get('method')!r} is not in content/methods/")
+            continue
+        if not isinstance(cfg.get("task"), str):
+            rep.error(where, f"{name}: needs a `task`")
+        steps = cfg.get("steps")
+        if not isinstance(steps, list) or not steps or not all(isinstance(s, dict) for s in steps):
+            rep.error(where, f"{name}: needs a non-empty `steps` list")
+            continue
+        kinds = {n["id"]: n.get("kind") for n in g.get("nodes") or [] if isinstance(n, dict) and "id" in n}
+        edges = [e for e in g.get("edges") or [] if isinstance(e, dict)]
+        for st in steps:
+            if not isinstance(st.get("node"), str):
+                st["node"] = repr(st.get("node"))      # reported below as not in the graph
+        for i, st in enumerate(steps, 1):
+            if st.get("node") not in kinds:
+                rep.error(where, f"{name} step {i}: node {st.get('node')!r} is not in method {g.get('id')!r}")
+            if not isinstance(st.get("text"), str) or not st["text"].strip():
+                rep.error(where, f"{name} step {i}: needs `text`")
+        if any(st.get("node") not in kinds for st in steps):
+            continue
+        if steps[0]["node"] != g.get("start"):
+            rep.error(where, f"{name}: the first step must be at the start node {g.get('start')!r}")
+        for i, (a, b) in enumerate(zip(steps, steps[1:]), 1):
+            cand = [e for e in edges if e.get("from") == a["node"] and e.get("to") == b["node"]]
+            if kinds[a["node"]] == "decision":
+                cand = [e for e in cand if answer_label(e.get("label")) == answer_label(a.get("answer"))]
+                if not cand:
+                    rep.error(where, f"{name} step {i}: decision {a['node']!r} has no answer {answer_label(a.get('answer'))!r} leading to {b['node']!r}")
+            elif not cand:
+                rep.error(where, f"{name} step {i}: no edge {a['node']!r} -> {b['node']!r}")
+        if kinds[steps[-1]["node"]] != "end":
+            rep.error(where, f"{name}: the last step must be at an end node")
+
+
 FENCE_RE = re.compile(r"^```.*?^```", re.M | re.S)
 QUOTE_RE = re.compile(r"^[ \t]*(?:>[ \t]?)*[ \t]*")        # list indent / blockquote markers before a fence
 OPEN_RE = re.compile(r"^(:{3,})([A-Za-z][\w-]*)(\[.*\])?(\{.*\})?\s*$")
@@ -347,6 +465,7 @@ def lint_unit(c: Content, doc: Doc, rep: Report):
     if len(doc.body) < 40:
         rep.warn(doc.path, "body is empty or very short")
     lint_sim_blocks(doc, SIM_REGISTRY, rep)
+    lint_solution_maps(c, doc.body, doc.path, rep)
 
 
 def lint_variant(uni, variant: dict, core: set, ppath: Path, rep: Report):
@@ -451,6 +570,10 @@ def run(content=None) -> Report:
     for uni in c.universities.values():
         lint_university(c, uni, rep)
     lint_findings(c, rep)
+    lint_methods(c, rep)
+    # the design specimens (app/src/design/*.md) may hold solution maps too
+    for p in sorted((ROOT / "app" / "src" / "design").glob("*.md")):
+        lint_solution_maps(c, p.read_text(encoding="utf-8"), p, rep)
     return rep
 
 

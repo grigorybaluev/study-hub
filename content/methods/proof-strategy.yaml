@@ -1,0 +1,32 @@
+id: proof-strategy
+title: Choosing a proof strategy
+description: >-
+  Every strategy is a choice of what to assume. Induction assumes the previous case, cases
+  assume each alternative, a direct proof assumes the hypothesis, the contrapositive assumes the
+  conclusion fails, and contradiction assumes everything fails at once.
+start: indexed
+nodes:
+  - {id: indexed, kind: decision, label: "A claim P(n) for all n ≥ c, where P(n + 1) builds on P(n)?"}
+  - {id: induction, kind: method, label: "Induction: basis, then P(n) → P(n + 1)", concept: mathematical-induction}
+  - {id: split, kind: decision, label: "Does the hypothesis split into natural cases?"}
+  - {id: cases, kind: method, label: "Proof by cases", concept: proof-techniques}
+  - {id: forward, kind: decision, label: "Does assuming p give something to compute with?"}
+  - {id: direct, kind: method, label: "Direct proof: assume p, derive q", concept: proof-techniques}
+  - {id: negation, kind: decision, label: "Is ¬q concrete enough to compute with?"}
+  - {id: contrapositive, kind: method, label: "Contrapositive: assume ¬q, derive ¬p", concept: proof-techniques}
+  - {id: contradiction, kind: method, label: "Contradiction: assume p and ¬q, reach F", concept: proof-techniques}
+  - {id: proved, kind: end, label: "Proved"}
+edges:
+  - {from: indexed, to: induction, label: "yes"}
+  - {from: indexed, to: split, label: "no"}
+  - {from: induction, to: proved}
+  - {from: split, to: cases, label: "yes"}
+  - {from: split, to: forward, label: "no"}
+  - {from: cases, to: proved}
+  - {from: forward, to: direct, label: "yes"}
+  - {from: forward, to: negation, label: "no"}
+  - {from: direct, to: proved}
+  - {from: negation, to: contrapositive, label: "yes"}
+  - {from: negation, to: contradiction, label: "no"}
+  - {from: contrapositive, to: proved}
+  - {from: contradiction, to: proved}

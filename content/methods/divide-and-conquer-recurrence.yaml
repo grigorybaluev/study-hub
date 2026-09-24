@@ -1,0 +1,28 @@
+id: divide-and-conquer-recurrence
+title: Solving a divide-and-conquer recurrence
+description: >-
+  For T(n) = a·T(n/b) + f(n) the whole question is which dominates: the n^(log_b a) leaves of the
+  recursion tree or the work f(n) done at the top. When neither form fits, unroll the recurrence.
+start: form
+nodes:
+  - {id: form, kind: decision, label: "T(n) = a·T(n/b) + f(n) with a ≥ 1, b > 1?"}
+  - {id: unroll, kind: method, label: "Unroll it or draw the recursion tree; sum the levels", concept: recursion}
+  - {id: compare, kind: decision, label: "Compare f(n) with n^(log_b a)"}
+  - {id: leaves, kind: method, label: "Case 1: T(n) = Θ(n^(log_b a))", concept: algorithm-analysis}
+  - {id: balanced, kind: method, label: "Case 2: T(n) = Θ(n^(log_b a) · log n)", concept: algorithm-analysis}
+  - {id: regularity, kind: decision, label: "a·f(n/b) ≤ c·f(n) for some c < 1?"}
+  - {id: root, kind: method, label: "Case 3: T(n) = Θ(f(n))", concept: algorithm-analysis}
+  - {id: solved, kind: end, label: "Order of growth found"}
+edges:
+  - {from: form, to: compare, label: "yes"}
+  - {from: form, to: unroll, label: "no"}
+  - {from: unroll, to: solved}
+  - {from: compare, to: leaves, label: "polynomially smaller"}
+  - {from: compare, to: balanced, label: "same order"}
+  - {from: compare, to: regularity, label: "polynomially larger"}
+  - {from: compare, to: unroll, label: "in a gap"}
+  - {from: leaves, to: solved}
+  - {from: balanced, to: solved}
+  - {from: regularity, to: root, label: "yes"}
+  - {from: regularity, to: unroll, label: "no"}
+  - {from: root, to: solved}

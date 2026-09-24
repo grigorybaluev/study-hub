@@ -1,0 +1,47 @@
+id: integration-technique
+title: Choosing an integration technique
+description: >-
+  Ask the cheap questions first: can the integrand be simplified, is it already a table form,
+  is part of it the derivative of another part. Only then reach for parts, partial fractions
+  or a trigonometric method. Every technique ends by handing a simpler integral back to the
+  table question.
+start: simplify
+nodes:
+  - {id: simplify, kind: decision, label: "Can it be simplified (expand, cancel, identity)?"}
+  - {id: rewrite, kind: method, label: "Rewrite it, then ask again"}
+  - {id: basic, kind: decision, label: "Is it a basic form from the table?"}
+  - {id: table, kind: method, label: "Integrate from the table", concept: integral}
+  - {id: sub, kind: decision, label: "Is part of it the derivative of another part?"}
+  - {id: substitution, kind: method, label: "Substitute u = g(x)", concept: substitution-rule}
+  - {id: product, kind: decision, label: "Polynomial times eˣ, sin, cos or ln?"}
+  - {id: by-parts, kind: method, label: "Integrate by parts", concept: integration-by-parts}
+  - {id: rational, kind: decision, label: "A polynomial over a polynomial?"}
+  - {id: partial-fractions, kind: method, label: "Divide if needed, then partial fractions", concept: partial-fractions}
+  - {id: trig-powers, kind: decision, label: "Powers of sin and cos, or tan and sec?"}
+  - {id: trig-integrals, kind: method, label: "Trigonometric identities", concept: trigonometric-integrals}
+  - {id: roots, kind: decision, label: "A root of a² − x², a² + x² or x² − a²?"}
+  - {id: trig-sub, kind: method, label: "Trigonometric substitution", concept: trigonometric-substitution}
+  - {id: done, kind: end, label: "Antiderivative found: check by differentiating"}
+  - {id: stuck, kind: end, label: "No elementary method: rewrite, or approximate numerically"}
+edges:
+  - {from: simplify, to: rewrite, label: "yes"}
+  - {from: simplify, to: basic, label: "no"}
+  - {from: rewrite, to: simplify}
+  - {from: basic, to: table, label: "yes"}
+  - {from: basic, to: sub, label: "no"}
+  - {from: table, to: done}
+  - {from: sub, to: substitution, label: "yes"}
+  - {from: sub, to: product, label: "no"}
+  - {from: substitution, to: basic}
+  - {from: product, to: by-parts, label: "yes"}
+  - {from: product, to: rational, label: "no"}
+  - {from: by-parts, to: basic}
+  - {from: rational, to: partial-fractions, label: "yes"}
+  - {from: rational, to: trig-powers, label: "no"}
+  - {from: partial-fractions, to: basic}
+  - {from: trig-powers, to: trig-integrals, label: "yes"}
+  - {from: trig-powers, to: roots, label: "no"}
+  - {from: trig-integrals, to: basic}
+  - {from: roots, to: trig-sub, label: "yes"}
+  - {from: roots, to: stuck, label: "no"}
+  - {from: trig-sub, to: basic}

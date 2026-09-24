@@ -1,0 +1,32 @@
+id: regular-or-not
+title: Is a language regular?
+description: >-
+  To show regularity, exhibit a finite description: the list of strings, a regular expression or
+  automaton, or a construction from regular languages by closure. To show non-regularity, find the
+  unbounded memory the language needs and let the pumping lemma break it.
+start: finite
+nodes:
+  - {id: finite, kind: decision, label: "Is L finite?"}
+  - {id: list, kind: method, label: "A finite union of strings is regular", concept: regular-language}
+  - {id: describe, kind: decision, label: "Can you write a regex or a DFA/NFA for it?"}
+  - {id: construct, kind: method, label: "Build it, and check it accepts exactly L", concept: regular-expression}
+  - {id: closure, kind: decision, label: "Built from regular languages by ∪, ∩, complement, concatenation, *?"}
+  - {id: closed, kind: method, label: "Closure properties", concept: language-closure-properties}
+  - {id: counting, kind: decision, label: "Does membership need unbounded counting or matching?"}
+  - {id: pumping, kind: method, label: "Pumping lemma: choose s ∈ L, |s| ≥ p; every split fails", concept: pumping-lemma-regular}
+  - {id: regular, kind: end, label: "Regular"}
+  - {id: not-regular, kind: end, label: "Not regular"}
+  - {id: open, kind: end, label: "Undecided: try Myhill–Nerode or intersect with a regular language"}
+edges:
+  - {from: finite, to: list, label: "yes"}
+  - {from: finite, to: describe, label: "no"}
+  - {from: list, to: regular}
+  - {from: describe, to: construct, label: "yes"}
+  - {from: describe, to: closure, label: "no"}
+  - {from: construct, to: regular}
+  - {from: closure, to: closed, label: "yes"}
+  - {from: closure, to: counting, label: "no"}
+  - {from: closed, to: regular}
+  - {from: counting, to: pumping, label: "yes"}
+  - {from: counting, to: open, label: "no"}
+  - {from: pumping, to: not-regular}

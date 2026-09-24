@@ -266,3 +266,32 @@ blockquote.wiki p { margin: 0.4em 0; }
 .kv { display: grid; grid-template-columns: max-content 1fr; gap: 0.25em 1em; font-size: 0.92rem; }
 .kv dt { color: var(--fg-muted); }
 .kv dd { margin: 0; }
+
+/* ---- solution maps (#91): stepped solution beside its method graph; graph below on narrow columns */
+.solmap { margin: 1.4em 0; border: 1.5px solid var(--line); border-radius: 14px; background: var(--bg-elev); overflow: hidden; box-shadow: var(--shadow); container-type: inline-size; }
+.solmap-error { padding: 0.8rem 1.25rem; color: var(--bad); }
+.solmap-head { padding: 0.6rem 1.25rem 0; font-size: 0.8rem; }
+.solmap-kind { font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.solmap-method { font-weight: 700; color: var(--fg); }
+.solmap-task { padding: 0.2rem 1.25rem 0.4rem; border-bottom: 1px solid var(--line); }
+.solmap-body { display: grid; grid-template-columns: 1fr; }
+@container (min-width: 620px) { .solmap-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .solmap-graph { border-left: 1px solid var(--line); } }
+.solmap-steps { padding: 0.6rem 1.25rem 0.9rem; min-width: 0; }
+.solmap-steps ol { margin: 0; padding-left: 1.3em; }
+.solmap-steps li { margin: 0.35rem 0; padding: 0.2rem 0.6rem; border-left: 3px solid transparent; border-radius: 4px; cursor: pointer; }
+.solmap-steps li.now { border-left-color: var(--accent); background: var(--accent-soft); }
+.solmap-steps li p { margin: 0.2em 0; }
+.solmap-node { font-size: 0.78rem; font-weight: 700; color: var(--fg-muted); }
+.solmap-node.decision { color: var(--warn); }
+.solmap-node.method { color: var(--accent-dk); }
+.solmap-node.end { color: var(--info); }
+.solmap-answer { margin-left: 0.5em; padding: 0 0.45em; border-radius: 6px; background: var(--warn-soft); color: var(--warn); font-weight: 800; }
+.solmap-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding: 0.6rem 1.25rem; border-bottom: 1px solid var(--line); background: var(--bg-sunken); }
+.solmap-controls .btn { font: inherit; font-size: 0.85rem; font-weight: 700; padding: 0.4em 1em; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+.solmap-controls .btn:hover:not(:disabled) { background: var(--accent-dk); }
+.solmap-controls .btn-quiet { background: transparent; color: var(--accent-dk); border: 1px solid var(--line); }
+.solmap-controls .btn-quiet:hover:not(:disabled) { background: var(--accent-soft); }
+.solmap-controls .btn:disabled { opacity: 0.4; cursor: default; }
+.solmap-count { font-size: 0.8rem; color: var(--fg-muted); margin-left: auto; }
+.solmap-graph { min-width: 0; border-top: 1px solid var(--line); }
+@container (min-width: 620px) { .solmap-graph { border-top: 0; } }
