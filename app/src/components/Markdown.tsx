@@ -103,7 +103,9 @@ function remarkMathFit() {
           const pieces = splitSpacers(k.value);
           if (pieces.length > 1) {
             const seq: Nodes[] = [];
-            pieces.forEach((p, n) => { if (n) seq.push({ type: "text", value: "\u2003" } as Nodes); seq.push({ type: "inlineMath", value: p } as Nodes); });
+            // each piece needs the same hast data remark-math gave the original, or KaTeX never sees it
+            const math = (value: string) => ({ type: "inlineMath", value, data: { hName: "code", hProperties: { className: ["language-math", "math-inline"] }, hChildren: [{ type: "text", value }] } }) as Nodes;
+            pieces.forEach((p, n) => { if (n) seq.push({ type: "text", value: "\u2003" } as Nodes); seq.push(math(p)); });
             kids.splice(i, 1, ...seq);
             i += seq.length - 1;
           }
