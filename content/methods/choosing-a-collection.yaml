@@ -10,7 +10,7 @@ nodes:
   - {id: map-order, kind: decision, label: "Keys needed in sorted order?"}
   - {id: hash-map, kind: method, label: "HashMap<K, V>", concept: hash-table}
   - {id: tree-map, kind: method, label: "TreeMap<K, V>", concept: binary-search-tree}
-  - {id: duplicates, kind: decision, label: "Do duplicates matter?"}
+  - {id: duplicates, kind: decision, label: "Must duplicates be excluded?"}
   - {id: set-order, kind: decision, label: "Elements needed in sorted order?"}
   - {id: hash-set, kind: method, label: "HashSet<E>", concept: collections}
   - {id: tree-set, kind: method, label: "TreeSet<E>", concept: collections}
@@ -26,8 +26,8 @@ edges:
   - {from: map-order, to: tree-map, label: "yes"}
   - {from: hash-map, to: chosen}
   - {from: tree-map, to: chosen}
-  - {from: duplicates, to: set-order, label: "no"}
-  - {from: duplicates, to: processing, label: "yes"}
+  - {from: duplicates, to: set-order, label: "yes"}
+  - {from: duplicates, to: processing, label: "no"}
   - {from: set-order, to: hash-set, label: "no"}
   - {from: set-order, to: tree-set, label: "yes"}
   - {from: hash-set, to: chosen}

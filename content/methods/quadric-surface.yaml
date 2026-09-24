@@ -16,11 +16,12 @@ nodes:
   - {id: cone, kind: end, label: "Elliptic cone"}
   - {id: elliptic-paraboloid, kind: end, label: "Elliptic paraboloid"}
   - {id: hyperbolic-paraboloid, kind: end, label: "Hyperbolic paraboloid (saddle)"}
-  - {id: cylinder, kind: end, label: "Cylinder over a conic"}
+  - {id: cylinder, kind: end, label: "Cylinder (over a parabola or a conic)"}
 edges:
   - {from: standard, to: squared}
   - {from: squared, to: signs, label: "three"}
   - {from: squared, to: third, label: "two"}
+  - {from: squared, to: cylinder, label: "one"}
   - {from: signs, to: one-sheet, label: "one minus, = 1"}
   - {from: signs, to: ellipsoid, label: "all plus, = 1"}
   - {from: signs, to: cone, label: "one minus, = 0"}
