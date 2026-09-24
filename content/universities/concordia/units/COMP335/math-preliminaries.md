@@ -25,10 +25,12 @@ contradiction, pigeonhole).
 
 ### Sets and their representations
 
-> **Definition.** A **set** is a collection of elements (objects). $A = \{1, 2, 3\}$, $B = \{\text{train}, \text{bus}, \text{bicycle}, \text{airplane}\}$. Membership: $1 \in A$, $\text{ship} \notin B$.
-> - Finite set, listed or abbreviated: $C = \{a, b, c, \dots, k\}$.
-> - Infinite set: $S = \{2, 4, 6, \dots\}$, or by a property: $S = \{\, j : j > 0 \text{ and } j = 2k \text{ for some } k > 0 \,\} = \{\, j : j \text{ is nonnegative and even} \,\}$.
-> - **Universal set** $U$: all possible elements, e.g. $U = \{1, \dots, 10\}$.
+:::definition[Set]
+A **set** is a collection of elements (objects). $A = \{1, 2, 3\}$, $B = \{\text{train}, \text{bus}, \text{bicycle}, \text{airplane}\}$. Membership: $1 \in A$, $\text{ship} \notin B$.
+- Finite set, listed or abbreviated: $C = \{a, b, c, \dots, k\}$.
+- Infinite set: $S = \{2, 4, 6, \dots\}$, or by a property: $S = \{\, j : j > 0 \text{ and } j = 2k \text{ for some } k > 0 \,\} = \{\, j : j \text{ is nonnegative and even} \,\}$.
+- **Universal set** $U$: all possible elements, e.g. $U = \{1, \dots, 10\}$.
+:::
 
 ### Set operations
 
@@ -44,7 +46,9 @@ With $A = \{1,2,3\}$ and $B = \{2,3,4,5\}$ (Venn diagrams on the slides):
 
 Example of complements: over the integers, $\overline{\{\text{even integers}\}} = \{\text{odd integers}\}$.
 
-> **Definition — De Morgan's laws.** $$\overline{A \cup B} = \bar A \cap \bar B, \qquad \overline{A \cap B} = \bar A \cup \bar B$$
+:::theorem[De Morgan's laws]
+$$\overline{A \cup B} = \bar A \cap \bar B, \qquad \overline{A \cap B} = \bar A \cup \bar B$$
+:::
 
 ### The empty set, subsets, disjoint sets
 
@@ -57,21 +61,19 @@ The **empty (null) set** is $\varnothing = \{\}$, and for any set $S$:
 
 ### Powersets and Cartesian products
 
-> **Definition.**
-> The **powerset** $2^S$ of $S$ is the set of *all subsets* of $S$. For $S = \{a,b,c\}$:
->  $$2^S = \big\{\, \varnothing, \{a\}, \{b\}, \{c\}, \{a,b\}, \{a,c\}, \{b,c\}, \{a,b,c\} \,\big\}, \qquad |2^S| = 2^{|S|} = 8.$$
+:::definition[Powerset]
+The **powerset** $2^S$ of $S$ is the set of *all subsets* of $S$. For $S = \{a,b,c\}$:
 
-> **Definition.**
-> The **Cartesian product** $A \times B$ is the set of ordered pairs. For $A = \{2,4\}$, $B = \{2,3,5\}$:
->  $$A \times B = \{(2,2), (2,3), (2,5), (4,2), (4,3), (4,5)\}, \qquad |A \times B| = |A|\cdot|B| = 6.$$
-> Generalises to more than two sets: $A \times B \times \dots \times Z$.
+$$
+\begin{aligned} 2^S = \big\{\, &\varnothing, \{a\}, \{b\}, \{c\}, \\ &\{a,b\}, \{a,c\}, \{b,c\}, \{a,b,c\} \,\big\}, \end{aligned} \qquad |2^S| = 2^{|S|} = 8.
+$$
+:::
 
-> **Key insight.** Languages are sets of strings, so every set operation on this page (∪, ∩, −, complement, powerset, product) reappears later as an operation on languages — and the powerset 2^Q is exactly the state set of the DFA produced from an NFA.
-
-**Equations**
-
-- *De Morgan*: $\overline{A \cup B} = \bar A \cap \bar B, \qquad \overline{A \cap B} = \bar A \cup \bar B$ — Complement swaps union and intersection.
-- *Sizes*: $|2^S| = 2^{|S|}, \qquad |A \times B| = |A|\cdot|B|$ — Powerset and Cartesian product of finite sets.
+:::definition[Cartesian product]
+The **Cartesian product** $A \times B$ is the set of ordered pairs. For $A = \{2,4\}$, $B = \{2,3,5\}$:
+ $$A \times B = \{(2,2), (2,3), (2,5), (4,2), (4,3), (4,5)\}, \qquad |A \times B| = |A|\cdot|B| = 6.$$
+Generalises to more than two sets: $A \times B \times \dots \times Z$.
+:::
 
 ```sim
 id: set-tool
@@ -104,44 +106,68 @@ print(len(powerset), powerset)              # 8 subsets
 print(list(product({2, 4}, {2, 3, 5})))     # A x B, 6 ordered pairs
 ```
 
+:::insight
+Languages are sets of strings, so every set operation on this page (∪, ∩, −, complement, powerset, product) reappears later as an operation on languages — and the powerset 2^Q is exactly the state set of the DFA produced from an NFA.
+:::
+
+:::equations
+- *De Morgan*: $\overline{A \cup B} = \bar A \cap \bar B, \qquad \overline{A \cap B} = \bar A \cup \bar B$ — Complement swaps union and intersection.
+- *Sizes*: $|2^S| = 2^{|S|}, \qquad |A \times B| = |A|\cdot|B|$ — Powerset and Cartesian product of finite sets.
+:::
+
 ## Functions, Relations & Graphs
 
 ### Functions
 
-> **Definition.**
-> A function $f : A \to B$ maps elements of the **domain** $A$ to elements of the **codomain** $B$; the set of values actually taken, $\{f(x) : x \in A\}$, is the **range**. If $f$ is defined on all of $A$ it is a **total function**; otherwise it is a **partial function**.
-> On the slide: $A = \{1,2,3,4,5\}$, $B = \{a,b,c,d\}$, $f(1) = a$, …; element 4 of the domain has no image, so $f$ is partial. (Keep this in mind: the transition function of a DFA is *total* in our textbook; an NFA's is not.)
+:::definition[Function: total and partial]
+A function $f : A \to B$ maps elements of the **domain** $A$ to elements of the **codomain** $B$; the set of values actually taken, $\{f(x) : x \in A\}$, is the **range**. If $f$ is defined on all of $A$ it is a **total function**; otherwise it is a **partial function**.
+On the slide: $A = \{1,2,3,4,5\}$, $B = \{a,b,c,d\}$, $f(1) = a$, …; element 4 of the domain has no image, so $f$ is partial. (Keep this in mind: the transition function of a DFA is *total* in our textbook; an NFA's is not.)
+:::
 
 ### Relations
 
-> **Definition.**
-> Given a set $A$, a **relation** $R$ on $A$ is a subset $R \subseteq A \times A$ (also written $R \subseteq A^2$): $R = \{(x_1,y_1), (x_2,y_2), \dots\}$, and we write $x_i \, R \, y_i$. Example: the relation “$>$” over $\mathbb{N}$ is the set of all pairs $(x,y)$ with $x > y$.
-> An **equivalence relation** is
-> - **reflexive**: $x \, R \, x$;
-> - **symmetric**: $x \, R \, y \Rightarrow y \, R \, x$;
-> - **transitive**: $x \, R \, y$ and $y \, R \, z \Rightarrow x \, R \, z$.
-> Example: equality “$=$” satisfies $x = x$; $x = y \Rightarrow y = x$; $x = y$ and $y = z \Rightarrow x = z$.
+:::definition[Relation, equivalence relation]
+Given a set $A$, a **relation** $R$ on $A$ is a subset $R \subseteq A \times A$ (also written $R \subseteq A^2$): $R = \{(x_1,y_1), (x_2,y_2), \dots\}$, and we write $x_i \, R \, y_i$. Example: the relation “$>$” over $\mathbb{N}$ is the set of all pairs $(x,y)$ with $x > y$.
+An **equivalence relation** is
+- **reflexive**: $x \, R \, x$;
+- **symmetric**: $x \, R \, y \Rightarrow y \, R \, x$;
+- **transitive**: $x \, R \, y$ and $y \, R \, z \Rightarrow x \, R \, z$.
+Example: equality “$=$” satisfies $x = x$; $x = y \Rightarrow y = x$; $x = y$ and $y = z \Rightarrow x = z$.
+:::
 
-> **Definition.**
-> For an equivalence relation $R$ on $A$, the **equivalence class** of $x$ is $[x]_R = \{\, y : x \, R \, y \,\}$.
+:::definition[Equivalence class]
+For an equivalence relation $R$ on $A$, the **equivalence class** of $x$ is $[x]_R = \{\, y : x \, R \, y \,\}$.
+:::
 
-> **Example.** $R = \{(1,1), (2,2), (1,2), (2,1), (3,3), (4,4), (3,4), (4,3)\}$ on $\{1,2,3,4\}$ gives the classes $[1]_R = \{1,2\}$ and $[3]_R = \{3,4\}$. (DFA minimisation in Unit 5 is exactly “find the equivalence classes of indistinguishable states”.)
+::::example[Equivalence classes]
+Find the equivalence classes of the relation on $\{1,2,3,4\}$
+
+$$
+\begin{aligned} R = \{&(1,1), (2,2), (1,2), (2,1), \\ &(3,3), (4,4), (3,4), (4,3)\} . \end{aligned}
+$$
+
+:::solution
+$1$ is related to $1$ and $2$, and $3$ to $3$ and $4$, so the classes are $[1]_R = [2]_R = \{1,2\}$
+and $[3]_R = [4]_R = \{3,4\}$. (DFA minimisation, later in the course, is exactly "find the
+equivalence classes of indistinguishable states".)
+:::
+::::
 
 ### Graphs
 
-A **directed graph** $G = \langle V, E \rangle$ has nodes (vertices) $V$ and edges $E \subseteq V \times V$. Slide example: $V = \{a,b,c,d,e\}$, $E = \{(a,b), (b,c), (b,e), (c,a), (c,e), (d,c), (e,b), (e,d)\}$. A **labelled graph** attaches a label to every edge — a finite automaton is a labelled directed graph.
+:::definition[Directed graph, walk, path, cycle]
+A **directed graph** $G = \langle V, E \rangle$ has nodes (vertices) $V$ and edges $E \subseteq V \times V$. Slide example: $V = \{a,b,c,d,e\}$ and
+
+$$
+\begin{aligned} E = \{&(a,b), (b,c), (b,e), (c,a), \\ &(c,e), (d,c), (e,b), (e,d)\}. \end{aligned}
+$$
+ A **labelled graph** attaches a label to every edge — a finite automaton is a labelled directed graph.
 
 - A **walk** is a sequence of adjacent edges, e.g. $(e,d), (d,c), (c,a)$.
 - A **path** is a walk in which no edge is repeated; a **simple path** repeats no node.
 - A **cycle** is a walk from a node (the base) back to itself; in a **simple cycle** only the base node is repeated.
 - **Trees** have no cycles: root, parent / child, leaves, levels (root at level 0) and height (the deepest level; the slide tree has height 3).
-
-> **Key insight.** Automata are labelled directed graphs, a run of an automaton is a walk whose labels spell the input, and "indistinguishable states" is an equivalence relation whose classes become the states of the minimal DFA — the whole course leans on these definitions.
-
-**Equations**
-
-- *Relation*: $R \subseteq A \times A, \qquad x \, R \, y \iff (x,y) \in R$ — A relation is a set of ordered pairs.
-- *Equivalence class*: $[x]_R = \{\, y : x \, R \, y \,\}$ — All elements related to x; classes partition A.
+:::
 
 ```sim
 id: graph-tool
@@ -179,43 +205,75 @@ walk = [('e','d'), ('d','c'), ('c','a')]
 print(all(e in E for e in walk) and all(walk[i][1] == walk[i+1][0] for i in range(len(walk)-1)))  # True
 ```
 
+:::insight
+Automata are labelled directed graphs, a run of an automaton is a walk whose labels spell the input, and "indistinguishable states" is an equivalence relation whose classes become the states of the minimal DFA — the whole course leans on these definitions.
+:::
+
+:::equations
+- *Relation*: $R \subseteq A \times A, \qquad x \, R \, y \iff (x,y) \in R$ — A relation is a set of ordered pairs.
+- *Equivalence class*: $[x]_R = \{\, y : x \, R \, y \,\}$ — All elements related to x; classes partition A.
+:::
+
 ## Proof Techniques & the Pigeonhole Principle
 
 ### Proof by induction
 
-> **Definition.**
-> We have statements $P_1, P_2, \dots$. If we know that **$P_1$ is true** (the *basis*) and that **for any $k$, $P_k$ implies $P_{k+1}$** (the *inductive step*), then we conclude that every $P_i$ is true: $\forall i\; P(i)$.
+:::definition[Proof by induction]
+We have statements $P_1, P_2, \dots$. If we know that **$P_1$ is true** (the *basis*) and that **for any $k$, $P_k$ implies $P_{k+1}$** (the *inductive step*), then we conclude that every $P_i$ is true: $\forall i\; P(i)$.
+:::
 
-> **Example.** $0 + 1 + 2 + \dots + n = \dfrac{n(n+1)}{2}$.
-> *Basis* ($n = 0$): the left side is $0$, the right side is $0 \cdot 1 / 2 = 0$. ✓
-> *Inductive step*: assume it holds for $n = k$. Then
->  $$\begin{gathered} 0 + 1 + \dots + k + (k+1) = \frac{k(k+1)}{2} + (k+1) \\[4pt] = \frac{k(k+1) + 2(k+1)}{2} = \frac{(k+1)(k+2)}{2}, \end{gathered}$$
-> which is the formula for $n = k+1$. ✓ Hence it holds for all $n$.
+::::example[A sum by induction]
+Prove that $0 + 1 + 2 + \dots + n = \dfrac{n(n+1)}{2}$ for every $n \ge 0$.
+
+:::solution
+*Basis* ($n = 0$): the left side is $0$, the right side is $0 \cdot 1 / 2 = 0$. ✓
+*Inductive step*: assume it holds for $n = k$. Then
+ $$\begin{gathered} 0 + 1 + \dots + k + (k+1) = \frac{k(k+1)}{2} + (k+1) \\[4pt] = \frac{k(k+1) + 2(k+1)}{2} = \frac{(k+1)(k+2)}{2}, \end{gathered}$$
+which is the formula for $n = k+1$. ✓ Hence it holds for all $n$.
+:::
+::::
 
 ### Proof by contradiction
 
-> **Definition.**
-> To prove that a statement $P$ is true: assume $P$ is false, derive an incorrect conclusion, therefore $P$ must be true.
+:::definition[Proof by contradiction]
+To prove that a statement $P$ is true: assume $P$ is false, derive an incorrect conclusion, therefore $P$ must be true.
+:::
 
-> **Theorem.** $\sqrt 2$ is not rational.
-> **Proof.** Assume by contradiction that it is rational, i.e. $\sqrt 2 = \dfrac{n}{m}$ where $n$ and $m$ have no common factors. We show this is impossible:
->  $$\sqrt 2 = \frac{n}{m} \;\Rightarrow\; 2m^2 = n^2 \;\Rightarrow\; n^2 \text{ is even} \;\Rightarrow\; n \text{ is even}, \; n = 2k$$ $$2m^2 = 4k^2 \;\Rightarrow\; m^2 = 2k^2 \;\Rightarrow\; m \text{ is even}, \; m = 2p$$
-> Thus $2$ is a common factor of both $m$ and $n$ — **contradiction!** $\blacksquare$
+::::theorem[$\sqrt 2$ is irrational]
+$\sqrt 2$ is not rational.
+
+:::proof
+Assume by contradiction that it is rational, i.e. $\sqrt 2 = \dfrac{n}{m}$ where $n$ and $m$ have no
+common factors. Then
+
+$$
+\begin{aligned}
+\sqrt 2 = \frac{n}{m} &\;\Rightarrow\; 2m^2 = n^2 \\
+  &\;\Rightarrow\; n^2 \text{ is even, so } n = 2k \\
+  &\;\Rightarrow\; 2m^2 = 4k^2 \;\Rightarrow\; m^2 = 2k^2 \\
+  &\;\Rightarrow\; m^2 \text{ is even, so } m = 2p .
+\end{aligned}
+$$
+
+Thus $2$ is a common factor of both $m$ and $n$ — **contradiction**.
+:::
+::::
 
 ### The pigeonhole principle
 
-> **Definition.**
-> If $n$ pigeons (objects) are put into $m$ pigeonholes (boxes) with $n > m$, then some pigeonhole contains at least two pigeons. Equivalently: if $n + 1$ objects are put into $n$ boxes, at least one box contains 2 or more objects.
+:::theorem[Pigeonhole principle]
+If $n$ pigeons (objects) are put into $m$ pigeonholes (boxes) with $n > m$, then some pigeonhole contains at least two pigeons. Equivalently: if $n + 1$ objects are put into $n$ boxes, at least one box contains 2 or more objects.
+:::
 
-> **Example.** If 5 points are placed inside a square whose sides are 2 cm long, then at least two points are at distance $\le \sqrt 2$ cm. (Cut the square into four $1 \times 1$ boxes; two of the 5 points share a box, and the diagonal of a unit box is $\sqrt 2$.)
+::::example[Five points in a square]
+Show that among any 5 points inside a square of side 2 cm, some two are at distance at most $\sqrt 2$ cm.
 
-> **Key insight.** Induction proves a statement for every n from a basis and a step; contradiction proves P by showing ¬P is impossible; pigeonhole is the counting argument behind the later proof that {aⁿbⁿ} is not regular (more strings than states forces two of them into the same state).
-
-**Equations**
-
-- *Induction*: $P(1) \;\wedge\; \big(\forall k:\; P(k) \Rightarrow P(k+1)\big) \;\Longrightarrow\; \forall i\; P(i)$ — Basis plus inductive step.
-- *Sum formula*: $0 + 1 + 2 + \dots + n = \frac{n(n+1)}{2}$ — The induction example on the slides.
-- *Pigeonhole*: $\begin{gathered} n \text{ objects in } m \text{ boxes},\quad n > m \\[4pt] \Rightarrow\quad \text{some box holds at least 2 objects} \end{gathered}$ — Used later to prove non-regularity.
+:::solution
+Cut the square into four $1 \times 1$ boxes. Five points in four boxes: by the pigeonhole
+principle two of them share a box, and no two points of a unit box are farther apart than its
+diagonal, $\sqrt 2$.
+:::
+::::
 
 ```sim
 id: proofs-demo
@@ -244,4 +302,14 @@ crowded = next(b for b in boxes.values() if len(b) >= 2)
 (x1, y1), (x2, y2) = crowded[0], crowded[1]
 print("two points in one box, distance =", round(math.dist((x1, y1), (x2, y2)), 3), "<= sqrt(2) =", round(math.sqrt(2), 3))
 ```
+
+:::insight
+Induction proves a statement for every n from a basis and a step; contradiction proves P by showing ¬P is impossible; pigeonhole is the counting argument behind the later proof that {aⁿbⁿ} is not regular (more strings than states forces two of them into the same state).
+:::
+
+:::equations
+- *Induction*: $P(1) \;\wedge\; \big(\forall k:\; P(k) \Rightarrow P(k+1)\big) \;\Longrightarrow\; \forall i\; P(i)$ — Basis plus inductive step.
+- *Sum formula*: $0 + 1 + 2 + \dots + n = \frac{n(n+1)}{2}$ — The induction example on the slides.
+- *Pigeonhole*: $\begin{gathered} n \text{ objects in } m \text{ boxes},\quad n > m \\[4pt] \Rightarrow\quad \text{some box holds at least 2 objects} \end{gathered}$ — Used later to prove non-regularity.
+:::
 
