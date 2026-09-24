@@ -61,6 +61,19 @@ controls:
 note: 'Partial sums of Σ(−1)ⁿ⁻¹/nᵖ. They alternate above and below the sum S (dashed) with shrinking steps, and the last one shown lies within aₙ₊₁ = 1/(n+1)ᵖ of S — the shaded band. Every p > 0 converges here, although the positive version needs p > 1.'
 ```
 
+```python
+# Alternating series estimate: |S − Sₙ| ≤ aₙ₊₁ for Σ (−1)ⁿ⁻¹/nᵖ.
+from math import log
+
+def S_n(p, n): return sum((-1)**(k - 1) * k**-p for k in range(1, n + 1))
+
+n = 10                                                   # the sim's defaults: p = 1, n = 10
+S = log(2)                                               # the p = 1 sum, 1 − 1/2 + 1/3 − … = ln 2
+print(f'S_10 = {S_n(1, n):.5f}, |S − S_10| = {abs(S - S_n(1, n)):.5f} <= a_11 = {1/(n + 1):.5f}')
+# Output:
+#   S_10 = 0.64563, |S − S_10| = 0.04751 <= a_11 = 0.09091
+```
+
 > **Example.** How many terms of $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n-1}}{n^3}$ guarantee an error below $0.001$? Need $a_{n+1} = \dfrac{1}{(n+1)^3} \le 0.001$, i.e. $n + 1 \ge 10$: nine terms suffice. Compare the harmonic-like $\sum (-1)^{n-1}/n$, where $a_{n+1} \le 0.001$ needs a thousand terms — alternating convergence can be very slow.
 
 > **Key insight.** The estimation theorem is the first *quantitative* statement about a

@@ -51,6 +51,25 @@ controls:
 note: 'The region under y = x² on [0, 2] has area 8/3 ≈ 2.6667. Left endpoints underestimate, right endpoints overestimate, and the two are squeezed together as n grows; midpoints land close even for small n.'
 ```
 
+```python
+# Riemann sums for y = x² on [0, 2] (exact area 8/3): left endpoints undershoot,
+# right endpoints overshoot, midpoints land close; all three meet as n grows.
+def riemann(f, a, b, n, rule):
+    dx = (b - a) / n
+    shift = {'left': 0, 'right': dx, 'mid': dx / 2}[rule]
+    return sum(f(a + i*dx + shift) for i in range(n)) * dx
+
+f = lambda x: x**2
+for n in (6, 60, 600):                                   # the sim's default is n = 6, left endpoints
+    print(n, *(f'{rule} {riemann(f, 0, 2, n, rule):.4f}' for rule in ('left', 'right', 'mid')))
+print('exact', round(8/3, 4))
+# Output:
+#   6 left 2.0370 right 3.3704 mid 2.6481
+#   60 left 2.6004 right 2.7337 mid 2.6665
+#   600 left 2.6600 right 2.6733 mid 2.6667
+#   exact 2.6667
+```
+
 ## Sigma notation
 
 Sums with many terms are written with $\Sigma$:

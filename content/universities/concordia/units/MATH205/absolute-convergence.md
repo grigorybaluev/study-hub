@@ -53,6 +53,17 @@ controls:
 note: 'aₙ = nᵏ/rⁿ. Top: the ratios aₙ₊₁/aₙ = ((n+1)/n)ᵏ · (1/r) start above 1 for large k but settle at L = 1/r. Bottom: the partial sums. For r > 1 the exponential wins over any power and the series converges; at r = 1 the ratio limit is 1 and the test says nothing — the series is Σ nᵏ, plainly divergent.'
 ```
 
+```python
+# Ratio test for aₙ = nᵏ/rⁿ: aₙ₊₁/aₙ = ((n + 1)/n)ᵏ / r → 1/r.
+k, r = 2, 2                                              # the sim's defaults
+a = lambda n: n**k / r**n
+print([round(a(n + 1) / a(n), 3) for n in (1, 2, 5, 10, 30)])   # starts above 1, settles at 1/r = 0.5
+print(round(sum(a(n) for n in range(1, 200)), 4))        # Σ n²/2ⁿ = 6
+# Output:
+#   [2.0, 1.125, 0.72, 0.605, 0.534]
+#   6.0
+```
+
 > **Example.** $\displaystyle\sum \frac{n^3}{3^n}$: $\left|\frac{a_{n+1}}{a_n}\right| = \frac{(n+1)^3}{3^{n+1}}\cdot\frac{3^n}{n^3} = \frac13\Big(1 + \frac1n\Big)^3 \to \frac13 < 1$. Converges.
 > $\displaystyle\sum \frac{n^n}{n!}$: $\frac{a_{n+1}}{a_n} = \frac{(n+1)^{n+1}}{(n+1)!}\cdot\frac{n!}{n^n} = \Big(\frac{n+1}{n}\Big)^n \to e > 1$. Diverges.
 > $\displaystyle\sum \frac{x^n}{n!}$ for any fixed $x$: $\left|\frac{a_{n+1}}{a_n}\right| = \frac{|x|}{n+1} \to 0$. Converges absolutely for every $x$ — the exponential series.
@@ -81,6 +92,31 @@ id: calc-rearrangement
 controls:
   - {id: L, label: "Target sum L", min: -1, max: 3, step: 0.05, default: 1.5, decimals: 2}
 note: 'The alternating harmonic series 1 − 1/2 + 1/3 − … sums to ln 2 ≈ 0.693 in its natural order (dashed). Rearranged greedily — add positive terms until the running total exceeds L, then negative ones until it drops below, repeat — the same terms converge to L instead. The positive terms alone diverge, so there is always enough left to overshoot.'
+```
+
+```python
+# Riemann's rearrangement: the terms of 1 − 1/2 + 1/3 − … (sum ln 2) reordered
+# greedily converge to any chosen L instead.
+from math import log
+
+def rearranged(L, N=400):
+    pos, neg, s = 1, 2, 0.0
+    for _ in range(N):
+        if s <= L:
+            s += 1 / pos; pos += 2                       # next unused positive term
+        else:
+            s -= 1 / neg; neg += 2                       # next unused negative term
+    return s
+
+natural = sum((-1)**(i + 1) / i for i in range(1, 401))
+print(f'natural order, 400 terms: {natural:.4f} (ln 2 = {log(2):.4f})')
+for L in (1.5, 0, -1):                                   # the sim's default L = 1.5
+    print(f'rearranged toward {L}: {rearranged(L):.4f}')
+# Output:
+#   natural order, 400 terms: 0.6919 (ln 2 = 0.6931)
+#   rearranged toward 1.5: 1.5001
+#   rearranged toward 0: -0.0008
+#   rearranged toward -1: -0.9658
 ```
 
 > **Key insight.** Addition of infinitely many numbers is *not* commutative unless the

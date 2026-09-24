@@ -66,6 +66,26 @@ controls:
 note: 'Velocity v(t) = 3 sin t (top, shaded by sign) and position s(t) = ∫₀ᵗ v = 3(1 − cos t) (bottom). Displacement is the signed area and equals s(T); distance keeps adding after the particle turns around at t = π.'
 ```
 
+```python
+# Velocity v(t) = 3 sin t: displacement is the signed integral ∫₀ᵀ v dt = s(T) − s(0),
+# distance is ∫₀ᵀ |v| dt and keeps growing after the particle turns back at t = π.
+from math import sin, cos, pi
+
+s = lambda t: 3*(1 - cos(t))                             # position with s(0) = 0
+
+def distance(T):
+    if T <= pi:
+        return s(T)
+    return s(pi) + (s(pi) - s(T))                        # out to 6, then back by s(π) − s(T)
+
+for T in (2, 4, 2*pi):                                   # the sim's default is T = 4
+    print(f'T = {T:.3f}: displacement {s(T):.3f}, distance {distance(T):.3f}')
+# Output:
+#   T = 2.000: displacement 4.248, distance 4.248
+#   T = 4.000: displacement 4.961, distance 7.039
+#   T = 6.283: displacement 0.000, distance 12.000
+```
+
 > **Key insight.** "Net" is the whole point. The velocity graph's signed area tells you
 > the *displacement*; to get the distance you must split the interval where $v$ changes
 > sign. The same split will be needed for the area between curves (lecture 8).

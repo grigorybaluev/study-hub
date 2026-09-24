@@ -44,6 +44,27 @@ controls:
 note: 'The curve 1/xᵖ with the rectangles of heights 1/kᵖ, k = 2 … n, sitting under it. Their total (the partial sum minus the first term) is trapped below the integral from 1 to n. For p > 1 the integral stays bounded, so the series converges; for p ≤ 1 both grow without bound. Try p = 1 to watch the harmonic series creep up like ln n.'
 ```
 
+```python
+# Integral test for Σ 1/kᵖ: the rectangles k = 2 … n fit under the curve, so
+# a₂ + … + aₙ ≤ ∫₁ⁿ x⁻ᵖ dx; both stay bounded exactly when p > 1.
+from math import log
+
+def compare(p, n):
+    tail = sum(k**-p for k in range(2, n + 1))
+    I = log(n) if p == 1 else (n**(1 - p) - 1) / (1 - p)
+    return 1 + tail, tail, I
+
+for p in (1, 2):                                         # the sim's default is p = 1, n = 10
+    for n in (10, 1000):
+        S, tail, I = compare(p, n)
+        print(f'p = {p}, n = {n}: S_n = {S:.4f}, tail {tail:.4f} <= integral {I:.4f}')
+# Output:
+#   p = 1, n = 10: S_n = 2.9290, tail 1.9290 <= integral 2.3026
+#   p = 1, n = 1000: S_n = 7.4855, tail 6.4855 <= integral 6.9078
+#   p = 2, n = 10: S_n = 1.5498, tail 0.5498 <= integral 0.9000
+#   p = 2, n = 1000: S_n = 1.6439, tail 0.6439 <= integral 0.9990
+```
+
 > **Caution.** The test decides *whether* the series converges, not *what* its sum is. In
 > general $\sum a_n \ne \int_1^{\infty} f$. For $\sum 1/n^2$ the integral is $1$ while the sum
 > is $\pi^2/6 \approx 1.645$. The sandwich above does give bounds on the sum, though, and a

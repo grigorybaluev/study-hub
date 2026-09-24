@@ -47,6 +47,20 @@ controls:
 note: 'Terms a rⁿ⁻¹ (bars) and partial sums Sₙ (line). With |r| < 1 the partial sums settle at a/(1 − r), shown dashed. Push r past 1 and they run away; at r = −1 they hop between a and 0 forever — divergent although bounded.'
 ```
 
+```python
+# Geometric series Σ a rⁿ⁻¹: partial sums settle at a/(1 − r) when |r| < 1.
+def partial(a, r, n): return sum(a * r**(k - 1) for k in range(1, n + 1))
+
+a, r = 1, 0.5                                            # the sim's defaults (n = 12)
+print(round(partial(a, r, 12), 4), '→', a / (1 - r))
+print([partial(1, -1, n) for n in range(1, 7)])          # r = −1: hops between 1 and 0, diverges
+print(round(partial(1, 1.1, 12), 3))                     # r > 1: runs away
+# Output:
+#   1.9995 → 2.0
+#   [1, 0, 1, 0, 1, 0]
+#   21.384
+```
+
 > **Example.** $\displaystyle\sum_{n=1}^{\infty} \frac{2}{3^n} = \frac{2}{3} + \frac{2}{9} + \dots$ has $a = \tfrac23$, $r = \tfrac13$: sum $= \dfrac{2/3}{1 - 1/3} = 1$.
 > $0.\overline{27} = \dfrac{27}{100} + \dfrac{27}{100^2} + \dots = \dfrac{27/100}{1 - 1/100} = \dfrac{27}{99} = \dfrac{3}{11}$ — every repeating decimal is a geometric series.
 

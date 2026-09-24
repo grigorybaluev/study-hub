@@ -36,6 +36,22 @@ controls:
 note: 'The area under 1/xᵖ from 1 to t. For p > 1 it levels off at 1/(p − 1) as t grows; for p ≤ 1 it keeps growing without bound, although the curve still goes to 0. Try p = 1: the area is ln t, which grows — just very slowly.'
 ```
 
+```python
+# ∫₁ᵗ x⁻ᵖ dx and its limit as t → ∞: converges to 1/(p − 1) for p > 1, diverges for p ≤ 1.
+from math import log
+
+def area(p, t):
+    return log(t) if p == 1 else (t**(1 - p) - 1) / (1 - p)
+
+for p in (2, 1, 0.5):                                    # the sim's default is p = 2, t = 10
+    print(f'p = {p}:', *(f'{area(p, t):.4f}' for t in (10, 1000, 10**6)),
+          f'→ {1/(p - 1):.4f}' if p > 1 else '→ ∞')
+# Output:
+#   p = 2: 0.9000 0.9990 1.0000 → 1.0000
+#   p = 1: 2.3026 6.9078 13.8155 → ∞
+#   p = 0.5: 4.3246 61.2456 1998.0000 → ∞
+```
+
 > **Key insight.** $f(x) \to 0$ is *not* enough for convergence: $1/x \to 0$ but its
 > integral from $1$ diverges. The integrand must go to zero *fast enough* — faster than
 > $1/x$, which is what $p > 1$ says.
