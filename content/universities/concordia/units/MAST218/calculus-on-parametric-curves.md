@@ -65,12 +65,6 @@ controls:
 note: 'The curve x = 2t + 3, y = t³ − t with the tangent at t₀. The two colours are the sign of d²y/dx² = 3t/2: red where t < 0 (concave down), green where t > 0 (concave up). Slide through t₀ = 0 to see the tangent cross the curve at the inflection point (3, 0).'
 ```
 
-**Equations**
-
-- *Second derivative on a parametric curve*: $\dfrac{d^2y}{dx^2} = \dfrac{d(y'(x))/dt}{dx/dt}$ where $y'(x) = \dfrac{y'(t)}{x'(t)}$ — differentiate the slope with respect to $t$, divide by $x'(t)$ again; requires $x'(t) \neq 0$.
-- *Concavity*: $\dfrac{d^2y}{dx^2} > 0 \Rightarrow$ concave up, $< 0 \Rightarrow$ concave down — as a condition on $t$.
-- *Example*: $x = 2t + 3,\ y = t^3 - t \Rightarrow y' = \dfrac{3t^2 - 1}{2},\ y'' = \dfrac{3t}{2}$ — up for $t > 0$, down for $t < 0$.
-
 ```python
 import sympy as sp
 
@@ -78,15 +72,22 @@ t = sp.symbols('t', real=True)
 x = 2*t + 3
 y = t**3 - t
 
-dydx = sp.diff(y, t) / sp.diff(x, t)              # (3t² − 1)/2
-d2ydx2 = sp.simplify(sp.diff(dydx, t) / sp.diff(x, t))   # 3t/2
-print('dy/dx   =', sp.simplify(dydx))
-print('d²y/dx² =', d2ydx2)
-print('concave up where', sp.solve(d2ydx2 > 0, t))
+dydx = sp.diff(y, t) / sp.diff(x, t)                       # (3t² − 1)/2
+d2ydx2 = sp.simplify(sp.diff(dydx, t) / sp.diff(x, t))     # divide by x'(t) a second time: 3t/2
+print('dy/dx   =', sp.simplify(dydx))                      # 3*t**2/2 - 1/2
+print('d²y/dx² =', d2ydx2)                                 # 3*t/2
+print('concave up where', sp.solve(d2ydx2 > 0, t))         # 0 < t
+
+t0 = sp.Rational(4, 5)                                     # the slider's default t₀ = 0.8
+print('t0 = 0.8: point', (x.subs(t, t0), y.subs(t, t0)),
+      ' slope', dydx.subs(t, t0), ' d²y/dx²', d2ydx2.subs(t, t0))   # (23/5, -36/125)  slope 23/50  d²y/dx² 6/5 → concave up
 ```
 
-The two-step rule as code: the second line divides by `diff(x, t)` again, which is the
-whole point.
+**Equations**
+
+- *Second derivative on a parametric curve*: $\dfrac{d^2y}{dx^2} = \dfrac{d(y'(x))/dt}{dx/dt}$ where $y'(x) = \dfrac{y'(t)}{x'(t)}$ — differentiate the slope with respect to $t$, divide by $x'(t)$ again; requires $x'(t) \neq 0$.
+- *Concavity*: $\dfrac{d^2y}{dx^2} > 0 \Rightarrow$ concave up, $< 0 \Rightarrow$ concave down — as a condition on $t$.
+- *Example*: $x = 2t + 3,\ y = t^3 - t \Rightarrow y' = \dfrac{3t^2 - 1}{2},\ y'' = \dfrac{3t}{2}$ — up for $t > 0$, down for $t < 0$.
 
 ## Length of a parametric curve
 
@@ -124,6 +125,19 @@ controls:
 note: 'The circle x = 3cos t, y = 3sin t. The integral ∫₀ᵀ √(x′² + y′²) dt = 3T is the length of the arc traced while T ≤ 2π — and the distance travelled once the particle goes round again. At T = 2π it is 6π; at T = 6π it is 18π although the curve has not changed.'
 ```
 
+```python
+import sympy as sp
+
+t, T = sp.symbols('t T', positive=True)
+x, y = 3*sp.cos(t), 3*sp.sin(t)
+speed = sp.simplify(sp.sqrt(sp.diff(x, t)**2 + sp.diff(y, t)**2))   # 3
+print('speed =', speed)
+
+trip = sp.integrate(speed, (t, 0, T))                  # ∫₀ᵀ 3 dt = 3T
+for turns in (1, 3):                                   # the slider counts turns of 2π
+    print(f'T = {turns}·2π:', trip.subs(T, 2*sp.pi*turns))   # 6π (the length), then 18π (distance travelled)
+```
+
 ## Area of a surface of revolution
 
 Rotate the curve about an axis and a surface appears; its area is the arc-length
@@ -159,6 +173,22 @@ controls:
 note: 'The upper semicircle x = 3cos t, y = 3sin t (red) spun about the x-axis (yellow). S = 2π ∫ y(t)·3 dt grows with the arc; at the full semicircle it is 36π = 4π·3². Drag to rotate the 3-D view.'
 ```
 
+```python
+import sympy as sp
+
+t, a = sp.symbols('t a', positive=True)
+x, y = 3*sp.cos(t), 3*sp.sin(t)
+speed = sp.simplify(sp.sqrt(sp.diff(x, t)**2 + sp.diff(y, t)**2))   # 3
+
+S = sp.integrate(2*sp.pi * y * speed, (t, 0, a))        # rotate the arc 0 ≤ t ≤ a about the x-axis
+print('S(a) =', sp.simplify(S))                         # 18π(1 − cos a)
+print('a = π  :', S.subs(a, sp.pi))                     # 36π = 4π·3², the whole sphere
+print('a = π/2:', S.subs(a, sp.pi/2))                   # 18π, a hemisphere
+
+S_y = sp.integrate(2*sp.pi * x * speed, (t, -sp.pi/2, sp.pi/2))    # right semicircle about the y-axis
+print('about the y-axis:', S_y)                         # 36π again
+```
+
 **Equations**
 
 - *Length*: $L = \displaystyle\int_\alpha^\beta \sqrt{x'(t)^2 + y'(t)^2}\,dt$ — $C$ traced exactly once, $f', g'$ continuous, $f'^2 + g'^2 > 0$; otherwise the integral is the distance travelled.
@@ -166,23 +196,6 @@ note: 'The upper semicircle x = 3cos t, y = 3sin t (red) spun about the x-axis (
 - *Surface about the $x$-axis*: $S = 2\pi\displaystyle\int_\alpha^\beta y(t)\sqrt{x'^2 + y'^2}\,dt$, $y \ge 0$ — radius $= y$.
 - *Surface about the $y$-axis*: $S = 2\pi\displaystyle\int_\alpha^\beta x(t)\sqrt{x'^2 + y'^2}\,dt$, $x \ge 0$ — radius $= x$.
 - *Circle and sphere of radius 3*: $L = \int_0^{2\pi} 3\,dt = 6\pi$, $S = 2\pi\int_0^\pi 9\sin t\,dt = 36\pi$ — matching $2\pi r$ and $4\pi r^2$.
-
-```python
-import sympy as sp
-
-t = sp.symbols('t', real=True)
-x, y = 3*sp.cos(t), 3*sp.sin(t)
-speed = sp.sqrt(sp.diff(x, t)**2 + sp.diff(y, t)**2)         # = 3
-
-L_once  = sp.integrate(speed, (t, 0, 2*sp.pi))               # 6π  — length
-L_three = sp.integrate(speed, (t, 0, 6*sp.pi))               # 18π — distance travelled
-S_x = sp.integrate(2*sp.pi * y * speed, (t, 0, sp.pi))       # 36π — sphere, about the x-axis
-S_y = sp.integrate(2*sp.pi * x * speed, (t, -sp.pi/2, sp.pi/2))   # 36π — same sphere about the y-axis
-print(sp.simplify(L_once), sp.simplify(L_three), sp.simplify(S_x), sp.simplify(S_y))
-```
-
-The three integrals of the lecture; SymPy simplifies the speed to 3 and the rest is a
-definite integral of a constant or of $\sin t$ / $\cos t$.
 
 ## A method for sketching parametric curves
 
@@ -257,6 +270,26 @@ controls:
 note: 'The curve x = 3t − t³, y = 3 − t² traced from t = −2.3. The arrow is the direction of motion (signs of x′ and y′ in the legend); yellow is the double point t = ±√3, blue the vertical tangents t = ±1 and the horizontal tangent t = 0. The shaded loop is −√3 ≤ t ≤ √3. Stop at T = −1, 0, 1 to see each tangent.'
 ```
 
+```python
+import sympy as sp
+
+t = sp.symbols('t', real=True)
+x, y = 3*t - t**3, 3 - t**2
+s3 = sp.sqrt(3)
+
+# self-intersection: t1 ≠ t2 with the same point
+t1, t2 = sp.symbols('t1 t2', real=True)
+sols = sp.solve([x.subs(t, t1) - x.subs(t, t2), y.subs(t, t1) - y.subs(t, t2)], [t1, t2], dict=True)
+crossings = [s for s in sols if t2 in s and s[t1] != s[t2]]
+print(crossings)                                             # t1 = ±√3, t2 = ∓√3
+
+print('VT at t =', sp.solve(sp.diff(x, t), t), ' HT at t =', sp.solve(sp.diff(y, t), t))   # [-1, 1]  [0]
+area = sp.integrate(y * sp.diff(x, t), (t, -s3, s3))
+print('area =', area, '≈', round(float(area), 2))           # 24√3/5 ≈ 8.31
+speed = sp.sqrt(sp.diff(x, t)**2 + sp.diff(y, t)**2)
+print('length ≈', round(float(sp.Integral(speed, (t, -s3, s3)).evalf()), 2))   # ≈ 10.74 (no closed form)
+```
+
 ### Length and area of the loop
 
 With the crossing at $t = \pm\sqrt3$ the loop is traced exactly once for
@@ -284,29 +317,6 @@ table — the tangents, the crossing — is unchanged; only the $(x, y)$ columns
 - *Tangents of the example*: VT where $x' = 3(1 - t^2) = 0 \Rightarrow t = \pm 1$ at $(\pm 2, 2)$; HT where $y' = -2t = 0 \Rightarrow t = 0$ at $(0, 3)$.
 - *Loop length*: $\displaystyle\int_{-\sqrt3}^{\sqrt3} \sqrt{(3 - 3t^2)^2 + 4t^2}\,dt \approx 10.74$ — no elementary antiderivative.
 - *Loop area*: $\displaystyle\left|\int_{-\sqrt3}^{\sqrt3} y\,x'\,dt\right| = \left|\int_{-\sqrt3}^{\sqrt3} x\,y'\,dt\right| = \frac{24\sqrt3}{5}$.
-
-```python
-import sympy as sp
-
-t = sp.symbols('t', real=True)
-x, y = 3*t - t**3, 3 - t**2
-s3 = sp.sqrt(3)
-
-# self-intersection: t1 ≠ t2 with the same point
-t1, t2 = sp.symbols('t1 t2', real=True)
-sols = sp.solve([x.subs(t, t1) - x.subs(t, t2), y.subs(t, t1) - y.subs(t, t2)], [t1, t2], dict=True)
-print([s for s in sols if s[t1] != s[t2]])                 # t1 = ±√3, t2 = ∓√3
-
-print('VT at t =', sp.solve(sp.diff(x, t), t), ' HT at t =', sp.solve(sp.diff(y, t), t))
-area = sp.integrate(y * sp.diff(x, t), (t, -s3, s3))
-print('area =', sp.nsimplify(area), '≈', float(area))       # 24√3/5
-speed = sp.sqrt(sp.diff(x, t)**2 + sp.diff(y, t)**2)
-print('length ≈', sp.Integral(speed, (t, -s3, s3)).evalf())  # ≈ 10.74
-```
-
-The whole example: SymPy finds the crossing from the definition of a loop, the tangent
-parameters from the derivatives, the exact area, and a numerical value for the length
-that has no closed form.
 
 ## Further reading
 

@@ -62,6 +62,8 @@ note: 'The curve is Example 1: x = t², y = √t. Drag t forward and watch the p
 ```
 
 ```python
+# Plotting a parametric curve numerically: build an array of t values, compute x(t)
+# and y(t), and plot y against x. The arrow shows the direction of increasing t.
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -79,8 +81,6 @@ plt.xlabel('x = t^2'); plt.ylabel('y = sqrt(t)')
 plt.legend(); plt.grid(alpha=.3); plt.axis('equal')
 plt.show()
 ```
-
-Plotting a parametric curve numerically: build an array of t values, compute x(t) and y(t), and plot y against x. The arrow shows the direction of increasing t.
 
 ## Sketching Parametric Curves
 
@@ -133,6 +133,8 @@ note: 'This is the lecture line x = t − 2, y = −2t + 3 (dashed, all of ℝ).
 ```
 
 ```python
+# SymPy does both steps of the recipe symbolically: solve for t and substitute (S1),
+# then take limits at ±∞ (S2).
 import sympy as sp
 
 t, x, y = sp.symbols('t x y')
@@ -152,8 +154,6 @@ for lim in (-sp.oo, sp.oo):
 print('t=0 ->', (xt.subs(t, 0), yt.subs(t, 0)))
 print('t=5 ->', (xt.subs(t, 5), yt.subs(t, 5)))
 ```
-
-SymPy does both steps of the recipe symbolically: solve for t and substitute (S1), then take limits at ±∞ (S2).
 
 ## Lines & Graphs of Functions
 
@@ -208,6 +208,8 @@ note: The particle sits at x₁ + t(x₂ − x₁), y₁ + t(y₂ − y₁). Che
 ```
 
 ```python
+# A tiny helper that turns two points into the parametric functions x(t), y(t). Note
+# that t = 0.5 is the midpoint of AB.
 import numpy as np
 
 def line_through(A, B):
@@ -220,8 +222,6 @@ for t in (0, 0.5, 1):
     print(f't={t}: ({x(t)}, {y(t)})')
 # t=0: (-2, 3)   t=0.5: (0.5, -2.0)   t=1: (3, -7)
 ```
-
-A tiny helper that turns two points into the parametric functions x(t), y(t). Note that t = 0.5 is the midpoint of AB.
 
 ## Circles
 
@@ -303,6 +303,9 @@ note: x = a + r cos(nt), y = b + dir · r sin(nt). Drag "Current t" to trace the
 ```
 
 ```python
+# One helper for the template x = a + r cos t, y = b + r sin t; the parameter interval
+# [t0, t1] picks out a full circle or just an arc (the mouth is the lower half, π ≤ t
+# ≤ 2π).
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -319,8 +322,6 @@ plt.plot(*circle(3, 3, 1, np.pi, 2*np.pi),    lw=2, label='mouth (3,3), r=1, pi<
 plt.axis('equal'); plt.grid(alpha=.3); plt.legend(fontsize=8)
 plt.show()
 ```
-
-One helper for the template x = a + r cos t, y = b + r sin t; the parameter interval [t0, t1] picks out a full circle or just an arc (the mouth is the lower half, π ≤ t ≤ 2π).
 
 ## Worked Example: The Smiley Face
 
@@ -343,6 +344,28 @@ controls:
   - {id: prog, label: "Drawing progress (\xD7 2\u03C0)", min: 0, max: 1, step: 0.01, default: 1, decimals: 2}
 note: All four pieces are drawn simultaneously as t advances from 0. Watch that the mouth only starts appearing once t passes π (progress 0.5).
 ...
+```
+
+```python
+# The four pieces of the smiley as (a, b, r, t-interval) for x = a + r cos t, y = b + r sin t.
+# At drawing progress p the parameter has reached T = p·2π; a piece shows the part of
+# its interval below T, so the mouth (π ≤ t ≤ 2π) only appears once p passes 0.5.
+from math import cos, sin, pi
+
+pieces = {'face': (3, 3, 3, 0, 2*pi), 'left eye': (2, 4, 0.1, 0, 2*pi),
+          'right eye': (4, 4, 0.1, 0, 2*pi), 'mouth': (3, 3, 1, pi, 2*pi)}
+
+def point(a, b, r, t):
+    return (round(a + r*cos(t), 3) + 0.0, round(b + r*sin(t), 3) + 0.0)
+
+for p in (0.25, 0.5, 0.75, 1.0):                           # the progress slider (default 1)
+    T = p * 2*pi
+    drawn = [name for name, (a, b, r, t0, t1) in pieces.items() if T > t0]
+    print(f'p = {p}: t reaches {p*2:.1f}π, drawn: {drawn}')
+
+a, b, r, _, _ = pieces['mouth']
+for t, where in ((pi, 'left corner'), (3*pi/2, 'bottom'), (2*pi, 'right corner')):
+    print(f'mouth at t = {t/pi:.1f}π: {point(a, b, r, t)}  {where}')  # (2,3), (3,2), (4,3): a smile
 ```
 
 ## Tangent Lines to Parametric Curves
@@ -410,6 +433,8 @@ note: 'The curve x = 1 + ∛t, y = e^{t³} from the example, with the tangent li
 ```
 
 ```python
+# Both methods from the notes, done symbolically. SymPy confirms the slope 9e twice —
+# from y′(t)/x′(t) at t₀ = 1, and from the Cartesian form y = e^{(x−1)^9}.
 import sympy as sp
 
 t, x = sp.symbols('t x', real=True)
@@ -429,8 +454,6 @@ print('slope (M2) =', slope2)                    # 9*E
 x0, y0 = 2, sp.E
 print('tangent: y - e =', slope1, '* (x - 2)')
 ```
-
-Both methods from the notes, done symbolically. SymPy confirms the slope 9e twice — from y′(t)/x′(t) at t₀ = 1, and from the Cartesian form y = e^{(x−1)^9}.
 
 ## Areas Under Parametric Curves
 
@@ -488,6 +511,9 @@ note: The shaded region is under the arc x = 2 cos t, y = 2 sin t from t = 0 up 
 ```
 
 ```python
+# The two integrals from the notes. Note the reversed limits (π/2 → 0) in A1: they
+# come from converting the x-limits 0 → 2 into t-limits, and the negative x′(t) makes
+# the result positive.
 import sympy as sp
 
 t = sp.symbols('t', real=True)
@@ -503,8 +529,6 @@ print('A1 =', sp.simplify(A1))   # pi
 print('A2 =', sp.simplify(A2))   # pi
 print('full circle =', 4*A1)     # 4*pi  (= pi * r^2 with r = 2)
 ```
-
-The two integrals from the notes. Note the reversed limits (π/2 → 0) in A1: they come from converting the x-limits 0 → 2 into t-limits, and the negative x′(t) makes the result positive.
 
 ## Further reading
 
