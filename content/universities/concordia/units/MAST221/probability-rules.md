@@ -461,7 +461,11 @@ $$
 Now use $P(A \cap B') = P(A) - P(A \cap B)$ and $P(A' \cap B) = P(B) - P(A \cap B)$ (each from identity 3(a) applied to $A$ and to $B$):
 
 $$
-P(A \cup B) = \big[P(A) - P(A \cap B)\big] + P(A \cap B) + \big[P(B) - P(A \cap B)\big] = P(A) + P(B) - P(A \cap B).
+\begin{aligned}
+P(A \cup B) &= \big[P(A) - P(A \cap B)\big] + P(A \cap B) \\
+  &\quad + \big[P(B) - P(A \cap B)\big] \\
+  &= P(A) + P(B) - P(A \cap B).
+\end{aligned}
 $$
 
 *Via identity 3(c).* $P(A \cup B) = P(A) + P(A' \cap B)$ by the lemma above, and $P(A' \cap B) = P(B) - P(A \cap B)$; substituting gives the same formula.
@@ -528,7 +532,8 @@ If $A$, $B$ and $C$ are three events in a sample space $S$, then
 $$
 \begin{aligned}
 P(A \cup B \cup C) &= P(A) + P(B) + P(C) \\
-  &\quad - P(A \cap B) - P(A \cap C) - P(B \cap C) \\
+  &\quad - P(A \cap B) - P(A \cap C) \\
+  &\quad - P(B \cap C) \\
   &\quad + P(A \cap B \cap C).
 \end{aligned}
 $$
@@ -547,13 +552,23 @@ $$
 **Step 2.** Expand $P(B \cup C)$ with the addition rule again:
 
 $$
-P(A \cup B \cup C) = P(A) + P(B) + P(C) - P(B \cap C) - P\big[A \cap (B \cup C)\big].
+\begin{aligned}
+&P(A \cup B \cup C) \\
+  &= P(A) + P(B) + P(C) - P(B \cap C) \\
+  &\quad - P\big[A \cap (B \cup C)\big].
+\end{aligned}
 $$
 
 **Step 3.** Distribute the intersection over the union, $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$, and apply the addition rule to *these* two events:
 
 $$
-P\big[(A \cap B) \cup (A \cap C)\big] = P(A \cap B) + P(A \cap C) - P\big((A \cap B) \cap (A \cap C)\big) = P(A \cap B) + P(A \cap C) - P(A \cap B \cap C),
+\begin{aligned}
+&P\big[(A \cap B) \cup (A \cap C)\big] \\
+  &= P(A \cap B) + P(A \cap C) \\
+  &\quad - P\big((A \cap B) \cap (A \cap C)\big) \\
+  &= P(A \cap B) + P(A \cap C) \\
+  &\quad - P(A \cap B \cap C),
+\end{aligned}
 $$
 
 because $(A \cap B) \cap (A \cap C) = A \cap B \cap C$.
@@ -562,8 +577,13 @@ because $(A \cap B) \cap (A \cap C) = A \cap B \cap C$.
 
 $$
 \begin{aligned}
-P(A \cup B \cup C) &= P(A) + P(B) + P(C) - P(B \cap C) - \big[P(A \cap B) + P(A \cap C) - P(A \cap B \cap C)\big] \\
-  &= P(A) + P(B) + P(C) - P(A \cap B) - P(A \cap C) - P(B \cap C) + P(A \cap B \cap C).
+&P(A \cup B \cup C) \\
+  &= P(A) + P(B) + P(C) - P(B \cap C) \\
+  &\quad - \big[P(A \cap B) + P(A \cap C) \\
+  &\qquad - P(A \cap B \cap C)\big] \\
+  &= P(A) + P(B) + P(C) \\
+  &\quad - P(A \cap B) - P(A \cap C) \\
+  &\quad - P(B \cap C) + P(A \cap B \cap C).
 \end{aligned}
 $$
 :::

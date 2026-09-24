@@ -166,7 +166,11 @@ The lecture checked the three postulates (Notes Lec 3 p.2).
 3. The pieces $A_i \cap B$ are again mutually exclusive, so
 
 $$
-P(A_1 \cup A_2 \cup \cdots \mid B) = \frac{P\big((A_1 \cap B) \cup (A_2 \cap B) \cup \cdots\big)}{P(B)} = P(A_1 \mid B) + P(A_2 \mid B) + \cdots
+\begin{aligned}
+&P(A_1 \cup A_2 \cup \cdots \mid B) \\
+  &= \frac{P\big((A_1 \cap B) \cup (A_2 \cap B) \cup \cdots\big)}{P(B)} \\
+  &= P(A_1 \mid B) + P(A_2 \mid B) + \cdots
+\end{aligned}
 $$
 :::
 ::::
