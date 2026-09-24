@@ -606,7 +606,16 @@
 
   // ══ MAST 218 — Polar coordinates (lectures 4–5) ══════════════
   const PI = Math.PI;
-  const fracPi = v => { const q = Math.round(v * 12) / 12; return q === 0 ? '0' : `${Number.isInteger(q) ? q : q.toFixed(3).replace(/0+$/, '')}π`; };
+  // an angle given in units of π: a whole number of twelfths prints as such, anything else with 3 decimals
+  const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
+  const fracPi = v => {
+    const k = Math.round(v * 12);
+    if (Math.abs(v * 12 - k) > 1e-5) return `${v.toFixed(3)}π`;
+    if (k === 0) return '0';
+    const g = gcd(k, 12), num = k / g, den = 12 / g;
+    const top = num === 1 ? 'π' : num === -1 ? '−π' : `${num < 0 ? '−' : ''}${Math.abs(num)}π`;
+    return den === 1 ? top : `${top}/${den}`;
+  };
   const n3 = v => (Math.abs(v) < 5e-4 ? 0 : v).toFixed(3);   // no "−0.000"
   function polarPath(f, a, b, n) { return samplePath(t => f(t) * Math.cos(t), t => f(t) * Math.sin(t), a, b, n || 400); }
   // faint polar grid: circles r = 1..R and rays every 30°
@@ -642,9 +651,9 @@
 
   // ── P13. Polar curve explorer, traced as θ grows ──────────────
   const POLAR_FAMILIES = [
-    { name: (a) => `circle r = ${a} cos θ`, f: (a) => t => a * Math.cos(t), range: [0, 1], note: (a) => `x² + y² = ${a}x: centre (${a / 2}, 0), radius ${Math.abs(a) / 2}; traced once for 0 ≤ θ ≤ π` },
+    { name: (a) => `circle r = ${a} cos θ`, f: (a) => t => a * Math.cos(t), range: [0, 2], note: (a) => `x² + y² = ${a}x: centre (${a / 2}, 0), radius ${Math.abs(a) / 2}; traced once for 0 ≤ θ ≤ π, then again` },
     { name: (a) => `cardioid r = ${a}(1 − sin θ)`, f: (a) => t => a * (1 - Math.sin(t)), range: [0, 2], note: () => 'θ → π − θ leaves r unchanged: symmetric about the vertical axis' },
-    { name: (a, b) => `limaçon r = ${a} + ${b} cos θ`, f: (a, b) => t => a + b * Math.cos(t), range: [0, 2], note: (a, b) => (a < b ? 'a < b: inner loop (r < 0 where cos θ < −a/b)' : a > b ? 'a > b: no inner loop' : 'a = b: a cardioid') + '; θ → −θ: symmetric about the polar axis' },
+    { name: (a, b) => `limaçon r = ${a} + ${b} cos θ`, f: (a, b) => t => a + b * Math.cos(t), range: [0, 2], note: (a, b) => (a <= 0 || b <= 0 ? 'a limaçon needs a, b > 0 (move a and b above 0)' : (a < b ? 'a < b: inner loop (r < 0 where cos θ < −a/b)' : a > b ? 'a > b: no inner loop' : 'a = b: a cardioid') + '; θ → −θ: symmetric about the polar axis') },
     { name: (a, b, n) => `rose r = ${a} cos ${n}θ`, f: (a, b, n) => t => a * Math.cos(n * t), range: [0, 2], note: (a, b, n) => `n = ${n} ${n % 2 ? 'odd → ' + n : 'even → ' + 2 * n} petals` },
     { name: (a) => `spiral r = ${(1 + Math.abs(a)).toFixed(1)}^θ`, f: (a) => t => Math.pow(1 + Math.abs(a), t), range: [-4, 0.3], note: (a) => (a === 0 ? 'a = 0: r = 1 for every θ, the unit circle' : `each turn multiplies r by ${(1 + Math.abs(a)).toFixed(1)}^(2π) ≈ ${Math.pow(1 + Math.abs(a), 2 * Math.PI).toPrecision(3)}; r → 0 as θ → −∞`) },
   ];
