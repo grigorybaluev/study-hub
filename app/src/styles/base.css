@@ -189,6 +189,7 @@ blockquote.wiki p { margin: 0.4em 0; }
 .unit-body.pages-math .katex-display { margin: 0.9em 0; }
 .unit-body.pages-math .blk .katex-display { margin: 0.7em 0; }
 .unit-body span.math-fit { display: block; }
+.unit-body .math-nowrap { white-space: nowrap; }
 /* tall inline math (fractions, sums, integrals): 20% more line spacing (#89) */
 .unit-body .math-dense { line-height: 1.95; }
 .unit-body.pages-math .math-dense { line-height: 2.1; }
