@@ -267,7 +267,7 @@ The language *rejected* by $M$ is $\overline{L(M)} = \{\, w \in \Sigma^* : \delt
 |---|---|---|
 | $q_0 \circlearrowleft a$, $q_0 \xrightarrow{b} q_1$ (final), $q_1 \xrightarrow{a,b} q_2$, $q_2 \circlearrowleft a,b$ | $\{a^n b : n \ge 0\}$ | any number of $a$'s, then exactly one $b$; $q_2$ is a **trap state** |
 | $q_0 \xrightarrow{a} q_1 \xrightarrow{b} q_2$ (final, loops on $a,b$); $q_0 \xrightarrow{b} q_3$, $q_1 \xrightarrow{a} q_3$, $q_3 \circlearrowleft a,b$ | all strings with prefix $ab$ | once $ab$ has been read, anything goes |
-| states $\lambda, 0, 00$ (final) and $001$; the state remembers the longest suffix read that is a prefix of $001$ | $\{w : w \text{ does not have the substring } 001\}$ | reaching state $001$ is fatal (trap) |
+| states $\lambda, 0, 00$ (final) and $001$ | strings without the substring $001$ | the state remembers the longest suffix read that is a prefix of $001$; reaching state $001$ is fatal (trap) |
 | $q_0 \xrightarrow{a} q_2 \circlearrowleft b$, $q_2 \xrightarrow{a} q_3$ (final) $\circlearrowleft a$, $q_3 \xrightarrow{b} q_2$; $q_0 \xrightarrow{b} q_4$ (trap) | $\{awa : w \in \{a,b\}^*\}$ | must start with $a$; final iff the last symbol read is $a$ (and $\|w\| \ge 2$) |
 
 ### Regular languages
