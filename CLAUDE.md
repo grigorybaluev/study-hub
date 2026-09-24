@@ -108,7 +108,9 @@ Units
   `**Caution.**`); an `**Equations**` list; fenced code with a language; `## Further reading`.
   Interactive examples are ```` ```sim ```` fenced YAML blocks (`id`, `controls`, `note`, or
   `custom: true` + `mode` for automata) placed where they belong in the text; lint checks
-  ids against `app/src/sims/registry.yaml`. Lecture notes are written directly into units.
+  ids against `app/src/sims/registry.yaml`. A ```` ```python ```` block placed directly after
+  a sim block (only blank lines between) is that sim's code: it renders collapsed under the
+  sim as "Show Python code". Lecture notes are written directly into units.
 
 Courses and programs
 - `kind: core | assumed_prior | external`. Assumed-prior courses (MATH 203/204/205) have
