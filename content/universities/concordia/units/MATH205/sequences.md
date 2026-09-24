@@ -53,6 +53,23 @@ controls:
 note: 'The sequence aₙ = 1 + 2(−1)ⁿ/n and the band L ± ε around L = 1. Shrink ε: the first index N after which every term stays inside the band moves right, but such an N always exists — that is the definition of convergence. The terms alternate around the limit, so the sequence is neither monotonic nor eventually one-sided.'
 ```
 
+```python
+# aₙ = 1 + 2(−1)ⁿ/n → 1: for every ε there is an N with |aₙ − 1| = 2/n < ε for all n ≥ N.
+from math import floor
+
+a = lambda n: 1 + 2*(-1)**n / n
+print([round(a(n), 3) for n in range(1, 9)])             # alternates around the limit 1
+for eps in (0.2, 0.05, 0.02):                            # the sim's default ε = 0.2
+    N = floor(2 / eps) + 1
+    assert all(abs(a(n) - 1) < eps for n in range(N, N + 1000))
+    print(f'ε = {eps}: N = {N}')
+# Output:
+#   [-1.0, 2.0, 0.333, 1.5, 0.6, 1.333, 0.714, 1.25]
+#   ε = 0.2: N = 11
+#   ε = 0.05: N = 41
+#   ε = 0.02: N = 101
+```
+
 > **Theorem.** If $\lim_{x \to \infty} f(x) = L$ and $a_n = f(n)$, then $\lim_{n \to \infty} a_n = L$.
 
 So everything known about limits of functions at infinity — including l'Hôpital's rule

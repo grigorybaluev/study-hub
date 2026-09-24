@@ -57,6 +57,25 @@ controls:
 note: 'The integral of √(4 − x²) from 0 to x₁, with x = 2 sin θ. The value 2θ + 2 sin θ cos θ splits into a circular sector of angle θ (orange, area 2θ) and a right triangle (blue, area x₁·y₁/2): the substitution is literally measuring the region in polar terms.'
 ```
 
+```python
+# ∫₀^x₁ √(4 − x²) dx with x = 2 sin θ: the value 2θ + 2 sin θ cos θ is a sector
+# of angle θ (area 2θ) plus a right triangle (area x₁·y₁/2).
+from math import asin, sqrt
+
+x1 = 1.2                                                 # the sim's default
+th = asin(x1 / 2)
+y1 = sqrt(4 - x1**2)
+sector, triangle = 2*th, x1*y1/2
+print(f'θ = {th:.4f}: sector {sector:.4f} + triangle {triangle:.4f} = {sector + triangle:.4f}')
+
+n = 100_000                                              # midpoint sum as a check
+h = x1 / n
+print(round(sum(sqrt(4 - ((i + 0.5)*h)**2) for i in range(n)) * h, 4))
+# Output:
+#   θ = 0.6435: sector 1.2870 + triangle 0.9600 = 2.2470
+#   2.247
+```
+
 ## Completing the square
 
 An expression like $\sqrt{x^2 + 2x + 5}$ is not in the table until the square is completed:

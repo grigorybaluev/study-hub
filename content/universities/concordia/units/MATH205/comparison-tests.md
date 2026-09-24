@@ -55,6 +55,22 @@ controls:
 note: 'aₙ = 1/(n^q + n) compared with the p-series bₙ = 1/n^q. Top: the ratio aₙ/bₙ settles at a positive constant (1 for q > 1, 1/2 at q = 1), so the two series share their fate. Bottom: both partial sums level off when q > 1 and both keep climbing at q = 1 — the harmonic case.'
 ```
 
+```python
+# Limit comparison: aₙ = 1/(n^q + n) against bₙ = 1/n^q; the ratio tends to a
+# positive constant, so both series converge or both diverge.
+def ratio(q, n): return (1 / (n**q + n)) / n**-q
+
+for q in (2, 1):                                         # the sim's default q = 2
+    sa = sum(1 / (n**q + n) for n in range(1, 41))
+    sb = sum(n**-q for n in range(1, 41))
+    print(f'q = {q}: ratio at n = 40: {ratio(q, 40):.3f}, partial sums to 40: {sa:.4f}, {sb:.4f}')
+print(round(sum(1 / (n*n + n) for n in range(1, 10**6)), 4))   # q = 2 telescopes to 1
+# Output:
+#   q = 2: ratio at n = 40: 0.976, partial sums to 40: 0.9756, 1.6202
+#   q = 1: ratio at n = 40: 0.500, partial sums to 40: 2.1393, 4.2785
+#   1.0
+```
+
 > **Example.** $\displaystyle\sum \frac{1}{2^n - 1}$ with $b_n = \dfrac{1}{2^n}$: $\dfrac{a_n}{b_n} = \dfrac{2^n}{2^n - 1} \to 1$, and $\sum 2^{-n}$ is a convergent geometric series. Converges.
 > $\displaystyle\sum \frac{2n^2 + 3n}{\sqrt{5 + n^5}}$: the terms behave like $\dfrac{2n^2}{n^{5/2}} = \dfrac{2}{n^{1/2}}$, so take $b_n = n^{-1/2}$; the ratio tends to $2$, and $\sum n^{-1/2}$ diverges ($p = \tfrac12$). Diverges.
 

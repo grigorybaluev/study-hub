@@ -55,6 +55,26 @@ controls:
 note: 'The region under y = √x on [0, b] rotated about the x-axis, drawn as a stack of n discs whose radius is f at the left end of each slab. The disc sum Σ π f(xᵢ)² Δx approaches the exact volume π b²/2 from below as n grows — the same squeeze as for rectangles, one dimension up.'
 ```
 
+```python
+# Volume of y = √x on [0, b] spun about the x-axis: the left-endpoint disc sum
+# Σ π f(xᵢ)² Δx climbs to the exact π b²/2.
+from math import pi, sqrt
+
+def discs(b, n):
+    dx = b / n
+    return sum(pi * sqrt(i*dx)**2 * dx for i in range(n))
+
+b = 3                                                    # the sim's defaults: b = 3, n = 8
+for n in (8, 80, 800):
+    print(n, round(discs(b, n), 4))
+print('exact', round(pi*b*b/2, 4))
+# Output:
+#   8 12.37
+#   80 13.9605
+#   800 14.1195
+#   exact 14.1372
+```
+
 > **Key insight.** Set every volume problem up as $\int(\text{face area})\,d(\text{thickness})$.
 > Decide first which axis the slices are perpendicular to; that fixes the variable of
 > integration, the limits, and whether the face is a disc, a washer, or something else.

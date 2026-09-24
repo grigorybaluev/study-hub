@@ -53,6 +53,25 @@ controls:
 note: 'sin x with its Taylor polynomial Tₙ about a (top) and the remainder |Rₙ(x)| = |sin x − Tₙ(x)| (bottom). Each extra degree widens the window where Tₙ hugs the curve; moving a slides the window. Because R = ∞ here, the window grows without bound as n → ∞, but for any fixed n it is local.'
 ```
 
+```python
+# Taylor polynomials of sin about a: Tₙ(x) = Σ sin⁽ⁱ⁾(a)/i! · (x − a)ⁱ; the
+# remainder is small near a and grows away from it.
+from math import sin, cos, factorial
+
+def T(n, a, x):
+    d = (sin(a), cos(a), -sin(a), -cos(a))               # the derivatives of sin cycle with period 4
+    return sum(d[i % 4] * (x - a)**i / factorial(i) for i in range(n + 1))
+
+for x in (0.5, 1.5, 3):                                  # the sim's defaults n = 3, a = 0: T₃ = x − x³/6
+    print(f'x = {x}: T3 = {T(3, 0, x):.4f}, sin = {sin(x):.4f}, |R3| = {abs(sin(x) - T(3, 0, x)):.2e}')
+print(f'x = 3, n = 9: |R9| = {abs(sin(3) - T(9, 0, 3)):.2e}')               # more degrees widen the window
+# Output:
+#   x = 0.5: T3 = 0.4792, sin = 0.4794, |R3| = 2.59e-04
+#   x = 1.5: T3 = 0.9375, sin = 0.9975, |R3| = 6.00e-02
+#   x = 3: T3 = -1.5000, sin = 0.1411, |R3| = 1.64e+00
+#   x = 3, n = 9: |R9| = 4.19e-03
+```
+
 ## When does the Taylor series equal $f$?
 
 Having a Taylor series is not the same as being represented by it: the series might

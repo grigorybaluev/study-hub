@@ -51,6 +51,25 @@ controls:
 note: 'Top: f(t) = 1.2 + sin t with the accumulated region from 0 to x. Bottom: g(x) = ∫₀ˣ f(t) dt with its tangent at x. Drag x and watch the slope of g track the height of f — that is g′(x) = f(x).'
 ```
 
+```python
+# FTC part 1: g(x) = ∫₀ˣ f(t) dt accumulates area, and its slope at x is f(x).
+from math import sin, cos
+
+f = lambda t: 1.2 + sin(t)
+g = lambda x: 1.2*x + 1 - cos(x)                         # the antiderivative with g(0) = 0
+
+def area(a, b, n=1000):                                  # Simpson's rule, as a check on g
+    h = (b - a) / n
+    return h/3 * (f(a) + f(b) + sum((4 if i % 2 else 2) * f(a + i*h) for i in range(1, n)))
+
+x, h = 2.0, 1e-6                                         # the sim's default x = 2
+print(f'g(2) = {g(x):.3f}, shaded area = {area(0, x):.3f}')
+print(f"g'(2) = {(g(x + h) - g(x - h)) / (2*h):.3f}, f(2) = {f(x):.3f}")
+# Output:
+#   g(2) = 3.816, shaded area = 3.816
+#   g'(2) = 2.109, f(2) = 2.109
+```
+
 > **Example.** $\dfrac{d}{dx}\displaystyle\int_0^x \sqrt{1 + t^3}\,dt = \sqrt{1 + x^3}$. No integration is performed; the theorem does it.
 > With a composite upper limit, chain rule: $\dfrac{d}{dx}\displaystyle\int_1^{x^2} \cos t\,dt = \cos(x^2)\cdot 2x$.
 

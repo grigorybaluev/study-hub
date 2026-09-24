@@ -37,6 +37,25 @@ controls:
 note: 'The region between y = cos x and y = sin x from 0 to b. The curves cross at π/4; past it sin x is on top, so the integrand |sin x − cos x| switches which curve comes first. The title shows the two pieces added.'
 ```
 
+```python
+# Area between cos x and sin x on [0, b]: split at the crossing π/4 so the
+# integrand is always top minus bottom.
+from math import sin, cos, pi, sqrt
+
+def area(b):
+    c = pi/4
+    A1 = sin(min(b, c)) + cos(min(b, c)) - 1             # ∫ (cos − sin) on [0, min(b, π/4)]
+    A2 = sqrt(2) - cos(b) - sin(b) if b > c else 0       # ∫ (sin − cos) on [π/4, b]
+    return A1, A2
+
+A1, A2 = area(2.2)                                       # the sim's default b = 2.2
+print(f'{A1:.4f} + {A2:.4f} = {A1 + A2:.4f}')
+print(f'whole [0, π]: {sum(area(pi)):.4f}  (= 2√2)')
+# Output:
+#   0.4142 + 1.1942 = 1.6084
+#   whole [0, π]: 2.8284  (= 2√2)
+```
+
 > **Example.** Area between $y = \sin x$ and $y = \cos x$ from $0$ to $\pi/2$. They cross where $\tan x = 1$, i.e. $x = \pi/4$. On $[0, \pi/4]$ cosine is on top, on $[\pi/4, \pi/2]$ sine is:
 > $A = \displaystyle\int_0^{\pi/4}(\cos x - \sin x)\,dx + \int_{\pi/4}^{\pi/2}(\sin x - \cos x)\,dx = \big[\sin x + \cos x\big]_0^{\pi/4} + \big[-\cos x - \sin x\big]_{\pi/4}^{\pi/2} = (\sqrt2 - 1) + (\sqrt2 - 1) = 2\sqrt2 - 2$.
 
@@ -68,6 +87,19 @@ id: calc-average-value
 controls:
   - {id: b, label: "Right edge b", min: 0.5, max: 4, step: 0.05, default: 3, decimals: 2}
 note: 'f(x) = x² on [0, b]. The dashed rectangle has height f_av = b²/3 and the same area as the region under the parabola; the marked point c = b/√3 is where f(c) = f_av, as the mean value theorem promises.'
+```
+
+```python
+# Average value of f(x) = x² on [0, b] is b²/3, attained at c = b/√3 (mean value theorem).
+from fractions import Fraction as F
+from math import sqrt
+
+b = 3                                                    # the sim's default
+fav = F(b**3, 3) / b                                     # (1/b) ∫₀ᵇ x² dx
+c = b / sqrt(3)
+print('f_av =', fav, ' c =', round(c, 3), ' f(c) =', round(c**2, 3))
+# Output:
+#   f_av = 3  c = 1.732  f(c) = 3.0
 ```
 
 > **Example.** Average of $f(x) = 1 + x^2$ on $[-1, 2]$: $f_{\text{av}} = \frac{1}{3}\displaystyle\int_{-1}^{2}(1 + x^2)\,dx = \frac{1}{3}\Big[x + \tfrac{x^3}{3}\Big]_{-1}^{2} = \frac{1}{3}\cdot 6 = 2$. The value $2$ is attained where $1 + c^2 = 2$, i.e. $c = 1$ (the other root, $-1$, is also in the interval).

@@ -56,6 +56,9 @@ note: 'A tree diagram of the sample space: each level is one trial, each leaf is
 ```
 
 ```python
+# Enumerating sample spaces with itertools (product for ordered outcomes, combinations
+# for selection without replacement), then drawing the sample space as the tree
+# diagram from the slides.
 import itertools
 import matplotlib.pyplot as plt
 
@@ -90,8 +93,6 @@ fig, ax = plt.subplots(figsize=(5, 3))
 tree('HT', 2, ax)          # try tree(range(1, 7), 2, ax) for two dice
 plt.show()
 ```
-
-Enumerating sample spaces with itertools (product for ordered outcomes, combinations for selection without replacement), then drawing the sample space as the tree diagram from the slides.
 
 ## Events — Simple & Compound
 
@@ -142,6 +143,8 @@ note: The 6 × 6 grid is the sample space from the slide (row = first die, colum
 ```
 
 ```python
+# Events as list comprehensions over the sample space — the code mirrors the set-
+# builder notation E = {(i,j) ∈ S : condition}.
 import itertools
 
 S = list(itertools.product(range(1, 7), repeat=2))   # the 36 ordered pairs
@@ -155,8 +158,6 @@ print('first die is 3:', first_is_3)
 print('sum is 7      :', sum_is_7)
 print('double six    :', double_six)
 ```
-
-Events as list comprehensions over the sample space — the code mirrors the set-builder notation E = {(i,j) ∈ S : condition}.
 
 ## Further reading
 

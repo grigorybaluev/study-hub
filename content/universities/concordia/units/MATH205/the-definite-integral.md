@@ -49,6 +49,22 @@ controls:
 note: 'The integral of sin x from 0 to b equals 1 − cos b. The green region counts positively, the red one negatively; at b = 2π the two cancel exactly and the integral is 0 although the shaded area is 4.'
 ```
 
+```python
+# ∫₀ᵇ sin x dx = 1 − cos b counts area below the axis as negative; the unsigned
+# area adds the two pieces with their signs removed.
+from math import sin, cos, pi
+
+def signed(b): return 1 - cos(b)
+def unsigned(b): return signed(min(b, pi)) + (cos(b) + 1 if b > pi else 0)   # positive hump + |negative part|
+
+for b in (4.5, pi, 2*pi):                                # the sim's default is b = 4.5
+    print(f'b = {b:.4f}: integral {signed(b):.4f}, unsigned area {unsigned(b):.4f}')
+# Output:
+#   b = 4.5000: integral 1.2108, unsigned area 2.7892
+#   b = 3.1416: integral 2.0000, unsigned area 2.0000
+#   b = 6.2832: integral 0.0000, unsigned area 4.0000
+```
+
 > **Example.** With equal subintervals and right endpoints, $\int_0^2 x^2\,dx$ is the limit
 > computed in lecture 1: $\frac{8}{3}$. Any other sample points give the same limit — that
 > is what "integrable" guarantees.

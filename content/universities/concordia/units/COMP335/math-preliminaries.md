@@ -86,6 +86,8 @@ note: 'Type comma-separated elements. The defaults are the slide examples: A = {
 ```
 
 ```python
+# Python sets map one-to-one onto the notation: | ∪, & ∩, − difference. The powerset
+# is built with combinations of every size; product gives the Cartesian product.
 from itertools import product, combinations
 
 A, B = {1, 2, 3}, {2, 3, 4, 5}
@@ -101,8 +103,6 @@ print(len(powerset), powerset)              # 8 subsets
 
 print(list(product({2, 4}, {2, 3, 5})))     # A x B, 6 ordered pairs
 ```
-
-Python sets map one-to-one onto the notation: | ∪, & ∩, − difference. The powerset is built with combinations of every size; product gives the Cartesian product.
 
 ## Functions, Relations & Graphs
 
@@ -157,6 +157,9 @@ note: 'Left: the slide relation R on {1,2,3,4} drawn as a graph; the tool checks
 ```
 
 ```python
+# The three properties of an equivalence relation checked mechanically on the slide
+# relation, its equivalence classes, and a check that a sequence of edges is a walk
+# (edges exist and are adjacent).
 # An equivalence relation given as a set of pairs (slide example)
 R = {(1,1), (2,2), (1,2), (2,1), (3,3), (4,4), (3,4), (4,3)}
 A = {1, 2, 3, 4}
@@ -175,8 +178,6 @@ E = {('a','b'), ('b','c'), ('b','e'), ('c','a'), ('c','e'), ('d','c'), ('e','b')
 walk = [('e','d'), ('d','c'), ('c','a')]
 print(all(e in E for e in walk) and all(walk[i][1] == walk[i+1][0] for i in range(len(walk)-1)))  # True
 ```
-
-The three properties of an equivalence relation checked mechanically on the slide relation, its equivalence classes, and a check that a sequence of edges is a walk (edges exist and are adjacent).
 
 ## Proof Techniques & the Pigeonhole Principle
 
@@ -225,6 +226,9 @@ note: 'Left: induction as falling dominoes — the basis P(0) is checked first, 
 ```
 
 ```python
+# A numeric sanity check of the induction formula, and the pigeonhole example: with 5
+# points and 4 unit boxes some box holds two points, whose distance cannot exceed the
+# box diagonal √2.
 # Checking the induction claim numerically (not a proof — a sanity check)
 for n in range(0, 20):
     assert sum(range(n + 1)) == n * (n + 1) // 2
@@ -241,4 +245,3 @@ crowded = next(b for b in boxes.values() if len(b) >= 2)
 print("two points in one box, distance =", round(math.dist((x1, y1), (x2, y2)), 3), "<= sqrt(2) =", round(math.sqrt(2), 3))
 ```
 
-A numeric sanity check of the induction formula, and the pigeonhole example: with 5 points and 4 unit boxes some box holds two points, whose distance cannot exceed the box diagonal √2.

@@ -47,6 +47,22 @@ controls:
 note: 'Partial sums S_N(x) = Σₙ₌₁ᴺ xⁿ/n against the function −ln(1 − x) they converge to. Inside |x| < 1 the curves pile up on the function as N grows; at x = −1 the series converges (alternating harmonic), at x = 1 it is the harmonic series and blows up, and beyond |x| > 1 the partial sums explode. The interval of convergence is [−1, 1).'
 ```
 
+```python
+# Σ xⁿ/n = −ln(1 − x) on its interval of convergence [−1, 1).
+from math import log
+
+def S(x, N): return sum(x**n / n for n in range(1, N + 1))
+
+for x in (0.5, -1, 1, 1.2):                              # the sim's default N = 8, then more terms
+    print(f'x = {x}:', *(f'{S(x, N):.4g}' for N in (8, 100, 1000)),
+          f'| -ln(1-x) = {-log(1 - x):.4f}' if x < 1 else '| diverges')
+# Output:
+#   x = 0.5: 0.6928 0.6931 0.6931 | -ln(1-x) = 0.6931
+#   x = -1: -0.6345 -0.6882 -0.6926 | -ln(1-x) = -0.6931
+#   x = 1: 2.718 5.187 7.485 | diverges
+#   x = 1.2: 5.059 5.251e+06 9.154e+76 | diverges
+```
+
 > **Example.** $\displaystyle\sum_{n=1}^{\infty}\frac{(x - 3)^n}{n}$. Ratio: $\left|\frac{(x-3)^{n+1}}{n+1}\cdot\frac{n}{(x-3)^n}\right| = |x - 3|\,\frac{n}{n+1} \to |x - 3|$, so $R = 1$ and the series converges for $2 < x < 4$. Endpoints: at $x = 4$ it is $\sum 1/n$, divergent; at $x = 2$ it is $\sum (-1)^n/n$, convergent. Interval of convergence $[2, 4)$.
 > $\displaystyle\sum_{n=0}^{\infty}\frac{x^n}{n!}$: ratio $\dfrac{|x|}{n+1} \to 0$ for every $x$, so $R = \infty$.
 > $\displaystyle\sum_{n=0}^{\infty} n!\,x^n$: ratio $(n+1)|x| \to \infty$ for every $x \ne 0$, so $R = 0$.

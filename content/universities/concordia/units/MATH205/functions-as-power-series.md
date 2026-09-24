@@ -56,6 +56,22 @@ controls:
 note: 'arctan x (white) against the partial sums Σₙ₌₀ᴺ (−1)ⁿ x²ⁿ⁺¹/(2n+1) obtained by integrating the geometric series for 1/(1 + x²). Convergence is fast near 0, slow near ±1, and fails outside — the radius of the seed series is inherited. The title shows the partial sum at x = 1 crawling toward π/4.'
 ```
 
+```python
+# arctan x = Σ (−1)ⁿ x²ⁿ⁺¹/(2n + 1), from integrating 1/(1 + x²) = Σ (−x²)ⁿ; radius 1.
+from math import atan, pi
+
+def S(x, N): return sum((-1)**n * x**(2*n + 1) / (2*n + 1) for n in range(N + 1))
+
+print(f'x = 0.5, N = 3: {S(0.5, 3):.6f} vs arctan {atan(0.5):.6f}')        # fast near 0
+for N in (3, 30, 300):                                   # the sim's default N = 3 (four terms)
+    print(f'x = 1, N = {N}: {S(1, N):.4f}  (π/4 = {pi/4:.4f})')             # slow at the edge
+# Output:
+#   x = 0.5, N = 3: 0.463467 vs arctan 0.463648
+#   x = 1, N = 3: 0.7238  (π/4 = 0.7854)
+#   x = 1, N = 30: 0.7935  (π/4 = 0.7854)
+#   x = 1, N = 300: 0.7862  (π/4 = 0.7854)
+```
+
 > **Key insight.** Integrating a power series is *easier* than integrating the function.
 > $\int e^{-x^2}\,dx$ has no elementary antiderivative, yet substituting $-x^2$ into the
 > exponential series and integrating term by term gives a power series for it that

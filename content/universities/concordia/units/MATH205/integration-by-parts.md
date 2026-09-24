@@ -48,6 +48,22 @@ controls:
 note: 'The curve v = u² between u₁ = 0.5 and u₂. The green region under it is ∫v du; the blue region to its left is ∫u dv. Together they fill the difference of two rectangles, u₂v₂ − u₁v₁, which is the boundary term of the formula.'
 ```
 
+```python
+# Integration by parts as areas, for v = u² from u₁ = 0.5 to u₂:
+# ∫v du + ∫u dv = u₂v₂ − u₁v₁ (the difference of the two rectangles).
+from fractions import Fraction as F
+
+u1, u2 = F(1, 2), F(3, 2)                                # the sim's default u₂ = 1.5
+v = lambda u: u**2
+A = (u2**3 - u1**3) / 3                                  # ∫ v du = ∫ u² du
+B = 2 * (u2**3 - u1**3) / 3                              # ∫ u dv = ∫ u · 2u du
+print(A, '+', B, '=', A + B)
+print('u2 v2 - u1 v1 =', u2*v(u2) - u1*v(u1))
+# Output:
+#   13/12 + 13/6 = 13/4
+#   u2 v2 - u1 v1 = 13/4
+```
+
 > **Example.** $\displaystyle\int x e^x\,dx$. Take $u = x$, $dv = e^x\,dx$; then $du = dx$, $v = e^x$:
 > $\displaystyle\int x e^x\,dx = x e^x - \int e^x\,dx = x e^x - e^x + C$.
 > The other choice ($u = e^x$, $dv = x\,dx$) produces $\int \tfrac{x^2}{2} e^x\,dx$ — worse.

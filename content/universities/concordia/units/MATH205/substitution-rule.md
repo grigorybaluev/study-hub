@@ -56,6 +56,21 @@ controls:
 note: 'Left: the region under 2x cos(x²) from 0 to b. Right: the region under cos u from 0 to b². The shapes differ — the substitution stretches the axis — but the two areas are always equal, both being sin(b²).'
 ```
 
+```python
+# Substitution u = x²: the area under 2x cos(x²) on [0, b] equals the area under
+# cos u on [0, b²]; both are sin(b²).
+import sympy as sp
+
+x, u, b = sp.symbols('x u b', positive=True)
+lhs = sp.integrate(2*x*sp.cos(x**2), (x, 0, b))
+rhs = sp.integrate(sp.cos(u), (u, 0, b**2))
+print(lhs, '=', rhs)
+print(round(float(lhs.subs(b, 1.2)), 4))                 # the sim's default b = 1.2: sin(1.44)
+# Output:
+#   sin(b**2) = sin(b**2)
+#   0.9915
+```
+
 > **Caution.** After changing the limits, do **not** substitute back: $\int_0^{b^2}\cos u\,du$ is a
 > number and the job is done. Mixing the two methods (new limits *and* back-substituting)
 > gives nonsense.

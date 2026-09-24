@@ -39,6 +39,24 @@ controls:
 note: 'f(x) = cos x (top) and the family F(x) = sin x + C (bottom). Move C: the curve slides vertically but the tangent slope at x₀ stays equal to f(x₀) — the whole family answers the same question.'
 ```
 
+```python
+# Every antiderivative F(x) = sin x + C of f(x) = cos x has the same slope at x₀:
+# the constant moves the curve up and down, never its tangent direction.
+from math import sin, cos
+
+x0, h = 1.0, 1e-6                                        # the sim's default x₀ = 1
+for C in (-2, 0, 1.5):
+    F = lambda x: sin(x) + C
+    slope = (F(x0 + h) - F(x0 - h)) / (2*h)             # numerical F'(x₀)
+    print(f'C = {C:>4}: F(x0) = {F(x0):.3f}, F\'(x0) = {slope:.3f}')
+print('f(x0) = cos 1 =', round(cos(x0), 3))
+# Output:
+#   C =   -2: F(x0) = -1.159, F'(x0) = 0.540
+#   C =    0: F(x0) = 0.841, F'(x0) = 0.540
+#   C =  1.5: F(x0) = 2.341, F'(x0) = 0.540
+#   f(x0) = cos 1 = 0.54
+```
+
 ## Table of antiderivatives
 
 Each line is a derivative formula read right to left. The factor $k$ inside is handled by

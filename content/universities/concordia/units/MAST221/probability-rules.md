@@ -72,6 +72,7 @@ note: 'The 2^k equally likely outcomes of tossing k coins (Step 1), with the out
 ```
 
 ```python
+# Fraction keeps the answers exact (6/36 → 1/6), exactly as the slides present them.
 from fractions import Fraction
 import itertools
 
@@ -87,8 +88,6 @@ print('P(double)   =', P(lambda s: s[0] == s[1]))         # 1/6
 coins = ['HH', 'HT', 'TH', 'TT']
 print('P(at least one H) =', Fraction(sum('H' in c for c in coins), len(coins)))  # 3/4
 ```
-
-Fraction keeps the answers exact (6/36 → 1/6), exactly as the slides present them.
 
 ## Empirical Probability & Simulation
 
@@ -140,6 +139,8 @@ note: Bars are the histogram of simulated sums (like the calculator's L₁); the
 ```
 
 ```python
+# NumPy plays the role of the calculator's randInt. Increasing n shows the relative
+# frequencies converging to 1/6 and 1/18.
 import numpy as np
 
 rng = np.random.default_rng()
@@ -156,8 +157,6 @@ for n in (100, 1000, 100_000):
     print(f'n={n:>7}:  P(E1=sum 7) ~ {p7:.3f} (theory {6/36:.3f})   '
           f'P(E2=sum 11) ~ {p11:.3f} (theory {2/36:.3f})')
 ```
-
-NumPy plays the role of the calculator's randInt. Increasing n shows the relative frequencies converging to 1/6 and 1/18.
 
 ## Properties of Probability, Complements & ∅
 
@@ -201,6 +200,9 @@ note: 'A = "at least one head" and A′ = "no heads" are complements, so the two
 ```
 
 ```python
+# Checking the properties on the two-dice sample space (complements add to 1, P(∅) =
+# 0, P(S) = 1), then a stacked bar chart: for every event, P(A) and P(A′) together
+# fill the interval [0, 1].
 from fractions import Fraction
 import itertools
 import matplotlib.pyplot as plt
@@ -231,8 +233,6 @@ plt.xlim(0, 1); plt.xlabel('probability'); plt.legend(loc='lower right')
 plt.title("Every bar has total length 1: P(A) + P(A') = 1")
 plt.show()
 ```
-
-Checking the properties on the two-dice sample space (complements add to 1, P(∅) = 0, P(S) = 1), then a stacked bar chart: for every event, P(A) and P(A′) together fill the interval [0, 1].
 
 ## Counting with Venn Diagrams
 
@@ -285,6 +285,8 @@ note: The four region counts are computed from your sliders with the identities 
 ```
 
 ```python
+# Python sets make the Venn bookkeeping concrete: & is ∩, | is ∪, − is "and not". The
+# asserts check identities 3(a) and 3(c) on a real sample space.
 # Two-dice example: A = "first die is even", B = "sum is 7"
 import itertools
 S = list(itertools.product(range(1, 7), repeat=2))
@@ -302,8 +304,6 @@ assert (A & B) | (A - B) == A
 assert A | ((Sset - A) & B) == A | B
 print('identities 3(a), 3(c) hold')
 ```
-
-Python sets make the Venn bookkeeping concrete: & is ∩, | is ∪, − is "and not". The asserts check identities 3(a) and 3(c) on a real sample space.
 
 ## The Addition Rule & Monotonicity
 
@@ -352,6 +352,8 @@ note: The Venn regions show P(A∩B′), P(A∩B), P(A′∩B), P(A′∩B′). 
 ```
 
 ```python
+# Theorem 2 and the disjoint decomposition agree with the direct count of A ∪ B;
+# Theorem 1 is checked on a genuine subset pair C ⊂ D.
 from fractions import Fraction
 import itertools
 
@@ -368,8 +370,6 @@ print('P(A)+P(B)-P(A∩B) =', P(A) + P(B) - P(A & B))       # Theorem 2
 print('P(A)+P(A\'∩B)    =', P(A) + P(B - A))               # disjoint decomposition
 print('C ⊂ D:', C <= D, ' P(C) =', P(C), '<= P(D) =', P(D))  # Theorem 1
 ```
-
-Theorem 2 and the disjoint decomposition agree with the direct count of A ∪ B; Theorem 1 is checked on a genuine subset pair C ⊂ D.
 
 ## Inclusion–Exclusion for Three Events
 
@@ -424,6 +424,9 @@ note: Each of the 7 regions inside A ∪ B ∪ C shows how many times it has bee
 ```
 
 ```python
+# The formula is checked exactly (with Fractions) on one hand-picked triple and on
+# 1000 random triples, then a bar chart shows the counting argument: after singles /
+# minus pairs / plus triple, every region is counted exactly once.
 from fractions import Fraction
 import itertools
 import matplotlib.pyplot as plt
@@ -463,8 +466,6 @@ plt.xticks(list(x), regions); plt.ylabel('times counted'); plt.legend()
 plt.title('Inclusion-exclusion: every region ends up counted exactly once')
 plt.show()
 ```
-
-The formula is checked exactly (with Fractions) on one hand-picked triple and on 1000 random triples, then a bar chart shows the counting argument: after singles / minus pairs / plus triple, every region is counted exactly once.
 
 ## Further reading
 

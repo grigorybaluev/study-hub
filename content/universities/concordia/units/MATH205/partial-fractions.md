@@ -64,6 +64,18 @@ controls:
 note: 'The rational function 1/((x − a)(x − b)) (white) and its two partial fractions A/(x − a) and B/(x − b) with A = 1/(a − b), B = −A. The two simple poles add up to the original curve everywhere. When a = b the decomposition changes shape — Case II, with a 1/(x − a)² term.'
 ```
 
+```python
+# 1/((x − a)(x − b)) = A/(x − a) + B/(x − b) with A = 1/(a − b), B = −A (distinct roots).
+import sympy as sp
+
+x = sp.symbols('x')
+for a, b in ((1, -2), (3, 3)):                           # the sim's default a = 1, b = −2; then a repeated root
+    print(sp.apart(1 / ((x - a)*(x - b)), x))
+# Output:
+#   -1/(3*(x + 2)) + 1/(3*(x - 1))
+#   (x - 3)**(-2)
+```
+
 > **Example — Case I.** $\displaystyle\int \frac{x + 5}{x^2 + x - 2}\,dx = \int \frac{x + 5}{(x - 1)(x + 2)}\,dx$. Write $\dfrac{x + 5}{(x-1)(x+2)} = \dfrac{A}{x - 1} + \dfrac{B}{x + 2}$, so $x + 5 = A(x + 2) + B(x - 1)$. At $x = 1$: $6 = 3A$, $A = 2$; at $x = -2$: $3 = -3B$, $B = -1$. Hence the integral is $2\ln|x - 1| - \ln|x + 2| + C$.
 
 > **Example — Case II.** $\dfrac{x}{(x + 1)^2} = \dfrac{A}{x + 1} + \dfrac{B}{(x + 1)^2}$ gives $x = A(x + 1) + B$; comparing coefficients, $A = 1$, $B = -1$. So $\displaystyle\int \frac{x\,dx}{(x + 1)^2} = \ln|x + 1| + \frac{1}{x + 1} + C$.

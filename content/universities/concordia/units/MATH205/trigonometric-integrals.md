@@ -47,6 +47,23 @@ controls:
 note: 'The integrand sinᵐx cosⁿx on [0, π] with its integral. The title names the case: n odd → u = sin x, m odd → u = cos x, both even → half-angle formulas. When n is odd the integral over [0, π] vanishes by symmetry — the substitution u = sin x runs from 0 to 0.'
 ```
 
+```python
+# ∫₀^π sinᵐx cosⁿx dx, with the substitution the powers call for.
+import sympy as sp
+
+x = sp.symbols('x')
+def case(m, n):
+    return 'n odd: u = sin x' if n % 2 else 'm odd: u = cos x' if m % 2 else 'both even: half-angle'
+
+for m, n in ((3, 2), (2, 3), (2, 2)):                    # the sim's default is m = 3, n = 2
+    I = sp.integrate(sp.sin(x)**m * sp.cos(x)**n, (x, 0, sp.pi))
+    print(f'm = {m}, n = {n}: {I}   ({case(m, n)})')
+# Output:
+#   m = 3, n = 2: 4/15   (m odd: u = cos x)
+#   m = 2, n = 3: 0   (n odd: u = sin x)
+#   m = 2, n = 2: pi/8   (both even: half-angle)
+```
+
 ## Powers of tangent and secant: $\int \tan^m x\,\sec^n x\,dx$
 
 The identity is $1 + \tan^2 x = \sec^2 x$, and the two derivatives are
