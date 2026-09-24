@@ -40,6 +40,8 @@ export interface UnitNode {
   weeks: number[];
   textbook: string | null;
   notes: string[] | null;
+  /** Sim blocks in the body and how many carry each `verified:` check; verified = both. */
+  sims: { total: number; interface: number; content: number; verified: number };
   body: string;
 }
 

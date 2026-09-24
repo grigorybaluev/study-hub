@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from schema import (CODE_RE, ROOT, COURSE_KIND, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SLUG_RE, STRENGTH,
+from schema import (CODE_RE, ROOT, COURSE_KIND, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH,
                     UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
                     roadmap_node_ids, roadmap_root, unit_slug)
 
@@ -170,6 +170,24 @@ def lint_university(c: Content, uni, rep: Report):
 SIM_BLOCK_RE = re.compile(r"^```sim\n(.*?)^```", re.M | re.S)
 
 
+def sim_counts(body: str) -> dict:
+    """Per-unit tally of sim blocks and their `verified:` checks (blocks that do not parse are skipped)."""
+    n = {"total": 0, **{c: 0 for c in SIM_CHECKS}, "verified": 0}
+    for m in SIM_BLOCK_RE.finditer(body):
+        try:
+            cfg = yaml.safe_load(m.group(1))
+        except yaml.YAMLError:
+            continue
+        if not isinstance(cfg, dict):
+            continue
+        done = cfg.get("verified") if isinstance(cfg.get("verified"), list) else []
+        n["total"] += 1
+        for c in SIM_CHECKS:
+            n[c] += c in done
+        n["verified"] += all(c in done for c in SIM_CHECKS)
+    return n
+
+
 def load_sim_registry() -> dict | None:
     p = ROOT / "app" / "src" / "sims" / "registry.yaml"
     return yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else None
@@ -185,6 +203,9 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
         if not isinstance(cfg, dict) or not cfg.get("id"):
             rep.error(doc.path, "sim block needs an `id`")
             continue
+        verified = cfg.get("verified", [])
+        if not (isinstance(verified, list) and all(v in SIM_CHECKS for v in verified)):
+            rep.error(doc.path, f"sim {cfg['id']!r}: verified must be a list of {list(SIM_CHECKS)}, got {verified!r}")
         if registry is None:
             rep.warn(doc.path, f"sim {cfg['id']!r}: no registry (app/src/sims/registry.yaml) to check against")
         elif cfg.get("custom"):

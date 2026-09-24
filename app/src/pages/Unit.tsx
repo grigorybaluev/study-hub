@@ -28,6 +28,7 @@ export default function Unit() {
         <div className="status-line">
           <Badge kind={unit.status} />
           <Badge kind={unit.review} />
+          {unit.sims.total > 0 && <span title="interactive examples whose interface and content have been checked">{unit.sims.verified}/{unit.sims.total} examples verified</span>}
           {unit.kind === "review" && <Badge kind="review" />}
           {unit.weeks.length > 0 && <span>week{unit.weeks.length > 1 ? "s" : ""} {unit.weeks.join(", ")}</span>}
           {unit.textbook && <span>· {unit.textbook}</span>}

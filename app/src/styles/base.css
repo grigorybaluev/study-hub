@@ -176,6 +176,7 @@ blockquote.wiki p { margin: 0.4em 0; }
 .sim-plot { min-height: 380px; background: #1a1f2e; }
 .sim-plot.sim-custom { background: #fff; }
 .sim-note { padding: 0.75rem 1.25rem; font-size: 0.87rem; color: var(--sim-note-fg); background: var(--sim-note-bg); border-top: 1px solid var(--sim-note-line); line-height: 1.5; }
+.sim-verify { padding: 0.3rem 1.25rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: var(--warn); background: var(--warn-soft); border-bottom: 1px solid var(--line); }
 .sim-code { margin: -0.9em 0 1.4em; }
 .sim-code summary { display: inline-flex; align-items: center; gap: 0.4em; font-size: 0.82rem; color: var(--fg-muted); cursor: pointer; padding: 0.2em 0.1em; list-style: none; user-select: none; }
 .sim-code summary::-webkit-details-marker { display: none; }

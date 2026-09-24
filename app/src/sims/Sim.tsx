@@ -47,7 +47,19 @@ export interface SimConfig {
   custom?: boolean;
   engine?: string;
   mode?: string;
+  /** Checks done by hand on this example (#93): "interface", "content". */
+  verified?: string[];
   [k: string]: unknown;
+}
+
+const CHECKS = ["interface", "content"] as const;
+
+/** Shown until both checks are recorded in the block's `verified:` list. */
+function NeedsVerification({ verified }: { verified?: string[] }) {
+  const missing = CHECKS.filter((c) => !verified?.includes(c));
+  if (missing.length === 0) return null;
+  const text = `${missing.join(" and ")} not checked yet`;
+  return <div className="sim-verify" title={`This example has not been verified: ${text}.`}>Needs verification · {text}</div>;
 }
 
 export default function Sim({ cfg }: { cfg: SimConfig }) {
@@ -72,6 +84,7 @@ export default function Sim({ cfg }: { cfg: SimConfig }) {
 
   return (
     <div className="sim-box">
+      <NeedsVerification verified={cfg.verified} />
       {controls.length > 0 && (
         <div className="sim-controls">
           {controls.map((c) => (

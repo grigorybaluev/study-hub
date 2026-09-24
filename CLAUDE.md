@@ -110,7 +110,9 @@ Units
   `custom: true` + `mode` for automata) placed where they belong in the text; lint checks
   ids against `app/src/sims/registry.yaml`. A ```` ```python ```` block placed directly after
   a sim block (only blank lines between) is that sim's code: it renders collapsed under the
-  sim as "Show Python code". Lecture notes are written directly into units.
+  sim as "Show Python code". `verified: [interface, content]` in a sim block records the two
+  hand checks of #93 (each only after it was actually done); until both are there the sim
+  shows "Needs verification". Lecture notes are written directly into units.
 
 Courses and programs
 - `kind: core | assumed_prior | external`. Assumed-prior courses (MATH 203/204/205) have
