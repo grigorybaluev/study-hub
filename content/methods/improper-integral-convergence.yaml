@@ -1,0 +1,22 @@
+id: improper-integral-convergence
+title: Does an improper integral converge?
+description: >-
+  An improper integral is a limit of proper ones. Isolate each problem point, then either compute
+  the limit through an antiderivative or, when none is available, compare with a p-integral whose
+  behaviour is known.
+start: kind
+nodes:
+  - {id: kind, kind: decision, label: "What makes it improper?"}
+  - {id: split, kind: method, label: "Split so each piece has one problem, at one end", concept: improper-integral}
+  - {id: antiderivative, kind: decision, label: "Can you find an antiderivative?"}
+  - {id: limit, kind: method, label: "Replace the bad end by t, integrate, let t tend to it", concept: improper-integral}
+  - {id: compare, kind: method, label: "Compare with ∫ 1/xᵖ (at ∞: p > 1; at 0: p < 1)", concept: improper-integral}
+  - {id: verdict, kind: end, label: "Converges or diverges (a split integral converges only if every piece does)"}
+edges:
+  - {from: kind, to: antiderivative, label: "one bad end"}
+  - {from: kind, to: split, label: "several, or inside"}
+  - {from: split, to: antiderivative}
+  - {from: antiderivative, to: limit, label: "yes"}
+  - {from: antiderivative, to: compare, label: "no"}
+  - {from: limit, to: verdict}
+  - {from: compare, to: verdict}

@@ -1,0 +1,30 @@
+id: exact-or-normal-approximation
+title: Exact binomial or an approximation
+description: >-
+  Compute the exact binomial probability when it is a short sum or software is at hand. For a long
+  sum, the normal approximation works when both nθ and n(1 − θ) are large, with a continuity
+  correction because a discrete count is replaced by a continuous curve; for rare events the
+  Poisson approximation fits better.
+start: exact
+nodes:
+  - {id: exact, kind: decision, label: "Is the exact sum short, or is software at hand?"}
+  - {id: pmf, kind: method, label: "Sum the binomial pmf", concept: binomial-distribution}
+  - {id: large, kind: decision, label: "nθ ≥ 5 and n(1 − θ) ≥ 5?"}
+  - {id: moments, kind: method, label: "μ = nθ, σ² = nθ(1 − θ)", concept: normal-approximation}
+  - {id: correction, kind: method, label: "Continuity correction: widen each end by 0.5", concept: normal-approximation}
+  - {id: standardise, kind: method, label: "Standardise, z = (x − μ)/σ, and read Φ", concept: normal-distribution}
+  - {id: rare, kind: decision, label: "n large and θ small?"}
+  - {id: poisson, kind: method, label: "Poisson with λ = nθ", concept: poisson-distribution}
+  - {id: answer, kind: end, label: "Probability found (state whether exact or approximate)"}
+edges:
+  - {from: exact, to: pmf, label: "yes"}
+  - {from: exact, to: large, label: "no"}
+  - {from: pmf, to: answer}
+  - {from: large, to: moments, label: "yes"}
+  - {from: large, to: rare, label: "no"}
+  - {from: moments, to: correction}
+  - {from: correction, to: standardise}
+  - {from: standardise, to: answer}
+  - {from: rare, to: poisson, label: "yes"}
+  - {from: rare, to: pmf, label: "no"}
+  - {from: poisson, to: answer}

@@ -1,0 +1,30 @@
+id: linear-independence-test
+title: Testing linear independence
+description: >-
+  The cheap checks first: too many vectors, or an obvious multiple, settle it at once. Otherwise
+  put the vectors in the columns of a matrix: a nonzero determinant (when square) or a pivot in
+  every column means independent.
+start: count
+nodes:
+  - {id: count, kind: decision, label: "More vectors than entries in each (k > n)?"}
+  - {id: obvious, kind: decision, label: "The zero vector, or one a multiple of another?"}
+  - {id: square, kind: decision, label: "As many vectors as entries (k = n)?"}
+  - {id: det, kind: method, label: "Compute det [v₁ … vₙ]", concept: determinant}
+  - {id: nonzero, kind: decision, label: "det ≠ 0?"}
+  - {id: reduce, kind: method, label: "Row-reduce [v₁ … v_k]", concept: matrix-rank}
+  - {id: pivots, kind: decision, label: "A pivot in every column?"}
+  - {id: independent, kind: end, label: "Linearly independent"}
+  - {id: dependent, kind: end, label: "Linearly dependent: exhibit a relation"}
+edges:
+  - {from: count, to: dependent, label: "yes"}
+  - {from: count, to: obvious, label: "no"}
+  - {from: obvious, to: dependent, label: "yes"}
+  - {from: obvious, to: square, label: "no"}
+  - {from: square, to: det, label: "yes"}
+  - {from: square, to: reduce, label: "no"}
+  - {from: det, to: nonzero}
+  - {from: nonzero, to: independent, label: "yes"}
+  - {from: nonzero, to: dependent, label: "no"}
+  - {from: reduce, to: pivots}
+  - {from: pivots, to: independent, label: "yes"}
+  - {from: pivots, to: dependent, label: "no"}

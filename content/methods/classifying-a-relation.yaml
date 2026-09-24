@@ -1,0 +1,27 @@
+id: classifying-a-relation
+title: Classifying a relation
+description: >-
+  Equivalence relations and partial orders share reflexivity and transitivity; they differ in
+  whether pairs go both ways (symmetric) or never both ways between distinct elements
+  (antisymmetric). For each property, a proof for all elements or one failing pair.
+start: reflexive
+nodes:
+  - {id: reflexive, kind: decision, label: "(a, a) ∈ R for every a?"}
+  - {id: transitive, kind: decision, label: "(a, b), (b, c) ∈ R ⇒ (a, c) ∈ R?"}
+  - {id: symmetric, kind: decision, label: "(a, b) ∈ R ⇒ (b, a) ∈ R?"}
+  - {id: antisymmetric, kind: decision, label: "(a, b), (b, a) ∈ R ⇒ a = b?"}
+  - {id: classes, kind: method, label: "Equivalence relation: describe the classes", concept: relation}
+  - {id: hasse, kind: method, label: "Partial order: draw the Hasse diagram", concept: relation}
+  - {id: classified, kind: end, label: "Classified"}
+  - {id: neither, kind: end, label: "Neither: say which properties fail"}
+edges:
+  - {from: reflexive, to: transitive, label: "yes"}
+  - {from: reflexive, to: neither, label: "no"}
+  - {from: transitive, to: symmetric, label: "yes"}
+  - {from: transitive, to: neither, label: "no"}
+  - {from: symmetric, to: classes, label: "yes"}
+  - {from: symmetric, to: antisymmetric, label: "no"}
+  - {from: antisymmetric, to: hasse, label: "yes"}
+  - {from: antisymmetric, to: neither, label: "no"}
+  - {from: classes, to: classified}
+  - {from: hasse, to: classified}

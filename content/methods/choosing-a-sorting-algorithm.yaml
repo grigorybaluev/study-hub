@@ -1,0 +1,32 @@
+id: choosing-a-sorting-algorithm
+title: Choosing a sorting algorithm
+description: >-
+  Comparison sorts cannot beat n log n, so small integer keys are the one chance to go faster.
+  After that, the constraints decide: few or nearly sorted items, a need for stability, little
+  extra memory, a guaranteed worst case.
+start: keys
+nodes:
+  - {id: keys, kind: decision, label: "Integer keys in a small range, or fixed-length digit strings?"}
+  - {id: bucket, kind: method, label: "Bucket / radix sort: O(n + N) per pass", concept: sorting-algorithms}
+  - {id: small, kind: decision, label: "Few items, or nearly sorted already?"}
+  - {id: insertion, kind: method, label: "Insertion sort", concept: sorting-algorithms}
+  - {id: stable, kind: decision, label: "Must equal keys keep their order (stable)?"}
+  - {id: merge, kind: method, label: "Merge sort: O(n log n), stable, O(n) extra space", concept: sorting-algorithms}
+  - {id: worst, kind: decision, label: "In place, with an O(n log n) worst case?"}
+  - {id: heap, kind: method, label: "Heap sort: in place, O(n log n) always", concept: heap}
+  - {id: quick, kind: method, label: "Quick sort: fastest on average, O(n²) worst case", concept: sorting-algorithms}
+  - {id: sorted, kind: end, label: "Algorithm chosen"}
+edges:
+  - {from: keys, to: bucket, label: "yes"}
+  - {from: keys, to: small, label: "no"}
+  - {from: bucket, to: sorted}
+  - {from: small, to: insertion, label: "yes"}
+  - {from: small, to: stable, label: "no"}
+  - {from: insertion, to: sorted}
+  - {from: stable, to: merge, label: "yes"}
+  - {from: stable, to: worst, label: "no"}
+  - {from: merge, to: sorted}
+  - {from: worst, to: heap, label: "yes"}
+  - {from: worst, to: quick, label: "no"}
+  - {from: heap, to: sorted}
+  - {from: quick, to: sorted}

@@ -1,0 +1,21 @@
+id: interval-of-convergence
+title: Interval of convergence of a power series
+description: >-
+  The ratio test gives the radius but says nothing at the two endpoints, where it returns 1. Each
+  endpoint is an ordinary numeric series and needs its own convergence test.
+start: ratio
+nodes:
+  - {id: ratio, kind: method, label: "Ratio test on |terms|: convergent when |x − a| < R", concept: power-series}
+  - {id: radius, kind: decision, label: "What is R?"}
+  - {id: left, kind: method, label: "Test x = a − R as a numeric series", concept: convergence-tests}
+  - {id: right, kind: method, label: "Test x = a + R as a numeric series", concept: convergence-tests}
+  - {id: point, kind: end, label: "Converges only at x = a"}
+  - {id: everywhere, kind: end, label: "Converges for every x"}
+  - {id: interval, kind: end, label: "Interval found: keep the endpoints that converge"}
+edges:
+  - {from: ratio, to: radius}
+  - {from: radius, to: point, label: "0"}
+  - {from: radius, to: everywhere, label: "∞"}
+  - {from: radius, to: left, label: "finite"}
+  - {from: left, to: right}
+  - {from: right, to: interval}

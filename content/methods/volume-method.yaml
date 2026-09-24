@@ -1,0 +1,27 @@
+id: volume-method
+title: Choosing a volume method
+description: >-
+  Slice the solid. Strips of the region perpendicular to the axis sweep out disks or washers,
+  strips parallel to it sweep out cylindrical shells; pick the direction in which the region is
+  described by a single formula.
+start: solid
+nodes:
+  - {id: solid, kind: decision, label: "A solid of revolution, or known cross-sections?"}
+  - {id: slices, kind: method, label: "V = ∫ A(x) dx with A the cross-section area", concept: volume-by-slicing}
+  - {id: strips, kind: decision, label: "Strips of the region easiest to describe: perpendicular or parallel to the axis?"}
+  - {id: hole, kind: decision, label: "Does the region touch the axis along the whole strip?"}
+  - {id: disks, kind: method, label: "Disks: V = ∫ π R²", concept: volume-by-slicing}
+  - {id: washers, kind: method, label: "Washers: V = ∫ π (R² − r²)", concept: volume-by-slicing}
+  - {id: shells, kind: method, label: "Shells: V = ∫ 2π (radius)(height)", concept: volume-by-slicing}
+  - {id: found, kind: end, label: "Volume found: check it against a rough estimate"}
+edges:
+  - {from: solid, to: slices, label: "cross-sections"}
+  - {from: solid, to: strips, label: "revolution"}
+  - {from: slices, to: found}
+  - {from: strips, to: hole, label: "perpendicular"}
+  - {from: strips, to: shells, label: "parallel"}
+  - {from: hole, to: disks, label: "yes"}
+  - {from: hole, to: washers, label: "no"}
+  - {from: disks, to: found}
+  - {from: washers, to: found}
+  - {from: shells, to: found}

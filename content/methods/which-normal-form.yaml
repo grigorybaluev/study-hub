@@ -1,0 +1,24 @@
+id: which-normal-form
+title: Which normal form is R in?
+description: >-
+  Everything depends on the keys, so find them first. Then test from the strictest form down:
+  BCNF asks for a superkey on every left side, 3NF forgives violations whose right side is prime,
+  and 2NF only forbids non-prime attributes that depend on part of a key.
+start: keys
+nodes:
+  - {id: keys, kind: method, label: "Find the candidate keys and the prime attributes", concept: functional-dependency}
+  - {id: bcnf-test, kind: decision, label: "Is every non-trivial X → A's left side a superkey?"}
+  - {id: third-test, kind: decision, label: "Is A prime in every violating X → A?"}
+  - {id: second-test, kind: decision, label: "Does a non-prime attribute depend on part of a key?"}
+  - {id: bcnf, kind: end, label: "BCNF"}
+  - {id: third, kind: end, label: "3NF, not BCNF"}
+  - {id: second, kind: end, label: "2NF, not 3NF"}
+  - {id: first, kind: end, label: "1NF only"}
+edges:
+  - {from: keys, to: bcnf-test}
+  - {from: bcnf-test, to: bcnf, label: "yes"}
+  - {from: bcnf-test, to: third-test, label: "no"}
+  - {from: third-test, to: third, label: "yes"}
+  - {from: third-test, to: second-test, label: "no"}
+  - {from: second-test, to: first, label: "yes"}
+  - {from: second-test, to: second, label: "no"}

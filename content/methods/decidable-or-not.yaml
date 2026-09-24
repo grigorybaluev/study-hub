@@ -1,0 +1,23 @@
+id: decidable-or-not
+title: Decidable or not?
+description: >-
+  Decidable means some Turing machine halts on every input with the right answer, so a "yes" is an
+  algorithm. Questions about what an arbitrary Turing machine does are the usual "no": show that a
+  decider for them would decide the halting problem.
+start: algorithm
+nodes:
+  - {id: algorithm, kind: decision, label: "Can you describe an algorithm that always halts with the answer?"}
+  - {id: decider, kind: method, label: "Give it as a TM; argue it halts and answers correctly", concept: turing-machine}
+  - {id: about-tms, kind: decision, label: "Does it ask what an arbitrary TM does (halts, accepts …)?"}
+  - {id: reduce, kind: method, label: "Reduce the halting problem to it", concept: halting-problem}
+  - {id: rethink, kind: method, label: "Look again: questions about DFAs and CFGs are usually decidable", concept: language-decision-problems}
+  - {id: decidable, kind: end, label: "Decidable"}
+  - {id: undecidable, kind: end, label: "Undecidable"}
+edges:
+  - {from: algorithm, to: decider, label: "yes"}
+  - {from: algorithm, to: about-tms, label: "no"}
+  - {from: decider, to: decidable}
+  - {from: about-tms, to: reduce, label: "yes"}
+  - {from: about-tms, to: rethink, label: "no"}
+  - {from: reduce, to: undecidable}
+  - {from: rethink, to: algorithm}

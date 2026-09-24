@@ -1,0 +1,27 @@
+id: big-o-of-code
+title: Big-O of a piece of code
+description: >-
+  Count how many times the innermost statement runs. A single loop's count depends on how its
+  variable moves, nested loops multiply or, when an inner bound depends on the outer variable,
+  add up as a sum; a recursive call turns the count into a recurrence.
+start: recursive
+nodes:
+  - {id: recursive, kind: decision, label: "Does the code call itself?"}
+  - {id: recurrence, kind: method, label: "Write T(n) and solve the recurrence", concept: recursion}
+  - {id: nesting, kind: decision, label: "How are the loops arranged?"}
+  - {id: single, kind: method, label: "Count iterations: +c steps give n, ×c steps give log n", concept: algorithm-analysis}
+  - {id: dependent, kind: decision, label: "Does an inner bound depend on an outer variable?"}
+  - {id: multiply, kind: method, label: "Multiply the iteration counts", concept: algorithm-analysis}
+  - {id: sum, kind: method, label: "Sum the inner counts over the outer loop", concept: algorithm-analysis}
+  - {id: bound, kind: end, label: "Order of growth found: keep the dominant term"}
+edges:
+  - {from: recursive, to: recurrence, label: "yes"}
+  - {from: recursive, to: nesting, label: "no"}
+  - {from: recurrence, to: bound}
+  - {from: nesting, to: single, label: "in sequence"}
+  - {from: nesting, to: dependent, label: "nested"}
+  - {from: single, to: bound}
+  - {from: dependent, to: multiply, label: "no"}
+  - {from: dependent, to: sum, label: "yes"}
+  - {from: multiply, to: bound}
+  - {from: sum, to: bound}

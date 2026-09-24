@@ -1,0 +1,28 @@
+id: context-free-or-not
+title: Is a language context-free?
+description: >-
+  The same shape as for regular languages, one level up: exhibit a grammar or a PDA, or build L
+  from context-free pieces by the operations that keep context-freeness (not intersection or
+  complement). A stack matches one pair of counts, so three matched counts or a copied string call
+  for the pumping lemma.
+start: grammar
+nodes:
+  - {id: grammar, kind: decision, label: "Can you write a CFG or a PDA for it?"}
+  - {id: construct, kind: method, label: "Write it; check it generates exactly L", concept: context-free-grammar}
+  - {id: closure, kind: decision, label: "A union, concatenation or star of CFLs, or a CFL ∩ a regular language?"}
+  - {id: closed, kind: method, label: "Closure properties of CFLs", concept: language-closure-properties}
+  - {id: matching, kind: decision, label: "Three or more matched counts, or a copy ww?"}
+  - {id: pumping, kind: method, label: "CFL pumping lemma: s = uvxyz, |vxy| ≤ p; every split fails", concept: pumping-lemma-cfl}
+  - {id: cfl, kind: end, label: "Context-free"}
+  - {id: not-cfl, kind: end, label: "Not context-free"}
+  - {id: open, kind: end, label: "Undecided: intersect with a regular language to expose the structure"}
+edges:
+  - {from: grammar, to: construct, label: "yes"}
+  - {from: grammar, to: closure, label: "no"}
+  - {from: construct, to: cfl}
+  - {from: closure, to: closed, label: "yes"}
+  - {from: closure, to: matching, label: "no"}
+  - {from: closed, to: cfl}
+  - {from: matching, to: pumping, label: "yes"}
+  - {from: matching, to: open, label: "no"}
+  - {from: pumping, to: not-cfl}

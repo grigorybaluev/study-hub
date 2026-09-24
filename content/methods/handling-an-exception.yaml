@@ -1,0 +1,35 @@
+id: handling-an-exception
+title: Handling an exception
+description: >-
+  An unchecked exception from a bug is fixed, not caught. For the rest, handle the exception
+  where something useful can be done and declare it everywhere else; release resources either way,
+  and give the caller its own exception class when no standard one says what went wrong.
+start: checked
+nodes:
+  - {id: checked, kind: decision, label: "Is it checked (not a RuntimeException or Error)?"}
+  - {id: bug, kind: decision, label: "Does it signal a bug (null, index, cast)?"}
+  - {id: fix, kind: method, label: "Fix the code; do not catch it", concept: exception-handling}
+  - {id: useful, kind: decision, label: "Can this method do something useful about it?"}
+  - {id: catch, kind: method, label: "try / catch it here", concept: exception-handling}
+  - {id: declare, kind: method, label: "Declare it: throws in the header", concept: exception-handling}
+  - {id: resources, kind: decision, label: "Resources to release either way?"}
+  - {id: finally, kind: method, label: "finally, or try-with-resources", concept: exception-handling}
+  - {id: own, kind: decision, label: "Does the caller need a failure no standard exception names?"}
+  - {id: custom, kind: method, label: "class …Exception extends Exception", concept: inheritance}
+  - {id: handled, kind: end, label: "Handled: every path either recovers or reports"}
+edges:
+  - {from: checked, to: useful, label: "yes"}
+  - {from: checked, to: bug, label: "no"}
+  - {from: bug, to: fix, label: "yes"}
+  - {from: bug, to: useful, label: "no"}
+  - {from: fix, to: handled}
+  - {from: useful, to: catch, label: "yes"}
+  - {from: useful, to: declare, label: "no"}
+  - {from: catch, to: resources}
+  - {from: declare, to: resources}
+  - {from: resources, to: finally, label: "yes"}
+  - {from: resources, to: own, label: "no"}
+  - {from: finally, to: own}
+  - {from: own, to: custom, label: "yes"}
+  - {from: own, to: handled, label: "no"}
+  - {from: custom, to: handled}

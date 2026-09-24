@@ -1,0 +1,27 @@
+id: generating-a-random-variable
+title: Generating a random variable
+description: >-
+  Use R's generator when the distribution has one. Otherwise transform uniforms: through the
+  inverse cdf when it has a closed form, by acceptance–rejection under an envelope when it does
+  not, or by combining variables you can already generate.
+start: builtin
+nodes:
+  - {id: builtin, kind: decision, label: "Is there a built-in r… function (rnorm, rexp, rbinom …)?"}
+  - {id: call, kind: method, label: "Call it", concept: r-programming}
+  - {id: invertible, kind: decision, label: "Can the cdf F be inverted in closed form?"}
+  - {id: inverse, kind: method, label: "Inverse transform: X = F⁻¹(U), U ~ Unif(0, 1)", concept: random-variate-generation}
+  - {id: envelope, kind: decision, label: "A density g you can sample, with f ≤ c·g?"}
+  - {id: reject, kind: method, label: "Acceptance–rejection: keep Y ~ g when U ≤ f(Y)/(c g(Y))", concept: random-variate-generation}
+  - {id: combine, kind: method, label: "Transform or combine variables you can generate", concept: random-variate-generation}
+  - {id: sample, kind: end, label: "Sample drawn: compare its histogram with f"}
+edges:
+  - {from: builtin, to: call, label: "yes"}
+  - {from: builtin, to: invertible, label: "no"}
+  - {from: call, to: sample}
+  - {from: invertible, to: inverse, label: "yes"}
+  - {from: invertible, to: envelope, label: "no"}
+  - {from: inverse, to: sample}
+  - {from: envelope, to: reject, label: "yes"}
+  - {from: envelope, to: combine, label: "no"}
+  - {from: reject, to: sample}
+  - {from: combine, to: sample}

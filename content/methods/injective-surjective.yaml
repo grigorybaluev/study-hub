@@ -1,0 +1,24 @@
+id: injective-surjective
+title: Injective, surjective, bijective?
+description: >-
+  Two independent questions, each answered by an attempted proof: assume f(a) = f(b) and try to
+  reach a = b; take any y in the codomain and try to solve f(x) = y inside the domain. Where the
+  attempt breaks, it hands you the counterexample.
+start: one-to-one
+nodes:
+  - {id: one-to-one, kind: method, label: "Assume f(a) = f(b); try to derive a = b", concept: function}
+  - {id: injective, kind: decision, label: "Did a = b follow?"}
+  - {id: collision, kind: method, label: "Counterexample: a ≠ b with f(a) = f(b)", concept: function}
+  - {id: onto, kind: method, label: "Take any y in the codomain; solve f(x) = y", concept: function}
+  - {id: surjective, kind: decision, label: "Is that x always in the domain?"}
+  - {id: missed, kind: method, label: "Counterexample: a y with no preimage", concept: function}
+  - {id: classified, kind: end, label: "Classified: bijective when both hold"}
+edges:
+  - {from: one-to-one, to: injective}
+  - {from: injective, to: onto, label: "yes"}
+  - {from: injective, to: collision, label: "no"}
+  - {from: collision, to: onto}
+  - {from: onto, to: surjective}
+  - {from: surjective, to: classified, label: "yes"}
+  - {from: surjective, to: missed, label: "no"}
+  - {from: missed, to: classified}

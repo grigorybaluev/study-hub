@@ -1,0 +1,28 @@
+id: absolute-extrema
+title: Absolute extrema of f(x)
+description: >-
+  On a closed interval a continuous function attains both extremes, so comparing a short list of
+  values settles it. On any other domain the extremes may not exist, and the derivative's sign and
+  the behaviour at the ends of the domain must be read instead.
+start: closed
+nodes:
+  - {id: closed, kind: decision, label: "A closed interval [a, b] with f continuous?"}
+  - {id: critical, kind: method, label: "Critical points in (a, b): f′ = 0 or undefined", concept: derivative}
+  - {id: candidates, kind: method, label: "Evaluate f at the critical points and endpoints; compare", concept: extrema}
+  - {id: open-critical, kind: method, label: "Find the critical points on the domain", concept: derivative}
+  - {id: one, kind: decision, label: "Only one critical point?"}
+  - {id: first-derivative, kind: method, label: "First-derivative test: that local extreme is absolute", concept: extrema}
+  - {id: behaviour, kind: method, label: "Compare local extremes with the limits at the domain's ends", concept: limit}
+  - {id: found, kind: end, label: "Absolute maximum and minimum found"}
+  - {id: none, kind: end, label: "No absolute maximum or minimum"}
+edges:
+  - {from: closed, to: critical, label: "yes"}
+  - {from: closed, to: open-critical, label: "no"}
+  - {from: critical, to: candidates}
+  - {from: candidates, to: found}
+  - {from: open-critical, to: one}
+  - {from: one, to: first-derivative, label: "yes"}
+  - {from: one, to: behaviour, label: "no"}
+  - {from: first-derivative, to: found}
+  - {from: behaviour, to: found}
+  - {from: behaviour, to: none}

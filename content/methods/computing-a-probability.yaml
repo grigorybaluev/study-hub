@@ -1,0 +1,37 @@
+id: computing-a-probability
+title: Computing a probability
+description: >-
+  Count when outcomes are equally likely. Otherwise reshape the event: its complement, a union
+  split by the addition rule, or a sequence of stages handled by conditioning. Bayes' theorem
+  turns the conditioning around when the question asks about a cause given what was observed.
+start: equally
+nodes:
+  - {id: equally, kind: decision, label: "Equally likely outcomes in a finite sample space?"}
+  - {id: count, kind: method, label: "Count: P(A) = |A| / |S|", concept: counting}
+  - {id: complement, kind: decision, label: "Is the complement easier (\"at least one\")?"}
+  - {id: flip, kind: method, label: "P(A) = 1 − P(Aᶜ); now find P(Aᶜ)", concept: probability}
+  - {id: union, kind: decision, label: "Is A a union (\"A or B\")?"}
+  - {id: addition, kind: method, label: "Addition rule / inclusion–exclusion", concept: inclusion-exclusion}
+  - {id: stages, kind: decision, label: "Does it happen in stages, or is some information given?"}
+  - {id: reverse, kind: decision, label: "Asked for a cause given the observed effect?"}
+  - {id: bayes, kind: method, label: "Bayes: P(Bᵢ | A) = P(A | Bᵢ) P(Bᵢ) / P(A)", concept: bayes-theorem}
+  - {id: total, kind: method, label: "Multiplication rule; total probability over the stages", concept: conditional-probability}
+  - {id: axioms, kind: method, label: "List the sample space; use the axioms", concept: sample-space}
+  - {id: found, kind: end, label: "Probability found: check it lies in [0, 1]"}
+edges:
+  - {from: equally, to: count, label: "yes"}
+  - {from: equally, to: complement, label: "no"}
+  - {from: count, to: found}
+  - {from: complement, to: flip, label: "yes"}
+  - {from: complement, to: union, label: "no"}
+  - {from: flip, to: equally}
+  - {from: union, to: addition, label: "yes"}
+  - {from: union, to: stages, label: "no"}
+  - {from: addition, to: found}
+  - {from: stages, to: reverse, label: "yes"}
+  - {from: stages, to: axioms, label: "no"}
+  - {from: reverse, to: bayes, label: "yes"}
+  - {from: reverse, to: total, label: "no"}
+  - {from: bayes, to: found}
+  - {from: total, to: found}
+  - {from: axioms, to: found}

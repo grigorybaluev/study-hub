@@ -1,0 +1,27 @@
+id: er-to-relations
+title: From an E/R diagram to relations
+description: >-
+  Translate one construct at a time. Entities become relations; a weak entity borrows its owner's
+  key; a one-to-many relationship becomes a foreign key on the many side; a many-to-many
+  relationship becomes a relation of its own.
+start: next
+nodes:
+  - {id: next, kind: decision, label: "Next construct in the diagram?"}
+  - {id: entity, kind: method, label: "A relation with its attributes; its key is the key", concept: relational-model}
+  - {id: weak, kind: method, label: "Add the owner's key; key = owner key + partial key", concept: entity-relationship-model}
+  - {id: one-many, kind: method, label: "Foreign key on the many side, plus the relationship's attributes", concept: relational-model}
+  - {id: many-many, kind: method, label: "A new relation: both keys (together the key) + attributes", concept: relational-model}
+  - {id: isa, kind: method, label: "Subclass relations carry the superclass key", concept: entity-relationship-model}
+  - {id: schema, kind: end, label: "Schema complete: mark keys and foreign keys"}
+edges:
+  - {from: next, to: entity, label: "entity"}
+  - {from: next, to: weak, label: "weak entity"}
+  - {from: next, to: one-many, label: "1 : N"}
+  - {from: next, to: many-many, label: "M : N"}
+  - {from: next, to: isa, label: "ISA"}
+  - {from: next, to: schema, label: "none left"}
+  - {from: entity, to: next}
+  - {from: weak, to: next}
+  - {from: one-many, to: next}
+  - {from: many-many, to: next}
+  - {from: isa, to: next}

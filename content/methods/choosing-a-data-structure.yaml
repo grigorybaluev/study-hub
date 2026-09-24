@@ -1,0 +1,36 @@
+id: choosing-a-data-structure
+title: Choosing a data structure
+description: >-
+  Name the operation that is done most often, and pick the structure that makes it cheap: the
+  access pattern (last in, first out, smallest first, by key, by position) decides almost
+  everything.
+start: access
+nodes:
+  - {id: access, kind: decision, label: "Which element is accessed next?"}
+  - {id: stack, kind: method, label: "Stack: push and pop in O(1)", concept: stack}
+  - {id: queue, kind: method, label: "Queue: enqueue and dequeue in O(1)", concept: queue}
+  - {id: heap, kind: method, label: "Priority queue on a heap: insert, removeMin in O(log n)", concept: heap}
+  - {id: ordered, kind: decision, label: "Keys needed in sorted order, or range queries?"}
+  - {id: bst, kind: method, label: "Balanced search tree (AVL): O(log n)", concept: binary-search-tree}
+  - {id: hash, kind: method, label: "Hash table: O(1) expected", concept: hash-table}
+  - {id: middle, kind: decision, label: "Frequent inserts and removals in the middle?"}
+  - {id: linked, kind: method, label: "Linked list, with a position (iterator)", concept: linked-list}
+  - {id: array, kind: method, label: "Array list: O(1) access by index", concept: array}
+  - {id: chosen, kind: end, label: "Structure chosen: check the cost of every operation used"}
+edges:
+  - {from: access, to: stack, label: "newest"}
+  - {from: access, to: queue, label: "oldest"}
+  - {from: access, to: heap, label: "min or max"}
+  - {from: access, to: ordered, label: "by key"}
+  - {from: access, to: middle, label: "by position"}
+  - {from: stack, to: chosen}
+  - {from: queue, to: chosen}
+  - {from: heap, to: chosen}
+  - {from: ordered, to: bst, label: "yes"}
+  - {from: ordered, to: hash, label: "no"}
+  - {from: bst, to: chosen}
+  - {from: hash, to: chosen}
+  - {from: middle, to: linked, label: "yes"}
+  - {from: middle, to: array, label: "no"}
+  - {from: linked, to: chosen}
+  - {from: array, to: chosen}

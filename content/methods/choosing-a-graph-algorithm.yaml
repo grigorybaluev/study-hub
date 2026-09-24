@@ -1,0 +1,35 @@
+id: choosing-a-graph-algorithm
+title: Choosing a graph algorithm
+description: >-
+  Say what is asked first: whether something is reachable, an order that respects the edges, or
+  the shortest paths. For shortest paths the weights decide: none, a DAG, non-negative, or
+  negative.
+start: asked
+nodes:
+  - {id: asked, kind: decision, label: "What is asked?"}
+  - {id: traverse, kind: method, label: "BFS or DFS from the vertex", concept: graph-traversal}
+  - {id: topological, kind: method, label: "Topological order (DFS finishing times)", concept: graph-traversal}
+  - {id: weighted, kind: decision, label: "Are the edges weighted?"}
+  - {id: bfs, kind: method, label: "BFS: the layers are the distances", concept: graph-traversal}
+  - {id: dag, kind: decision, label: "Is it a DAG?"}
+  - {id: dag-relax, kind: method, label: "Relax edges in topological order: O(n + m)", concept: shortest-path}
+  - {id: negative, kind: decision, label: "Any negative weights?"}
+  - {id: dijkstra, kind: method, label: "Dijkstra with a priority queue", concept: shortest-path}
+  - {id: bellman-ford, kind: method, label: "Bellman–Ford (also finds negative cycles)", concept: shortest-path}
+  - {id: done, kind: end, label: "Algorithm chosen"}
+edges:
+  - {from: asked, to: traverse, label: "reachability"}
+  - {from: asked, to: topological, label: "an order"}
+  - {from: asked, to: weighted, label: "shortest paths"}
+  - {from: traverse, to: done}
+  - {from: topological, to: done}
+  - {from: weighted, to: bfs, label: "no"}
+  - {from: weighted, to: dag, label: "yes"}
+  - {from: bfs, to: done}
+  - {from: dag, to: dag-relax, label: "yes"}
+  - {from: dag, to: negative, label: "no"}
+  - {from: dag-relax, to: done}
+  - {from: negative, to: dijkstra, label: "no"}
+  - {from: negative, to: bellman-ford, label: "yes"}
+  - {from: dijkstra, to: done}
+  - {from: bellman-ford, to: done}

@@ -1,0 +1,21 @@
+id: polar-area
+title: Setting up a polar area
+description: >-
+  The formula is always ½∫ r² dθ; the work is in the limits. For one curve they come from where
+  r = 0 or from one full trace; between two curves they come from where the curves meet, including
+  a meeting at the pole that the equation r₁ = r₂ can miss.
+start: curves
+nodes:
+  - {id: curves, kind: decision, label: "Inside one curve, or between two?"}
+  - {id: zeros, kind: method, label: "Limits: consecutive θ with r = 0, or one full trace", concept: polar-coordinates}
+  - {id: single, kind: method, label: "A = ½ ∫ r² dθ", concept: polar-coordinates}
+  - {id: intersect, kind: method, label: "Limits: solve r₁ = r₂; check the pole separately", concept: polar-coordinates}
+  - {id: between, kind: method, label: "A = ½ ∫ (r_out² − r_in²) dθ", concept: polar-coordinates}
+  - {id: area, kind: end, label: "Area found: use symmetry to check"}
+edges:
+  - {from: curves, to: zeros, label: "one"}
+  - {from: curves, to: intersect, label: "two"}
+  - {from: zeros, to: single}
+  - {from: single, to: area}
+  - {from: intersect, to: between}
+  - {from: between, to: area}
