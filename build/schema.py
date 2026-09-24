@@ -25,6 +25,10 @@ UNIT_KIND = {"teaching", "review"}
 UNIT_REVIEW = {"draft", "reviewed"}
 SIM_CHECKS = ("interface", "content")  # a sim block's `verified:` list; both = verified
 COURSE_KIND = {"core", "assumed_prior", "external"}
+PAGE_KINDS = {"math", "programming", "systems", "data"}  # course `pages:` -- which unit-page design applies (#89)
+# `:::name[title]` containers a unit body may use; the app's Markdown.tsx has the same list
+BLOCKS = {"definition", "theorem", "lemma", "proposition", "corollary", "proof", "example", "solution",
+          "note", "remark", "caution", "insight", "steps", "equations"}
 STRENGTH = {"hard", "soft"}
 SEASONS = ("fall", "winter", "summer")  # ordered: index within a year
 
@@ -42,7 +46,7 @@ REQUIRED = {
 OPTIONAL = {
     "concept": {"aliases", "generalizes", "part_of", "maps_to", "short", "wikipedia", "wikidata"},
     "unit": {"kind", "review", "weeks", "textbook", "notes", "introduces", "requires", "reinforces"},
-    "course": {"prereqs", "coreqs", "requirements", "source"},
+    "course": {"prereqs", "coreqs", "requirements", "source", "pages"},
     "program": {"source"},
     "university": {"faculty", "department", "assumed_prior", "sources"},
 }

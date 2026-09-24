@@ -3,6 +3,7 @@ code: MATH204
 title: Vectors and Matrices
 credits: 3
 kind: assumed_prior
+pages: math
 prereqs: []
 coreqs: []
 requirements: []

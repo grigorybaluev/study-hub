@@ -3,6 +3,7 @@ code: MATH203
 title: Differential and Integral Calculus I
 credits: 3
 kind: assumed_prior
+pages: math
 prereqs: []
 coreqs: []
 requirements: []

@@ -36,7 +36,7 @@ export default function Unit() {
         {unit.kind === "review" && (
           <p className="muted">Review unit: recaps material introduced elsewhere. See the concepts in the sidebar for where they are taught.</p>
         )}
-        <div className="unit-body prose">
+        <div className={`unit-body prose${course.pages ? ` pages-${course.pages}` : ""}`}>
           <Markdown source={unit.body} />
         </div>
         <nav className="unit-nav">

@@ -3,6 +3,7 @@ code: MATH205
 title: Differential and Integral Calculus II
 credits: 3
 kind: assumed_prior
+pages: math
 prereqs: [[MATH203]]
 coreqs: []
 requirements: []

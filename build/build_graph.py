@@ -81,7 +81,7 @@ def build(c: Content) -> dict:
                 "id": cid(code), "type": "course", "university": U, "code": code,
                 "title": m["title"], "credits": m["credits"], "kind": m["kind"],
                 "requirements": m.get("requirements") or [], "source": m.get("source"),
-                "body": doc.body,
+                "pages": m.get("pages"), "body": doc.body,
             })
             for gi, group in enumerate(prereq_groups(m.get("prereqs"))):
                 for alt in group:

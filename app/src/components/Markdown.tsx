@@ -1,14 +1,18 @@
-// Renders a unit body: GFM + math + code highlighting, labelled blockquotes as callouts,
+// Renders a unit body: GFM + math + code highlighting, `:::name[title]` containers (#89) and
+// labelled blockquotes (legacy) as callouts,
 // ```sim fenced blocks as interactive simulations, and a ```python block placed right after a
 // sim as that sim's code, collapsed under it.
 import { Children, Suspense, isValidElement, lazy, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import remarkDirective from "remark-directive";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import YAML from "yaml";
-import type { Nodes, Root } from "mdast";
+import type { Nodes, PhrasingContent, Root } from "mdast";
+import type {} from "mdast-util-directive";
+import type { VFile } from "vfile";
 
 // Plotly + the engines are heavy; load them only when a page actually contains a simulation.
 const Sim = lazy(() => import("../sims/Sim"));
@@ -17,6 +21,51 @@ const CALLOUTS: Record<string, string> = {
   definition: "def", example: "example", note: "note", steps: "steps", "key insight": "insight", caution: "caution",
   theorem: "def", lemma: "def", rule: "def", proposition: "def",
 };
+
+/** Container names and their labels; build/schema.py BLOCKS has the same names (lint checks them). */
+const BLOCKS: Record<string, string> = {
+  definition: "Definition", theorem: "Theorem", lemma: "Lemma", proposition: "Proposition", corollary: "Corollary",
+  proof: "Proof", example: "Example", solution: "Solution", note: "Note", remark: "Remark", caution: "Caution",
+  insight: "Key insight", steps: "Steps", equations: "Equations",
+};
+
+/**
+ * `:::name[Title]` … `:::` becomes <section class="blk blk-name"> with a header (label + title).
+ * Inline `:x` / `::x` directives are not part of the syntax, so they go back to their source text
+ * (otherwise 'hh:mm:ss' would lose ':ss').
+ */
+function remarkBlocks() {
+  return (tree: Root, file: VFile) => {
+    const source = String(file);
+    const raw = (n: Nodes): PhrasingContent => ({
+      type: "text", value: n.position ? source.slice(n.position.start.offset, n.position.end.offset) : "",
+    });
+    const walk = (node: Nodes) => {
+      if (!("children" in node)) return;
+      node.children = node.children.map((child) => {
+        if (child.type === "textDirective") return raw(child);
+        if (child.type === "leafDirective") return { type: "paragraph", children: [raw(child)] };
+        if (child.type === "containerDirective") {
+          const first = child.children[0];
+          const hasLabel = first?.type === "paragraph" && !!first.data?.directiveLabel;
+          const title = hasLabel ? first.children : [];
+          if (hasLabel) child.children.shift();   // also an empty [] label
+          child.data = { hName: "section", hProperties: { className: ["blk", `blk-${child.name}`] } };
+          child.children.unshift({
+            type: "paragraph", data: { hName: "header", hProperties: { className: ["blk-head"] } },
+            children: [
+              { type: "strong", data: { hProperties: { className: ["blk-label"] } }, children: [{ type: "text", value: Object.hasOwn(BLOCKS, child.name) ? BLOCKS[child.name] : child.name }] },
+              ...(title.length ? [{ type: "emphasis", data: { hName: "span", hProperties: { className: ["blk-title"] } }, children: title } as PhrasingContent] : []),
+            ],
+          });
+        }
+        return child;
+      }) as typeof node.children;
+      node.children.forEach(walk);
+    };
+    walk(tree);
+  };
+}
 
 /** Marks a python code block that directly follows a sim block (anywhere in the tree) as that sim's code. */
 function remarkSimCode() {
@@ -51,7 +100,7 @@ function textOf(children: ReactNode): string {
 export default function Markdown({ source }: { source: string }) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkMath, remarkSimCode]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkSimCode]}
       rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim"] }]]}
       components={{
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,
