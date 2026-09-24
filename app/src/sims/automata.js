@@ -22,6 +22,36 @@
     return out;
   }
   const M = FA.machines = {};
+  FA.expand = expand;
+  /** A machine for a static diagram (#111): `{machine: id}` from the library above, or an inline spec
+   *  `{type, states, start, finals, trans}` where states are "q0 60 120, q1 …" (id x y) or bare ids
+   *  (then laid out on a row, or on a circle for more than four states). */
+  FA.fromSpec = function (spec) {
+    if (spec.machine) {
+      const lib = M[spec.machine];
+      if (!lib) throw new Error('unknown machine ' + spec.machine);
+      return crop(Object.assign({}, lib, { states: lib.states.map(q => Object.assign({}, q)) }));   // a copy: the simulator keeps its canvas
+    }
+    const raw = Array.isArray(spec.states) ? spec.states : String(spec.states || '').split(',');
+    const items = raw.map(x => String(x).trim().split(/\s+/)).filter(a => a[0]);
+    let states;
+    if (items.every(a => a.length >= 3)) states = items.map(a => S(a[0], +a[1], +a[2]));
+    else if (items.length <= 4) states = items.map((a, i) => S(a[0], 90 + i * 150, 120));
+    else { const n = items.length, cx = 240, cy = 170, r = 125; states = items.map((a, i) => S(a[0], Math.round(cx + r * Math.cos(Math.PI + 2 * Math.PI * i / n)), Math.round(cy + r * Math.sin(Math.PI + 2 * Math.PI * i / n)))); }
+    const m = { id: spec.id || 'inline', type: spec.type || 'dfa', name: spec.name || '', states,
+      start: spec.start || states[0].id, finals: [].concat(spec.finals || []).map(String),
+      trans: expand(String(spec.trans || '')), curves: spec.curves || {} };
+    m.alphabet = [...new Set(m.trans.map(t => t.sym).filter(x => x !== LAMBDA))].sort();
+    return crop(m);
+  };
+  // shrink the canvas to the states, leaving room for the start arrow (left) and self-loops (top)
+  function crop(m) {
+    const xs = m.states.map(q => q.x), ys = m.states.map(q => q.y);
+    const left = Math.min(...xs) - 70, top = Math.min(...ys) - 90;
+    m.states.forEach(q => { q.x -= left; q.y -= top; });
+    m.w = Math.max(...xs) - left + 45; m.h = Math.max(...ys) - top + 45;
+    return m;
+  }
   function def(m) { m.alphabet = m.alphabet || [...new Set(m.trans.map(t => t.sym).filter(s => s !== LAMBDA))].sort(); M[m.id] = m; return m; }
 
   // Lecture 1 p.96 / Lecture 2 p.5 — the running DFA example, L = {abba}
@@ -452,7 +482,7 @@
         '<label class="fa-field">Input w <input class="fa-input" type="text" value="' + esc(this.input) + '" spellcheck="false" onchange="' + at + ".setInput(this.value)\" onkeyup=\"if(event.key==='Enter')" + at + '.setInput(this.value)"> <small>Σ = {' + m.alphabet.join(', ') + '}</small></label>' +
         (this.ignored ? '<span class="fa-verdict reject">symbols not in Σ ignored: ' + esc(this.ignored.join(' ')) + '</span>' : '') +
         '<button class="btn fa-btn fa-secondary" onclick="' + at + '.toggleMulti()">' + (this.showMulti ? 'Hide multiple run' : 'Multiple run…') + '</button>' +
-        '</div>' +
+        '</div>' + multi +                                  // under the toolbar, where the button is
         this.controlsHTML() +
         tapeHTML(this.input, s.pos, s.hung) +
         drawMachine(m, { states: s.states, dead: s.dead, edges }) +
@@ -461,7 +491,7 @@
         '<div class="fa-line"><b>Trace:</b> ' + trace + '</div>' +
         '<div class="fa-line"><b>Extended transition function:</b> ' + dstar + (s.note && this.i > 0 ? ' &nbsp;<span class="fa-note">(' + esc(s.note) + ')</span>' : '') + '</div>' +
         (finished ? '<div class="fa-line fa-final">' + verdict + '</div>' : idle) +
-        '</div>' + multi + '</div>';
+        '</div></div>';
     }
     multiHTML() {
       const at = this.at(); const m = this.m();

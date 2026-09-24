@@ -112,6 +112,9 @@ Units
   design; each kind's rules and specimens are one page, `app/src/design/<kind>.md`, served
   at `/design/<kind>`. Change the design there first. Legacy `> **Label.**` callouts still
   render; `scripts/convert_callouts.py <COURSE>` converts them (lint lists what is left).
+  Theory pages (`pages: theory`) add `machine`, `trace`, `algorithm`, `exercise`;
+  an ```` ```automaton ```` block (library `machine: <id>` or inline `states`/`trans`) draws a static
+  diagram, and a table directly next to one renders as Table | Diagram views (`/design/theory`).
   Interactive examples are ```` ```sim ```` fenced YAML blocks (`id`, `controls`, `note`, or
   `custom: true` + `mode` for automata) placed where they belong in the text; lint checks
   ids against `app/src/sims/registry.yaml`. A ```` ```python ```` block placed directly after

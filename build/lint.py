@@ -278,6 +278,14 @@ def lint_unit_structure(doc: Doc, pages: str | None, rep: Report):
     body = blank_fences(doc.body)
     for problem in container_problems(doc.body):
         rep.error(doc.path, problem)
+    for m in re.finditer(r"^```automaton\n(.*?)^```", doc.body, re.M | re.S):   # static diagrams (#111)
+        try:
+            spec = yaml.safe_load(m.group(1))
+        except yaml.YAMLError as e:
+            rep.error(doc.path, f"automaton block is not valid YAML: {e}")
+            continue
+        if not isinstance(spec, dict) or not (spec.get("machine") or (spec.get("states") and spec.get("trans"))):
+            rep.error(doc.path, "automaton block needs `machine: <id>` or inline `states` and `trans`")
     if pages not in ("math", "theory"):   # theory inherits the math design (#111)
         return
     legacy = len(LEGACY_CALLOUT_RE.findall(body))

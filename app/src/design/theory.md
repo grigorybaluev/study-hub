@@ -21,6 +21,26 @@ check this page in both themes and at phone width, and add a line to the change 
 The general blocks keep their meaning: a `definition` introduces a class of objects (a DFA, a
 regular language), a `theorem` states a fact about all of them, and an `example` works one through.
 
+### A table and its diagram
+
+A machine can be shown two ways: its transition table and its state diagram. Put a table and
+an ```` ```automaton ```` block directly next to each other (only blank lines between) and the page
+shows them as **two views of one machine** — side by side on a wide screen, and on a phone behind
+a *Table | Diagram* switch. This works inside `machine`, `example`, `exercise` and `solution`
+blocks alike. The diagram is the simulator's drawing without its controls:
+
+```yaml
+machine: dfa-prefix-ab          # a machine from the simulator's library, or inline:
+type: dfa
+states: q0, q1, q2              # "q0 60 120, …" places them; bare ids get a row (≤ 4) or a circle
+start: q0
+finals: [q2]
+trans: "q0 a q1; q0 b q0; q1 a q1; q1 b q2; q2 a q1; q2 b q0"
+```
+
+Keep a simulator block (```` ```sim ````) for the one place in a part where the reader should
+*run* the machine; everywhere else a static diagram is enough.
+
 ### Writing each block
 
 - **machine** — the title names the machine and its language (`M₁: strings with prefix ab`). The
@@ -50,6 +70,10 @@ $M_1 = (\{q_0, q_1, q_2, q_3\},\ \{a, b\},\ \delta,\ q_0,\ \{q_2\})$ with
 | $q_1$ | $q_3$ | $q_2$ |
 | $*\,q_2$ | $q_2$ | $q_2$ |
 | $q_3$ | $q_3$ | $q_3$ |
+
+```automaton
+machine: dfa-prefix-ab
+```
 
 $q_3$ is a trap: once the prefix is wrong, nothing can repair it.
 :::
@@ -139,6 +163,38 @@ $q_2$ (just read $ab$, final).
 | $\to q_0$ | $q_1$ | $q_0$ |
 | $q_1$ | $q_1$ | $q_2$ |
 | $*\,q_2$ | $q_1$ | $q_0$ |
+
+```automaton
+type: dfa
+states: q0 60 150, q1 220 150, q2 380 150
+start: q0
+finals: [q2]
+trans: "q0 a q1; q0 b q0; q1 a q1; q1 b q2; q2 a q1; q2 b q0"
+curves: {"q2|q0": 60, "q2|q1": -30, "q1|q2": -30}
+```
+:::
+::::
+
+### An example with both views
+
+::::example[A DFA for an even number of $a$'s]
+Build a DFA over $\{a, b\}$ accepting the strings with an even number of $a$'s.
+
+:::solution
+Two states remember the parity of the $a$'s read so far; $b$ never changes it.
+
+| $\delta$ | $a$ | $b$ |
+|---|---|---|
+| $\to *\,e$ | $o$ | $e$ |
+| $o$ | $e$ | $o$ |
+
+```automaton
+type: dfa
+states: e, o
+start: e
+finals: [e]
+trans: "e a o; o a e; e b e; o b o"
+```
 :::
 ::::
 
@@ -154,5 +210,7 @@ $$
 
 ## Change log
 
+- 2026-09-24: a table next to an ```` ```automaton ```` diagram renders as two views — side by
+  side on desktop, a Table | Diagram switch on a phone — in machine, example and exercise blocks.
 - 2026-09-24: first version (#111): `pages: theory` inherits the math design and adds `machine`,
   `trace`, `algorithm` and `exercise`; `\vdash` is a break point for long traces.

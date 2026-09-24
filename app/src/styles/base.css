@@ -197,6 +197,20 @@ blockquote.wiki p { margin: 0.4em 0; }
 .unit-body .blk-trace > .blk-head .blk-label { color: var(--callout-steps-line); }
 .unit-body .blk-exercise { border: 1.5px dashed var(--callout-steps-line); background: var(--callout-steps-bg); }
 .unit-body .blk-exercise > .blk-head .blk-label { color: var(--callout-steps-line); }
+/* a table and its diagram (#111): side by side when there is room, a switch when there is not */
+.unit-body .views { container-type: inline-size; margin: 0.8em 0; }
+.unit-body .views-switch { display: none; gap: 0.3em; margin-bottom: 0.5em; }
+.unit-body .views-switch button { font: inherit; font-size: 0.8rem; font-weight: 600; padding: 0.25em 0.9em; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--fg-muted); cursor: pointer; }
+.unit-body .views-switch button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.unit-body .views-panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 1em; align-items: center; }
+.unit-body .views-pane > table { margin: 0; }
+@container (max-width: 520px) {
+  .unit-body .views-switch { display: flex; }
+  .unit-body .views-panes { grid-template-columns: minmax(0, 1fr); }
+  .unit-body .views-pane:not(.on) { display: none; }
+}
+.unit-body .automaton .fa-svg { max-height: 260px; }
+.unit-body .automaton .fa-error { color: var(--bad); font-size: 0.85rem; }
 /* math pages: LaTeX-dense text needs air */
 .unit-body:is(.pages-math, .pages-theory) :is(p, li) { line-height: 1.75; }
 .unit-body:is(.pages-math, .pages-theory) .katex-display { margin: 0.9em 0; }

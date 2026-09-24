@@ -18,6 +18,8 @@ import type { VFile } from "vfile";
 
 // Plotly + the engines are heavy; load them only when a page actually contains a simulation.
 const Sim = lazy(() => import("../sims/Sim"));
+const Automaton = lazy(() => import("./Automaton"));
+import Views from "./Views";
 
 const CALLOUTS: Record<string, string> = {
   definition: "def", example: "example", note: "note", steps: "steps", "key insight": "insight", caution: "caution",
@@ -135,6 +137,27 @@ function remarkMathDense() {
   return (tree: Root) => walk(tree);
 }
 
+/**
+ * A transition table next to a ```automaton diagram (either order, only blank lines between) is
+ * one object shown two ways: wrap the pair so it renders as <Views> — side by side, or switchable (#111).
+ */
+function remarkViews() {
+  const walk = (node: Nodes) => {
+    if (!("children" in node) || (node.data?.hProperties?.className as string[] | undefined)?.includes("views-src")) return;   // not into our own wrappers
+    const kids = node.children as Nodes[];
+    for (let i = 0; i < kids.length - 1; i++) {
+      const a = kids[i], b = kids[i + 1];
+      const isDiagram = (n: Nodes) => n.type === "code" && n.lang === "automaton";
+      if ((a.type === "table" && isDiagram(b)) || (isDiagram(a) && b.type === "table")) {
+        const pair = a.type === "table" ? [a, b] : [b, a];            // table first: the "Table" tab
+        kids.splice(i, 2, { type: "blockquote", data: { hName: "div", hProperties: { className: ["views-src"] } }, children: pair } as Nodes);
+      }
+    }
+    kids.forEach(walk);
+  };
+  return (tree: Root) => walk(tree);
+}
+
 /** Marks a python code block that directly follows a sim block (anywhere in the tree) as that sim's code. */
 function remarkSimCode() {
   const walk = (node: Nodes) => {
@@ -168,11 +191,14 @@ function textOf(children: ReactNode): string {
 export default function Markdown({ source }: { source: string }) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkMathFit, remarkMathDense, remarkMathPunct, remarkSimCode]}
-      rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim"] }]]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkMathFit, remarkMathDense, remarkMathPunct, remarkViews, remarkSimCode]}
+      rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim", "automaton"] }]]}
       components={{
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,
         code: ({ className, children, ...rest }) => {
+          if (className === "language-automaton" || className === "hljs language-automaton") {
+            return <Suspense fallback={<div className="automaton" />}><Automaton source={textOf(children)} /></Suspense>;
+          }
           if (className === "language-sim" || className === "hljs language-sim") {
             let cfg: Record<string, unknown> | null = null;
             try { cfg = YAML.parse(textOf(children)); } catch { cfg = null; }
@@ -182,9 +208,10 @@ export default function Markdown({ source }: { source: string }) {
           }
           return <code className={className} {...rest}>{children}</code>;
         },
-        div: ({ node: _node, className, ...rest }) => className === "math-fit-src"
+        div: ({ node: _node, className, children, ...rest }) => className === "math-fit-src"
           ? <MathFit tex={String((rest as Record<string, unknown>)["data-tex"] ?? "")} />
-          : <div className={className} {...rest} />,
+          : className === "views-src" ? <Views>{children}</Views>
+          : <div className={className} {...rest}>{children}</div>,
         span: ({ node: _node, className, ...rest }) => className === "math-fit-src"
           ? <MathFit tex={String((rest as Record<string, unknown>)["data-tex"] ?? "")} as="span" />
           : <span className={className} {...rest} />,
@@ -193,7 +220,7 @@ export default function Markdown({ source }: { source: string }) {
           const only = Children.toArray(children)[0];
           if (isValidElement(only)) {
             const cls = (only.props as { className?: string }).className ?? "";
-            if (cls.includes("language-sim")) return <>{children}</>;
+            if (cls.includes("language-sim") || cls.includes("language-automaton")) return <>{children}</>;
             if ((only.props as Record<string, unknown>)["data-sim-code"]) {
               return <details className="sim-code"><summary>Show Python code</summary><pre>{children}</pre></details>;
             }
