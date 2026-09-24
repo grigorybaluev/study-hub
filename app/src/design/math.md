@@ -28,9 +28,9 @@ close each with the same number of colons it opened with.
 |---|---|---|
 | `definition` | introducing a concept or a term | the term |
 | `theorem`, `lemma`, `proposition`, `corollary` | a statement that is proved or cited | its name, if it has one |
-| `proof` | the argument; nested in its statement, or right after it | — |
+| `proof` | the argument; nested in its statement, or right after it. **Collapsed** until opened | — |
 | `example` | a worked problem | what it computes |
-| `solution` | the worked answer, nested in its example | — |
+| `solution` | the worked answer, nested in its example. **Collapsed** until opened, so an example can be tried first | — |
 | `steps` | a method or algorithm, as a numbered list | the method |
 | `note`, `remark` | an aside that is not needed on first reading | optional |
 | `caution` | a common mistake and how to avoid it | optional |
@@ -51,7 +51,21 @@ Lint rejects any other name.
 
 - Inline math for symbols inside a sentence; **display math** for anything with a fraction, a sum,
   an integral or more than one relation. In a block, display math may span lines.
-- One idea per display. Chains of equalities go in `aligned` with `&=`, one step per line.
+- **Line spacing follows the math.** A paragraph or list item whose inline math is taller than a
+  line (a fraction, sum, integral, limit, root or nested script) automatically gets 20 % more line
+  spacing, so stacked symbols do not touch the lines above and below.
+- **A display never scrolls sideways.** When it is wider than the column, it breaks — never in the
+  middle of a formula, only at these points, in this order:
+  1. between independent formulas, written with `\qquad` (or `\quad`) between them: each goes on
+     its own centred line (a relation such as `\Longrightarrow` standing alone between two formulas
+     starts the next line);
+  2. then before each relation of a chain (`=`, `\le`, `\Rightarrow`, …), aligned on the relation.
+
+  So write independent formulas side by side with `\qquad`, and chains on one line: the page puts
+  them on one line when there is room and breaks them when there is not (on a phone, or in a
+  narrow block). An `aligned` you wrote yourself also breaks each row before its `&=` when a
+  row is too wide. A formula with no break point at all is shrunk (to 75 % at most) before it
+  would scroll; if that is not enough, split it by hand with `aligned`.
 - Never a bare `$` in prose (write "75 dollars").
 
 ## Specimens
@@ -145,7 +159,9 @@ compare partial sums without computing them.
 
 ### Dense display math
 
-A worst case for spacing: a matrix, cases and a long chain in one paragraph.
+A worst case for width: a matrix, cases and a chain side by side, separated by `\qquad`. On a wide
+screen it may fit on one line; otherwise each formula takes its own centred line, and on a phone
+the chain also breaks before its `=` signs.
 
 $$
 A = \begin{pmatrix} 2 & -1 & 0 \\ -1 & 2 & -1 \\ 0 & -1 & 2 \end{pmatrix},
@@ -155,7 +171,7 @@ f(x) = \begin{cases} \dfrac{\sin x}{x}, & x \neq 0, \\[4pt] 1, & x = 0, \end{cas
 \lim_{x\to 0}\frac{1-\cos x}{x^2} = \lim_{x\to 0}\frac{\sin x}{2x} = \frac12 .
 $$
 
-Inline, the same density: the Maclaurin series $\sin x = \sum_{n=0}^{\infty} \frac{(-1)^n x^{2n+1}}{(2n+1)!}$
+Inline, the same density (this paragraph gets the wider line spacing): the Maclaurin series $\sin x = \sum_{n=0}^{\infty} \frac{(-1)^n x^{2n+1}}{(2n+1)!}$
 converges for every $x$, while $\frac{1}{1-x} = \sum_{n=0}^{\infty} x^n$ needs $\lvert x\rvert < 1$ and
 $\int_1^{\infty} x^{-p}\,dx = \frac{1}{p-1}$ needs $p > 1$.
 
@@ -188,6 +204,11 @@ print(round(riemann(lambda x: x * x, 0, 2, 6), 4))   # 2.037 (left endpoints)
 
 ## Change log
 
+- 2026-09-23: proofs and solutions collapsed by default; paragraphs with tall inline math get 20 %
+  more line spacing; display math breaks at independent-formula and relation points, centred,
+  instead of scrolling sideways, shrinking to 75 % only when it has no break point; a one-line
+  `$$…$$` now renders as a display (it rendered as inline math before) (#89, owner review of the
+  first version).
 - 2026-09-23: first version (#89): containers replace `> **Label.**` callouts; theorem-type blocks
   violet, definitions blue; proofs as an indented rule ending in ∎; solutions nested in examples
   under a dashed divider; math pages get line-height 1.75 and more room around display math.

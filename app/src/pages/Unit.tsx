@@ -37,7 +37,7 @@ export default function Unit() {
           <p className="muted">Review unit: recaps material introduced elsewhere. See the concepts in the sidebar for where they are taught.</p>
         )}
         <div className={`unit-body prose${course.pages ? ` pages-${course.pages}` : ""}`}>
-          <Markdown source={unit.body} />
+          <Markdown key={unit.id} source={unit.body} />
         </div>
         <nav className="unit-nav">
           <span>{prev && <Link to={href.unit(prev.id)}>← {prev.title}</Link>}</span>
