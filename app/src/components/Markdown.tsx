@@ -1,6 +1,7 @@
 // Renders a unit body: GFM + math + code highlighting, `:::name[title]` containers (#89) and
 // labelled blockquotes (legacy) as callouts,
-// ```sim fenced blocks as interactive simulations, and a ```python block placed right after a
+// ```sim fenced blocks as interactive simulations, ```solution-map blocks as stepped solutions beside
+// their method graph (#91), and a ```python block placed right after a
 // sim as that sim's code, collapsed under it.
 import { Children, Suspense, isValidElement, lazy, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
@@ -20,6 +21,7 @@ import type { VFile } from "vfile";
 // Plotly + the engines are heavy; load them only when a page actually contains a simulation.
 const Sim = lazy(() => import("../sims/Sim"));
 const Automaton = lazy(() => import("./Automaton"));
+const SolutionMap = lazy(() => import("./SolutionMap"));
 import Views from "./Views";
 
 const CALLOUTS: Record<string, string> = {
@@ -214,12 +216,15 @@ export default function Markdown({ source }: { source: string }) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkMathFit, remarkMathDense, remarkMathPunct, remarkViews, remarkSimCode]}
-      rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim", "automaton"] }]]}
+      rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim", "automaton", "solution-map"] }]]}
       components={{
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,
         code: ({ className, children, ...rest }) => {
           if (className === "language-automaton" || className === "hljs language-automaton") {
             return <Suspense fallback={<div className="automaton" />}><Automaton source={textOf(children)} /></Suspense>;
+          }
+          if (className === "language-solution-map" || className === "hljs language-solution-map") {
+            return <Suspense fallback={<div className="solmap" />}><SolutionMap source={textOf(children)} /></Suspense>;
           }
           if (className === "language-sim" || className === "hljs language-sim") {
             let cfg: Record<string, unknown> | null = null;
@@ -242,7 +247,7 @@ export default function Markdown({ source }: { source: string }) {
           const only = Children.toArray(children)[0];
           if (isValidElement(only)) {
             const cls = (only.props as { className?: string }).className ?? "";
-            if (cls.includes("language-sim") || cls.includes("language-automaton")) return <>{children}</>;
+            if (cls.includes("language-sim") || cls.includes("language-automaton") || cls.includes("language-solution-map")) return <>{children}</>;
             if ((only.props as Record<string, unknown>)["data-sim-code"]) {
               return <details className="sim-code"><summary>Show Python code</summary><pre>{children}</pre></details>;
             }

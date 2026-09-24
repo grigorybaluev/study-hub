@@ -3,6 +3,7 @@
 // slider values, window.Plotly, and window.runSim(id, cfg) as the entry point.
 import { useEffect, useRef, useState } from "react";
 import Plotly from "plotly.js-dist-min";
+import NeedsVerification from "../components/NeedsVerification";
 import "./automata.css";
 import "./java.css";
 import "./ds.css";
@@ -50,16 +51,6 @@ export interface SimConfig {
   /** Checks done by hand on this example (#93): "interface", "content". */
   verified?: string[];
   [k: string]: unknown;
-}
-
-const CHECKS = ["interface", "content"] as const;
-
-/** Shown until both checks are recorded in the block's `verified:` list. */
-function NeedsVerification({ verified }: { verified?: string[] }) {
-  const missing = CHECKS.filter((c) => !verified?.includes(c));
-  if (missing.length === 0) return null;
-  const text = `${missing.join(" and ")} not checked yet`;
-  return <div className="sim-verify" title={`This example has not been verified: ${text}.`}>Needs verification · {text}</div>;
 }
 
 export default function Sim({ cfg }: { cfg: SimConfig }) {
