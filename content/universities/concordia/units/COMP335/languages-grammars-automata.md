@@ -73,6 +73,9 @@ note: Every string operation from the slides on the strings you type. Defaults r
 ```
 
 ```python
+# Python strings already implement concatenation (+), power (*), reverse (slicing) and
+# slicing for prefixes/suffixes. Σ* is generated length by length with
+# itertools.product.
 u, v = "abba", "bbbaaa"
 LAMBDA = ""                                  # the empty string
 
@@ -93,8 +96,6 @@ from itertools import product
 sigma_star = [''.join(p) for n in range(3) for p in product("ab", repeat=n)]
 print(sigma_star)                            # ['', 'a', 'b', 'aa', 'ab', 'ba', 'bb']
 ```
-
-Python strings already implement concatenation (+), power (*), reverse (slicing) and slicing for prefixes/suffixes. Σ* is generated length by length with itertools.product.
 
 ## Languages & Operations on Languages
 
@@ -151,6 +152,8 @@ note: Finite languages typed as comma-separated strings (λ for the empty string
 ```
 
 ```python
+# Concatenation, powers and (truncated) star closure implemented directly from the
+# definitions; the examples reproduce the slides.
 from itertools import product
 
 def concat(L1, L2):
@@ -180,8 +183,6 @@ print(sorted(star({"a", "bb"}, 4), key=len))         # λ, a, bb, aa, abb, bba, 
 plus = star({"a", "bb"}, 4) - {""}                   # L+ = L* - {λ} because λ ∉ L
 print(sorted(plus, key=len))
 ```
-
-Concatenation, powers and (truncated) star closure implemented directly from the definitions; the examples reproduce the slides.
 
 ## Grammars, Derivations & L(G)
 
@@ -253,6 +254,9 @@ note: 'JFLAP-style derivation: choose a grammar and a target string, then step t
 ```
 
 ```python
+# A tiny brute-force parser: breadth-first search over sentential forms, always
+# expanding the leftmost variable — the same idea the simulator uses. It finds S ⇒ aSb
+# ⇒ aaSbb ⇒ aabb and reports None for strings outside L(G).
 from collections import deque
 
 def derive(rules, start, target):
@@ -285,4 +289,3 @@ print([("".join(f) or "λ") for f in derive(G2, "S", tuple("aabbb"))])
 print(derive(G1, "S", tuple("aab")))                            # None: aab ∉ L(G1)
 ```
 
-A tiny brute-force parser: breadth-first search over sentential forms, always expanding the leftmost variable — the same idea the simulator uses. It finds S ⇒ aSb ⇒ aaSbb ⇒ aabb and reports None for strings outside L(G).

@@ -62,6 +62,37 @@ note: The slide-96 accepter. Step ▶ moves the read head one symbol (the curren
 ...
 ```
 
+```python
+# Running a finite accepter by hand: follow the edge labelled with each symbol and
+# print the walk; accept iff the last state is final. The two machines of the sim.
+def expand(spec):
+    """'q0 a q1; q4 a,b q5' -> {('q0','a'): 'q1', ('q4','a'): 'q5', ('q4','b'): 'q5'}"""
+    delta = {}
+    for part in spec.split(';'):
+        p, syms, q = part.split()
+        for c in syms.split(','):
+            delta[(p, c)] = q
+    return delta
+
+abba = expand('q0 a q1; q0 b q5; q1 b q2; q1 a q5; q2 b q3; q2 a q5; q3 a q4; q3 b q5; q4 a,b q5; q5 a,b q5')
+anb  = expand('q0 a q0; q0 b q1; q1 a,b q2; q2 a,b q2')
+
+def run(delta, finals, w, state='q0'):
+    walk = state
+    for c in w:
+        state = delta[(state, c)]
+        walk += f' -{c}-> {state}'
+    return walk, state in finals
+
+for w in ['abba', 'aba', '', 'abbab']:                     # the sim's "Multiple run" list
+    walk, ok = run(abba, {'q4'}, w)
+    print(f"{w or 'λ':>6}: {walk:<40} {'accept' if ok else 'reject'}")
+for w in ['aab', 'bab']:                                   # the aⁿb machine of slide 110
+    walk, ok = run(anb, {'q1'}, w)
+    print(f"{w:>6}: {walk:<40} {'accept' if ok else 'reject'}")
+# abba: q0 -a-> q1 -b-> q2 -b-> q3 -a-> q4 accept; aba ends in the trap q5; λ stays in q0: reject
+```
+
 ## DFA: Formal Definition & the Extended Transition Function
 
 ### Formal definition
@@ -128,6 +159,9 @@ note: 'Watch δ* being built up: after each Step ▶ the status line shows δ*(q
 ```
 
 ```python
+# The transition function is a dictionary keyed by (state, symbol); δ* is the loop
+# that applies it symbol by symbol; accept iff the final state is in F. Outputs: q2,
+# q4, q5, q0 — as on the slides.
 # A DFA as a Python dictionary: the transition TABLE of the running example
 delta = {
     ('q0','a'): 'q1', ('q0','b'): 'q5',
@@ -151,8 +185,6 @@ def accepts(w):
 for w in ["ab", "abba", "abbbaa", ""]:
     print(f"δ*(q0, {w or 'λ'}) = {delta_star(q0, w)}   accept: {accepts(w)}")
 ```
-
-The transition function is a dictionary keyed by (state, symbol); δ* is the loop that applies it symbol by symbol; accept iff the final state is in F. Outputs: q2, q4, q5, q0 — as on the slides.
 
 ## Languages Accepted by DFAs & Regular Languages
 
@@ -221,6 +253,8 @@ note: All the example DFAs of the lecture. Pick one, run a string step by step, 
 ```
 
 ```python
+# Two of the slide DFAs as nested dictionaries, each cross-checked against a direct
+# Python test of the language property. The trap states keep the tables total.
 def make_dfa(table, start, finals):
     """table: {state: {symbol: next_state}}  (total: every state has every symbol)."""
     def accepts(w):
@@ -251,8 +285,6 @@ for w in ['', '0', '0100', '001', '1001', '000100']:
 for w in ['aa', 'aba', 'abba', 'ab', 'ba', 'a']:
     print(f"{w:>7}: {'accept' if awa(w) else 'reject'}   (brute force: {len(w) >= 2 and w[0] == 'a' and w[-1] == 'a'})")
 ```
-
-Two of the slide DFAs as nested dictionaries, each cross-checked against a direct Python test of the language property. The trap states keep the tables total.
 
 ## Non-deterministic Finite Accepters
 
@@ -328,6 +360,9 @@ note: 'All computations are followed in parallel: red states are the current set
 ```
 
 ```python
+# The set-of-states simulation of an NFA: keep the set of all states any computation
+# could be in, close it under λ-moves after every symbol, and accept iff the final set
+# meets F. Reproduces δ*(q₀, aa) = {q4, q5}, δ*(q₀, ab) = {q0, q2, q3}, etc.
 # NFA with λ-transitions as a dictionary of sets;  '' stands for λ
 delta = {
     ('q0','a'): {'q1'}, ('q1','b'): {'q2'}, ('q2',''): {'q3'}, ('q3',''): {'q0'},
@@ -359,8 +394,6 @@ def accepts(w):
 for w in ['a', 'aa', 'ab', 'abaa', 'aba', '']:
     print(f"δ*(q0, {w or 'λ'}) = {sorted(delta_star(w))}   accept: {accepts(w)}")
 ```
-
-The set-of-states simulation of an NFA: keep the set of all states any computation could be in, close it under λ-moves after every symbol, and accept iff the final set meets F. Reproduces δ*(q₀, aa) = {q4, q5}, δ*(q₀, ab) = {q0, q2, q3}, etc.
 
 ## Equivalence of NFAs and DFAs — the Subset Construction
 
@@ -427,6 +460,8 @@ note: 'The four-step algorithm animated: each Step ▶ computes one δ*(…, a) 
 ```
 
 ```python
+# The algorithm exactly as on the slides. Output: δ′({q0}, a) = {q1,q2}, δ′({q0}, b) =
+# ∅, δ′({q1,q2}, a) = {q1,q2}, δ′({q1,q2}, b) = {q0}, ∅ loops; final = [{q1,q2}].
 # Subset construction for an NFA given as delta[(state, symbol)] -> set ('' = λ)
 delta = {('q0','a'): {'q1'}, ('q1','a'): {'q1'}, ('q1',''): {'q2'}, ('q2','b'): {'q0'}}   # slide 124
 q0, F, alphabet = 'q0', {'q1'}, ['a', 'b']
@@ -458,8 +493,6 @@ for (S, a), T in sorted(trans.items(), key=lambda kv: (name(kv[0][0]), kv[0][1])
     print(f"δ'({name(S)}, {a}) = {name(T)}")
 print("final:", [name(S) for S in finals])
 ```
-
-The algorithm exactly as on the slides. Output: δ′({q0}, a) = {q1,q2}, δ′({q0}, b) = ∅, δ′({q1,q2}, a) = {q1,q2}, δ′({q1,q2}, b) = {q0}, ∅ loops; final = [{q1,q2}].
 
 ## DFA Minimisation
 
@@ -522,6 +555,9 @@ note: 'Step ▶ walks through the algorithm: inaccessible states are greyed and 
 ```
 
 ```python
+# The same procedure the simulator animates. Output: removed q3; classes {q0,q2} and
+# {q1}; transitions 0,2 —a→ 1, 0,2 —b→ 0,2, 1 —a→ 1, 1 —b→ 0,2; initial 0,2; final [1]
+# — the DFA of slide 158.
 # DFA minimisation: remove inaccessible states, then partition refinement
 table = {'q0': {'a':'q1','b':'q2'}, 'q1': {'a':'q1','b':'q2'}, 'q2': {'a':'q1','b':'q0'}, 'q3': {'a':'q3','b':'q2'}}
 start, F, alphabet = 'q0', {'q1'}, ['a', 'b']
@@ -557,4 +593,3 @@ for b in blocks:
 print("initial:", label[start], "  final:", sorted({label[q] for q in F & reach}))
 ```
 
-The same procedure the simulator animates. Output: removed q3; classes {q0,q2} and {q1}; transitions 0,2 —a→ 1, 0,2 —b→ 0,2, 1 —a→ 1, 1 —b→ 0,2; initial 0,2; final [1] — the DFA of slide 158.
