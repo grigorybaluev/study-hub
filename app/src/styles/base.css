@@ -176,6 +176,13 @@ blockquote.wiki p { margin: 0.4em 0; }
 .sim-plot { min-height: 380px; background: #1a1f2e; }
 .sim-plot.sim-custom { background: #fff; }
 .sim-note { padding: 0.75rem 1.25rem; font-size: 0.87rem; color: var(--sim-note-fg); background: var(--sim-note-bg); border-top: 1px solid var(--sim-note-line); line-height: 1.5; }
+.sim-code { margin: -0.9em 0 1.4em; }
+.sim-code summary { display: inline-flex; align-items: center; gap: 0.4em; font-size: 0.82rem; color: var(--fg-muted); cursor: pointer; padding: 0.2em 0.1em; list-style: none; user-select: none; }
+.sim-code summary::-webkit-details-marker { display: none; }
+.sim-code summary::before { content: ""; border-style: solid; border-color: transparent transparent transparent currentColor; border-width: 0.3em 0 0.3em 0.45em; transition: transform 0.15s; }
+.sim-code[open] summary::before { transform: rotate(90deg); }
+.sim-code summary:hover { color: var(--accent); }
+.sim-code pre { margin: 0.4em 0 0; }
 
 /* ---------------------------------------------------------------- misc */
 .status-line { font-size: 0.86rem; color: var(--fg-muted); margin: 0.3rem 0 1rem; display: flex; gap: 0.8em; flex-wrap: wrap; align-items: center; }
