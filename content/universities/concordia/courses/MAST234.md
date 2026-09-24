@@ -3,6 +3,7 @@ code: MAST234
 title: Linear Algebra and Applications I
 credits: 3
 kind: core
+pages: math
 prereqs: [[MATH204]]
 coreqs: []
 requirements: []

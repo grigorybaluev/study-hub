@@ -3,6 +3,7 @@ code: COMP232
 title: Mathematics for Computer Science
 credits: 3
 kind: core
+pages: math
 prereqs: [[MATH203], [MATH204]]
 coreqs: []
 requirements: []

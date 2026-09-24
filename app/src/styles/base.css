@@ -153,6 +153,34 @@ blockquote.wiki p { margin: 0.4em 0; }
 .unit-body blockquote.steps { border-left-color: var(--callout-steps-line); background: var(--callout-steps-bg); }
 .unit-body blockquote.insight { border: 1.5px solid var(--callout-insight-border); border-radius: var(--radius); background: var(--callout-insight-bg); color: var(--callout-insight-fg); }
 .unit-body blockquote.caution { border: 1.5px solid var(--callout-caution-border); border-radius: var(--radius); background: var(--callout-caution-bg); color: var(--callout-caution-fg); }
+/* :::containers (#89). The rules these implement are on the specimen page, /design/<kind> (app/src/design/). */
+.unit-body .blk { margin: 1.3em 0; padding: 0.85em 1.2em 0.9em; border-radius: var(--radius); border: 1px solid var(--line); background: var(--bg-elev); }
+.unit-body .blk > :last-child { margin-bottom: 0; }
+.unit-body .blk-head { margin: 0 0 0.45em; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2em 0.6em; }
+.unit-body .blk-label { font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+.unit-body .blk-title { font-style: normal; font-weight: 650; }
+.unit-body .blk-definition { border-color: var(--callout-def-border); border-left: 4px solid var(--callout-def-line); background: var(--callout-def-bg); }
+.unit-body .blk-definition > .blk-head .blk-label { color: var(--callout-def-line); }
+.unit-body :is(.blk-theorem, .blk-lemma, .blk-proposition, .blk-corollary) { border-color: var(--blk-stmt-border); border-left: 4px solid var(--blk-stmt-line); background: var(--blk-stmt-bg); }
+.unit-body :is(.blk-theorem, .blk-lemma, .blk-proposition, .blk-corollary) > .blk-head .blk-label { color: var(--blk-stmt-line); }
+.unit-body .blk-proof { border: 0; border-left: 2px solid var(--line); border-radius: 0; background: transparent; padding: 0.2em 0 0.2em 1.1em; }
+.unit-body .blk-proof::after { content: "∎"; display: block; text-align: right; color: var(--fg-muted); margin-top: -1.2em; }
+.unit-body .blk-example { border: 1px dashed var(--callout-example-border); }
+.unit-body .blk-example > .blk-head .blk-label { color: var(--callout-example-title); }
+.unit-body .blk-solution { margin: 0.9em 0 0; padding: 0.7em 0 0; border: 0; border-top: 1px dashed var(--callout-example-border); border-radius: 0; background: transparent; }
+.unit-body :is(.blk-note, .blk-remark) { border: 0; border-left: 4px solid var(--callout-note-line); border-radius: 0 var(--radius) var(--radius) 0; background: var(--callout-note-bg); }
+.unit-body .blk-caution { border: 1.5px solid var(--callout-caution-border); background: var(--callout-caution-bg); color: var(--callout-caution-fg); }
+.unit-body .blk-caution > .blk-head .blk-label { color: inherit; }
+.unit-body .blk-insight { border: 1.5px solid var(--callout-insight-border); background: var(--callout-insight-bg); color: var(--callout-insight-fg); }
+.unit-body .blk-insight > .blk-head .blk-label { color: inherit; }
+.unit-body .blk-steps { border: 0; border-left: 4px solid var(--callout-steps-line); border-radius: 0 var(--radius) var(--radius) 0; background: var(--callout-steps-bg); }
+.unit-body .blk-equations { background: var(--bg-sunken); }
+.unit-body .blk-equations ul { margin: 0; padding-left: 1.1em; }
+.unit-body .blk-equations li { margin: 0.35em 0; }
+/* math pages: LaTeX-dense text needs air */
+.unit-body.pages-math p, .unit-body.pages-math li { line-height: 1.75; }
+.unit-body.pages-math .katex-display { margin: 0.9em 0; }
+.unit-body.pages-math .blk .katex-display { margin: 0.7em 0; }
 .unit-body .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.2em 0; }
 .unit-body img { max-width: 100%; }
 .unit-list { list-style: none; padding: 0; margin: 0; }

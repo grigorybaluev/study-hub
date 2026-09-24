@@ -25,6 +25,8 @@ export interface CourseNode {
   kind: "core" | "assumed_prior" | "external";
   requirements: string[];
   source: string | null;
+  /** Which unit-page design applies (#89); null until the course is assigned one. */
+  pages: "math" | "programming" | "systems" | "data" | null;
   body: string;
 }
 

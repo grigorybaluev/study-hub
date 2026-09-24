@@ -103,9 +103,15 @@ Units
   `status` (which records the source). Only the owner flips a unit to `reviewed`.
 - Every course the student has taken gets units, at least coarse concept-introducing
   ones, so every required concept has an introducer.
-- Body conventions: `## part` per topic; LaTeX in `$…$`/`$$…$$`; callouts as blockquotes
-  with a bold label (`> **Definition.**`, `**Example.**`, `**Note.**`, `**Key insight.**`,
-  `**Caution.**`); an `**Equations**` list; fenced code with a language; `## Further reading`.
+- Body conventions: `## part` per topic, `###` sub-part, nothing deeper; LaTeX in
+  `$…$`/`$$…$$`; blocks as fenced containers `:::name[Title]` … `:::` (definition, theorem,
+  lemma, proposition, corollary, proof, example, solution, note, remark, caution, insight,
+  steps, equations; names in `build/schema.py` BLOCKS), nested with more colons on the outer
+  (`::::example` around `:::solution`); fenced code with a language; `## Further reading`.
+  A course's `pages:` field (`math | programming | systems | data`) picks the unit-page
+  design; each kind's rules and specimens are one page, `app/src/design/<kind>.md`, served
+  at `/design/<kind>`. Change the design there first. Legacy `> **Label.**` callouts still
+  render; `scripts/convert_callouts.py <COURSE>` converts them (lint lists what is left).
   Interactive examples are ```` ```sim ```` fenced YAML blocks (`id`, `controls`, `note`, or
   `custom: true` + `mode` for automata) placed where they belong in the text; lint checks
   ids against `app/src/sims/registry.yaml`. A ```` ```python ```` block placed directly after

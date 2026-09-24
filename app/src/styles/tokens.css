@@ -49,6 +49,9 @@
   --callout-caution-bg: #fff1f2;
   --callout-caution-border: #fca5a5;
   --callout-caution-fg: #9f1239;
+  --blk-stmt-bg: #f5f3ff;
+  --blk-stmt-line: #7c3aed;
+  --blk-stmt-border: #ddd6fe;
 
   --sim-surface: #ffffff;
   --sim-controls-bg: #f8f7f3;
@@ -126,6 +129,9 @@
   --callout-caution-bg: #3d1b1b;
   --callout-caution-border: #5a2a2a;
   --callout-caution-fg: #ffb4b4;
+  --blk-stmt-bg: #241d3a;
+  --blk-stmt-line: #a78bfa;
+  --blk-stmt-border: #3b2f5e;
 
   --sim-surface: #1a1f2e;
   --sim-controls-bg: #151a27;

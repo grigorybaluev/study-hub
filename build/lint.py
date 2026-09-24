@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from schema import (CODE_RE, ROOT, COURSE_KIND, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH,
+from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH,
                     UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
                     roadmap_node_ids, roadmap_root, unit_slug)
 
@@ -126,6 +126,7 @@ def lint_university(c: Content, uni, rep: Report):
         if doc.meta.get("code") != code:
             rep.error(doc.path, f"code {doc.meta.get('code')!r} does not match filename")
         check_enum(doc, "kind", COURSE_KIND, rep)
+        check_enum(doc, "pages", PAGE_KINDS, rep)
         for key in ("prereqs", "coreqs"):
             groups = prereq_groups(doc.meta.get(key)) if key == "prereqs" else [[x] for x in doc.meta.get(key) or []]
             for group in groups:
@@ -150,6 +151,7 @@ def lint_university(c: Content, uni, rep: Report):
         orders = Counter()
         for doc in docs:
             lint_unit(c, doc, rep)
+            lint_unit_structure(doc, courses[code].meta.get("pages"), rep)
             orders[doc.meta.get("order")] += 1
         n = len(docs)
         expected = set(range(1, n + 1))
@@ -224,6 +226,65 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
                 rep.error(doc.path, f"sim {cfg['id']!r}: java `files` must map file names to text")
         elif cfg["id"] not in (registry.get("plotly") or []):
             rep.error(doc.path, f"sim {cfg['id']!r} is not in the registry")
+
+
+FENCE_RE = re.compile(r"^```.*?^```", re.M | re.S)
+QUOTE_RE = re.compile(r"^[ \t]*(?:>[ \t]?)*[ \t]*")        # list indent / blockquote markers before a fence
+OPEN_RE = re.compile(r"^(:{3,})([A-Za-z][\w-]*)(\[.*\])?(\{.*\})?\s*$")
+
+
+def blank_fences(body: str) -> str:
+    """Code blocks out of the way, line numbers kept."""
+    return FENCE_RE.sub(lambda m: "\n" * m.group(0).count("\n"), body)
+LEGACY_CALLOUT_RE = re.compile(r"^> \*\*[A-Z]", re.M)
+
+
+def container_problems(body: str) -> list[str]:
+    """Container fences: known names, the form remark-directive accepts (`:::name`, `[title]`,
+    `{attrs}`, nothing else), balanced, and a nested container with fewer colons than its parent
+    (otherwise the parent closes early and a stray ::: shows on the page)."""
+    stack: list[tuple[int, int]] = []   # (colons, line)
+    problems = []
+    for n, raw in enumerate(blank_fences(body).split("\n"), 1):
+        line = QUOTE_RE.sub("", raw, count=1)
+        if not line.startswith(":::"):
+            continue
+        colons = len(line) - len(line.lstrip(":"))
+        rest = line[colons:].strip()
+        if not rest:
+            if not stack:
+                problems.append(f"body line {n}: closing {':' * colons} with no open container")
+            else:
+                if colons != stack[-1][0]:
+                    problems.append(f"body line {n}: {':' * colons} closes the container opened with {stack[-1][0]} colons on line {stack[-1][1]}")
+                stack.pop()
+            continue
+        m = OPEN_RE.match(line)
+        if not m:
+            problems.append(f"body line {n}: {line.strip()!r} does not open a block (write :::name or :::name[Title])")
+            continue
+        name = m.group(2)
+        if name not in BLOCKS:
+            problems.append(f"body line {n}: unknown container :::{name} (known: {', '.join(sorted(BLOCKS))})")
+        if stack and colons >= stack[-1][0]:
+            problems.append(f"body line {n}: nested :::{name} needs fewer colons than its parent (line {stack[-1][1]})")
+        stack.append((colons, n))
+    problems += [f"body line {line}: container is never closed" for _, line in stack]
+    return problems
+
+
+def lint_unit_structure(doc: Doc, pages: str | None, rep: Report):
+    """Unit-page design (#89): container names always; for a designed kind, what is left to convert."""
+    body = blank_fences(doc.body)
+    for problem in container_problems(doc.body):
+        rep.error(doc.path, problem)
+    if pages != "math":
+        return
+    legacy = len(LEGACY_CALLOUT_RE.findall(body))
+    if legacy:
+        rep.warn(doc.path, f"{legacy} blockquote callout(s) left: convert with scripts/convert_callouts.py")
+    if re.search(r"^#{4,} ", body, re.M):
+        rep.warn(doc.path, "headings deeper than ### (a unit has parts ## and sub-parts ### only)")
 
 
 def lint_unit(c: Content, doc: Doc, rep: Report):

@@ -10,6 +10,7 @@ import Unit from "./pages/Unit";
 import Concept from "./pages/Concept";
 import Roadmap from "./pages/Roadmap";
 import Explore from "./pages/Explore";
+import Design from "./pages/Design";
 import Analytics from "./pages/Analytics";
 
 export default function App() {
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="/skill/:slug" element={<Roadmap />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/design/:kind" element={<Design />} />
             <Route path="*" element={<p>Not found.</p>} />
           </Routes>
         </main>

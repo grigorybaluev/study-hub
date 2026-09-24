@@ -3,6 +3,7 @@ code: MAST218
 title: Multivariable Calculus I
 credits: 3
 kind: core
+pages: math
 prereqs: [[MATH204], [MATH205]]
 coreqs: []
 requirements: []
