@@ -20,8 +20,10 @@ function cuts(tex: string, match: (at: number) => number): [number, number][] {
     const c = tex[i];
     if (c === "\\") {
       const word = /^\\([A-Za-z]+)/.exec(tex.slice(i))?.[1] ?? "";
-      if (word === "left" || word === "begin") depth++;
-      else if (word === "right" || word === "end") depth--;
+      const next = tex[i + 1];
+      // groups a formula must not be broken inside: \left…\right, environments, and sets \{…\}
+      if (word === "left" || word === "begin" || word === "lbrace" || word === "langle" || (!word && next === "{")) depth++;
+      else if (word === "right" || word === "end" || word === "rbrace" || word === "rangle" || (!word && next === "}")) depth--;
       if (depth === 0 && word) {
         const n = match(i);
         if (n) { out.push([i, i + n]); i += n - 1; continue; }
@@ -71,6 +73,7 @@ function breakAtRelation(tex: string): string | null {
   const at = relationCuts(tex);
   if (at.length !== 1) return null;
   const [s] = at[0];
+  if (!tex.slice(0, s).trim()) return null;   // starts with its relation: nothing to put on a first line
   return `\\begin{aligned} &${tex.slice(0, s).trim()} \\\\ &\\quad ${tex.slice(s).trim()} \\end{aligned}`;
 }
 
@@ -127,7 +130,8 @@ export function variants(raw: string): string[] {
   const rebroken = breakAligned(tex);
   if (rebroken) out.push(rebroken);
   // last resort: a piece with a single relation breaks before it
-  const pieces = parts.map((p) => breakAtRelation(p) ?? alignChain(p) ?? p);
+  // (only long pieces: a short one fits anyway, and breaking it would only add a line)
+  const pieces = parts.map((p) => (p.length > 40 ? breakAtRelation(p) ?? alignChain(p) ?? p : alignChain(p) ?? p));
   const last = pieces.length > 1 ? `\\begin{gathered} ${pieces.join(" \\\\[4pt] ")} \\end{gathered}` : pieces[0];
   if (!out.includes(last)) out.push(last);
   return out;
