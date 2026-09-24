@@ -89,8 +89,8 @@ A parametric curve is the set of points (f(t), g(t)) traced out as t runs throug
 
 :::equations
 - *Parametric equations*: $x = f(t),\quad y = g(t),\quad t \in I$ — t is the parameter; I ⊆ ℝ is the parameter interval.
-- *Initial & terminal points (I = [a, b])*: $P_{\text{init}} = \big(f(a),\,g(a)\big),\qquad P_{\text{term}} = \big(f(b),\,g(b)\big)$ — Plug the two ends of the parameter interval into both equations.
-- *Limiting values (I = ℝ)*: $\Big(\lim_{t\to-\infty} f(t),\ \lim_{t\to-\infty} g(t)\Big),\qquad \Big(\lim_{t\to\infty} f(t),\ \lim_{t\to\infty} g(t)\Big)$ — Where the curve comes from and where it goes when there are no endpoints.
+- *Initial & terminal points (I = [a, b])*: $P_{\text{init}} = \big(f(a),\,g(a)\big)$ and $P_{\text{term}} = \big(f(b),\,g(b)\big)$ — Plug the two ends of the parameter interval into both equations.
+- *Limiting values (I = ℝ)*: $\Big(\lim_{t\to-\infty} f(t),\ \lim_{t\to-\infty} g(t)\Big)$ and $\Big(\lim_{t\to\infty} f(t),\ \lim_{t\to\infty} g(t)\Big)$ — Where the curve comes from and where it goes when there are no endpoints.
 :::
 
 ## Sketching Parametric Curves
