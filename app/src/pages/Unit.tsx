@@ -27,6 +27,7 @@ export default function Unit() {
         <h1>{unit.title}</h1>
         <div className="status-line">
           <Badge kind={unit.status} />
+          <Badge kind={unit.review} />
           {unit.kind === "review" && <Badge kind="review" />}
           {unit.weeks.length > 0 && <span>week{unit.weeks.length > 1 ? "s" : ""} {unit.weeks.join(", ")}</span>}
           {unit.textbook && <span>· {unit.textbook}</span>}

@@ -22,6 +22,7 @@ DOMAINS = {
 }
 UNIT_STATUS = {"detailed", "outline", "planned"}
 UNIT_KIND = {"teaching", "review"}
+UNIT_REVIEW = {"draft", "reviewed"}
 COURSE_KIND = {"core", "assumed_prior", "external"}
 STRENGTH = {"hard", "soft"}
 SEASONS = ("fall", "winter", "summer")  # ordered: index within a year
@@ -39,7 +40,7 @@ REQUIRED = {
 }
 OPTIONAL = {
     "concept": {"aliases", "generalizes", "part_of", "maps_to", "short", "wikipedia", "wikidata"},
-    "unit": {"kind", "weeks", "textbook", "notes", "introduces", "requires", "reinforces"},
+    "unit": {"kind", "review", "weeks", "textbook", "notes", "introduces", "requires", "reinforces"},
     "course": {"prereqs", "coreqs", "requirements", "source"},
     "program": {"source"},
     "university": {"faculty", "department", "assumed_prior", "sources"},

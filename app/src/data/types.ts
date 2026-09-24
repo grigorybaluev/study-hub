@@ -36,6 +36,7 @@ export interface UnitNode {
   order: number;
   kind: "teaching" | "review";
   status: "detailed" | "outline" | "planned";
+  review: "draft" | "reviewed";
   weeks: number[];
   textbook: string | null;
   notes: string[] | null;

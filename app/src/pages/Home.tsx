@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, ConceptChip } from "../components/Chips";
 import { href, node, useData } from "../data/load";
-import type { CourseNode, VariantTerm } from "../data/types";
+import type { CourseNode, UnitNode, VariantTerm } from "../data/types";
 
 const SEASON = { fall: "Fall", winter: "Winter", summer: "Summer" };
+// Concept-debt badges per course: hidden for now, kept for later use.
+const SHOW_DEBT = false;
 
 export default function Home() {
   const d = useData();
@@ -43,8 +45,8 @@ export default function Home() {
                     <li key={cid}>
                       <span><Link to={href.course(cid)}>{c.code}</Link> <span className="muted small">{c.title}</span></span>
                       <span className="small">
-                        {units.length === 0 ? <Badge kind="external">no units</Badge> : <span className="faint">{units.length}u</span>}
-                        {debt.length > 0 && <> <Badge kind={debt.some((x) => x.introduced_in_term === null) ? "never" : "same"}>{debt.length} debt</Badge></>}
+                        {units.length === 0 ? <Badge kind="external">no units</Badge> : <Progress units={units} />}
+                        {SHOW_DEBT && debt.length > 0 && <> <Badge kind={debt.some((x) => x.introduced_in_term === null) ? "never" : "same"}>{debt.length} debt</Badge></>}
                       </span>
                     </li>
                   );
@@ -55,6 +57,11 @@ export default function Home() {
           </div>
         ))}
       </div>
+      <p className="progress-legend faint small">
+        <span className="progress"><span className="reviewed" style={{ flexGrow: 1 }} /></span> reviewed
+        <span className="progress"><span className="drafted" style={{ flexGrow: 1 }} /></span> drafted
+        <span className="progress" /> not written yet
+      </p>
 
       <h2>Assumed prior and external courses</h2>
       <p className="muted small">Assumed-prior courses carry the concepts the program expects on entry; external ones appear only as prerequisite alternatives.</p>
@@ -76,5 +83,23 @@ export default function Home() {
         </>
       )}
     </>
+  );
+}
+
+// Per-course unit progress: reviewed, drafted (written, not yet reviewed), not written (outline/planned).
+function Progress({ units }: { units: UnitNode[] }) {
+  const reviewed = units.filter((u) => u.review === "reviewed").length;
+  const drafted = units.filter((u) => u.review !== "reviewed" && u.status === "detailed").length;
+  const empty = units.length - reviewed - drafted;
+  const title = `${reviewed} reviewed · ${drafted} drafted · ${empty} not written yet`;
+  return (
+    <span className="progress-cell" title={title}>
+      <span className="progress" aria-hidden>
+        {reviewed > 0 && <span className="reviewed" style={{ flexGrow: reviewed }} />}
+        {drafted > 0 && <span className="drafted" style={{ flexGrow: drafted }} />}
+        {empty > 0 && <span style={{ flexGrow: empty }} />}
+      </span>
+      <span className={reviewed === units.length ? "done" : "faint"}>{reviewed + drafted}/{units.length}</span>
+    </span>
   );
 }
