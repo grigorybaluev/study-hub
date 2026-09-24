@@ -435,7 +435,7 @@ $$
 P(X \le 20) \approx \Phi\!\left(\frac{20.5 - 25}{5}\right) = \Phi(-0.9) \approx 0.184,
 $$
 
-against the exact Poisson value $0.186$.
+against the exact Poisson value $0.185$.
 :::
 ::::
 
