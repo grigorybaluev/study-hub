@@ -57,8 +57,10 @@ c*(u + v) == c*u + c*v           # True
 
 ## The dot product
 
-> **Definition.** For $\mathbf u, \mathbf v \in \mathbb R^n$,
-> $\mathbf u \cdot \mathbf v = \sum_{i=0}^{n-1} u_i v_i$ — two vectors in, one scalar out.
+:::definition[Dot product]
+For $\mathbf u, \mathbf v \in \mathbb R^n$,
+$\mathbf u \cdot \mathbf v = \sum_{i=0}^{n-1} u_i v_i$ — two vectors in, one scalar out.
+:::
 
 In Sage: `u.dot_product(v)`.
 
@@ -70,9 +72,11 @@ This is the property that will define linear transformations later in the course
 
 ## Linear combinations and span
 
-> **Definition.** A **linear combination** of $\mathbf v_0, \dots, \mathbf v_{k-1}$ is any sum
-> $c_0 \mathbf v_0 + \cdots + c_{k-1} \mathbf v_{k-1}$ with real coefficients. Their **span**,
-> $\operatorname{span}(\mathbf v_0, \dots, \mathbf v_{k-1})$, is the set of all such sums.
+:::definition[Linear combination, span]
+A **linear combination** of $\mathbf v_0, \dots, \mathbf v_{k-1}$ is any sum
+$c_0 \mathbf v_0 + \cdots + c_{k-1} \mathbf v_{k-1}$ with real coefficients. Their **span**,
+$\operatorname{span}(\mathbf v_0, \dots, \mathbf v_{k-1})$, is the set of all such sums.
+:::
 
 Geometrically, the span of two non-parallel vectors in $\mathbb R^3$ is the plane through the
 origin containing both; the span of one nonzero vector is a line.
@@ -103,16 +107,31 @@ A*x == x[0]*c0 + x[1]*c1                                          # column readi
 With the column reading, $A\mathbf x = \mathbf b$ asks: can $\mathbf b$ be written as a linear
 combination of the columns of $A$? That is, is $\mathbf b \in \operatorname{span}(\mathbf c_0, \dots, \mathbf c_{n-1})$?
 
-> **Definition.** The **column space** $\operatorname{col}(A)$ is the span of the columns of
-> $A$ (a subset of $\mathbb R^m$); the **row space** $\operatorname{row}(A)$ is the span of the
-> rows (a subset of $\mathbb R^n$).
+:::definition[Column space, row space]
+The **column space** $\operatorname{col}(A)$ is the span of the columns of
+$A$ (a subset of $\mathbb R^m$); the **row space** $\operatorname{row}(A)$ is the span of the
+rows (a subset of $\mathbb R^n$).
+:::
 
-> **Theorem.** $A\mathbf x = \mathbf b$ is consistent if and only if $\mathbf b \in \operatorname{col}(A)$.
-> It is consistent for *every* $\mathbf b \in \mathbb R^m$ if and only if the columns of $A$
-> span all of $\mathbb R^m$.
+:::theorem[Consistency and the column space]
+$A\mathbf x = \mathbf b$ is consistent if and only if $\mathbf b \in \operatorname{col}(A)$.
+It is consistent for *every* $\mathbf b \in \mathbb R^m$ if and only if the columns of $A$
+span all of $\mathbb R^m$.
+:::
 
-> **Example.** Is $[-1, 3, 7]$ a linear combination of $[4, 2, 7]$ and $[3, 1, 4]$? Put the two
-> vectors as columns of $A$, augment with $\mathbf b$, and reduce:
+::::example[A linear combination?]
+Is $[-1, 3, 7]$ a linear combination of $[4, 2, 7]$ and $[3, 1, 4]$?
+
+:::solution
+Put the two vectors as the columns of $A$, augment with $\mathbf b = [-1, 3, 7]$, and reduce (the
+code below). The system $4c_0 + 3c_1 = -1$, $\;2c_0 + c_1 = 3$, $\;7c_0 + 4c_1 = 7$ has the solution
+$c_0 = 5$, $c_1 = -7$, so yes:
+
+$$
+5\,[4, 2, 7] - 7\,[3, 1, 4] = [-1, 3, 7] .
+$$
+:::
+::::
 
 ```python
 b = vector(QQ, [-1,3,7])
@@ -122,8 +141,10 @@ A.augment(b).rref()              # [1 0 5; 0 1 -7; 0 0 0]  ->  b = 5 c0 - 7 c1
 
 ## The rank of a matrix
 
-> **Definition.** The **rank** of $A \in \mathbb R^{m \times n}$ is the number of pivots (leading
-> $1$s) in its reduced row echelon form — equivalently, the number of nonzero rows of the RREF.
+:::definition[Rank]
+The **rank** of $A \in \mathbb R^{m \times n}$ is the number of pivots (leading
+$1$s) in its reduced row echelon form — equivalently, the number of nonzero rows of the RREF.
+:::
 
 Row equivalent matrices have the same RREF, so row operations never change the rank; and each
 row and each column holds at most one pivot, so $\operatorname{rank}(A) \le \min(m, n)$. Sage
@@ -133,24 +154,29 @@ Rank can depend on a parameter: replacing the top-left entry of a rank-$3$ matri
 $u$ and reducing by hand shows the rank jumps to $4$ for every $u \ne 0$ — the original $u = 0$
 was the special case.
 
-> **Theorem.** If $\operatorname{rank}(A) = r$, the system $A\mathbf x = \mathbf b$ has exactly
-> $n - r$ free variables.
->
-> *Why.* Free variables are the non-pivot columns, and the pivot columns number $r$.
+::::theorem[Rank and free variables]
+If $\operatorname{rank}(A) = r$, the system $A\mathbf x = \mathbf b$ has exactly $n - r$ free variables.
+
+:::proof
+Free variables are the non-pivot columns, and the pivot columns number $r$.
+:::
+::::
 
 This is the first form of the rank–nullity theorem; the word *nullity* arrives with the null
 space in the next unit.
 
-> **Key insight.** Read $A\mathbf x$ column-wise and every question about solving a system
-> becomes a question about span: consistency means $\mathbf b$ lies in the column space, and the
-> rank counts how many directions the columns actually contribute — the rest are free variables.
+:::insight
+Read $A\mathbf x$ column-wise and every question about solving a system
+becomes a question about span: consistency means $\mathbf b$ lies in the column space, and the
+rank counts how many directions the columns actually contribute — the rest are free variables.
+:::
 
-**Equations**
-
+:::equations
 - *Dot product*: $\mathbf u \cdot \mathbf v = \sum_i u_i v_i$ — scalar output.
 - *Column reading*: $A\mathbf x = \sum_j x_j \mathbf c_j$ — a linear combination of the columns.
 - *Consistency*: $A\mathbf x = \mathbf b$ solvable $\iff \mathbf b \in \operatorname{col}(A)$.
 - *Free variables*: $n - \operatorname{rank}(A)$.
+:::
 
 ## Further reading
 
