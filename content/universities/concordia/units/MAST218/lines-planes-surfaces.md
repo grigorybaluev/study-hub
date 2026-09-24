@@ -1,6 +1,6 @@
 ---
 title: Lines, planes and quadric surfaces
-order: 7
+order: 8
 status: outline
 weeks: [5]
 textbook: "Stewart, Multivariable Calculus, 9e, 12.5-12.6"

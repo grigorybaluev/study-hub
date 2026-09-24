@@ -1,6 +1,6 @@
 ---
 title: Dot product and cross product
-order: 6
+order: 7
 kind: review
 status: outline
 weeks: [4]
