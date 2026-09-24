@@ -23,6 +23,7 @@ DOMAINS = {
 UNIT_STATUS = {"detailed", "outline", "planned"}
 UNIT_KIND = {"teaching", "review"}
 UNIT_REVIEW = {"draft", "reviewed"}
+SIM_CHECKS = ("interface", "content")  # a sim block's `verified:` list; both = verified
 COURSE_KIND = {"core", "assumed_prior", "external"}
 STRENGTH = {"hard", "soft"}
 SEASONS = ("fall", "winter", "summer")  # ordered: index within a year

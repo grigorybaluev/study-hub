@@ -15,6 +15,8 @@ export default function Course() {
   const uses = d.derived.course_uses.filter((e) => e.from === course.id).sort((a, b) => b.weight - a.weight);
   const usedBy = d.derived.course_uses.filter((e) => e.to === course.id).sort((a, b) => b.weight - a.weight);
   const reviewed = units.filter((u) => u.review === "reviewed").length;
+  const sims = units.reduce((n, u) => n + u.sims.total, 0);
+  const simsVerified = units.reduce((n, u) => n + u.sims.verified, 0);
   const introduced = units.flatMap((u) => edgesOut(d, u.id, "introduces").map((e) => e.to));
   const skills = new Map<string, number>();
   for (const c of introduced) for (const e of edgesOut(d, c, "maps_to")) skills.set(e.to, (skills.get(e.to) ?? 0) + 1);
@@ -27,6 +29,7 @@ export default function Course() {
         <div className="status-line">
           <Badge kind={course.kind} /> <span>{course.credits} credits</span>
           {units.length > 0 && <span>· {units.length} units · {introduced.length} concepts introduced · {reviewed}/{units.length} reviewed</span>}
+          {sims > 0 && <span title="interactive examples whose interface and content have been checked">· {simsVerified}/{sims} examples verified</span>}
         </div>
         <p className="prose">{course.body}</p>
 
