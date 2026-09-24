@@ -13,7 +13,7 @@ from pathlib import Path
 import yaml
 
 from schema import (CODE_RE, ROOT, COURSE_KIND, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SLUG_RE, STRENGTH,
-                    UNIT_KIND, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
+                    UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
                     roadmap_node_ids, roadmap_root, unit_slug)
 
 
@@ -212,6 +212,7 @@ def lint_unit(c: Content, doc: Doc, rep: Report):
         rep.error(doc.path, f"filename {slug!r} is not a slug")
     check_enum(doc, "status", UNIT_STATUS, rep)
     check_enum(doc, "kind", UNIT_KIND, rep, default="teaching")
+    check_enum(doc, "review", UNIT_REVIEW, rep, default="draft")
     if not isinstance(doc.meta.get("order"), int):
         rep.error(doc.path, "order must be an integer")
     weeks = doc.meta.get("weeks")

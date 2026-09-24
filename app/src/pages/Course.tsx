@@ -14,6 +14,7 @@ export default function Course() {
   const requiredBy = [...edgesIn(d, course.id, "prereq"), ...edgesIn(d, course.id, "coreq")].map((e) => e.from);
   const uses = d.derived.course_uses.filter((e) => e.from === course.id).sort((a, b) => b.weight - a.weight);
   const usedBy = d.derived.course_uses.filter((e) => e.to === course.id).sort((a, b) => b.weight - a.weight);
+  const reviewed = units.filter((u) => u.review === "reviewed").length;
   const introduced = units.flatMap((u) => edgesOut(d, u.id, "introduces").map((e) => e.to));
   const skills = new Map<string, number>();
   for (const c of introduced) for (const e of edgesOut(d, c, "maps_to")) skills.set(e.to, (skills.get(e.to) ?? 0) + 1);
@@ -25,7 +26,7 @@ export default function Course() {
         <h1>{course.code} — {course.title}</h1>
         <div className="status-line">
           <Badge kind={course.kind} /> <span>{course.credits} credits</span>
-          {units.length > 0 && <span>· {units.length} units · {introduced.length} concepts introduced</span>}
+          {units.length > 0 && <span>· {units.length} units · {introduced.length} concepts introduced · {reviewed}/{units.length} reviewed</span>}
         </div>
         <p className="prose">{course.body}</p>
 
@@ -42,7 +43,7 @@ export default function Course() {
                     {edgesOut(d, u.id, "introduces").map((e) => <ConceptChip key={e.to} id={e.to} note={e.perspective} />)}
                   </div>
                 </span>
-                <Badge kind={u.status} />
+                <span className="badges"><Badge kind={u.status} /> <Badge kind={u.review} /></span>
               </li>
             ))}
           </ol>

@@ -99,6 +99,8 @@ Units
 - `status: detailed` (from lecture notes) | `outline` (official outline only) |
   `planned` (no outline). The outline is the initial hypothesis; notes are ground truth.
   Record provenance in `weeks`, `textbook`, `notes`.
+- `review: draft` (default) | `reviewed` records the owner's editing pass, separate from
+  `status` (which records the source). Only the owner flips a unit to `reviewed`.
 - Every course the student has taken gets units, at least coarse concept-introducing
   ones, so every required concept has an introducer.
 - Body conventions: `## part` per topic; LaTeX in `$…$`/`$$…$$`; callouts as blockquotes
