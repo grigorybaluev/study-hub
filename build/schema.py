@@ -31,6 +31,7 @@ BLOCKS = {"definition", "theorem", "lemma", "proposition", "corollary", "proof",
           "note", "remark", "caution", "insight", "steps", "equations",
           "algorithm", "machine", "trace", "exercise"}   # the last four: theory pages (#111)
 STRENGTH = {"hard", "soft"}
+METHOD_NODE_KINDS = {"decision", "method", "end"}  # content/methods/<id>.yaml graphs (#91)
 SEASONS = ("fall", "winter", "summer")  # ordered: index within a year
 
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -78,6 +79,7 @@ class Content:
     roadmaps: dict[str, dict]                   # roadmap id -> yaml
     universities: dict[str, University]         # uni id -> University
     parse_errors: list[tuple[Path, str]]
+    methods: dict[str, dict] = field(default_factory=dict)   # method graph id -> yaml (#91)
 
 
 # --------------------------------------------------------------------------- helpers
@@ -100,6 +102,14 @@ def edge_entries(value) -> list[dict]:
         else:
             out.append({"concept": None, "raw": entry})
     return out
+
+
+def answer_label(v) -> str | None:
+    """A method-graph edge label or a step's answer. PyYAML reads bare yes/no as booleans; the app's
+    YAML 1.2 parser keeps them as strings, so both sides compare the normalised text."""
+    if isinstance(v, bool):
+        return "yes" if v else "no"
+    return None if v is None else str(v)
 
 
 def roadmap_root(data: dict, rid: str) -> str:
@@ -171,6 +181,11 @@ def load(content_dir: Path = CONTENT) -> Content:
         if data := _read_yaml(p, errors):
             roadmaps[p.stem] = data
 
+    methods = {}
+    for p in sorted((content_dir / "methods").glob("*.yaml")):
+        if data := _read_yaml(p, errors):
+            methods[p.stem] = data
+
     universities = {}
     for udir in sorted(d for d in (content_dir / "universities").iterdir() if d.is_dir()):
         meta = _read_yaml(udir / "university.yaml", errors) if (udir / "university.yaml").exists() else None
@@ -189,4 +204,4 @@ def load(content_dir: Path = CONTENT) -> Content:
                 uni.programs[p.stem] = data
         universities[udir.name] = uni
 
-    return Content(concepts=concepts, roadmaps=roadmaps, universities=universities, parse_errors=errors)
+    return Content(concepts=concepts, roadmaps=roadmaps, universities=universities, parse_errors=errors, methods=methods)

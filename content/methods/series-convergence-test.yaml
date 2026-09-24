@@ -1,0 +1,41 @@
+id: series-convergence-test
+title: Choosing a convergence test
+description: >-
+  Rule out divergence by the terms first, recognise the two families whose behaviour is known,
+  then match the shape of the terms to a test: alternating signs, factorials and powers,
+  resemblance to a known series, or a function you can integrate.
+start: terms
+nodes:
+  - {id: terms, kind: decision, label: "Do the terms a_n tend to 0?"}
+  - {id: divergence, kind: method, label: "Divergence test: the series diverges", concept: convergence-tests}
+  - {id: known, kind: decision, label: "A geometric series or a p-series?"}
+  - {id: read-off, kind: method, label: "Geometric: |r| < 1. p-series: p > 1", concept: series}
+  - {id: alternating, kind: decision, label: "Alternating, with |a_n| decreasing?"}
+  - {id: ast, kind: method, label: "Alternating series test: converges", concept: convergence-tests}
+  - {id: powers, kind: decision, label: "Factorials or n-th powers in a_n?"}
+  - {id: ratio, kind: method, label: "Ratio or root test (L = 1 decides nothing)", concept: convergence-tests}
+  - {id: like, kind: decision, label: "Behaves like a known series for large n?"}
+  - {id: comparison, kind: method, label: "Comparison or limit comparison", concept: convergence-tests}
+  - {id: integrable, kind: decision, label: "a_n = f(n), f positive, decreasing, integrable?"}
+  - {id: integral, kind: method, label: "Integral test", concept: improper-integral}
+  - {id: verdict, kind: end, label: "Convergence decided"}
+  - {id: stuck, kind: end, label: "No verdict yet: rewrite the terms and start again"}
+edges:
+  - {from: terms, to: divergence, label: "no"}
+  - {from: terms, to: known, label: "yes"}
+  - {from: divergence, to: verdict}
+  - {from: known, to: read-off, label: "yes"}
+  - {from: known, to: alternating, label: "no"}
+  - {from: read-off, to: verdict}
+  - {from: alternating, to: ast, label: "yes"}
+  - {from: alternating, to: powers, label: "no"}
+  - {from: ast, to: verdict}
+  - {from: powers, to: ratio, label: "yes"}
+  - {from: powers, to: like, label: "no"}
+  - {from: ratio, to: verdict}
+  - {from: like, to: comparison, label: "yes"}
+  - {from: like, to: integrable, label: "no"}
+  - {from: comparison, to: verdict}
+  - {from: integrable, to: integral, label: "yes"}
+  - {from: integrable, to: stuck, label: "no"}
+  - {from: integral, to: verdict}

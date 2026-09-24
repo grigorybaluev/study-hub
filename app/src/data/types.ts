@@ -118,10 +118,35 @@ export interface Edge {
   group?: number;
 }
 
+/** A method graph (content/methods/<id>.yaml, #91): how to choose a method, as a flowchart. */
+export interface MethodNode {
+  id: string;
+  kind: "decision" | "method" | "end";
+  label: string;
+  concept: string | null;
+}
+
+/** A decision's outgoing edges carry the answer ("yes", "no", ...); other edges have none. */
+export interface MethodEdge {
+  from: string;
+  to: string;
+  label: string | null;
+}
+
+export interface MethodGraph {
+  id: string;
+  title: string;
+  description: string | null;
+  start: string;
+  nodes: MethodNode[];
+  edges: MethodEdge[];
+}
+
 export interface Graph {
   meta: { built: string; content_version: string; schema: number; seasons: string[] };
   nodes: GraphNode[];
   edges: Edge[];
+  methods: MethodGraph[];
 }
 
 // ---------------------------------------------------------------- derived.json
