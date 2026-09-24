@@ -35,9 +35,29 @@ $\sin^2 x = \tfrac12(1 - \cos 2x)$, $\cos^2 x = \tfrac12(1 + \cos 2x)$:
 $$\int \sin^{2k} x\,\cos^{2l} x\,dx = \frac{1}{2^{k+l}}\int (1 - \cos 2x)^k (1 + \cos 2x)^l\,dx ,$$
 then expand and repeat on any even powers of $\cos 2x$.
 
-> **Example.** $\displaystyle\int \sin^2 x\cos^3 x\,dx$ — $n = 3$ odd. $= \displaystyle\int \sin^2 x\,(1 - \sin^2 x)\cos x\,dx = \int (u^2 - u^4)\,du = \frac{\sin^3 x}{3} - \frac{\sin^5 x}{5} + C$.
+::::example[An odd power of cosine]
+Find $\displaystyle\int \sin^2 x\cos^3 x\,dx$.
 
-> **Example.** $\displaystyle\int \sin^2 x\,dx$ — both even. $= \displaystyle\int \frac{1 - \cos 2x}{2}\,dx = \frac{x}{2} - \frac{\sin 2x}{4} + C$.
+:::solution
+$n = 3$ is odd: save one $\cos x$ and substitute $u = \sin x$:
+
+$$
+\int \sin^2 x\,(1 - \sin^2 x)\cos x\,dx = \int (u^2 - u^4)\,du = \frac{\sin^3 x}{3} - \frac{\sin^5 x}{5} + C .
+$$
+:::
+::::
+
+::::example[Both powers even]
+Find $\displaystyle\int \sin^2 x\,dx$.
+
+:::solution
+Both exponents are even (here $n = 0$), so use the half-angle formula:
+
+$$
+\int \frac{1 - \cos 2x}{2}\,dx = \frac{x}{2} - \frac{\sin 2x}{4} + C .
+$$
+:::
+::::
 
 ```sim
 id: calc-trig-powers
@@ -77,10 +97,22 @@ $$\int \tan^m x\,\sec^{2k} x\,dx = \int \tan^m x\,(1 + \tan^2 x)^{k-1}\sec^2 x\,
 of tangent to $(\sec^2 x - 1)^k$, substitute $u = \sec x$:
 $$\int \tan^{2k+1} x\,\sec^n x\,dx = \int (\sec^2 x - 1)^k \sec^{n-1} x\,\sec x\tan x\,dx = \int (u^2 - 1)^k u^{n-1}\,du .$$
 
-> **Caution.** $m$ even and $n$ odd (for instance $\int \sec^3 x\,dx$ or $\int \tan^2 x\sec x\,dx$) fits neither case. Those need integration by parts, plus the standard
-> $\int \sec x\,dx = \ln|\sec x + \tan x| + C$ and $\int \tan x\,dx = \ln|\sec x| + C$.
+:::caution
+$m$ even and $n$ odd (for instance $\int \sec^3 x\,dx$ or $\int \tan^2 x\sec x\,dx$) fits neither case. Those need integration by parts, plus the standard
+$\int \sec x\,dx = \ln|\sec x + \tan x| + C$ and $\int \tan x\,dx = \ln|\sec x| + C$.
+:::
 
-> **Example.** $\displaystyle\int \tan^3 x\,\sec^4 x\,dx$ — $n = 4$ even. $= \displaystyle\int \tan^3 x\,(1 + \tan^2 x)\sec^2 x\,dx = \int (u^3 + u^5)\,du = \frac{\tan^4 x}{4} + \frac{\tan^6 x}{6} + C$.
+::::example[An even power of secant]
+Find $\displaystyle\int \tan^3 x\,\sec^4 x\,dx$.
+
+:::solution
+$n = 4$ is even: save $\sec^2 x$ and substitute $u = \tan x$:
+
+$$
+\int \tan^3 x\,(1 + \tan^2 x)\sec^2 x\,dx = \int (u^3 + u^5)\,du = \frac{\tan^4 x}{4} + \frac{\tan^6 x}{6} + C .
+$$
+:::
+::::
 
 ## Products with different frequencies
 
@@ -88,16 +120,28 @@ For $\int \sin mx\cos nx\,dx$, $\int \sin mx\sin nx\,dx$, $\int \cos mx\cos nx\,
 substitution works; use the product-to-sum identities to turn the product into a sum of
 single sines and cosines:
 
-**Equations**
-
+:::equations
 - $\sin mx\cos nx = \tfrac12\big[\sin(m - n)x + \sin(m + n)x\big]$
 - $\sin mx\sin nx = \tfrac12\big[\cos(m - n)x - \cos(m + n)x\big]$
 - $\cos mx\cos nx = \tfrac12\big[\cos(m - n)x + \cos(m + n)x\big]$
+:::
 
-> **Example.** $\displaystyle\int \sin 4x\cos 5x\,dx = \frac12\int\big[\sin(-x) + \sin 9x\big]dx = \frac12\Big[\cos x - \frac{\cos 9x}{9}\Big] + C$.
+::::example[Different frequencies]
+Find $\displaystyle\int \sin 4x\cos 5x\,dx$.
 
-> **Key insight.** Over a full period these products integrate to zero unless $m = n$ —
-> the orthogonality that Fourier series are built on.
+:::solution
+Product to sum, with $m = 4$, $n = 5$:
+
+$$
+\frac12\int\big[\sin(-x) + \sin 9x\big]dx = \frac12\Big[\cos x - \frac{\cos 9x}{9}\Big] + C .
+$$
+:::
+::::
+
+:::insight
+Over a full period these products integrate to zero unless $m = n$ —
+the orthogonality that Fourier series are built on.
+:::
 
 ## Further reading
 

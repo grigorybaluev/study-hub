@@ -20,21 +20,33 @@ $p$-series, the benchmark family every later comparison uses.
 
 ## Positive series
 
-> **Definition.** $\displaystyle\sum_{n=1}^{\infty} a_n$ is a **positive series** if $a_n > 0$ for every $n \ge 1$.
+:::definition[Positive series]
+$\displaystyle\sum_{n=1}^{\infty} a_n$ is a **positive series** if $a_n > 0$ for every $n \ge 1$.
+:::
 
 For such a series $S_{n+1} = S_n + a_{n+1} > S_n$, so $\{S_n\}$ is increasing. It converges
 if and only if it is bounded above — no oscillation is possible.
 
 ## The integral test
 
-> **Theorem (integral test).** Suppose $a_n = f(n)$ where $f$ is positive, continuous and non-increasing on $[N, \infty)$ for some $N \ge 1$. Then $\displaystyle\sum_{n=1}^{\infty} a_n$ and $\displaystyle\int_N^{\infty} f(x)\,dx$ either **both converge or both diverge**.
+::::theorem[Integral test]
+Suppose $a_n = f(n)$ where $f$ is positive, continuous and non-increasing on $[N, \infty)$ for
+some $N \ge 1$. Then $\displaystyle\sum_{n=1}^{\infty} a_n$ and $\displaystyle\int_N^{\infty} f(x)\,dx$
+either **both converge or both diverge**.
 
-*Why.* Draw rectangles of width $1$ and heights $a_n$ over $[n, n+1]$. Because $f$
-decreases, the rectangles starting at $n = 2$ lie *under* the curve and the rectangles
-starting at $n = 1$ lie *over* it:
-$$a_2 + a_3 + \dots + a_n \le \int_1^n f(x)\,dx \le a_1 + a_2 + \dots + a_{n-1}.$$
-If the integral converges, the left sum is bounded, so the series converges. If the
-integral diverges, the right sum is unbounded, so the series diverges.
+:::proof
+Draw rectangles of width $1$ and heights $a_n$ over $[n, n+1]$. Because $f$ decreases, the
+rectangles starting at $n = 2$ lie *under* the curve and the rectangles starting at $n = 1$
+lie *over* it:
+
+$$
+a_2 + a_3 + \dots + a_n \le \int_1^n f(x)\,dx \le a_1 + a_2 + \dots + a_{n-1} .
+$$
+
+If the integral converges, the left sum is bounded, so the series converges. If the integral
+diverges, the right sum is unbounded, so the series diverges.
+:::
+::::
 
 ```sim
 id: calc-integral-test
@@ -65,38 +77,70 @@ for p in (1, 2):                                         # the sim's default is 
 #   p = 2, n = 1000: S_n = 1.6439, tail 0.6439 <= integral 0.9990
 ```
 
-> **Caution.** The test decides *whether* the series converges, not *what* its sum is. In
-> general $\sum a_n \ne \int_1^{\infty} f$. For $\sum 1/n^2$ the integral is $1$ while the sum
-> is $\pi^2/6 \approx 1.645$. The sandwich above does give bounds on the sum, though, and a
-> remainder estimate: $\int_{n+1}^{\infty} f \le R_n = S - S_n \le \int_n^{\infty} f$.
+:::caution
+The test decides *whether* the series converges, not *what* its sum is. In
+general $\sum a_n \ne \int_1^{\infty} f$. For $\sum 1/n^2$ the integral is $1$ while the sum
+is $\pi^2/6 \approx 1.645$. The sandwich above does give bounds on the sum, though, and a
+remainder estimate: $\int_{n+1}^{\infty} f \le R_n = S - S_n \le \int_n^{\infty} f$.
+:::
 
-> **Caution.** The hypotheses matter: the test applies only to positive, eventually
-> decreasing terms given by a function that can be integrated. Failing "decreasing" is
-> the usual disqualifier.
+:::caution
+The hypotheses matter: the test applies only to positive, eventually
+decreasing terms given by a function that can be integrated. Failing "decreasing" is
+the usual disqualifier.
+:::
 
 ## $p$-series
 
-> **Definition.** A **$p$-series** is $\displaystyle\sum_{n=1}^{\infty}\frac{1}{n^p}$.
+:::definition[$p$-series]
+A **$p$-series** is $\displaystyle\sum_{n=1}^{\infty}\frac{1}{n^p}$.
+:::
 
-> **Theorem.** The $p$-series **converges if $p > 1$ and diverges if $p \le 1$.**
+::::theorem[Convergence of $p$-series]
+The $p$-series **converges if $p > 1$ and diverges if $p \le 1$.**
 
-This is the integral test applied to $f(x) = x^{-p}$, using the $p$-integral of lecture
-13: $\int_1^{\infty} x^{-p}\,dx$ converges exactly for $p > 1$. For $p \le 0$ the terms do not
-even go to $0$.
+:::proof
+For $p > 0$ this is the integral test applied to $f(x) = x^{-p}$, using the $p$-integral of
+lecture 13: $\int_1^{\infty} x^{-p}\,dx$ converges exactly for $p > 1$. For $p \le 0$ the terms
+do not even go to $0$.
+:::
+::::
 
-> **Example.** $\displaystyle\sum \frac{1}{n^2}$ converges ($p = 2$); $\displaystyle\sum \frac{1}{\sqrt n}$ diverges ($p = \tfrac12$); $\displaystyle\sum \frac{1}{n}$ diverges ($p = 1$ — the harmonic series, now with a one-line proof); $\displaystyle\sum n^{-1.001}$ converges, barely.
+::::example[Reading off $p$]
+Which of $\displaystyle\sum \frac{1}{n^2}$, $\displaystyle\sum \frac{1}{\sqrt n}$, $\displaystyle\sum \frac{1}{n}$, $\displaystyle\sum n^{-1.001}$ converge?
 
-> **Example.** $\displaystyle\sum_{n=2}^{\infty}\frac{1}{n\ln n}$. With $f(x) = \dfrac{1}{x\ln x}$ (positive, decreasing for $x \ge 2$): $\displaystyle\int_2^{t}\frac{dx}{x\ln x} = \big[\ln(\ln x)\big]_2^t \to \infty$, so the series diverges — even more slowly than the harmonic series. With $\dfrac{1}{n(\ln n)^2}$ the integral is $\big[-1/\ln x\big]_2^{\infty} = 1/\ln 2$, and the series converges.
+:::solution
+$\sum 1/n^2$ converges ($p = 2$); $\sum 1/\sqrt n$ diverges ($p = \tfrac12$); $\sum 1/n$ diverges
+($p = 1$ — the harmonic series, now with a one-line proof); $\sum n^{-1.001}$ converges, barely.
+:::
+::::
 
-> **Key insight.** The boundary between convergence and divergence for positive series
-> sits at $1/n$: terms that decay like $1/n^p$ need $p > 1$. Every comparison in the next
-> lecture is a question of "which side of $1/n$ is this?"
+::::example[Slower than harmonic]
+Decide whether $\displaystyle\sum_{n=2}^{\infty}\frac{1}{n\ln n}$ and $\displaystyle\sum_{n=2}^{\infty}\frac{1}{n(\ln n)^2}$ converge.
 
-**Equations**
+:::solution
+$f(x) = \dfrac{1}{x\ln x}$ is positive and decreasing for $x \ge 2$, and
 
+$$
+\int_2^{t}\frac{dx}{x\ln x} = \big[\ln(\ln x)\big]_2^t \to \infty ,
+$$
+
+so the first series diverges — even more slowly than the harmonic series. For the second the
+integral is $\big[-1/\ln x\big]_2^{\infty} = 1/\ln 2$, and the series converges.
+:::
+::::
+
+:::insight
+The boundary between convergence and divergence for positive series
+sits at $1/n$: terms that decay like $1/n^p$ need $p > 1$. Every comparison in the next
+lecture is a question of "which side of $1/n$ is this?"
+:::
+
+:::equations
 - $a_n = f(n)$, $f$ positive, continuous, decreasing: $\sum a_n$ converges $\iff \int_N^{\infty} f\,dx$ converges
 - $\displaystyle\sum_{n=1}^{\infty}\frac{1}{n^p}$ converges $\iff p > 1$
 - remainder: $\displaystyle\int_{n+1}^{\infty} f \le S - S_n \le \int_n^{\infty} f$
+:::
 
 ## Further reading
 

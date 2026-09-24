@@ -28,8 +28,14 @@ $[x_{i-1}, x_i]$ pick a **sample point** $x_i^*$ and build the rectangle of heig
 $f(x_i^*)$. The $n$ rectangles together have area
 $$A_n = f(x_1^*)\,\Delta x + f(x_2^*)\,\Delta x + \dots + f(x_n^*)\,\Delta x .$$
 
-> **Definition.** The **area** of the region under the graph of a continuous $f$ from $a$
-> to $b$ is the limit of the approximating sums: $A = \lim_{n \to \infty} A_n = \lim_{n \to \infty} \big(f(x_1^*)\Delta x + \dots + f(x_n^*)\Delta x\big)$.
+:::definition[Area under a curve]
+The **area** of the region under the graph of a continuous $f \ge 0$ from $a$ to $b$ is the
+limit of the approximating sums:
+
+$$
+A = \lim_{n \to \infty} A_n = \lim_{n \to \infty} \big(f(x_1^*)\,\Delta x + \dots + f(x_n^*)\,\Delta x\big).
+$$
+:::
 
 The choice of sample point does not matter in the limit. Three standard choices:
 
@@ -38,10 +44,6 @@ The choice of sample point does not matter in the limit. Three standard choices:
 - **right endpoints** $x_i^* = x_i$ — for an increasing $f$ the rectangles poke above, so
   $R_n \ge A$;
 - **midpoints** $x_i^* = \tfrac12(x_{i-1} + x_i)$ — usually the most accurate of the three.
-
-> **Key insight.** For an increasing function the true area is squeezed: $L_n \le A \le R_n$,
-> and $R_n - L_n = \big(f(b) - f(a)\big)\Delta x \to 0$. That is *why* the limit exists — the
-> under- and over-estimates are forced together.
 
 ```sim
 id: calc-riemann-sums
@@ -70,6 +72,12 @@ print('exact', round(8/3, 4))
 #   exact 2.6667
 ```
 
+:::insight
+For an increasing function the true area is squeezed: $L_n \le A \le R_n$,
+and $R_n - L_n = \big(f(b) - f(a)\big)\Delta x \to 0$. That is *why* the limit exists — the
+under- and over-estimates are forced together.
+:::
+
 ## Sigma notation
 
 Sums with many terms are written with $\Sigma$:
@@ -84,15 +92,25 @@ Finite sums obey the same rules as ordinary addition:
 
 Three closed forms make "compute the limit by hand" possible:
 
-**Equations**
-
+:::equations
 - $\displaystyle\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$
 - $\displaystyle\sum_{i=1}^{n} i^2 = \frac{n(n+1)(2n+1)}{6}$
 - $\displaystyle\sum_{i=1}^{n} i^3 = \left(\frac{n(n+1)}{2}\right)^2$
+:::
 
-> **Example.** Area under $y = x^2$ on $[0, 2]$ with right endpoints. Here
-> $\Delta x = 2/n$ and $x_i = 2i/n$, so $R_n = \sum_{i=1}^n \left(\frac{2i}{n}\right)^2 \frac{2}{n} = \frac{8}{n^3}\sum_{i=1}^n i^2 = \frac{8}{n^3}\cdot\frac{n(n+1)(2n+1)}{6}$.
-> As $n \to \infty$ the fraction $\frac{(n+1)(2n+1)}{n^2} \to 2$, so $A = \frac{8}{6}\cdot 2 = \frac{8}{3}$.
+::::example[Area under $y = x^2$ by right endpoints]
+Find the area under $y = x^2$ on $[0, 2]$ as the limit of the right-endpoint sums $R_n$.
+
+:::solution
+Here $\Delta x = 2/n$ and $x_i = 2i/n$, so
+
+$$
+R_n = \sum_{i=1}^n \left(\frac{2i}{n}\right)^2 \frac{2}{n} = \frac{8}{n^3}\sum_{i=1}^n i^2 = \frac{8}{n^3}\cdot\frac{n(n+1)(2n+1)}{6} .
+$$
+
+As $n \to \infty$ the fraction $\frac{(n+1)(2n+1)}{n^2} \to 2$, so $A = \frac{8}{6}\cdot 2 = \frac{8}{3}$.
+:::
+::::
 
 ## The distance problem
 
@@ -101,16 +119,28 @@ $\Delta t$ is about $v(t_i^*)\,\Delta t$ — "speed times time" as if the speed 
 constant. Adding the pieces gives exactly a Riemann sum, so **distance travelled is the
 area under the velocity graph**.
 
-> **Example.** A rainfall rate is recorded in cm/h over a day, piecewise constant on the
-> intervals 0–2 h (0.5), 2–4 h (0.3), 4–9 h (1.0), 9–12 h (2.5), 12–20 h (1.5), 20–24 h (0.6).
-> The total rainfall is the sum of *rate × duration* over the pieces:
-> $0.5\cdot2 + 0.3\cdot2 + 1.0\cdot5 + 2.5\cdot3 + 1.5\cdot8 + 0.6\cdot4 = 28.6$ cm. On the
-> graph of the rate this is the area of six rectangles — a Riemann sum where the function
-> really is constant on each piece, so no limit is needed.
+::::example[Total rainfall from a rate]
+A rainfall rate is recorded in cm/h over a day, piecewise constant on the intervals 0–2 h
+(0.5), 2–4 h (0.3), 4–9 h (1.0), 9–12 h (2.5), 12–20 h (1.5), 20–24 h (0.6). How much rain
+fell in the day?
 
-> **Note.** The same recipe — *rate × small interval, add, refine* — will reappear for
-> volumes, work, average values and probabilities. Whenever a quantity accumulates at a
-> varying rate, its total is a Riemann-sum limit.
+:::solution
+The total is the sum of *rate × duration* over the pieces:
+
+$$
+0.5\cdot2 + 0.3\cdot2 + 1.0\cdot5 + 2.5\cdot3 + 1.5\cdot8 + 0.6\cdot4 = 28.6 \text{ cm}.
+$$
+
+On the graph of the rate this is the area of six rectangles — a Riemann sum where the
+function really is constant on each piece, so no limit is needed.
+:::
+::::
+
+:::note
+The same recipe — *rate × small interval, add, refine* — will reappear for
+volumes, work, average values and probabilities. Whenever a quantity accumulates at a
+varying rate, its total is a Riemann-sum limit.
+:::
 
 ## Further reading
 

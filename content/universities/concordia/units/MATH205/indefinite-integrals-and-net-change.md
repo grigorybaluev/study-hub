@@ -20,44 +20,102 @@ the net change.
 
 ## The indefinite integral
 
-> **Definition.** The **indefinite integral** of $f$ is its general antiderivative: $\displaystyle\int f(x)\,dx = F(x) + C$ where $F'(x) = f(x)$.
+:::definition[Indefinite integral]
+The **indefinite integral** of $f$ is its general antiderivative:
 
-> **Caution — two meanings of $\int$.** $\int_a^b f(x)\,dx$ is a *number*; $\int f(x)\,dx$ is a
-> *family of functions*. They are linked by Part II: $\int_a^b f(x)\,dx = \Big[\int f(x)\,dx\Big]_a^b$, where the $C$ cancels in the subtraction.
+$$
+\int f(x)\,dx = F(x) + C \qquad\text{where } F'(x) = f(x).
+$$
+:::
+
+:::caution[Two meanings of $\int$]
+$\int_a^b f(x)\,dx$ is a *number*; $\int f(x)\,dx$ is a *family of functions*. They are
+linked by Part II, where the $C$ cancels in the subtraction:
+
+$$
+\int_a^b f(x)\,dx = \Big[\int f(x)\,dx\Big]_a^b .
+$$
+:::
 
 ### The table, in integral notation
 
-**Equations**
-
+:::equations
 - $\displaystyle\int x^n\,dx = \frac{x^{n+1}}{n+1} + C\ (n \ne -1)$, $\quad\displaystyle\int \frac{dx}{x} = \ln|x| + C$
 - $\displaystyle\int e^x\,dx = e^x + C$, $\quad\displaystyle\int a^x\,dx = \frac{a^x}{\ln a} + C$
 - $\displaystyle\int \sin x\,dx = -\cos x + C$, $\quad\displaystyle\int \cos x\,dx = \sin x + C$
 - $\displaystyle\int \sec^2 x\,dx = \tan x + C$, $\quad\displaystyle\int \csc^2 x\,dx = -\cot x + C$
 - $\displaystyle\int \sec x\tan x\,dx = \sec x + C$, $\quad\displaystyle\int \csc x\cot x\,dx = -\csc x + C$
 - $\displaystyle\int \frac{dx}{\sqrt{1 - x^2}} = \sin^{-1} x + C$, $\quad\displaystyle\int \frac{dx}{1 + x^2} = \tan^{-1} x + C$
+:::
 
 ### Integrating rules
 
 - $\displaystyle\int c f(x)\,dx = c\int f(x)\,dx$
 - $\displaystyle\int \big(f(x) \pm g(x)\big)\,dx = \int f(x)\,dx \pm \int g(x)\,dx$
 
-> **Example.** $\displaystyle\int \left(2\cos x - \frac{3}{1 + x^2} + \sqrt{x}\right)dx = 2\sin x - 3\tan^{-1}x + \frac{2}{3}x^{3/2} + C$.
-> Rewrite roots and quotients as powers first: $\sqrt{x} = x^{1/2}$, $\dfrac{1}{x^3} = x^{-3}$.
+::::example[Straight from the table]
+Find $\displaystyle\int \left(2\cos x - \frac{3}{1 + x^2} + \sqrt{x}\right)dx$.
 
-> **Example.** $\displaystyle\int_1^4 \frac{x^2 + 1}{\sqrt{x}}\,dx = \int_1^4 \big(x^{3/2} + x^{-1/2}\big)dx = \left[\frac{2}{5}x^{5/2} + 2x^{1/2}\right]_1^4 = \left(\frac{64}{5} + 4\right) - \left(\frac{2}{5} + 2\right) = \frac{72}{5}$.
+:::solution
+Rewrite the root as a power, $\sqrt{x} = x^{1/2}$, then integrate term by term:
+
+$$
+\int \left(2\cos x - \frac{3}{1 + x^2} + x^{1/2}\right)dx = 2\sin x - 3\tan^{-1}x + \frac{2}{3}x^{3/2} + C .
+$$
+:::
+::::
+
+::::example[Simplify, then integrate]
+Evaluate $\displaystyle\int_1^4 \frac{x^2 + 1}{\sqrt{x}}\,dx$.
+
+:::solution
+Split the quotient into powers first:
+
+$$
+\int_1^4 \big(x^{3/2} + x^{-1/2}\big)dx = \left[\frac{2}{5}x^{5/2} + 2x^{1/2}\right]_1^4 = \left(\frac{64}{5} + 4\right) - \left(\frac{2}{5} + 2\right) = \frac{72}{5} .
+$$
+:::
+::::
 
 ## The net change theorem
 
-> **Theorem (net change).** The integral of a rate of change is the net change: $\displaystyle\int_a^b F'(x)\,dx = F(b) - F(a)$.
+:::theorem[Net change]
+The integral of a rate of change is the net change:
+
+$$
+\int_a^b F'(x)\,dx = F(b) - F(a) .
+$$
+:::
 
 It is Part II of the fundamental theorem, read as physics. Whatever $F$ measures —
 position, volume, population, cost — integrating its rate over $[a, b]$ gives how much it
 changed, not what it is.
 
-> **Example — displacement versus distance.** A particle on a line has velocity $v(t) = s'(t)$.
-> - $\displaystyle\int_{t_1}^{t_2} v(t)\,dt = s(t_2) - s(t_1)$ is the **displacement**: where it ended relative to where it started.
-> - $\displaystyle\int_{t_1}^{t_2} |v(t)|\,dt$ is the **total distance** travelled: backward motion counts positively too.
-> For $v(t) = t^2 - t - 6 = (t - 3)(t + 2)$ on $[1, 4]$: displacement $= \int_1^4 v\,dt = \left[\frac{t^3}{3} - \frac{t^2}{2} - 6t\right]_1^4 = -\frac{9}{2}$. The velocity is negative on $[1, 3]$ and positive on $[3, 4]$, so distance $= -\int_1^3 v\,dt + \int_3^4 v\,dt = \frac{22}{3} + \frac{17}{6} = \frac{61}{6}$.
+For a particle on a line with velocity $v(t) = s'(t)$, the theorem gives two different
+quantities:
+
+- $\displaystyle\int_{t_1}^{t_2} v(t)\,dt = s(t_2) - s(t_1)$ is the **displacement**: where it ended relative to where it started.
+- $\displaystyle\int_{t_1}^{t_2} |v(t)|\,dt$ is the **total distance** travelled: backward motion counts positively too.
+
+::::example[Displacement versus distance]
+A particle moves with velocity $v(t) = t^2 - t - 6$ for $1 \le t \le 4$. Find its
+displacement and the total distance it travels.
+
+:::solution
+Displacement:
+
+$$
+\int_1^4 v\,dt = \left[\frac{t^3}{3} - \frac{t^2}{2} - 6t\right]_1^4 = -\frac{9}{2} .
+$$
+
+Since $v(t) = (t - 3)(t + 2)$, the velocity is negative on $[1, 3]$ and positive on $[3, 4]$,
+so split there for the distance:
+
+$$
+-\int_1^3 v\,dt + \int_3^4 v\,dt = \frac{22}{3} + \frac{17}{6} = \frac{61}{6} .
+$$
+:::
+::::
 
 ```sim
 id: calc-net-change
@@ -86,14 +144,18 @@ for T in (2, 4, 2*pi):                                   # the sim's default is 
 #   T = 6.283: displacement 0.000, distance 12.000
 ```
 
-> **Key insight.** "Net" is the whole point. The velocity graph's signed area tells you
-> the *displacement*; to get the distance you must split the interval where $v$ changes
-> sign. The same split will be needed for the area between curves (lecture 8).
+:::insight
+"Net" is the whole point. The velocity graph's signed area tells you
+the *displacement*; to get the distance you must split the interval where $v$ changes
+sign. The same split will be needed for the area between curves (lecture 8).
+:::
 
-> **Note.** Other readings of the same theorem: $\int_a^b V'(t)\,dt$ is the change in volume
-> of water in a tank; $\int_{x_1}^{x_2} \rho(x)\,dx$ is the mass of a rod segment when
-> $\rho$ is the linear density; $\int_a^b C'(x)\,dx$ is the increase in cost from producing
-> $a$ to $b$ units when $C'$ is the marginal cost.
+:::note
+Other readings of the same theorem: $\int_a^b V'(t)\,dt$ is the change in volume
+of water in a tank; $\int_{x_1}^{x_2} \rho(x)\,dx$ is the mass of a rod segment when
+$\rho$ is the linear density; $\int_a^b C'(x)\,dx$ is the increase in cost from producing
+$a$ to $b$ units when $C'$ is the marginal cost.
+:::
 
 ## Further reading
 

@@ -24,30 +24,86 @@ The chain rule says $\dfrac{d}{dx}F(g(x)) = F'(g(x))\,g'(x)$. Read right to left
 $f = F'$: any integrand of the shape "$f$ of something, times the derivative of that
 something" has antiderivative $F(\text{something})$.
 
-> **Theorem (substitution rule).** If $u = g(x)$ is differentiable and $f$ is continuous on the range of $g$, then $\displaystyle\int f(g(x))\,g'(x)\,dx = \int f(u)\,du$.
+:::theorem[Substitution rule]
+If $u = g(x)$ is differentiable and $f$ is continuous on the range of $g$, then
+
+$$
+\int f(g(x))\,g'(x)\,dx = \int f(u)\,du .
+$$
+:::
 
 In practice: set $u = g(x)$, compute $du = g'(x)\,dx$, rewrite the integral entirely in
 $u$, integrate, and substitute back.
 
-> **Example.** $\displaystyle\int 2x\cos(x^2)\,dx$. Let $u = x^2$, $du = 2x\,dx$: the integral is $\displaystyle\int \cos u\,du = \sin u + C = \sin(x^2) + C$. Check: $\frac{d}{dx}\sin(x^2) = 2x\cos(x^2)$ ✓.
+::::example[The inside of a composition]
+Find $\displaystyle\int 2x\cos(x^2)\,dx$.
 
-> **Example — adjusting a constant.** $\displaystyle\int x\sqrt{1 + x^2}\,dx$. With $u = 1 + x^2$, $du = 2x\,dx$, so $x\,dx = \tfrac12 du$: $\displaystyle\int \tfrac12\sqrt{u}\,du = \tfrac12\cdot\tfrac23 u^{3/2} + C = \tfrac13(1 + x^2)^{3/2} + C$.
+:::solution
+Let $u = x^2$, $du = 2x\,dx$:
 
-> **Example — $u$ in the numerator.** $\displaystyle\int \tan x\,dx = \int \frac{\sin x}{\cos x}\,dx$. Let $u = \cos x$, $du = -\sin x\,dx$: $\displaystyle -\int \frac{du}{u} = -\ln|u| + C = -\ln|\cos x| + C = \ln|\sec x| + C$.
+$$
+\int \cos u\,du = \sin u + C = \sin(x^2) + C .
+$$
 
-> **Key insight.** Choose $u$ so that $du$ (up to a constant) is *visibly present* in the
-> integrand. Good candidates: the inside of a composition, the base of a power, the
-> denominator, the argument of a root. If after substituting there is still an $x$ left
-> over that cannot be written in terms of $u$, the choice was wrong.
+Check: $\frac{d}{dx}\sin(x^2) = 2x\cos(x^2)$ ✓.
+:::
+::::
+
+::::example[Adjusting a constant]
+Find $\displaystyle\int x\sqrt{1 + x^2}\,dx$.
+
+:::solution
+With $u = 1 + x^2$, $du = 2x\,dx$, so $x\,dx = \tfrac12 du$:
+
+$$
+\int \tfrac12\sqrt{u}\,du = \tfrac12\cdot\tfrac23 u^{3/2} + C = \tfrac13(1 + x^2)^{3/2} + C .
+$$
+:::
+::::
+
+::::example[$u$ in the denominator]
+Find $\displaystyle\int \tan x\,dx$.
+
+:::solution
+Write $\tan x = \dfrac{\sin x}{\cos x}$ and let $u = \cos x$, $du = -\sin x\,dx$:
+
+$$
+-\int \frac{du}{u} = -\ln|u| + C = -\ln|\cos x| + C = \ln|\sec x| + C .
+$$
+:::
+::::
+
+:::insight
+Choose $u$ so that $du$ (up to a constant) is *visibly present* in the integrand. Good
+candidates: the inside of a composition, the base of a power, the denominator, the argument
+of a root. If after substituting there is still an $x$ left over that cannot be written in
+terms of $u$, the choice was wrong.
+:::
 
 ## Definite integrals
 
 Two ways to finish a definite integral after substituting: go back to $x$ and use the
 original limits, or — better — convert the limits to $u$ and never return.
 
-> **Theorem (substitution for definite integrals).** If $g'$ is continuous on $[a, b]$ and $f$ is continuous on the range of $u = g(x)$, then $\displaystyle\int_a^b f(g(x))\,g'(x)\,dx = \int_{g(a)}^{g(b)} f(u)\,du$.
+:::theorem[Substitution for definite integrals]
+If $g'$ is continuous on $[a, b]$ and $f$ is continuous on the range of $u = g(x)$, then
 
-> **Example.** $\displaystyle\int_0^{b} 2x\cos(x^2)\,dx$ with $u = x^2$: the limits $x = 0,\ x = b$ become $u = 0,\ u = b^2$, so the integral is $\displaystyle\int_0^{b^2}\cos u\,du = \sin(b^2)$.
+$$
+\int_a^b f(g(x))\,g'(x)\,dx = \int_{g(a)}^{g(b)} f(u)\,du .
+$$
+:::
+
+::::example[New limits, no going back]
+Evaluate $\displaystyle\int_0^{b} 2x\cos(x^2)\,dx$.
+
+:::solution
+With $u = x^2$ the limits $x = 0,\ x = b$ become $u = 0,\ u = b^2$:
+
+$$
+\int_0^{b^2}\cos u\,du = \sin(b^2) .
+$$
+:::
+::::
 
 ```sim
 id: calc-substitution
@@ -71,28 +127,43 @@ print(round(float(lhs.subs(b, 1.2)), 4))                 # the sim's default b =
 #   0.9915
 ```
 
-> **Caution.** After changing the limits, do **not** substitute back: $\int_0^{b^2}\cos u\,du$ is a
-> number and the job is done. Mixing the two methods (new limits *and* back-substituting)
-> gives nonsense.
+:::caution
+After changing the limits, do **not** substitute back: $\int_0^{b^2}\cos u\,du$ is a
+number and the job is done. Mixing the two methods (new limits *and* back-substituting)
+gives nonsense.
+:::
 
 ## Integrals of symmetric functions
 
 Suppose $f$ is continuous on $[-a, a]$.
 
+::::proposition[Symmetric functions]
 - If $f$ is **even** ($f(-x) = f(x)$), then $\displaystyle\int_{-a}^{a} f(x)\,dx = 2\int_0^a f(x)\,dx$.
 - If $f$ is **odd** ($f(-x) = -f(x)$), then $\displaystyle\int_{-a}^{a} f(x)\,dx = 0$.
 
-Both follow from splitting at $0$ and substituting $u = -x$ in the left half. The odd
-case is a free answer — the area to the left of the axis exactly cancels the area to the
-right.
+:::proof
+Split at $0$ and substitute $u = -x$ in the left half: $\int_{-a}^0 f(x)\,dx = \int_0^a f(-u)\,du$,
+which is $\int_0^a f$ for even $f$ and $-\int_0^a f$ for odd $f$.
+:::
+::::
 
-> **Example.** $\displaystyle\int_{-2}^{2} \frac{x^3 \sin x^2 + \tan x}{1 + x^4}\,dx = 0$: the numerator is odd, the denominator even, so the integrand is odd. No antiderivative is needed (and none exists in elementary terms).
+The odd case is a free answer — the area to the left of the axis exactly cancels the area
+to the right.
 
-**Equations**
+::::example[An odd integrand]
+Evaluate $\displaystyle\int_{-2}^{2} \frac{x^3 \sin x^2 + \tan x}{1 + x^4}\,dx$.
 
+:::solution
+The numerator is odd and the denominator even, so the integrand is odd and the integral is
+$0$. No antiderivative is needed (and none exists in elementary terms).
+:::
+::::
+
+:::equations
 - $\displaystyle\int f(g(x))\,g'(x)\,dx = \int f(u)\,du$, $\quad u = g(x),\ du = g'(x)\,dx$
 - $\displaystyle\int_a^b f(g(x))\,g'(x)\,dx = \int_{g(a)}^{g(b)} f(u)\,du$
 - even: $\displaystyle\int_{-a}^a f = 2\int_0^a f$; odd: $\displaystyle\int_{-a}^a f = 0$
+:::
 
 ## Further reading
 

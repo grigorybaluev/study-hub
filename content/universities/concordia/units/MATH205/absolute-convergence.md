@@ -21,29 +21,76 @@ ends with a warning about what conditionally convergent series can do.
 
 ## Absolute and conditional convergence
 
-> **Definition.** $\sum a_n$ is **absolutely convergent** if $\sum |a_n|$ converges.
+:::definition[Absolute convergence]
+$\sum a_n$ is **absolutely convergent** if $\sum |a_n|$ converges.
+:::
 
-Properties:
+::::proposition[Properties of absolutely convergent series]
+1. Absolutely convergent $\Rightarrow$ convergent.
+2. If $\sum a_n$ and $\sum b_n$ converge absolutely, so does $\sum(\alpha a_n + \beta b_n)$ for any
+   constants $\alpha, \beta$.
+3. Rearranging the terms of an absolutely convergent series gives an absolutely convergent
+   series with the *same* sum.
 
-1. Absolutely convergent $\Rightarrow$ convergent. (Since $0 \le a_n + |a_n| \le 2|a_n|$, the
-   series $\sum (a_n + |a_n|)$ converges by comparison, and $\sum a_n$ is its difference with $\sum |a_n|$.)
-2. If $\sum a_n$ and $\sum b_n$ converge absolutely, so does $\sum(\alpha a_n + \beta b_n)$ for any constants $\alpha, \beta$.
-3. Rearranging the terms of an absolutely convergent series gives an absolutely convergent series with the *same* sum.
+:::proof
+For 1: since $0 \le a_n + |a_n| \le 2|a_n|$, the series $\sum (a_n + |a_n|)$ converges by
+comparison, and $\sum a_n$ is its difference with $\sum |a_n|$. For 2: $|\alpha a_n + \beta b_n| \le |\alpha||a_n| + |\beta||b_n|$
+and compare. Part 3 is part 1 of Riemann's rearrangement theorem at the end of this lecture.
+:::
+::::
 
-> **Definition.** $\sum a_n$ is **conditionally convergent** if it converges but $\sum |a_n|$ diverges.
+:::definition[Conditional convergence]
+$\sum a_n$ is **conditionally convergent** if it converges but $\sum |a_n|$ diverges.
+:::
 
-> **Example.** $\displaystyle\sum \frac{(-1)^{n-1}}{n^2}$ is absolutely convergent ($\sum 1/n^2$ converges). $\displaystyle\sum \frac{(-1)^{n-1}}{n}$ is conditionally convergent: it converges by the alternating series test, but the absolute values form the harmonic series. $\displaystyle\sum \frac{\cos n}{n^2}$ converges absolutely by comparison with $\sum 1/n^2$ — the sign pattern of $\cos n$ is irregular and no alternating test applies, but absolute convergence does not care.
+::::example[Absolute or conditional?]
+Classify $\displaystyle\sum \frac{(-1)^{n-1}}{n^2}$, $\displaystyle\sum \frac{(-1)^{n-1}}{n}$ and $\displaystyle\sum \frac{\cos n}{n^2}$.
+
+:::solution
+- $\sum (-1)^{n-1}/n^2$ is absolutely convergent: $\sum 1/n^2$ converges.
+- $\sum (-1)^{n-1}/n$ is conditionally convergent: it converges by the alternating series
+  test, but the absolute values form the harmonic series.
+- $\sum \cos n / n^2$ converges absolutely by comparison with $\sum 1/n^2$. The sign pattern of
+  $\cos n$ is irregular and no alternating test applies, but absolute convergence does not
+  care.
+:::
+::::
 
 ## The ratio test
 
-> **Theorem (ratio test).** Let $L = \displaystyle\lim_{n \to \infty}\left|\frac{a_{n+1}}{a_n}\right|$.
-> (i) If $L < 1$, $\sum a_n$ is absolutely convergent (hence convergent).
-> (ii) If $L > 1$ or $L = \infty$, $\sum a_n$ diverges.
-> (iii) If $L = 1$, the test is **inconclusive**.
+::::theorem[Ratio test]
+Let $L = \displaystyle\lim_{n \to \infty}\left|\frac{a_{n+1}}{a_n}\right|$.
 
-*Why.* If $L < 1$, then eventually $|a_{n+1}| \le r|a_n|$ for some $r$ with $L < r < 1$, so
-$|a_n|$ is dominated by a geometric series with ratio $r$. If $L > 1$ the terms eventually
-grow, so $a_n \not\to 0$.
+1. If $L < 1$, $\sum a_n$ is absolutely convergent (hence convergent).
+2. If $L > 1$ or $L = \infty$, $\sum a_n$ diverges.
+3. If $L = 1$, the test is **inconclusive**.
+
+:::proof
+If $L < 1$, then eventually $|a_{n+1}| \le r|a_n|$ for some $r$ with $L < r < 1$, so $|a_n|$ is
+dominated by a geometric series with ratio $r$. If $L > 1$ the terms eventually grow, so
+$a_n \not\to 0$.
+:::
+::::
+
+::::example[Factorials and powers]
+Decide whether $\displaystyle\sum \frac{n^3}{3^n}$, $\displaystyle\sum \frac{n^n}{n!}$ and $\displaystyle\sum \frac{x^n}{n!}$ (for a fixed $x$) converge.
+
+:::solution
+$$
+\left|\frac{a_{n+1}}{a_n}\right| = \frac{(n+1)^3}{3^{n+1}}\cdot\frac{3^n}{n^3} = \frac13\Big(1 + \frac1n\Big)^3 \to \frac13 < 1 ,
+$$
+
+so the first converges.
+
+$$
+\frac{a_{n+1}}{a_n} = \frac{(n+1)^{n+1}}{(n+1)!}\cdot\frac{n!}{n^n} = \Big(\frac{n+1}{n}\Big)^n \to e > 1 ,
+$$
+
+so the second diverges. For the third, $\left|\frac{a_{n+1}}{a_n}\right| = \frac{|x|}{n+1} \to 0$: it
+converges absolutely for every $x$ — the exponential series.
+:::
+::::
+
 
 ```sim
 id: calc-ratio-test
@@ -64,28 +111,44 @@ print(round(sum(a(n) for n in range(1, 200)), 4))        # Σ n²/2ⁿ = 6
 #   6.0
 ```
 
-> **Example.** $\displaystyle\sum \frac{n^3}{3^n}$: $\left|\frac{a_{n+1}}{a_n}\right| = \frac{(n+1)^3}{3^{n+1}}\cdot\frac{3^n}{n^3} = \frac13\Big(1 + \frac1n\Big)^3 \to \frac13 < 1$. Converges.
-> $\displaystyle\sum \frac{n^n}{n!}$: $\frac{a_{n+1}}{a_n} = \frac{(n+1)^{n+1}}{(n+1)!}\cdot\frac{n!}{n^n} = \Big(\frac{n+1}{n}\Big)^n \to e > 1$. Diverges.
-> $\displaystyle\sum \frac{x^n}{n!}$ for any fixed $x$: $\left|\frac{a_{n+1}}{a_n}\right| = \frac{|x|}{n+1} \to 0$. Converges absolutely for every $x$ — the exponential series.
-
-> **Caution.** Both $\sum 1/n$ and $\sum 1/n^2$ have ratio limit $1$; one diverges, the other
-> converges. When $L = 1$, switch tests — usually to comparison with a $p$-series. The
-> ratio test shines on factorials and $n$-th powers, where the ratio simplifies.
+:::caution
+Both $\sum 1/n$ and $\sum 1/n^2$ have ratio limit $1$; one diverges, the other
+converges. When $L = 1$, switch tests — usually to comparison with a $p$-series. The
+ratio test shines on factorials and $n$-th powers, where the ratio simplifies.
+:::
 
 ## The root test
 
-> **Theorem (root test).** Let $L = \displaystyle\lim_{n \to \infty}\sqrt[n]{|a_n|}$.
-> (i) If $L < 1$, $\sum a_n$ converges absolutely. (ii) If $L > 1$ or $L = \infty$, it diverges. (iii) If $L = 1$, the test is inconclusive.
+::::theorem[Root test]
+Let $L = \displaystyle\lim_{n \to \infty}\sqrt[n]{|a_n|}$.
 
-Same idea, same geometric comparison, useful when $a_n$ is an $n$-th power of something
-simple.
+1. If $L < 1$, $\sum a_n$ converges absolutely.
+2. If $L > 1$ or $L = \infty$, it diverges.
+3. If $L = 1$, the test is inconclusive.
 
-> **Example.** $\displaystyle\sum \Big(\frac{2n + 3}{3n + 2}\Big)^n$: $\sqrt[n]{|a_n|} = \dfrac{2n + 3}{3n + 2} \to \dfrac23 < 1$. Converges.
+:::proof
+Same idea as the ratio test: if $L < r < 1$, eventually $|a_n| \le r^n$, a geometric series.
+:::
+::::
+
+The root test is useful when $a_n$ is an $n$-th power of something simple.
+
+::::example[An $n$-th power]
+Decide whether $\displaystyle\sum \Big(\frac{2n + 3}{3n + 2}\Big)^n$ converges.
+
+:::solution
+$\sqrt[n]{|a_n|} = \dfrac{2n + 3}{3n + 2} \to \dfrac23 < 1$, so it converges (absolutely).
+:::
+::::
 
 ## Rearranging the terms
 
-> **Theorem (Riemann).** (i) A rearrangement of an absolutely convergent series converges to the same sum.
-> (ii) If $\sum a_n$ is conditionally convergent and $L$ is *any* real number, its terms can be rearranged so that the new series converges to $L$ — or diverges to $\infty$, to $-\infty$, or simply diverges.
+:::theorem[Riemann's rearrangement theorem]
+1. A rearrangement of an absolutely convergent series converges to the same sum.
+2. If $\sum a_n$ is conditionally convergent and $L$ is *any* real number, its terms can be
+   rearranged so that the new series converges to $L$ — or diverges to $\infty$, to $-\infty$,
+   or simply diverges.
+:::
 
 ```sim
 id: calc-rearrangement
@@ -119,16 +182,18 @@ for L in (1.5, 0, -1):                                   # the sim's default L =
 #   rearranged toward -1: -0.9658
 ```
 
-> **Key insight.** Addition of infinitely many numbers is *not* commutative unless the
-> series converges absolutely. This is why the tests that prove absolute convergence
-> are the ones worth having: they license the algebra — reordering, regrouping,
-> multiplying series — that power series will rely on.
+:::insight
+Addition of infinitely many numbers is *not* commutative unless the
+series converges absolutely. This is why the tests that prove absolute convergence
+are the ones worth having: they license the algebra — reordering, regrouping,
+multiplying series — that power series will rely on.
+:::
 
-**Equations**
-
+:::equations
 - $\sum |a_n|$ converges $\Rightarrow \sum a_n$ converges
 - ratio: $\displaystyle\lim\left|\frac{a_{n+1}}{a_n}\right| = L$; root: $\displaystyle\lim\sqrt[n]{|a_n|} = L$ — $L < 1$ converges absolutely, $L > 1$ diverges, $L = 1$ no information
 - conditionally convergent $\Rightarrow$ rearrangeable to any sum
+:::
 
 ## Further reading
 

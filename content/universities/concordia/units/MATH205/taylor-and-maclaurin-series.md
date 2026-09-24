@@ -19,27 +19,74 @@ polynomials that best mimic $f$ near $a$.
 
 ## The coefficients are the derivatives
 
-> **Theorem.** If $f$ has a power series representation at $a$, $f(x) = \displaystyle\sum_{n=0}^{\infty} c_n(x - a)^n$ for $|x - a| < R$, then its coefficients are $c_n = \dfrac{f^{(n)}(a)}{n!}$.
+::::theorem[The coefficients are the derivatives]
+If $f$ has a power series representation at $a$, $f(x) = \displaystyle\sum_{n=0}^{\infty} c_n(x - a)^n$
+for $|x - a| < R$, then its coefficients are $c_n = \dfrac{f^{(n)}(a)}{n!}$.
 
-*Why.* Differentiate term by term $n$ times and set $x = a$: every term vanishes except
-the one that has become the constant $n!\,c_n$.
+:::proof
+Differentiate term by term $n$ times and set $x = a$: every term vanishes except the one that
+has become the constant $n!\,c_n$.
+:::
+::::
 
-> **Definition.** The series $\displaystyle\sum_{n=0}^{\infty}\frac{f^{(n)}(a)}{n!}(x - a)^n = f(a) + f'(a)(x - a) + \frac{f''(a)}{2!}(x - a)^2 + \dots$ is the **Taylor series of $f$ at $a$**. When $a = 0$ it is the **Maclaurin series** of $f$.
+:::definition[Taylor and Maclaurin series]
+The series
 
-> **Key insight.** Uniqueness: a function has *at most one* power series about a given
-> point. So whichever route produced a series — substitution, integration, or the
-> derivative formula — it is *the* Taylor series. This is why last lecture's tricks were
-> legitimate shortcuts.
+$$
+\sum_{n=0}^{\infty}\frac{f^{(n)}(a)}{n!}(x - a)^n = f(a) + f'(a)(x - a) + \frac{f''(a)}{2!}(x - a)^2 + \dots
+$$
 
-> **Example — $e^x$ at $0$.** Every derivative is $e^x$, so $f^{(n)}(0) = 1$ and $e^x = \displaystyle\sum_{n=0}^{\infty}\frac{x^n}{n!} = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \dots$, radius $\infty$ (ratio test).
+is the **Taylor series of $f$ at $a$**. When $a = 0$ it is the **Maclaurin series** of $f$.
+:::
 
-> **Example — $\sin x$ at $0$.** Derivatives cycle $\sin, \cos, -\sin, -\cos$; at $0$ the values cycle $0, 1, 0, -1$. Only odd powers survive: $\sin x = \displaystyle\sum_{n=0}^{\infty}(-1)^n\frac{x^{2n+1}}{(2n+1)!} = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \dots$, radius $\infty$. Differentiating term by term: $\cos x = \displaystyle\sum_{n=0}^{\infty}(-1)^n\frac{x^{2n}}{(2n)!}$.
+::::example[$e^x$ at $0$]
+Find the Maclaurin series of $e^x$ and its radius of convergence.
+
+:::solution
+Every derivative is $e^x$, so $f^{(n)}(0) = 1$ and
+
+$$
+e^x = \sum_{n=0}^{\infty}\frac{x^n}{n!} = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \dots ,
+$$
+
+with radius $\infty$ (ratio test).
+:::
+::::
+
+::::example[$\sin x$ at $0$]
+Find the Maclaurin series of $\sin x$, and from it the series of $\cos x$.
+
+:::solution
+The derivatives cycle $\sin, \cos, -\sin, -\cos$; at $0$ the values cycle $0, 1, 0, -1$. Only
+odd powers survive:
+
+$$
+\sin x = \sum_{n=0}^{\infty}(-1)^n\frac{x^{2n+1}}{(2n+1)!} = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \dots ,
+$$
+
+radius $\infty$. Differentiating term by term: $\cos x = \displaystyle\sum_{n=0}^{\infty}(-1)^n\frac{x^{2n}}{(2n)!}$.
+:::
+::::
+
+:::insight
+Uniqueness: a function has *at most one* power series about a given point. So whichever route
+produced a series — substitution, integration, or the derivative formula — it is *the* Taylor
+series. This is why last lecture's tricks were legitimate shortcuts.
+:::
 
 ## Taylor polynomials and the remainder
 
-> **Definition.** The **$n$-th degree Taylor polynomial** of $f$ at $a$ is the partial sum $T_n(x) = \displaystyle\sum_{i=0}^{n}\frac{f^{(i)}(a)}{i!}(x - a)^i$.
+:::definition[Taylor polynomial]
+The **$n$-th degree Taylor polynomial** of $f$ at $a$ is the partial sum
 
-> **Definition.** The **remainder** is $R_n(x) = f(x) - T_n(x)$.
+$$
+T_n(x) = \sum_{i=0}^{n}\frac{f^{(i)}(a)}{i!}(x - a)^i .
+$$
+:::
+
+:::definition[Remainder]
+The **remainder** is $R_n(x) = f(x) - T_n(x)$.
+:::
 
 $T_1$ is the tangent line — the linear approximation of MATH 203. $T_2$ adds the
 curvature, and so on: $T_n$ is the unique polynomial of degree $\le n$ that agrees with
@@ -77,36 +124,72 @@ print(f'x = 3, n = 9: |R9| = {abs(sin(3) - T(9, 0, 3)):.2e}')               # mo
 Having a Taylor series is not the same as being represented by it: the series might
 converge to something else. The test is whether the remainder disappears.
 
-> **Theorem.** If $f(x) = T_n(x) + R_n(x)$ and $\displaystyle\lim_{n \to \infty} R_n(x) = 0$ for $|x - a| < R$, then $f$ equals the sum of its Taylor series on $|x - a| < R$.
+:::theorem[A Taylor series that equals its function]
+If $f(x) = T_n(x) + R_n(x)$ and $\displaystyle\lim_{n \to \infty} R_n(x) = 0$ for $|x - a| < R$, then
+$f$ equals the sum of its Taylor series on $|x - a| < R$.
+:::
 
-The usual way to show $R_n \to 0$ is **Taylor's inequality**: if $|f^{(n+1)}(x)| \le M$ for
-$|x - a| \le d$, then $|R_n(x)| \le \dfrac{M}{(n+1)!}|x - a|^{n+1}$ there. Since
-$|x - a|^{n+1}/(n+1)! \to 0$ for every $x$, any function whose derivatives are all bounded
-by a common $M$ — $\sin$, $\cos$, $e^x$ on bounded intervals — is represented by its
+:::theorem[Taylor's inequality]
+If $|f^{(n+1)}(x)| \le M$ for $|x - a| \le d$, then there
+
+$$
+|R_n(x)| \le \frac{M}{(n+1)!}\,|x - a|^{n+1} .
+$$
+:::
+
+Since $|x - a|^{n+1}/(n+1)! \to 0$ for every $x$, any function whose derivatives are all
+bounded by a common $M$ — $\sin$, $\cos$, $e^x$ on bounded intervals — is represented by its
 Taylor series everywhere.
 
-> **Example.** $|\sin^{(n+1)}(x)| \le 1$ for all $x$, so $|R_n(x)| \le \dfrac{|x|^{n+1}}{(n+1)!} \to 0$: the sine series converges to $\sin x$ for every $x$. For $|x| \le 1$ and $n = 5$ the error is at most $1/720 \approx 0.0014$.
+::::example[The sine series equals $\sin x$]
+Show that the Maclaurin series of $\sin x$ converges to $\sin x$ for every $x$, and bound the
+error of $T_5$ on $|x| \le 1$.
 
-> **Caution.** $f(x) = e^{-1/x^2}$ (with $f(0) = 0$) has every derivative equal to $0$ at
-> $0$. Its Maclaurin series is identically $0$, converges everywhere, and equals $f$
-> only at $x = 0$. The remainder theorem is not decoration.
+:::solution
+$|\sin^{(n+1)}(x)| \le 1$ for all $x$, so $|R_n(x)| \le \dfrac{|x|^{n+1}}{(n+1)!} \to 0$ for every
+$x$. For $|x| \le 1$ and $n = 5$ the error is at most $1/720 \approx 0.0014$.
+:::
+::::
+
+:::caution
+$f(x) = e^{-1/x^2}$ (with $f(0) = 0$) has every derivative equal to $0$ at
+$0$. Its Maclaurin series is identically $0$, converges everywhere, and equals $f$
+only at $x = 0$. The remainder theorem is not decoration.
+:::
 
 ## The standard Maclaurin series
 
-**Equations**
-
+:::equations
 - $\dfrac{1}{1 - x} = \displaystyle\sum_{n=0}^{\infty} x^n$, $\ R = 1$
 - $e^x = \displaystyle\sum_{n=0}^{\infty}\frac{x^n}{n!}$, $\ R = \infty$
 - $\sin x = \displaystyle\sum_{n=0}^{\infty}(-1)^n\frac{x^{2n+1}}{(2n+1)!}$, $\quad\cos x = \displaystyle\sum_{n=0}^{\infty}(-1)^n\frac{x^{2n}}{(2n)!}$, $\ R = \infty$
 - $\tan^{-1}x = \displaystyle\sum_{n=0}^{\infty}(-1)^n\frac{x^{2n+1}}{2n+1}$, $\quad\ln(1 + x) = \displaystyle\sum_{n=1}^{\infty}(-1)^{n-1}\frac{x^n}{n}$, $\ R = 1$
 - $c_n = \dfrac{f^{(n)}(a)}{n!}$; $\quad |R_n(x)| \le \dfrac{M}{(n+1)!}|x - a|^{n+1}$ when $|f^{(n+1)}| \le M$
+:::
 
-> **Example — using the table.** $e^{-x^2} = \displaystyle\sum_{n=0}^{\infty}\frac{(-1)^n x^{2n}}{n!}$, so $\displaystyle\int_0^1 e^{-x^2}\,dx = \sum_{n=0}^{\infty}\frac{(-1)^n}{n!\,(2n+1)} = 1 - \frac13 + \frac{1}{10} - \frac{1}{42} + \frac{1}{216} - \dots \approx 0.7468$, with the alternating series estimate giving the accuracy. This is the integral that lecture 2 could only bound; the series computes it — and it is the one behind every normal-distribution table.
+::::example[Using the table]
+Compute $\displaystyle\int_0^1 e^{-x^2}\,dx$ to three decimal places.
 
-> **Note — where this goes next.** In MAST 221 the moment generating function $E[e^{tX}]$
-> is expanded exactly this way, and its Taylor coefficients at $0$ are the moments of
-> $X$. In numerical methods, $T_1$ and $T_2$ are the basis of Newton's method and of
-> error estimates for every finite-difference formula.
+:::solution
+Substitute $-x^2$ into the exponential series, $e^{-x^2} = \displaystyle\sum_{n=0}^{\infty}\frac{(-1)^n x^{2n}}{n!}$,
+and integrate term by term:
+
+$$
+\int_0^1 e^{-x^2}\,dx = \sum_{n=0}^{\infty}\frac{(-1)^n}{n!\,(2n+1)} = 1 - \frac13 + \frac{1}{10} - \frac{1}{42} + \frac{1}{216} - \dots \approx 0.7468 ,
+$$
+
+with the alternating series estimate giving the accuracy. This is the integral that lecture 2
+could only bound; the series computes it — and it is the one behind every normal-distribution
+table.
+:::
+::::
+
+:::note[Where this goes next]
+In MAST 221 the moment generating function $E[e^{tX}]$
+is expanded exactly this way, and its Taylor coefficients at $0$ are the moments of
+$X$. In numerical methods, $T_1$ and $T_2$ are the basis of Newton's method and of
+error estimates for every finite-difference formula.
+:::
 
 ## Further reading
 
