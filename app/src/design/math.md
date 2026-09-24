@@ -66,6 +66,8 @@ Lint rejects any other name.
   narrow block). An `aligned` you wrote yourself also breaks each row before its `&=` when a
   row is too wide. A formula with no break point at all is shrunk (to 75 % at most) before it
   would scroll; if that is not enough, split it by hand with `aligned`.
+- **Tables scroll inside their box.** A table wider than the column (a long table of values on
+  a phone) scrolls sideways within itself; the page never does.
 - **Punctuation stays with its math.** A comma or full stop right after short inline math never
   starts a line on its own; the renderer keeps it on the line with the formula.
 - Never a bare `$` in prose (write "75 dollars").
@@ -206,6 +208,8 @@ print(round(riemann(lambda x: x * x, 0, 2, 6), 4))   # 2.037 (left endpoints)
 
 ## Change log
 
+- 2026-09-24: a table wider than the column scrolls inside its own box instead of widening the
+  page (the MAST 218 smiley table on a phone) (#89).
 - 2026-09-24: `\to`, `\rightarrow`, `\mapsto` are break points too (a circle's "equation → centre, radius"
   line scrolled on a phone); punctuation after short inline math no longer wraps onto its own line (#89).
 - 2026-09-23: proofs and solutions collapsed by default; paragraphs with tall inline math get 20 %
