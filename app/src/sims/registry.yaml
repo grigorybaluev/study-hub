@@ -47,6 +47,17 @@ plotly:
   - total-prob-tree
   - bayes-posterior
   - rare-disease
+  - rv-pmf-cdf
+  - density-area
+  - joint-pmf
+  - chebyshev-bound
+  - mgf-taylor
+  - covariance-scatter
+  - binomial-poisson
+  - hypergeom-binomial
+  - normal-standardize
+  - normal-approx-binomial
+  - gamma-beta-shapes
   - r-precedence
   - r-loan
   - r-function-plot
