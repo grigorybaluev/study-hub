@@ -1,6 +1,6 @@
 ---
 title: Directional derivatives and the gradient
-order: 12
+order: 13
 status: outline
 weeks: [11]
 textbook: "Stewart, Multivariable Calculus, 9e, 14.6"

@@ -1,6 +1,6 @@
 ---
 title: Partial derivatives, tangent planes and the chain rule
-order: 11
+order: 12
 status: outline
 weeks: [9, 10]
 textbook: "Stewart, Multivariable Calculus, 9e, 14.3-14.5"

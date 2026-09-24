@@ -1,6 +1,6 @@
 ---
 title: Optimisation and Lagrange multipliers
-order: 13
+order: 14
 status: outline
 weeks: [11, 12]
 textbook: "Stewart, Multivariable Calculus, 9e, 14.7-14.8"

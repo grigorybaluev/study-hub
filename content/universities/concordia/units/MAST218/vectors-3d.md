@@ -1,6 +1,6 @@
 ---
 title: Three-dimensional coordinates and vectors
-order: 5
+order: 6
 kind: review
 status: outline
 weeks: [3, 4]
