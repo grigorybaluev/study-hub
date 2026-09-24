@@ -14,7 +14,10 @@ import NeedsVerification from "./NeedsVerification";
 interface Step { node: string; answer?: string | boolean; text: string }
 interface MapConfig { id: string; method: string; task: string; steps: Step[]; note?: string; verified?: string[] }
 
-/** Same normalisation as build/schema.py answer_label: case-folded, YAML 1.1 boolean spellings to yes/no. */
+/** An answer as shown: as authored, booleans (a bare yes/no read by an older parser) as yes/no. */
+const answerText = (v: unknown): string | null => (typeof v === "boolean" ? (v ? "yes" : "no") : v == null ? null : String(v));
+
+/** An answer as compared, the same as build/schema.py answer_label: case-folded, YAML 1.1 boolean spellings to yes/no. */
 const YAML_BOOL: Record<string, string> = { yes: "yes", true: "yes", on: "yes", no: "no", false: "no", off: "no" };
 const answerOf = (v: unknown): string | null => {
   if (typeof v === "boolean") return v ? "yes" : "no";
@@ -49,7 +52,7 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
     { selector: "node.end", style: { "border-width": 2.5 } },
     { selector: "edge", style: {
       width: 1.3, "line-color": muted, "target-arrow-color": muted, "target-arrow-shape": "triangle", "arrow-scale": 0.8,
-      "curve-style": "bezier", label: "data(label)", "font-size": 11, color: muted,
+      "curve-style": "bezier", "target-label": "data(label)", "target-text-offset": 20, "font-size": 11, color: muted,
       "text-background-color": bg, "text-background-opacity": 1, "text-background-padding": "2px",
     } },
     { selector: ".off", style: { opacity: 0.35 } },
@@ -59,21 +62,27 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
   ];
 }
 
-const COL_GAP = 34, ROW_GAP = 20;
+const COL_GAP = 34, ROW_GAP = 30;
 
-/** Flowchart positions: the questions down the left in authoring order, each question's method(s)
- * to its right, the ends in a last row. A second method of the same question gets a row of its own. */
+/** Flowchart positions: down the left, in authoring order, the questions and any method that no
+ * question leads to. To the right of each question: its methods, and the ends only it leads to
+ * (a second one on a row of its own). The shared ends last, two per row. */
 function spine(g: MethodGraph, size: Map<string, { w: number; h: number }>): Record<string, { x: number; y: number }> {
   const kind = new Map(g.nodes.map((n) => [n.id, n.kind]));
-  const rows: (string | null)[][] = g.nodes.filter((n) => n.kind === "decision").map((n) => [n.id]);
-  for (const n of g.nodes.filter((m) => m.kind === "method")) {
-    const parent = g.edges.find((e) => e.to === n.id && kind.get(e.from) === "decision")?.from;
-    const r = parent ? rows.findIndex((row) => row[0] === parent) : -1;
-    if (r < 0) rows.push([null, n.id]);
-    else if (rows[r][1]) rows.splice(r + 1, 0, [null, n.id]);
-    else rows[r][1] = n.id;
+  const parentOf = (id: string) => {
+    const into = g.edges.filter((e) => e.to === id);
+    if (kind.get(id) === "end" && into.length !== 1) return undefined;
+    return into.find((e) => kind.get(e.from) === "decision")?.from;
+  };
+  const beside = g.nodes.filter((m) => m.kind !== "decision" && parentOf(m.id));
+  const rows: (string | null)[][] = [];
+  for (const n of g.nodes.filter((m) => m.kind === "decision" || (m.kind === "method" && !parentOf(m.id)))) {
+    const kids = beside.filter((m) => parentOf(m.id) === n.id).map((m) => m.id);
+    rows.push([n.id, kids[0] ?? null]);
+    for (const k of kids.slice(1)) rows.push([null, k]);
   }
-  rows.push(g.nodes.filter((n) => n.kind === "end").map((n) => n.id));
+  const ends = g.nodes.filter((n) => n.kind === "end" && !beside.includes(n)).map((n) => n.id);
+  for (let i = 0; i < ends.length; i += 2) rows.push(ends.slice(i, i + 2));
   const ncol = Math.max(...rows.map((r) => r.length));
   const colW = Array.from({ length: ncol }, (_, c) => Math.max(0, ...rows.map((r) => (r[c] ? size.get(r[c]!)!.w : 0))));
   const colX = colW.map((_, c) => colW.slice(0, c).reduce((a, b) => a + b + COL_GAP, 0) + colW[c] / 2);
@@ -169,7 +178,7 @@ export default function SolutionMap({ source }: { source: string }) {
           <ol>
             {steps.slice(0, at + 1).map((s, i) => {
               const n = node.get(s.node);
-              const ans = n?.kind === "decision" ? answerOf(s.answer) : null;
+              const ans = n?.kind === "decision" ? answerText(s.answer) : null;
               return (
                 <li key={i} className={i === at ? "now" : ""} onClick={() => setAt(i)}>
                   <div className={`solmap-node ${n?.kind ?? ""}`}>{n?.label ?? s.node}{ans && <span className="solmap-answer">{ans}</span>}</div>

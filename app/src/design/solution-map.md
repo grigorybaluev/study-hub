@@ -190,8 +190,158 @@ steps:
     text: 'Since $p \to q \equiv \lnot q \to \lnot p$: if $n^2$ is even, $n$ is even.'
 ```
 
+## Across the courses
+
+The same block serves any course where solving a task starts with choosing a method. One method
+graph per kind of task; each specimen below walks one path through it.
+
+### Probability: which distribution (MAST 221)
+
+```solution-map
+id: third-basket
+method: which-distribution
+task: 'A player makes 70 % of her free throws, independently. What is the probability that her third basket comes on her fifth attempt?'
+steps:
+  - node: fixed
+    answer: no
+    text: 'The number of attempts is what is random; it is not fixed in advance.'
+  - node: events
+    answer: no
+    text: 'We count attempts, not events in a stretch of time.'
+  - node: waiting
+    answer: yes
+    text: 'Attempts until the third success.'
+  - node: first
+    answer: no
+    text: '$k = 3$, not the first success.'
+  - node: negative-binomial
+    text: '$b^*(5; 3, 0.7) = \binom{4}{2}(0.7)^3(0.3)^2 = 6 \cdot 0.343 \cdot 0.09 \approx 0.185$.'
+  - node: model
+    text: 'On average she needs $k/\theta = 3/0.7 \approx 4.3$ attempts for three baskets.'
+```
+
+### Linear algebra: solving Ax = b (MAST 234)
+
+```solution-map
+id: two-equations
+method: linear-system
+task: 'Solve $x + 2y - z = 1$, $2x + 4y + z = 5$.'
+steps:
+  - node: square
+    answer: no
+    text: 'Two equations, three unknowns: $A$ is $2 \times 3$.'
+  - node: reduce
+    text: '$R_2 - 2R_1$ turns $\left[\begin{smallmatrix} 1 & 2 & -1 & 1 \\ 2 & 4 & 1 & 5 \end{smallmatrix}\right]$ into $\left[\begin{smallmatrix} 1 & 2 & -1 & 1 \\ 0 & 0 & 3 & 3 \end{smallmatrix}\right]$.'
+  - node: contradiction
+    answer: no
+    text: 'The last row says $3z = 3$: no contradiction.'
+  - node: free
+    answer: yes
+    text: 'Pivots in the $x$ and $z$ columns; $y$ is free.'
+  - node: parametrise
+    text: '$y = t$, $z = 1$, $x = 1 - 2t + z = 2 - 2t$: $(x, y, z) = (2, 0, 1) + t(-2, 1, 0)$.'
+  - node: solved
+    text: 'Check: $(2 - 2t) + 2t - 1 = 1$ and $2(2 - 2t) + 4t + 1 = 5$ for every $t$ — a line of solutions.'
+```
+
+### Multivariable calculus: extrema of f(x, y) (MAST 218)
+
+```solution-map
+id: cubic-critical-point
+method: extrema-two-variables
+task: 'Classify the critical point $(1, 0)$ of $f(x, y) = x^3 - 3x + y^2$.'
+steps:
+  - node: constraint
+    answer: no
+    text: 'No constraint.'
+  - node: region
+    answer: no
+    text: 'Local behaviour at a point, not extreme values over a region.'
+  - node: critical
+    text: '$f_x = 3x^2 - 3 = 0$ and $f_y = 2y = 0$ give the critical points $(1, 0)$ and $(-1, 0)$.'
+  - node: second
+    answer: 'D > 0, f_xx > 0'
+    text: '$f_{xx} = 6x$, $f_{yy} = 2$, $f_{xy} = 0$, so at $(1, 0)$: $D = 6 \cdot 2 - 0 = 12 > 0$ and $f_{xx} = 6 > 0$.'
+  - node: minimum
+    text: 'A local minimum, $f(1, 0) = -2$. (At $(-1, 0)$, $D = -12 < 0$: a saddle point.)'
+```
+
+### Theory of computation: is it regular? (COMP 335)
+
+```solution-map
+id: an-bn
+method: regular-or-not
+task: 'Is $L = \{a^n b^n \mid n \ge 0\}$ regular?'
+steps:
+  - node: finite
+    answer: no
+    text: 'One string for every $n$.'
+  - node: describe
+    answer: no
+    text: '$a^*b^*$ is too big; any automaton would have to remember $n$.'
+  - node: closure
+    answer: no
+    text: 'No obvious construction from regular pieces.'
+  - node: counting
+    answer: yes
+    text: 'The number of $b$s must equal the number of $a$s: unbounded counting.'
+  - node: pumping
+    text: 'Take $s = a^p b^p$. Any split $s = xyz$ with $|xy| \le p$, $|y| \ge 1$ has $y = a^k$, $k \ge 1$, and $xy^2z = a^{p+k}b^p \notin L$.'
+  - node: not-regular
+    text: 'No pumping length works, so $L$ is not regular.'
+```
+
+### Algorithms: a divide-and-conquer recurrence (COMP 352)
+
+```solution-map
+id: recurrence-n-squared
+method: divide-and-conquer-recurrence
+task: 'Solve $T(n) = 2\,T(n/2) + n^2$.'
+steps:
+  - node: form
+    answer: yes
+    text: '$a = 2$, $b = 2$, $f(n) = n^2$.'
+  - node: compare
+    answer: polynomially larger
+    text: '$n^{\log_2 2} = n$, and $n^2 = n^{1 + 1}$ is larger by a power of $n$.'
+  - node: regularity
+    answer: yes
+    text: '$2 f(n/2) = 2 \cdot \frac{n^2}{4} = \tfrac12 n^2$, so $c = \tfrac12$ works.'
+  - node: root
+    text: '$T(n) = \Theta(n^2)$: the work at the top level dominates.'
+  - node: solved
+    text: 'The levels of the tree cost $n^2, \tfrac12 n^2, \tfrac14 n^2, \dots$, a geometric series bounded by $2n^2$.'
+```
+
+### Databases: normalising to BCNF (COMP 353)
+
+```solution-map
+id: bcnf-abc
+method: bcnf-decomposition
+task: 'Normalise $R(A, B, C)$ with $A \to B$ and $B \to C$ to BCNF.'
+steps:
+  - node: keys
+    text: '$A^+ = ABC$, so $A$ is the key; $B^+ = BC$.'
+  - node: violation
+    answer: yes
+    text: '$B \to C$ has $B^+ = BC \ne ABC$: $B$ is not a superkey.'
+  - node: split
+    text: 'Split on $B \to C$: $R_1(B, C) = B^+$ and $R_2(A, B) = B \cup (R - B^+)$.'
+  - node: keys
+    text: 'In $R_1$ the key is $B$; in $R_2$ the key is $A$.'
+  - node: violation
+    answer: no
+    text: '$B \to C$ lives in $R_1$ and $A \to B$ in $R_2$, each with a key on the left.'
+  - node: bcnf
+    text: 'Both pieces are in BCNF, and both dependencies are preserved.'
+```
+
 ## Change log
 
+- 2026-09-24: six more method graphs and specimens, one per course: distributions (MAST 221),
+  linear systems (MAST 234), extrema (MAST 218), regularity (COMP 335), recurrences (COMP 352),
+  BCNF (COMP 353). Layout: a method no question leads to sits in the question column; ends wrap
+  two per row (#91).
 - 2026-09-24: first version (#91): method graphs in `content/methods/`, the `solution-map` block,
   lint of the walk, the stepped view beside a Cytoscape graph; three method graphs and four
   specimens.
