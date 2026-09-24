@@ -28,7 +28,7 @@ contradiction, pigeonhole).
 :::definition[Set]
 A **set** is a collection of elements (objects). $A = \{1, 2, 3\}$, $B = \{\text{train}, \text{bus}, \text{bicycle}, \text{airplane}\}$. Membership: $1 \in A$, $\text{ship} \notin B$.
 - Finite set, listed or abbreviated: $C = \{a, b, c, \dots, k\}$.
-- Infinite set: $S = \{2, 4, 6, \dots\}$, or by a property: $S = \{\, j : j > 0 \text{ and } j = 2k \text{ for some } k > 0 \,\} = \{\, j : j \text{ is nonnegative and even} \,\}$.
+- Infinite set: $S = \{2, 4, 6, \dots\}$, or by a property: $S = \{\, j : j > 0 \text{ and } j = 2k \text{ for some } k > 0 \,\} = \{\, j : j \text{ is positive and even} \,\}$.
 - **Universal set** $U$: all possible elements, e.g. $U = \{1, \dots, 10\}$.
 :::
 

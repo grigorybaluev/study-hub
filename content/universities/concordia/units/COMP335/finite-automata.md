@@ -577,7 +577,7 @@ trans: "q0 a q12; q0 b empty; q12 a q12; q12 b q0; empty a,b empty"
 If the conversion algorithm applied to an NFA $M$ yields the DFA $M'$, then $L(M) = L(M')$.
 
 :::proof
-(Slides 140–149.) show $L(M) \subseteq L(M')$ and $L(M') \subseteq L(M)$. For the first, take $w = \sigma_1 \sigma_2 \cdots \sigma_k \in L(M)$, so $M$ has a walk $q_0 \xrightarrow{\sigma_1} \cdots \xrightarrow{\sigma_k} q_f$ with $q_f \in F$. More generally one proves, **by induction on $|v|$**, that whenever $M$ has a walk $q_0 \xrightarrow{v} q_m$, the DFA has a walk $\{q_0\} \xrightarrow{v} \{q_m, \dots\}$ (a state containing $q_m$). Basis $|v| = 1$: this is step 2 of the algorithm. Induction step $v = v'\sigma_{k+1}$: by hypothesis $\{q_0\} \xrightarrow{v'} \{q_d, \dots\}$, and step 2 adds $\{q_d, \dots\} \xrightarrow{\sigma_{k+1}} \{q_e, \dots\}$. Since $q_f$ is final, the DFA state $\{q_f, \dots\}$ is marked final by step 3, so $w \in L(M')$. The other inclusion is similar.
+(Slides 140–149.) show $L(M) \subseteq L(M')$ and $L(M') \subseteq L(M)$. For the first, take $w = \sigma_1 \sigma_2 \cdots \sigma_k \in L(M)$, so $M$ has a walk $q_0 \xrightarrow{\sigma_1} \cdots \xrightarrow{\sigma_k} q_f$ with $q_f \in F$. More generally one proves, **by induction on $|v|$**, that whenever $M$ has a walk $q_0 \xrightarrow{v} q_m$, the DFA has a walk $\{q_0\} \xrightarrow{v} \{q_m, \dots\}$ (a state containing $q_m$). Basis $|v| = 1$: this is step 2 of the algorithm. Induction step $v = v'\sigma_{k+1}$: by hypothesis $\{q_0\} \xrightarrow{v'} \{q_d, \dots\}$, and step 2 adds $\{q_d, \dots\} \xrightarrow{\sigma_{k+1}} \{q_e, \dots\}$. Since $q_f$ is final, the DFA state $\{q_f, \dots\}$ is marked final by step 4, so $w \in L(M')$. The other inclusion is similar.
 :::
 ::::
 
