@@ -15,19 +15,29 @@ their versions for quantified statements, and the classic mistakes.
 
 ## Valid arguments
 
+:::definition[Valid argument]
 An **argument** is a list of **premises** followed by a **conclusion** ($\therefore$). It is
 **valid** when the conclusion is true whenever all premises are true — by logical form alone,
 regardless of what the propositions say.
+:::
 
-> **Example.** "If I drink coffee, I feel sick. I am drinking coffee. Therefore I feel sick."
-> Form: $p \to q,\; p \;\therefore\; q$. In every row of the truth table where both premises
-> are true, $q$ is true: valid. By contrast $p \to q,\; q \to p \;\therefore\; p \lor q$ is
-> invalid — the row $p = q = F$ makes both premises true and the conclusion false.
+::::example[Coffee]
+"If I drink coffee, I feel sick. I am drinking coffee. Therefore I feel sick." Is the
+argument valid? Is $p \to q,\; q \to p \;\therefore\; p \lor q$?
+
+:::solution
+The form is $p \to q,\; p \;\therefore\; q$. In every row of the truth table where both
+premises are true, $q$ is true: valid. By contrast $p \to q,\; q \to p \;\therefore\; p \lor q$
+is invalid — the row $p = q = F$ makes both premises true and the conclusion false.
+:::
+::::
 
 ## Rules of inference
 
+:::definition[Rule of inference]
 A **rule of inference** is a valid argument form used often enough to have a name. Each
 corresponds to a tautology $A \to B$: "if $A$ holds, conclude $B$".
+:::
 
 | rule | form | tautology |
 |---|---|---|
@@ -44,12 +54,21 @@ corresponds to a tautology $A \to B$: "if $A$ holds, conclude $B$".
 The contradiction rule is the basis of proof by contradiction; the cases rule of proof by
 cases.
 
-> **Example.** Premises: (1) if it does not rain or it is not foggy, the demonstration goes on
-> and the race is held; (2) if the race is held, a trophy is awarded; (3) no trophy was
-> awarded. Show it rained. With $p$ = rain, $q$ = fog, $r$ = demonstration, $s$ = race,
-> $t$ = trophy: from $s \to t$ and $\lnot t$, modus tollens gives $\lnot s$; addition gives
-> $\lnot s \lor \lnot r \equiv \lnot(r \land s)$; modus tollens on (1) gives
-> $\lnot(\lnot p \lor \lnot q) \equiv p \land q$; simplification gives $p$.
+::::example[The trophy]
+Premises: (1) if it does not rain or it is not foggy, the demonstration goes on and the race
+is held; (2) if the race is held, a trophy is awarded; (3) no trophy was awarded. Show it
+rained.
+
+:::solution
+With $p$ = rain, $q$ = fog, $r$ = demonstration, $s$ = race, $t$ = trophy, the premises are
+$(\lnot p \lor \lnot q) \to (r \land s)$, $s \to t$ and $\lnot t$.
+
+1. From $s \to t$ and $\lnot t$, modus tollens gives $\lnot s$.
+2. Addition gives $\lnot s \lor \lnot r \equiv \lnot(r \land s)$.
+3. Modus tollens on (1) gives $\lnot(\lnot p \lor \lnot q) \equiv p \land q$.
+4. Simplification gives $p$: it rained.
+:::
+::::
 
 ## Rules for quantified statements
 
@@ -67,14 +86,20 @@ membership in the universe — the usual shape of a proof that starts "let $n$ b
 
 ## Fallacies
 
-A **fallacy** is an invalid form that looks like a rule:
+:::definition[Fallacy]
+A **fallacy** is an invalid argument form that looks like a rule of inference.
+:::
 
+:::caution
 - **Converse error**: $p \to q$ and $q$, "therefore $p$". (The butler has blood on his hands;
   if he did it he would; so he did it.)
 - **Inverse error**: $p \to q$ and $\lnot p$, "therefore $\lnot q$".
 - **Begging the question**: a step that assumes the statement being proved.
+:::
 
-> **Key insight.** A proof is a chain of inference rules. If a step is not one of the named
-> rules (or a known equivalence, definition, or earlier theorem), it is either a hidden
-> fallacy or a gap — the two fallacies above are exactly the converse and inverse that
-> propositional logic already told you are not equivalent to $p \to q$.
+:::insight
+A proof is a chain of inference rules. If a step is not one of the named
+rules (or a known equivalence, definition, or earlier theorem), it is either a hidden
+fallacy or a gap — the two fallacies above are exactly the converse and inverse that
+propositional logic already told you are not equivalent to $p \to q$.
+:::
