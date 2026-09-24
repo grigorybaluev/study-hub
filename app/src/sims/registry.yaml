@@ -28,6 +28,10 @@ plotly:
   - param-length-distance
   - param-surface-revolution
   - param-loop
+  - polar-point
+  - polar-curve
+  - polar-tangent
+  - polar-area
   - dice-sum-grid
   - empirical-dice
   - venn-counts

@@ -604,6 +604,115 @@
   }
 
 
+  // ══ MAST 218 — Polar coordinates (lectures 4–5) ══════════════
+  const PI = Math.PI;
+  const fracPi = v => { const q = Math.round(v * 12) / 12; return q === 0 ? '0' : `${Number.isInteger(q) ? q : q.toFixed(3).replace(/0+$/, '')}π`; };
+  const n3 = v => (Math.abs(v) < 5e-4 ? 0 : v).toFixed(3);   // no "−0.000"
+  function polarPath(f, a, b, n) { return samplePath(t => f(t) * Math.cos(t), t => f(t) * Math.sin(t), a, b, n || 400); }
+  // faint polar grid: circles r = 1..R and rays every 30°
+  function polarGrid(R) {
+    const tr = [];
+    for (let k = 1; k <= R; k++) {
+      const [x, y] = polarPath(() => k, 0, 2 * PI, 120);
+      tr.push({ x, y, mode: 'lines', line: { color: '#232d3f', width: 1 }, hoverinfo: 'skip', showlegend: false });
+    }
+    for (let k = 0; k < 12; k++) {
+      const t = k * PI / 6;
+      tr.push({ x: [0, R * Math.cos(t)], y: [0, R * Math.sin(t)], mode: 'lines', line: { color: '#1b2433', width: 1 }, hoverinfo: 'skip', showlegend: false });
+    }
+    return tr;
+  }
+  const square = (R, extra) => ({ xaxis: ax({ title: 'x', range: [-R, R] }), yaxis: ax({ title: 'y', range: [-R, R], scaleanchor: 'x', scaleratio: 1 }), legend: { orientation: 'h', y: -0.2 }, ...extra });
+
+  // ── P12. A point (r, θ): negative r, equivalent pairs ─────────
+  function polarPoint() {
+    const id = 'polar-point';
+    const r = val(id, 'r', 2), k = val(id, 'th', 0.25), th = k * PI;
+    const x = r * Math.cos(th), y = r * Math.sin(th);
+    const ray = 4.6;
+    const traces = polarGrid(4).concat([
+      { x: [0, ray * Math.cos(th)], y: [0, ray * Math.sin(th)], mode: 'lines', name: `ray at θ = ${fracPi(k)}`, line: { color: C_TAN, width: 2, dash: 'dash' } },
+      { x: [0, x], y: [0, y], mode: 'lines', name: r < 0 ? '|r| measured backwards through the pole' : 'distance r from the pole', line: { color: C_PATH, width: 4 } },
+      { x: [x], y: [y], mode: 'markers', name: `P: (x, y) = (${n3(x)}, ${n3(y)})`, marker: { color: C_PT, size: 13, line: { color: '#fff', width: 1.5 } } },
+      { x: [0], y: [0], mode: 'markers', name: 'pole O', marker: { color: C_ARROW, size: 8, symbol: 'diamond' } },
+    ]);
+    const other = r === 0 ? 'the pole, for every θ' : `also (${(-r).toFixed(2)}, ${fracPi(k + 1)}) and (${r.toFixed(2)}, ${fracPi(k + 2)})`;
+    Plotly.newPlot(el(id), traces, layout(square(4.8, { title: `(r, θ) = (${r.toFixed(2)}, ${fracPi(k)}) → x = r cos θ = ${n3(x)}, y = r sin θ = ${n3(y)}<br>${other}` })), cfg());
+  }
+
+  // ── P13. Polar curve explorer, traced as θ grows ──────────────
+  const POLAR_FAMILIES = [
+    { name: (a) => `circle r = ${a} cos θ`, f: (a) => t => a * Math.cos(t), range: [0, 1], note: (a) => `x² + y² = ${a}x: centre (${a / 2}, 0), radius ${Math.abs(a) / 2}; traced once for 0 ≤ θ ≤ π` },
+    { name: (a) => `cardioid r = ${a}(1 − sin θ)`, f: (a) => t => a * (1 - Math.sin(t)), range: [0, 2], note: () => 'θ → π − θ leaves r unchanged: symmetric about the vertical axis' },
+    { name: (a, b) => `limaçon r = ${a} + ${b} cos θ`, f: (a, b) => t => a + b * Math.cos(t), range: [0, 2], note: (a, b) => (a < b ? 'a < b: inner loop (r < 0 where cos θ < −a/b)' : a > b ? 'a > b: no inner loop' : 'a = b: a cardioid') + '; θ → −θ: symmetric about the polar axis' },
+    { name: (a, b, n) => `rose r = ${a} cos ${n}θ`, f: (a, b, n) => t => a * Math.cos(n * t), range: [0, 2], note: (a, b, n) => `n = ${n} ${n % 2 ? 'odd → ' + n : 'even → ' + 2 * n} petals` },
+    { name: (a) => `spiral r = ${(1 + Math.abs(a)).toFixed(1)}^θ`, f: (a) => t => Math.pow(1 + Math.abs(a), t), range: [-4, 0.3], note: (a) => (a === 0 ? 'a = 0: r = 1 for every θ, the unit circle' : `each turn multiplies r by ${(1 + Math.abs(a)).toFixed(1)}^(2π) ≈ ${Math.pow(1 + Math.abs(a), 2 * Math.PI).toPrecision(3)}; r → 0 as θ → −∞`) },
+  ];
+  function polarCurve() {
+    const id = 'polar-curve';
+    const fam = Math.round(val(id, 'fam', 1)), a = val(id, 'a', 1), b = val(id, 'b', 2), n = Math.round(val(id, 'n', 2)), T = val(id, 'T', 1);
+    const F = POLAR_FAMILIES[Math.max(0, Math.min(POLAR_FAMILIES.length - 1, fam))];
+    const f = F.f(a, b, n), [t0, t1] = F.range.map(v => v * PI), tEnd = t0 + (t1 - t0) * Math.max(0, Math.min(1, T));
+    const [gx, gy] = polarPath(f, t0, t1, 800), [px, py] = polarPath(f, t0, tEnd, 800);
+    const len = simpson(t => Math.hypot(f(t), (f(t + 1e-5) - f(t - 1e-5)) / 2e-5), t0, tEnd);
+    const R = Math.max(1.5, ...gx.map(Math.abs), ...gy.map(Math.abs)) * 1.08;
+    const traces = polarGrid(Math.ceil(R)).concat([
+      { x: gx, y: gy, mode: 'lines', name: F.name(a, b, n), line: { color: C_GHOST, width: 1.5, dash: 'dot' } },
+      { x: px, y: py, mode: 'lines', name: `traced ${fracPi(t0 / PI)} ≤ θ ≤ ${fracPi(tEnd / PI)}`, line: { color: C_PATH, width: 3.5 } },
+      { x: [px[px.length - 1]], y: [py[py.length - 1]], mode: 'markers', name: `r(θ) = ${f(tEnd).toFixed(3)}${f(tEnd) < 0 ? ' < 0: plotted through the pole' : ''}`, marker: { color: C_PT, size: 11, line: { color: '#fff', width: 1.5 } } },
+    ]);
+    Plotly.newPlot(el(id), traces, layout(square(R, { title: `${F.note(a, b, n)}<br>length traced so far ∫ √(r² + r′²) dθ = ${len.toFixed(3)}` })), cfg());
+  }
+
+  // ── P14. Tangent to the cardioid r = 1 − sin θ ────────────────
+  function polarTangent() {
+    const id = 'polar-tangent';
+    const k = val(id, 'th', 1 / 6), th = k * PI;
+    const f = t => 1 - Math.sin(t), fp = t => -Math.cos(t);
+    const X = t => f(t) * Math.cos(t), Y = t => f(t) * Math.sin(t);
+    const dx = fp(th) * Math.cos(th) - f(th) * Math.sin(th), dy = fp(th) * Math.sin(th) + f(th) * Math.cos(th);
+    const [gx, gy] = polarPath(f, 0, 2 * PI, 600);
+    const x0 = X(th), y0 = Y(th), nrm = Math.hypot(dx, dy);
+    const tl = nrm < 1e-9 ? [[x0, x0], [y0, y0]] : [[x0 - 1.4 * dx / nrm, x0 + 1.4 * dx / nrm], [y0 - 1.4 * dy / nrm, y0 + 1.4 * dy / nrm]];
+    const ht = [PI / 6, 5 * PI / 6, 3 * PI / 2], vt = [7 * PI / 6, 11 * PI / 6];
+    const slope = Math.abs(dx) < 1e-9 ? (Math.abs(dy) < 1e-9 ? 'not defined (0/0: the cusp at the pole)' : '±∞ (vertical tangent)') : n3(dy / dx);
+    const traces = polarGrid(2).concat([
+      { x: gx, y: gy, mode: 'lines', name: 'r = 1 − sin θ', line: { color: C_PATH, width: 3 } },
+      { x: tl[0], y: tl[1], mode: 'lines', name: 'tangent line', line: { color: C_TAN, width: 2.5 } },
+      { x: ht.map(X), y: ht.map(Y), mode: 'markers', name: 'horizontal tangents θ = π/6, 5π/6, 3π/2', marker: { color: C_ARROW, size: 9, symbol: 'square' } },
+      { x: vt.map(X), y: vt.map(Y), mode: 'markers', name: 'vertical tangents θ = 7π/6, 11π/6', marker: { color: '#c084fc', size: 9, symbol: 'diamond' } },
+      { x: [x0], y: [y0], mode: 'markers', name: `P at θ = ${fracPi(k)}`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } },
+    ]);
+    Plotly.newPlot(el(id), traces, layout(square(2.3, { title: `dy/dx = (f′ sin θ + f cos θ)/(f′ cos θ − f sin θ) = ${n3(dy)} / ${n3(dx)} → slope ${slope}` })), cfg());
+  }
+
+  // ── P15. Areas in polar coordinates: the lecture examples ─────
+  const POLAR_AREAS = [
+    { name: 'cardioid r = 1 − sin θ', outer: t => 1 - Math.sin(t), inner: null, a: 0, b: 2 * PI, exact: '3π/2', others: [] },
+    { name: 'inside both r = 4 cos θ and r = 4 sin θ', outer: t => (t <= PI / 4 ? 4 * Math.sin(t) : 4 * Math.cos(t)), inner: null, a: 0, b: PI / 2, exact: '2π − 4', others: [[t => 4 * Math.cos(t), -PI / 2, PI / 2], [t => 4 * Math.sin(t), 0, PI]] },
+    { name: 'inside r = 3 cos θ, outside r = 1 + cos θ', outer: t => 3 * Math.cos(t), inner: t => 1 + Math.cos(t), a: -PI / 3, b: PI / 3, exact: 'π', others: [[t => 3 * Math.cos(t), -PI / 2, PI / 2], [t => 1 + Math.cos(t), 0, 2 * PI]] },
+    { name: 'inner loop of r = 1 + 2 cos θ', outer: t => 1 + 2 * Math.cos(t), inner: null, a: 2 * PI / 3, b: 4 * PI / 3, exact: 'π − 3√3/2', others: [[t => 1 + 2 * Math.cos(t), 0, 2 * PI]] },
+    { name: 'rose r = sin 2θ (four petals)', outer: t => Math.sin(2 * t), inner: null, a: 0, b: 2 * PI, exact: 'π/2', others: [] },
+  ];
+  function polarArea() {
+    const id = 'polar-area';
+    const ex = Math.round(val(id, 'ex', 1)), s = Math.max(0, Math.min(1, val(id, 'sweep', 1)));
+    const E = POLAR_AREAS[Math.max(0, Math.min(POLAR_AREAS.length - 1, ex))];
+    const tEnd = E.a + (E.b - E.a) * s;
+    const g = E.inner || (() => 0);
+    const area = tEnd > E.a ? simpson(t => 0.5 * (E.outer(t) ** 2 - g(t) ** 2), E.a, tEnd, 800) : 0;
+    const [ox, oy] = polarPath(E.outer, E.a, tEnd, 500);
+    const [ix, iy] = E.inner ? polarPath(E.inner, E.a, tEnd, 500) : [[0], [0]];
+    const traces = polarGrid(4);
+    E.others.forEach(([f, a, b]) => { const [x, y] = polarPath(f, a, b, 500); traces.push({ x, y, mode: 'lines', line: { color: C_GHOST, width: 1.5, dash: 'dot' }, hoverinfo: 'skip', showlegend: false }); });
+    if (tEnd > E.a) traces.push({ x: ox.concat(ix.slice().reverse()), y: oy.concat(iy.slice().reverse()), fill: 'toself', mode: 'lines', name: `swept so far: ${area.toFixed(4)}`, line: { color: 'rgba(0,0,0,0)' }, fillcolor: 'rgba(0,166,81,.35)' });
+    const [fx, fy] = polarPath(E.outer, E.a, E.b, 600);
+    traces.push({ x: fx, y: fy, mode: 'lines', name: E.inner ? 'outer curve' : 'boundary', line: { color: C_PATH, width: 3 } });
+    if (E.inner) { const [gx, gy] = polarPath(E.inner, E.a, E.b, 600); traces.push({ x: gx, y: gy, mode: 'lines', name: 'inner curve', line: { color: C_TAN, width: 3 } }); }
+    traces.push({ x: [0, 4.3 * Math.cos(tEnd)], y: [0, 4.3 * Math.sin(tEnd)], mode: 'lines', name: `θ = ${fracPi(tEnd / PI)}`, line: { color: C_ARROW, width: 1.5, dash: 'dash' } });
+    Plotly.newPlot(el(id), traces, layout(square(4.4, { title: `${E.name}: A = ${E.exact}<br>½∫ (r_out² − r_in²) dθ from ${fracPi(E.a / PI)} to ${fracPi(tEnd / PI)} = ${area.toFixed(4)}` })), cfg());
+  }
+
   // ══════════════════════════════════════════════════════════════
   //  MAST 221 — Probability
   // ══════════════════════════════════════════════════════════════
@@ -1655,6 +1764,10 @@
     'param-length-distance': paramLengthDistance,
     'param-surface-revolution': paramSurfaceRevolution,
     'param-loop':          paramLoop,
+    'polar-point':         polarPoint,
+    'polar-curve':         polarCurve,
+    'polar-tangent':       polarTangent,
+    'polar-area':          polarArea,
     // MAST 221
     'dice-sum-grid':       diceSumGrid,
     'empirical-dice':      empiricalDice,
