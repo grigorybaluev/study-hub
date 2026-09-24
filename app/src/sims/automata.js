@@ -32,15 +32,21 @@
       if (!lib) throw new Error('unknown machine ' + spec.machine);
       return crop(Object.assign({}, lib, { states: lib.states.map(q => Object.assign({}, q)) }));   // a copy: the simulator keeps its canvas
     }
-    const raw = Array.isArray(spec.states) ? spec.states : String(spec.states || '').split(',');
-    const items = raw.map(x => String(x).trim().split(/\s+/)).filter(a => a[0]);
+    const list = v => (Array.isArray(v) ? v.map(String) : String(v || '').split(',')).map(x => x.trim()).filter(Boolean);
+    const items = list(spec.states).map(x => x.split(/\s+/));
     let states;
-    if (items.every(a => a.length >= 3)) states = items.map(a => S(a[0], +a[1], +a[2]));
+    if (items.every(a => a.length >= 3)) {
+      states = items.map(a => S(a[0], +a[1], +a[2]));
+      const bad = states.find(q => !Number.isFinite(q.x) || !Number.isFinite(q.y));
+      if (bad) throw new Error('state ' + bad.id + ': coordinates must be numbers ("q0 60 120")');
+    }
     else if (items.length <= 4) states = items.map((a, i) => S(a[0], 90 + i * 150, 120));
     else { const n = items.length, cx = 240, cy = 170, r = 125; states = items.map((a, i) => S(a[0], Math.round(cx + r * Math.cos(Math.PI + 2 * Math.PI * i / n)), Math.round(cy + r * Math.sin(Math.PI + 2 * Math.PI * i / n)))); }
     const m = { id: spec.id || 'inline', type: spec.type || 'dfa', name: spec.name || '', states,
-      start: spec.start || states[0].id, finals: [].concat(spec.finals || []).map(String),
-      trans: expand(String(spec.trans || '')), curves: spec.curves || {} };
+      start: spec.start || states[0].id, finals: list(spec.finals),
+      trans: expand(Array.isArray(spec.trans) ? spec.trans.join(';') : String(spec.trans || '')), curves: spec.curves || {} };
+    const known = new Set(states.map(q => q.id)), unknown = [m.start, ...m.finals, ...m.trans.flatMap(t => [t.from, t.to])].find(id => !known.has(id));
+    if (unknown) throw new Error('state ' + unknown + ' is used but not listed in states');
     m.alphabet = [...new Set(m.trans.map(t => t.sym).filter(x => x !== LAMBDA))].sort();
     return crop(m);
   };
@@ -330,8 +336,10 @@
   const R = 22;
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function stateText(label) { return esc(label).replace(/^q(\d+)$/, 'q<tspan baseline-shift="sub" font-size="11">$1</tspan>'); }
+  let drawCount = 0;   // marker ids must be unique per drawing: a hidden first SVG would otherwise take the arrowheads with it
   function drawMachine(m, hl) {
     hl = hl || {};
+    const uid = 'fa' + (++drawCount);
     const act = new Set(hl.states || []), dead = new Set(hl.dead || []), grey = new Set(hl.grey || []), color = hl.color || {};
     const actEdges = new Set(hl.edges || []);
     const pos = {}; m.states.forEach(s => { pos[s.id] = s; });
@@ -345,7 +353,7 @@
       const label = syms.join(',');
       const active = syms.some(s => actEdges.has(f + '|' + s + '|' + t));
       const cls = 'fa-edge' + (active ? ' active' : '');
-      const mk = active ? 'url(#fa-arrow-a)' : 'url(#fa-arrow)';
+      const mk = active ? 'url(#' + uid + '-arrow-a)' : 'url(#' + uid + '-arrow)';
       if (f === t) {
         const d = 'M ' + (P.x - 10) + ' ' + (P.y - rr + 3) + ' C ' + (P.x - 42) + ' ' + (P.y - rr - 52) + ', ' + (P.x + 42) + ' ' + (P.y - rr - 52) + ', ' + (P.x + 10) + ' ' + (P.y - rr + 3);
         out += '<path d="' + d + '" class="' + cls + '" marker-end="' + mk + '"/><text x="' + P.x + '" y="' + (P.y - rr - 46) + '" class="fa-label">' + esc(label) + '</text>';
@@ -370,13 +378,13 @@
       const isFinal = m.finals.includes(s.id);
       const fill = act.has(s.id) ? '#fca5a5' : dead.has(s.id) ? '#e5e7eb' : (color[s.id] || '#ffffff');
       const stroke = act.has(s.id) ? '#dc2626' : grey.has(s.id) ? '#9ca3af' : '#1e293b';
-      if (s.id === m.start) out += '<path d="M ' + (s.x - rr - 34) + ' ' + s.y + ' L ' + (s.x - rr - 3) + ' ' + s.y + '" class="fa-edge fa-start" marker-end="url(#fa-arrow)"/>';
+      if (s.id === m.start) out += '<path d="M ' + (s.x - rr - 34) + ' ' + s.y + ' L ' + (s.x - rr - 3) + ' ' + s.y + '" class="fa-edge fa-start" marker-end="url(#' + uid + '-arrow)"/>';
       out += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + rr + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + (act.has(s.id) ? 3 : 2) + '"' + (grey.has(s.id) ? ' stroke-dasharray="4 3"' : '') + '/>';
       if (isFinal) out += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + (rr - 5) + '" fill="none" stroke="' + stroke + '" stroke-width="2"/>';
       out += '<text x="' + s.x + '" y="' + (s.y + 5) + '" class="fa-state' + (m.bigLabels ? ' small' : '') + (dead.has(s.id) || grey.has(s.id) ? ' muted' : '') + '">' + stateText(s.label) + '</text>';
       if (dead.has(s.id)) out += '<text x="' + (s.x + rr - 4) + '" y="' + (s.y - rr + 8) + '" class="fa-hang">✕</text>';
     });
-    const defs = '<defs><marker id="fa-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/></marker><marker id="fa-arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker></defs>';
+    const defs = '<defs><marker id="' + uid + '-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b"/></marker><marker id="' + uid + '-arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker></defs>';
     return '<svg class="fa-svg" viewBox="0 0 ' + (m.w || 640) + ' ' + (m.h || 300) + '" preserveAspectRatio="xMidYMid meet">' + defs + out + '</svg>';
   }
   FA.drawMachine = drawMachine;
