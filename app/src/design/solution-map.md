@@ -62,8 +62,9 @@ Write LaTeX strings in single quotes, so backslashes stay as typed.
 
 ### How it reads
 
-- The task is on top. Steps are revealed one at a time (**Next**, **Back**, **Show all**,
-  **Reset**); a revealed step can be clicked to return to it.
+- The task is on top, then the controls bar (**Back**, **Next**, **Show all**, **Reset** and the
+  step count), then the solution. Steps are revealed one at a time; a revealed step can be
+  clicked to return to it.
 - Each step names its node (and the answer taken, at a decision) above its text.
 - The graph shows the path walked so far in the accent colour; the current node has a heavy
   border; the rest of the graph stays visible but faint, so the alternatives not taken are always
@@ -341,7 +342,7 @@ steps:
 - 2026-09-24: six more method graphs and specimens, one per course: distributions (MAST 221),
   linear systems (MAST 234), extrema (MAST 218), regularity (COMP 335), recurrences (COMP 352),
   BCNF (COMP 353). Layout: a method no question leads to sits in the question column; ends wrap
-  two per row (#91).
+  two per row; the controls bar moves between the task and the solution (#91).
 - 2026-09-24: first version (#91): method graphs in `content/methods/`, the `solution-map` block,
   lint of the walk, the stepped view beside a Cytoscape graph; three method graphs and four
   specimens.

@@ -173,6 +173,13 @@ export default function SolutionMap({ source }: { source: string }) {
         <span className="solmap-kind">Solution map</span> <span className="solmap-method">{g.title}</span>
       </div>
       <div className="solmap-task"><Markdown source={cfg.task} /></div>
+      <div className="solmap-controls">
+        <button className="btn" disabled={at === 0} onClick={() => setAt(at - 1)}>◀ Back</button>
+        <button className="btn" disabled={at === last} onClick={() => setAt(at + 1)}>Next ▶</button>
+        <button className="btn btn-quiet" disabled={at === last} onClick={() => setAt(last)}>Show all</button>
+        <button className="btn btn-quiet" disabled={at === 0} onClick={() => setAt(0)}>Reset</button>
+        <span className="solmap-count">step {at + 1} of {steps.length}</span>
+      </div>
       <div className="solmap-body">
         <div className="solmap-steps">
           <ol>
@@ -187,13 +194,6 @@ export default function SolutionMap({ source }: { source: string }) {
               );
             })}
           </ol>
-          <div className="solmap-controls">
-            <button className="btn" disabled={at === 0} onClick={() => setAt(at - 1)}>◀ Back</button>
-            <button className="btn" disabled={at === last} onClick={() => setAt(at + 1)}>Next ▶</button>
-            <button className="btn btn-quiet" disabled={at === last} onClick={() => setAt(last)}>Show all</button>
-            <button className="btn btn-quiet" disabled={at === 0} onClick={() => setAt(0)}>Reset</button>
-            <span className="solmap-count">step {at + 1} of {steps.length}</span>
-          </div>
         </div>
         <MethodView g={g} steps={steps} at={at} />
       </div>
