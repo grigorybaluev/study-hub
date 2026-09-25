@@ -127,7 +127,7 @@ factor you can *integrate* (an exponential, $\sin$, $\cos$, a power of $x$).
 :::note[Reduction formulas]
 Parts applied once to $\int x^n e^x\,dx$ gives
 $x^n e^x - n\int x^{n-1}e^x\,dx$: the power drops by one each round, so $n$ rounds
-finish the job. The same idea yields $\int \sin^n x\,dx = -\tfrac1n \sin^{n-1}x\cos x + \tfrac{n-1}{n}\int \sin^{n-2}x\,dx$, used in the next lecture.
+finish the job. The same idea yields $\int \sin^n x\,dx = -\tfrac1n \sin^{n-1}x\cos x + \tfrac{n-1}{n}\int \sin^{n-2}x\,dx$, used in the next unit.
 :::
 
 :::equations

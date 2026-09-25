@@ -26,7 +26,7 @@ preserving**)?
 > change $G^+$), and no FD is **redundant** (removing it would change $G^+$). It is
 > the smallest description of the same constraints; it is not unique.
 
-The algorithm is three passes, each justified by closures (deck DB05, slides 4–6):
+The algorithm is three passes, each justified by closures:
 1. **split** every right-hand side into single attributes (decomposition rule);
 2. **left reduction**: for each FD $X \to A$ and each attribute $B \in X$, if $A \in
    (X - B)^+$ under the current set, drop $B$ from the left side;
@@ -41,10 +41,10 @@ mode: fd-cover
 attributes: A B C D E H
 fds: ["A -> B", "DE -> A", "BC -> E", "AC -> E", "BCD -> A", "AED -> B"]
 ops: ["cover"]
-note: "The deck's example, twenty steps. Left reduction finds one extraneous attribute: in AED → B, A is implied by ED (ED⁺ = ABDE), so the FD shrinks to ED → B. The redundancy pass then drops AC → E (A → B and BC → E give it), BCD → A and ED → B. Three FDs remain: G = {A → B, DE → A, BC → E}. A different order of checks can give a different cover (slide 20)."
+note: "An example, twenty steps. Left reduction finds one extraneous attribute: in AED → B, A is implied by ED (ED⁺ = ABDE), so the FD shrinks to ED → B. The redundancy pass then drops AC → E (A → B and BC → E give it), BCD → A and ED → B. Three FDs remain: G = {A → B, DE → A, BC → E}. A different order of checks can give a different cover."
 ```
 
-Two remarks the deck makes: the order in which FDs are examined can change the
+Two remarks: the order in which FDs are examined can change the
 answer — for $R(A, B, C)$ with $F = \{A \to B, B \to C, C \to A, A \to C, B \to A,
 C \to B\}$ both $\{A \to B, B \to C, C \to A\}$ and $\{A \to B, B \to A, B \to C,
 C \to B\}$ are canonical covers — and left reduction must come *before* the
@@ -61,7 +61,7 @@ to be removed.
 
 Splitting can lose information. Joining the pieces back always returns *at least* the
 original tuples, and it may return more — **spurious tuples** — when the shared
-attributes do not identify the rows (deck DB05, slides 25–26): `R(A, B, C)` with
+attributes do not identify the rows: `R(A, B, C)` with
 $(1, 2, 3), (4, 2, 5)$ split into $(A, B)$ and $(B, C)$ joins back to four tuples,
 two of them invented.
 
@@ -81,7 +81,7 @@ attributes: name address phone
 fds: ["name -> address"]
 decomposition: "name, address; name, phone"
 ops: ["chase"]
-note: "Star split into (name, address) and (name, phone): the shared attribute name determines address, so name is a key of the first piece and the join is lossless — the tableau's second row loses its subscript in one step. Now test the bad split from the deck: attributes A B C, no FDs, decomposition AB, BC — nothing ever equates, the decomposition is lossy."
+note: "Star split into (name, address) and (name, phone): the shared attribute name determines address, so name is a key of the first piece and the join is lossless — the tableau's second row loses its subscript in one step. Now test the bad split: attributes A B C, no FDs, decomposition AB, BC — nothing ever equates, the decomposition is lossy."
 ```
 
 ## Dependency preservation
@@ -94,8 +94,8 @@ update, which defeats the purpose.
 > **Definition.** The **projection** of $F$ onto $R_i$, $\pi_{R_i}(F)$, is the set of
 > FDs $X \to Y$ in $F^+$ with $X, Y \subseteq R_i$. A decomposition is
 > **dependency-preserving** if $(\pi_{R_1}(F) \cup \dots \cup \pi_{R_k}(F))^+ = F^+$ —
-> every FD of $F$ follows from FDs that live inside single pieces. The deck's example
-> (slides 29–30): $R(A, B, C, D)$ with $F = \{A \to B, B \to C, C \to D, A \to D\}$
+> every FD of $F$ follows from FDs that live inside single pieces. An example:
+> $R(A, B, C, D)$ with $F = \{A \to B, B \to C, C \to D, A \to D\}$
 > decomposed into $R_1(A, B)$, $R_2(B, C)$, $R_3(C, D)$ preserves every FD — $A \to D$
 > is implied by the chain — while $R(A, B, C)$ with $\{A \to B, B \to C\}$ split into
 > $(A, B)$ and $(A, C)$ does not: $B \to C$ needs both pieces.
@@ -127,5 +127,4 @@ note: "For each FD the projected closure is computed: closure steps may only use
 
 ## Further reading
 
-- [Ullman & Widom — ch. 3.2–3.4](http://infolab.stanford.edu/~ullman/fcdb.html) — Minimal bases, projecting FDs, lossless joins and dependency preservation.
 - [Silberschatz, Korth & Sudarshan — Database System Concepts, ch. 7](https://www.db-book.com/) — The same material with the canonical-cover algorithm stated as pseudocode.

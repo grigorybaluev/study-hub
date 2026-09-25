@@ -12,8 +12,8 @@ reinforces: []
 
 Differentiation run backwards. Given $f$, which functions $F$ have $F' = f$? The answer
 is a whole family, one member per constant, and a table of the standard ones is read
-straight off the derivative table. This lecture has nothing to do with area yet — the
-connection to the definite integral is the fundamental theorem of the next lecture.
+straight off the derivative table. This unit has nothing to do with area yet — the
+connection to the definite integral is the fundamental theorem of the next unit.
 
 ## Definition
 

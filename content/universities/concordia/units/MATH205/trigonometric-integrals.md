@@ -11,7 +11,7 @@ reinforces: []
 ---
 
 Products of powers of trigonometric functions come up on their own and, more
-importantly, as the leftovers of trigonometric substitution (next lecture). There is no
+importantly, as the leftovers of trigonometric substitution (next unit). There is no
 new theorem here — only substitution plus two identities, organised into cases by
 which exponent is odd.
 

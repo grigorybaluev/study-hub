@@ -32,7 +32,7 @@ A **set** is a collection of elements (objects). $A = \{1, 2, 3\}$, $B = \{\text
 
 ### Set operations
 
-With $A = \{1,2,3\}$ and $B = \{2,3,4,5\}$ (Venn diagrams on the slides):
+With $A = \{1,2,3\}$ and $B = \{2,3,4,5\}$:
 
 | Operation | Result |
 |---|---|
@@ -82,7 +82,7 @@ defaults:
   A: 1, 2, 3
   B: 2, 3, 4, 5
   U: 1, 2, 3, 4, 5, 6, 7
-note: 'Type comma-separated elements. The defaults are the slide examples: A = {1,2,3}, B = {2,3,4,5}, U = {1,…,7}. Try A = a, b, c to see the 8-element powerset, or A = 2, 4 and B = 2, 3, 5 for the Cartesian product.'
+note: 'Type comma-separated elements. The defaults are the examples above: A = {1,2,3}, B = {2,3,4,5}, U = {1,…,7}. Try A = a, b, c to see the 8-element powerset, or A = 2, 4 and B = 2, 3, 5 for the Cartesian product.'
 ```
 
 ```python
@@ -119,7 +119,7 @@ Languages are sets of strings, so every set operation on this page (∪, ∩, �
 
 :::definition[Function: total and partial]
 A function $f : A \to B$ maps elements of the **domain** $A$ to elements of the **codomain** $B$; the set of values actually taken, $\{f(x) : x \in A\}$, is the **range**. If $f$ is defined on all of $A$ it is a **total function**; otherwise it is a **partial function**.
-On the slide: $A = \{1,2,3,4,5\}$, $B = \{a,b,c,d\}$, $f(1) = a$, …; element 4 of the domain has no image, so $f$ is partial. (Keep this in mind: the transition function of a DFA is *total* in our textbook; an NFA's is not.)
+For example, $A = \{1,2,3,4,5\}$, $B = \{a,b,c,d\}$, $f(1) = a$, …; element 4 of the domain has no image, so $f$ is partial. (Keep this in mind: the transition function of a DFA is *total* in this course; an NFA's is not.)
 :::
 
 ### Relations
@@ -154,7 +154,7 @@ equivalence classes of indistinguishable states".)
 ### Graphs
 
 :::definition[Directed graph, walk, path, cycle]
-A **directed graph** $G = \langle V, E \rangle$ has nodes (vertices) $V$ and edges $E \subseteq V \times V$. Slide example: $V = \{a,b,c,d,e\}$ and
+A **directed graph** $G = \langle V, E \rangle$ has nodes (vertices) $V$ and edges $E \subseteq V \times V$. For example, $V = \{a,b,c,d,e\}$ and
 
 $$
 \begin{aligned} E = \{&(a,b), (b,c), (b,e), (c,a), \\ &(c,e), (d,c), (e,b), (e,d)\}. \end{aligned}
@@ -164,7 +164,7 @@ $$
 - A **walk** is a sequence of adjacent edges, e.g. $(e,d), (d,c), (c,a)$.
 - A **path** is a walk in which no edge is repeated; a **simple path** repeats no node.
 - A **cycle** is a walk from a node (the base) back to itself; in a **simple cycle** only the base node is repeated.
-- **Trees** have no cycles: root, parent / child, leaves, levels (root at level 0) and height (the deepest level; the slide tree has height 3).
+- **Trees** have no cycles: root, parent / child, leaves, levels (root at level 0) and height (the deepest level; the example tree has height 3).
 :::
 
 ```sim
@@ -177,14 +177,14 @@ defaults:
   nodes: a, b, c, d, e
   edges: a b, b c, b e, c a, c e, d c, e b, e d
   walk: e d c a
-note: 'Left: the slide relation R on {1,2,3,4} drawn as a graph; the tool checks reflexive / symmetric / transitive and lists the equivalence classes [1]_R = {1,2}, [3]_R = {3,4} — remove a pair (e.g. "2 1") to see which property breaks. Right: the slide graph G = ⟨V,E⟩; type a sequence of nodes to see whether it is a walk, path, simple path, cycle or simple cycle (try e d c a, then a b c a, then b e b c a).'
+note: 'Left: the example relation R on {1,2,3,4} drawn as a graph; the tool checks reflexive / symmetric / transitive and lists the equivalence classes [1]_R = {1,2}, [3]_R = {3,4} — remove a pair (e.g. "2 1") to see which property breaks. Right: the example graph G = ⟨V,E⟩; type a sequence of nodes to see whether it is a walk, path, simple path, cycle or simple cycle (try e d c a, then a b c a, then b e b c a).'
 ```
 
 ```python
-# The three properties of an equivalence relation checked mechanically on the slide
+# The three properties of an equivalence relation checked mechanically on the example
 # relation, its equivalence classes, and a check that a sequence of edges is a walk
 # (edges exist and are adjacent).
-# An equivalence relation given as a set of pairs (slide example)
+# An equivalence relation given as a set of pairs
 R = {(1,1), (2,2), (1,2), (2,1), (3,3), (4,4), (3,4), (4,3)}
 A = {1, 2, 3, 4}
 
@@ -307,7 +307,7 @@ Induction proves a statement for every n from a basis and a step; contradiction 
 
 :::equations
 - *Induction*: $P(1) \;\wedge\; \big(\forall k:\; P(k) \Rightarrow P(k+1)\big) \;\Longrightarrow\; \forall i\; P(i)$ — Basis plus inductive step.
-- *Sum formula*: $0 + 1 + 2 + \dots + n = \frac{n(n+1)}{2}$ — The induction example on the slides.
+- *Sum formula*: $0 + 1 + 2 + \dots + n = \frac{n(n+1)}{2}$ — The induction example above.
 - *Pigeonhole*: $\begin{gathered} n \text{ objects in } m \text{ boxes},\quad n > m \\[4pt] \Rightarrow\quad \text{some box holds at least 2 objects} \end{gathered}$ — Used later to prove non-regularity.
 :::
 

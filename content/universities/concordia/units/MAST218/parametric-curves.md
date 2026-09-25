@@ -18,7 +18,7 @@ them: tangent lines and areas.
 
 ### Why a parameter?
 
-Not every curve in the plane can be written as $y = F(x)$ (or as $x = F(y)$). The lecture opened with an equation like
+Not every curve in the plane can be written as $y = F(x)$ (or as $x = F(y)$). Consider an equation like
  $$x^2 + 2^{x+1} + x\ln(4y+1) = y \quad ???$$
 
 There is no way to isolate $y$ here, so we cannot describe the curve as the graph of a function. The way out is to describe **both** the $x$ and $y$ coordinates as functions of a *third* variable, called the **parameter**.
@@ -62,7 +62,7 @@ note: 'The curve is Example 1: x = t², y = √t. Drag t forward and watch the p
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Example 1 from the notes: x = t^2, y = sqrt(t), t in [0, inf)
+# Example 1: x = t^2, y = sqrt(t), t in [0, inf)
 t = np.linspace(0, 4, 400)
 x, y = t**2, np.sqrt(t)
 
@@ -143,7 +143,7 @@ id: param-line
 controls:
   - {id: tmin, label: "Parameter start t\u2081", min: -3, max: 6, step: 0.1, default: 0, decimals: 1}
   - {id: tmax, label: "Parameter end t\u2082", min: -3, max: 6, step: 0.1, default: 5, decimals: 1}
-note: 'This is the lecture line x = t − 2, y = −2t + 3 (dashed, all of ℝ). The solid part is the piece traced as t runs from t₁ to t₂: A is the initial point (t = t₁), B the terminal point (t = t₂), and the arrow shows the direction of motion. Defaults reproduce the notes: t = 0 → (−2, 3), t = 5 → (3, −7). Set t₁ > t₂ and the same segment is traced the other way — the arrow flips.'
+note: 'This is the example line x = t − 2, y = −2t + 3 (dashed, all of ℝ). The solid part is the piece traced as t runs from t₁ to t₂: A is the initial point (t = t₁), B the terminal point (t = t₂), and the arrow shows the direction of motion. Defaults reproduce the example: t = 0 → (−2, 3), t = 5 → (3, −7). Set t₁ > t₂ and the same segment is traced the other way — the arrow flips.'
 ```
 
 ```python
@@ -369,7 +369,7 @@ def circle(a, b, r, t0=0, t1=2*np.pi, n=400):
     t = np.linspace(t0, t1, n)
     return a + r*np.cos(t), b + r*np.sin(t)
 
-# The smiley face from the notes
+# The smiley face
 plt.plot(*circle(3, 3, 3),                    lw=2, label='face  (3,3), r=3')
 plt.plot(*circle(2, 4, 0.1),                  lw=2, label='left eye  (2,4), r=0.1')
 plt.plot(*circle(4, 4, 0.1),                  lw=2, label='right eye (4,4), r=0.1')
@@ -390,7 +390,7 @@ Everything about a circle is controlled by four knobs: the centre (a, b) shifts 
 
 ## Worked Example: The Smiley Face
 
-The lecture ended the circles discussion with a drawing exercise: build a smiley face out of parametric circles. It is a compact test of everything in the previous topic.
+A drawing exercise closes the circles discussion: build a smiley face out of parametric circles. It is a compact test of everything in the previous topic.
 
 | Piece | Centre $(a,b)$ | Radius $r$ | Parametric equations | $t$-interval |
 |---|---|---|---|---|
@@ -504,7 +504,7 @@ note: 'The curve x = 1 + ∛t, y = e^{t³} from the example, with the tangent li
 ```
 
 ```python
-# Both methods from the notes, done symbolically. SymPy confirms the slope 9e twice —
+# Both methods, done symbolically. SymPy confirms the slope 9e twice —
 # from y′(t)/x′(t) at t₀ = 1, and from the Cartesian form y = e^{(x−1)^9}.
 import sympy as sp
 
@@ -599,7 +599,7 @@ note: The shaded region is under the arc x = 2 cos t, y = 2 sin t from t = 0 up 
 ```
 
 ```python
-# The two integrals from the notes. Note the reversed limits (π/2 → 0) in A1: they
+# The two integrals. Note the reversed limits (π/2 → 0) in A1: they
 # come from converting the x-limits 0 → 2 into t-limits, and the negative x′(t) makes
 # the result positive.
 import sympy as sp
@@ -635,9 +635,9 @@ Area on a parametric curve is just the substitution x = f(t) inside ∫ y dx: re
 
 ## Further reading
 
-- [Paul's Online Notes — Parametric Equations and Curves](https://tutorial.math.lamar.edu/Classes/CalcII/ParametricEqn.aspx) — Many fully worked sketching examples with direction of motion, in the same spirit as the lecture.
+- [Paul's Online Notes — Parametric Equations and Curves](https://tutorial.math.lamar.edu/Classes/CalcII/ParametricEqn.aspx) — Many fully worked sketching examples with direction of motion, with direction of motion.
 - [Paul's Online Notes — Parametric Equations and Curves](https://tutorial.math.lamar.edu/Classes/CalcII/ParametricEqn.aspx) — More examples of eliminating the parameter and finding the direction of motion.
 - [Paul's Online Notes — Parametric Equations and Curves](https://tutorial.math.lamar.edu/Classes/CalcII/ParametricEqn.aspx) — Includes examples of parametrising a segment between two points.
-- [Paul's Online Notes — Parametric Equations (circle & ellipse examples)](https://tutorial.math.lamar.edu/Classes/CalcII/ParametricEqn.aspx) — Discusses how changing to cos(nt), sin(nt) changes the number of traversals, exactly as in the lecture.
+- [Paul's Online Notes — Parametric Equations (circle & ellipse examples)](https://tutorial.math.lamar.edu/Classes/CalcII/ParametricEqn.aspx) — Discusses how changing to cos(nt), sin(nt) changes the number of traversals.
 - [Paul's Online Notes — Tangents with Parametric Equations](https://tutorial.math.lamar.edu/Classes/CalcII/ParaTangent.aspx) — The dy/dx = (dy/dt)/(dx/dt) formula with horizontal/vertical tangent examples, plus the second derivative.
 - [Paul's Online Notes — Area with Parametric Equations](https://tutorial.math.lamar.edu/Classes/CalcII/ParaArea.aspx) — Derivation of A = ∫ g(t) f′(t) dt and a discussion of the orientation of the limits.

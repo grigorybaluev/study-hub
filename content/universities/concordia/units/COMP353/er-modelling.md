@@ -46,7 +46,7 @@ er:
     - {name: Stars-in, between: [Movies, Stars]}
     - {name: Owns, between: [Movies, Studios], arrow: [Studios]}
   layout: {Movies: [50, 25], Stars: [15, 70], Studios: [85, 70]}
-note: "The deck's running example: three entity sets, a many-many relationship (no arrows) and a many-one one — the arrow into Studios says a movie is owned by at most one studio. Underlined attributes are keys. Press convert to relations to see, one element at a time, the schema this diagram becomes (unit 5 explains the rules)."
+note: "The running example: three entity sets, a many-many relationship (no arrows) and a many-one one — the arrow into Studios says a movie is owned by at most one studio. Underlined attributes are keys. Press convert to relations to see, one element at a time, the schema this diagram becomes (unit 5 explains the rules)."
 ```
 
 ## Multiplicity
@@ -64,7 +64,7 @@ note: "The deck's running example: three entity sets, a many-many relationship (
 connects three or more sets — `Contracts` among `Stars`, `Movies` and `Studios` — and
 an arrow into one of them means: for each choice of entities from the *other* sets
 there is at most one entity of that set. Any $n$-ary relationship can be replaced by a
-connecting entity set and $n$ binary many-one relationships (slides 26–28), which some
+connecting entity set and $n$ binary many-one relationships, which some
 notations require.
 
 An attribute may hang off a relationship (`salary` on `Contracts`); it can always be
@@ -80,12 +80,12 @@ relationship — `Sequel-of` between `Movies` and `Movies` — the two lines car
 > attribute and relationship of `Movies` — and in addition its own (`Voices` to
 > `Stars`). In E/R an entity may belong to several subclasses at once (a
 > `MurderMystery` cartoon), unlike object-oriented inheritance where an object has one
-> most-specific class (slide 31).
+> most-specific class.
 
 ## Constraints
 
 Everything said so far except multiplicity is structure; **constraints** add the
-rules the real world imposes (slides 32–45):
+rules the real world imposes:
 
 - **Keys.** A **superkey** is a set of attributes whose values determine the entity
   uniquely; a **key** (candidate key) is a minimal superkey; the designer picks one as
@@ -151,7 +151,7 @@ er:
 note: "A weak entity set (double box) with its supporting relationship (double diamond, arrow into Studios), and an isa subclass with its own relationship. Convert to relations: Crews gets the studio's name into its key; Cartoons gets the key of Movies plus nothing of its own; Unit-of needs no relation at all."
 ```
 
-Design principles (slides 52–53): model the reality faithfully, avoid redundancy (every
+Design principles: model the reality faithfully, avoid redundancy (every
 fact in one place), keep the design simple (do not introduce an entity set for what is
 an attribute), and choose the right element — an attribute when the thing has no
 further structure, an entity set when it has attributes of its own or takes part in
@@ -164,5 +164,4 @@ relationships.
 
 ## Further reading
 
-- [Ullman & Widom — ch. 4](http://infolab.stanford.edu/~ullman/fcdb.html) — The E/R model with the same movie examples.
 - [Chen, "The Entity-Relationship Model — Toward a Unified View of Data" (1976)](https://dl.acm.org/doi/10.1145/320434.320440) — The original paper; still readable in an afternoon.

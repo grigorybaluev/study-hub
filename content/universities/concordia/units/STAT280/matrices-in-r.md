@@ -34,7 +34,7 @@ $$
 
 Statistics uses it everywhere: regression, smoothing, simulation (the Cholesky factor of the simulation
 units). On a computer, two questions come first: is the answer **accurate** (rounding error), and
-is it **efficient**? Both often mean computing differently from the textbook formula: we will
+is it **efficient**? Both often mean computing differently formula: we will
 see that $\mathbf x = A^{-1}\mathbf b$ is the wrong way to solve $A\mathbf x = \mathbf b$. R calls the
 well-tested LAPACK library for this work.
 

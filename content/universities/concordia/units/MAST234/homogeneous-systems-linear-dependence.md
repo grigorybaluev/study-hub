@@ -138,7 +138,7 @@ nontrivial combination (the coefficient of $\mathbf v_i$ is $-1$).
 The rows of a matrix $A$ are linearly dependent if and only if the RREF of $A$ has a row of zeros.
 
 :::proof
-($\Rightarrow$, the direction proved in the lecture.) Reordering rows does not change dependence,
+(The $\Rightarrow$ direction.) Reordering rows does not change dependence,
 so by the previous theorem we may assume the last row is a combination of the others,
 $\mathbf r_{m-1} = c_0 \mathbf r_0 + \cdots + c_{m-2} \mathbf r_{m-2}$. The row operations
 $-c_j \mathbf r_j + \mathbf r_{m-1} \to \mathbf r_{m-1}$ for $j = 0, \dots, m-2$ turn the last row into $\mathbf 0$; reducing the
@@ -254,11 +254,11 @@ Two $m \times n$ matrices $A$ and $B$ are row equivalent if and only if $\ker(A)
 
 :::proof
 ($\Rightarrow$) $A \sim B$ means they have the same RREF, and the kernel is read off the RREF alone,
-so $\ker(A) = \ker(B)$. The converse is also true; the lecture states it without proof.
+so $\ker(A) = \ker(B)$. The converse is also true; we state it without proof.
 :::
 ::::
 
-::::exercise[From the lecture]
+::::exercise[Computing a kernel]
 Compute the kernel of
 $A = \begin{bmatrix} 1 & 3 & -2 & 0 \\ 3 & 10 & -7 & 1 \\ -5 & -5 & 3 & 7 \end{bmatrix}$.
 
@@ -287,5 +287,4 @@ otherwise one particular solution plus the whole kernel.
 
 ## Further reading
 
-- [Nicholson, *Linear Algebra with Applications*, §5.2](https://lyryx.com/linear-algebra-applications/) — independence and dimension.
 - [SageMath matrix methods](https://doc.sagemath.org/html/en/reference/matrices/sage/matrix/matrix2.html) — `right_kernel`, `rref`, `rank`.

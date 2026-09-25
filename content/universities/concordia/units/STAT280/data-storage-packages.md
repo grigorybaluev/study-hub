@@ -101,10 +101,10 @@ controls:
   - {id: nrow, label: nrow, min: 1, max: 5, step: 1, default: 2, decimals: 0}
   - {id: ncol, label: ncol, min: 1, max: 6, step: 1, default: 4, decimals: 0}
   - {id: k, label: 'Single index k in A[k]', min: 1, max: 30, step: 1, default: 3, decimals: 0}
-note: 'A <- matrix(1:(nrow*ncol), nrow, ncol) is filled column by column, so A[k] walks down each column in turn. The highlighted cell is A[k]; the title gives the equivalent A[i, j]. Defaults reproduce the slide: A[3] = 3 = A[1, 2]. An index beyond nrow·ncol returns NA, exactly as in R.'
+note: 'A <- matrix(1:(nrow*ncol), nrow, ncol) is filled column by column, so A[k] walks down each column in turn. The highlighted cell is A[k]; the title gives the equivalent A[i, j]. Defaults reproduce the example: A[3] = 3 = A[1, 2]. An index beyond nrow·ncol returns NA, exactly as in R.'
 ```
 
-Lecture 3's matrix examples plus dim()/byrow = TRUE and the true matrix square B %*% B, to contrast with the entry-wise B^2 on the slide.
+The matrix examples above, plus dim()/byrow = TRUE and the true matrix square B %*% B, to contrast with the entry-wise B^2.
 
 ```r
 A <- matrix(1:8, nrow = 2, ncol = 4); A
@@ -205,7 +205,7 @@ v[2, 3, 4]
 ## [1] 24
 ```
 
-The letters array from the slides, every kind of section, and the dim<- trick that shows an array is a vector wearing a dim attribute.
+The letters array, every kind of section, and the dim<- trick that shows an array is a vector wearing a dim attribute.
 
 ## Floating Point & Round-off Error
 
@@ -221,7 +221,7 @@ sin(pi*n)
 
 Mathematically all three are 0. The accumulation of such errors can cause real problems: computational errors due to round-off led to real-world accidents, including the wrong pricing of stock-market indices and erroneous computation of missile trajectories (see the MathWorld link below).
 
-### Equivalent formulas, different results (Example 2.2)
+### Equivalent formulas, different results
 
 The standard formula for the **sample variance** of $x_1, \dots, x_n$ is
  $$s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar x)^2, \qquad \bar x = \frac{1}{n}\sum_{i=1}^{n} x_i .$$
@@ -282,7 +282,7 @@ note: A fixed sample of 10 values in [0, 10] is shifted by A = 10^k and both for
 ...
 ```
 
-The sin(pi*n) demonstration, all.equal() as the safe comparison, and Example 2.2 written as two small functions so the shift experiment is one line. The final sapply shows the one-pass error increasing with the shift A.
+The sin(pi*n) demonstration, all.equal() as the safe comparison, and the two variance formulas written as two small functions so the shift experiment is one line. The final sapply shows the one-pass error increasing with the shift A.
 
 ```r
 # Round-off: these should all be exactly 0
@@ -294,7 +294,7 @@ sin(pi) == 0
 all.equal(sin(pi), 0)          # the right way to compare floating-point numbers
 ## [1] TRUE
 
-# Example 2.2: two formulas for the sample variance
+# Two formulas for the sample variance
 set.seed(1)
 x <- runif(10, min = 0, max = 10)
 n <- length(x)
@@ -397,13 +397,13 @@ Sys.Date() + 30                 # dates support arithmetic (30 days later)
 format(Sys.Date(), "%d %B %Y")  # see ?strptime for the format codes
 ```
 
-The NA / NaN / Inf examples from the slides, the na.rm = TRUE idiom for summaries, and a taste of date arithmetic and formatting.
+The NA / NaN / Inf examples, the na.rm = TRUE idiom for summaries, and a taste of date arithmetic and formatting.
 
 ## Further reading
 
 - [R documentation — matrix](https://stat.ethz.ch/R-manual/R-devel/library/base/html/matrix.html) — matrix(), byrow, dimnames.
 - [R documentation — matmult (%*%)](https://stat.ethz.ch/R-manual/R-devel/library/base/html/matmult.html) — Matrix multiplication and the crossprod shortcuts.
-- [MathWorld — Roundoff Error](https://mathworld.wolfram.com/RoundoffError.html) — The historical examples referenced on the slide (Patriot missile, Vancouver stock index, …).
+- [MathWorld — Roundoff Error](https://mathworld.wolfram.com/RoundoffError.html) — Historical examples of round-off going wrong (Patriot missile, Vancouver stock index, …).
 - [R FAQ 7.31 — Why doesn't R think these numbers are equal?](https://cran.r-project.org/doc/FAQ/R-FAQ.html#Why-doesn_0027t-R-think-these-numbers-are-equal_003f) — The canonical explanation of floating-point comparison in R.
 - [R documentation — NA](https://stat.ethz.ch/R-manual/R-devel/library/base/html/NA.html) — NA, is.na and how missing values propagate.
-- [R documentation — strptime (date formats)](https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html) — The %Y-%m-%d style format codes mentioned on the slide.
+- [R documentation — strptime (date formats)](https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html) — The %Y-%m-%d style format codes.

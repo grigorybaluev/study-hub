@@ -62,7 +62,7 @@ kind: strings
 defaults:
   u: abba
   v: bbbaaa
-note: Every string operation from the slides on the strings you type. Defaults reproduce the slide examples (abba, bbbaaa). Try u = abbab to see the prefix / suffix / substring lists, or an empty u for λ.
+note: Every string operation on the strings you type. Defaults reproduce the examples above (abba, bbbaaa). Try u = abbab to see the prefix / suffix / substring lists, or an empty u for λ.
 ...
 ```
 
@@ -145,7 +145,7 @@ $$
   $$
 :::
 
-::::exercise[From the slides]
+::::exercise[Closure and star]
 When is $L^+ = L^* - \{\lambda\}$?
 
 :::solution
@@ -164,13 +164,13 @@ defaults:
   L1: a, bb
   L2: b, aa
   n: '4'
-note: Finite languages typed as comma-separated strings (λ for the empty string). Defaults show {a, bb}* and {a, bb}⁺ from the slides truncated at length 4. Try L₁ = a, ab, bab and L₂ = b, aa for the concatenation example, or L₁ = a, ab, aaaa and L₂ = bb, ab for the set operations.
+note: Finite languages typed as comma-separated strings (λ for the empty string). Defaults show {a, bb}* and {a, bb}⁺ truncated at length 4. Try L₁ = a, ab, bab and L₂ = b, aa for the concatenation example, or L₁ = a, ab, aaaa and L₂ = bb, ab for the set operations.
 ...
 ```
 
 ```python
 # Concatenation, powers and (truncated) star closure implemented directly from the
-# definitions; the examples reproduce the slides.
+# definitions; the examples reproduce the ones above.
 from itertools import product
 
 def concat(L1, L2):
@@ -345,6 +345,6 @@ A derivation is a sequence of rewriting steps S ⇒ … ⇒ w, each replacing on
 - *Grammar*: $G = (V, T, S, P)$ — Variables, terminals, start variable, productions.
 - *Derivation relation*: $w_1 \overset{*}{\Rightarrow} w_n \iff w_1 \Rightarrow w_2 \Rightarrow \dots \Rightarrow w_n \quad (\text{and } w \overset{*}{\Rightarrow} w)$ — Zero or more derivation steps.
 - *Language of a grammar*: $L(G) = \{\, w \in T^* : S \overset{*}{\Rightarrow} w \,\}$ — All terminal strings derivable from S.
-- *The two example grammars*: $\begin{gathered} S \to aSb \mid \lambda \quad\Rightarrow\quad L(G) = \{a^n b^n : n \ge 0\} \\[4pt] S \to Ab,\ A \to aAb \mid \lambda \quad\Rightarrow\quad L(G) = \{a^n b^n b : n \ge 0\} \end{gathered}$ — From the slides.
+- *The two example grammars*: $\begin{gathered} S \to aSb \mid \lambda \quad\Rightarrow\quad L(G) = \{a^n b^n : n \ge 0\} \\[4pt] S \to Ab,\ A \to aAb \mid \lambda \quad\Rightarrow\quad L(G) = \{a^n b^n b : n \ge 0\} \end{gathered}$ — The two grammars of the examples.
 :::
 

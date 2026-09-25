@@ -93,8 +93,7 @@ note: "Every movie survives; Indie Film gets NULLs for the studio. Change LEFT t
 
 Referential integrity can be broken from either side: inserting a referencing tuple
 whose value does not exist (always rejected), and deleting or updating the referenced
-tuple. For the second, a **policy** is chosen per foreign key (deck DB10, slides
-34–42): `ON DELETE/UPDATE NO ACTION` (the default: reject the change), `CASCADE`
+tuple. For the second, a **policy** is chosen per foreign key: `ON DELETE/UPDATE NO ACTION` (the default: reject the change), `CASCADE`
 (delete or update the referencing tuples too), `SET NULL` (disconnect them). A
 studio whose president retires might `SET NULL` its `presC#`; deleting an executive
 who is a president then blanks the studio's field rather than failing.
@@ -143,7 +142,7 @@ triggers come in.
 > *tables*; the action is any sequence of SQL statements, which may undo the change
 > or raise an error.
 
-The deck's example (slides 55–63): after an update of `netWorth` on `MovieExec`, if
+An example: after an update of `netWorth` on `MovieExec`, if
 the new value is smaller than the old, put it back — a constraint "net worth never
 decreases" that no `CHECK` can state, because it compares two versions of a tuple.
 Row-level triggers see each tuple; a statement-level trigger sees the whole change
@@ -189,4 +188,3 @@ note: "The first update tries to lower a net worth: the trigger fires after the 
 ## Further reading
 
 - [SQLite — CREATE TRIGGER](https://www.sqlite.org/lang_createtrigger.html) — The trigger dialect that runs on this page, with `RAISE` and `INSTEAD OF`.
-- [Ullman & Widom — ch. 7](http://infolab.stanford.edu/~ullman/fcdb.html) — Keys, foreign keys, checks, assertions and triggers as in the deck.

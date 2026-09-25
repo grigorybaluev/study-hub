@@ -61,7 +61,7 @@ note: "Keys first (ABE and ACE — E is on no right-hand side), then every FD is
 > of the first), so the result is a lossless decomposition into BCNF schemas. It need
 > not be dependency-preserving: an FD may end up spanning two pieces.
 
-The deck's example (DB06, slide 6): $R = ABCDE$ with $F = \{A \to B, C \to D\}$ — the
+An example: $R = ABCDE$ with $F = \{A \to B, C \to D\}$ — the
 key is $ACE$; $A \to B$ violates BCNF, so split into $A^+ = AB$ and $ACDE$; in $ACDE$,
 $C \to D$ violates, split into $CD$ and $ACE$. Result: $AB, CD, ACE$, lossless and,
 here, also dependency-preserving.
@@ -75,7 +75,7 @@ name: R
 attributes: A B C D E
 fds: ["A -> B", "C -> D"]
 ops: ["bcnf"]
-note: "The deck's example: two splits, three relations, every FD inside one piece. Now change the FDs to {AB → C, C → B} (the zip-code shape): BCNF decomposition on C → B gives CB and AC — and AB → C now spans both relations, so it is no longer enforceable without a join. That loss is the price of BCNF; 3NF synthesis below refuses to pay it."
+note: "An example: two splits, three relations, every FD inside one piece. Now change the FDs to {AB → C, C → B} (the zip-code shape): BCNF decomposition on C → B gives CB and AC — and AB → C now spans both relations, so it is no longer enforceable without a join. That loss is the price of BCNF; 3NF synthesis below refuses to pay it."
 ```
 
 ## 3NF synthesis
@@ -87,9 +87,9 @@ note: "The deck's example: two splits, three relations, every FD inside one piec
 > construction (each FD of $G$ sits in its own relation) and lossless (the key relation
 > or a relation containing a key makes the chase succeed).
 
-The deck's example (DB06, slides 8–11): $R = ABCDE$ with $F = \{BD \to E, C \to B,
+An example: $R = ABCDE$ with $F = \{BD \to E, C \to B,
 CE \to A\}$ gives $BDE$, $BC$, $ACE$; none of them contains the key $CD$, so the
-relation $CD$ is added to make the join lossless. The last slide's example, $R = ABC$
+relation $CD$ is added to make the join lossless. A last example, $R = ABC$
 with $\{A \to B, C \to B\}$, shows the other trap: 3NF synthesis yields $AB$, $CB$ and
 the key relation $AC$; each piece is in BCNF, but the decomposition would not have
 been found by asking for BCNF alone.
@@ -109,7 +109,7 @@ note: "One relation per FD of the canonical cover — BDE, BC, ACE — then the 
 ## The chase test
 
 For decompositions into more than two pieces, losslessness is decided by the
-**chase** (deck DB06, slides 13–15):
+**chase**:
 
 > **Definition.** Build a **tableau** with one row per $R_i$ and one column per
 > attribute of $R$: in row $i$, write the unsubscripted symbol $a$ for each attribute of
@@ -129,7 +129,7 @@ attributes: A B C D
 fds: ["A -> B", "A -> C", "C -> D"]
 decomposition: "AB; AC; CD"
 ops: ["chase"]
-note: "The deck's example, three pieces, so the two-piece closure test does not apply. Rows 1 and 2 agree on A, so B and then C are copied between them; rows 1, 2 and 3 then agree on C, so D is copied — row 1 is clean: lossless. Now chase the decomposition AB; BC; CD with the same FDs: only C → D fires and no row ever clears — lossy, and the final tableau is the instance that proves it."
+note: "An example, three pieces, so the two-piece closure test does not apply. Rows 1 and 2 agree on A, so B and then C are copied between them; rows 1, 2 and 3 then agree on C, so D is copied — row 1 is clean: lossless. Now chase the decomposition AB; BC; CD with the same FDs: only C → D fires and no row ever clears — lossy, and the final tableau is the instance that proves it."
 ```
 
 **Equations**
@@ -147,5 +147,4 @@ note: "The deck's example, three pieces, so the two-piece closure test does not 
 
 ## Further reading
 
-- [Ullman & Widom — ch. 3.3–3.5](http://infolab.stanford.edu/~ullman/fcdb.html) — BCNF, the chase and 3NF as in the decks.
 - [Codd, "Further Normalization of the Data Base Relational Model" (1971)](https://forum.thethirdmanifesto.com/wp-content/uploads/asgarosforum/887/Codd-Further-Normalization.pdf) — Where 2NF and 3NF were first defined, with the anomalies that motivated them.

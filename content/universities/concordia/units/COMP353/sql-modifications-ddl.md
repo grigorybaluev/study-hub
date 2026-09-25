@@ -23,7 +23,7 @@ create and change tables with typed, constrained columns.
 > `INSERT INTO R(…) SELECT …` adds every tuple of a query result — the way a table is
 > filled from other tables.
 
-The subtle case from the deck (slides 77–79): inserting the result of a query *into a
+The subtle case: inserting the result of a query *into a
 table the query reads*. SQL evaluates the whole query first and inserts afterwards, so
 the statement cannot feed itself; the example builds a `Studio` list from the studios
 named in `Movie` that are not yet in `Studio`.
@@ -98,7 +98,7 @@ note: "Two executives are below ten million and get the raise; then everyone who
 
 Schemas evolve: `ALTER TABLE R ADD a type` adds a column (`NULL` or the default in
 existing rows), `ALTER TABLE R DROP a` removes one; the exact syntax differs between
-MySQL, SQL Server and Oracle (deck DB01, slide 92), and so does the set of types —
+MySQL, SQL Server and Oracle, and so does the set of types —
 SQLite, which runs these pages, accepts any type name and stores values dynamically.
 SQL also allows a **domain**, a named type with a default and checks, reused by
 several columns: `CREATE DOMAIN MovieDomain AS VARCHAR(50)`.
@@ -130,4 +130,3 @@ note: "An empty database, a table from scratch. The first insert names only two 
 ## Further reading
 
 - [SQLite — Data types](https://www.sqlite.org/datatype3.html) — Why the engine on this page accepts every SQL type name, and what it does with them.
-- [Ullman & Widom — ch. 6.5, 7.1](http://infolab.stanford.edu/~ullman/fcdb.html) — Modifications and schema definition as in the decks.

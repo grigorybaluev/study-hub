@@ -14,7 +14,7 @@ reinforces: []
 For series with terms of any sign, the cleanest route is to drop the signs: if the
 series of absolute values converges, so does the original. That is *absolute*
 convergence, and it is the setting for the two tests that will matter most for power
-series — ratio and root — which compare a series with a geometric one. The lecture
+series — ratio and root — which compare a series with a geometric one. This unit
 ends with a warning about what conditionally convergent series can do.
 
 ## Absolute and conditional convergence
@@ -33,7 +33,7 @@ $\sum a_n$ is **absolutely convergent** if $\sum |a_n|$ converges.
 :::proof
 For 1: since $0 \le a_n + |a_n| \le 2|a_n|$, the series $\sum (a_n + |a_n|)$ converges by
 comparison, and $\sum a_n$ is its difference with $\sum |a_n|$. For 2: $|\alpha a_n + \beta b_n| \le |\alpha||a_n| + |\beta||b_n|$
-and compare. Part 3 is part 1 of Riemann's rearrangement theorem at the end of this lecture.
+and compare. Part 3 is part 1 of Riemann's rearrangement theorem at the end of this unit.
 :::
 ::::
 

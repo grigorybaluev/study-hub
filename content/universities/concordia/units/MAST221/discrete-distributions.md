@@ -18,7 +18,7 @@ successes in repeated independent trials, waiting for the first (or the $k$-th) 
 without replacement from a finite lot, counting rare events in a stretch of time. Each is a
 pmf with one or two **parameters**, and for each we derive the mean and the variance once, so
 that later problems only have to recognise the situation and read off the formula. Throughout,
-$\theta$ is the probability of success on a single trial (Doedel writes $p$).
+$\theta$ is the probability of success on a single trial (often written $p$).
 
 ## Discrete uniform and Bernoulli
 
@@ -240,7 +240,7 @@ $$
 Mean: write $X = X_1 + \dots + X_n$, $X_i = 1$ if draw $i$ is a success. Each draw on its own is
 equally likely to be any of the $N$ items, so $E[X_i] = M/N$ and $E[X] = nM/N$. The variance uses
 the same decomposition, with the covariances of unit 9: the draws are negatively correlated, which
-produces the factor $\frac{N - n}{N - 1} < 1$ (details in Miller & Miller 5.6).
+produces the factor $\frac{N - n}{N - 1} < 1$.
 :::
 ::::
 
@@ -371,7 +371,7 @@ id: binomial-poisson
 controls:
   - {id: n, label: trials n, min: 1, max: 200, step: 1, default: 12, decimals: 0}
   - {id: p, label: "success probability θ", min: 0.01, max: 0.99, step: 0.01, default: 0.5, decimals: 2}
-note: "Green bars: the binomial pmf; red markers: the Poisson pmf with the same mean λ = nθ. The defaults (n = 12, θ = 0.5, λ = 6) fit badly: the binomial's variance 3 is half the Poisson's 6. Try n = 60, θ = 0.1 (better), then n = 200, θ = 0.01 (almost exact) — the three cases from Doedel's tables. Large n and small θ is what the limit theorem asks for."
+note: "Green bars: the binomial pmf; red markers: the Poisson pmf with the same mean λ = nθ. The defaults (n = 12, θ = 0.5, λ = 6) fit badly: the binomial's variance 3 is half the Poisson's 6. Try n = 60, θ = 0.1 (better), then n = 200, θ = 0.01 (almost exact) — three classic cases. Large n and small θ is what the limit theorem asks for."
 ```
 
 ```python

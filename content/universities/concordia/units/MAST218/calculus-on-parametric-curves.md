@@ -227,7 +227,7 @@ sphere again. Choose the half of the curve on the non-negative side of the axis.
 
 ## A method for sketching parametric curves
 
-The lecture wrote down, as "Method 2", the procedure to sketch a curve when eliminating
+A second method is the procedure to sketch a curve when eliminating
 the parameter is impossible or unhelpful:
 
 :::steps

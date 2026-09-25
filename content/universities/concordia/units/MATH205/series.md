@@ -12,7 +12,7 @@ reinforces: []
 
 An infinite sum has no meaning until one is assigned: it is the *limit of the running
 totals*. That single definition, plus the geometric series as the one family whose sum
-is known exactly, is the whole lecture — and the test for divergence at the end is the
+is known exactly, is the whole unit — and the test for divergence at the end is the
 first of the convergence tests.
 
 ## Definition
@@ -140,7 +140,7 @@ $\displaystyle\sum_{n=1}^{\infty}\frac{1}{n}$ diverges, although its terms go to
 :::proof
 Group the terms: $1 + \tfrac12 + (\tfrac13 + \tfrac14) + (\tfrac15 + \dots + \tfrac18) + \dots$. Each
 bracket exceeds $\tfrac12$, so $S_{2^k} > 1 + \tfrac{k}{2} \to \infty$. (The integral test of the
-next lecture gives a second proof.)
+next unit gives a second proof.)
 :::
 ::::
 

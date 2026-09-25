@@ -30,7 +30,7 @@ A **finite accepter** (finite automaton) reads a string and outputs “accept”
 
 ### The first example
 
-The transition graph below (slide 96) has an *initial state* $q_0$ (incoming arrow), *states* $q_0, \dots, q_5$, *transitions* labelled by input symbols, and a *final / accept state* $q_4$ (double circle).
+The transition graph below has an *initial state* $q_0$ (incoming arrow), *states* $q_0, \dots, q_5$, *transitions* labelled by input symbols, and a *final / accept state* $q_4$ (double circle).
 
 :::trace[Accepting $abba$]
 $$
@@ -56,7 +56,7 @@ $$
 Nothing to read; the automaton stays in $q_0$, which is not final.
 :::
 
-:::machine[$M$: $L(M) = \{a^n b : n \ge 0\}$ (slide 110)]
+:::machine[$M$: $L(M) = \{a^n b : n \ge 0\}$]
 $q_0$ loops on $a$, $q_0 \xrightarrow{b} q_1$ (final), $q_1 \xrightarrow{a,b} q_2$, and $q_2$ is a trap.
 
 | $\delta$ | $a$ | $b$ |
@@ -80,7 +80,7 @@ $$
 $$
 :::
 
-Use the simulator to replay these runs symbol by symbol — exactly the slide animation — or type any other input.
+Use the simulator to replay these runs symbol by symbol — or type any other input.
 
 ```sim
 id: fa-intro
@@ -96,7 +96,7 @@ multi: |-
   aba
   λ
   abbab
-note: The slide-96 accepter. Step ▶ moves the read head one symbol (the current state and the transition taken are shown in red); ▶ Play animates the run at the chosen speed; ◀ Back rewinds. Change the input (e.g. aba, bab) or use "Multiple run…" to test several strings at once, like JFLAP.
+note: The accepter above. Step ▶ moves the read head one symbol (the current state and the transition taken are shown in red); ▶ Play animates the run at the chosen speed; ◀ Back rewinds. Change the input (e.g. aba, bab) or use "Multiple run…" to test several strings at once, like JFLAP.
 ...
 ```
 
@@ -125,7 +125,7 @@ def run(delta, finals, w, state='q0'):
 for w in ['abba', 'aba', '', 'abbab']:                     # the sim's "Multiple run" list
     walk, ok = run(abba, {'q4'}, w)
     print(f"{w or 'λ':>6}: {walk:<40} {'accept' if ok else 'reject'}")
-for w in ['aab', 'bab']:                                   # the aⁿb machine of slide 110
+for w in ['aab', 'bab']:                                   # the aⁿb machine
     walk, ok = run(anb, {'q1'}, w)
     print(f"{w:>6}: {walk:<40} {'accept' if ok else 'reject'}")
 # abba: q0 -a-> q1 -b-> q2 -b-> q3 -a-> q4 accept; aba ends in the trap q5; λ stays in q0: reject
@@ -149,7 +149,7 @@ A **deterministic finite accepter** (DFA) is $M = (Q, \Sigma, \delta, q_0, F)$ w
 - $F \subseteq Q$ — the set of **final states**.
 :::
 
-:::machine[The running example: $L(M) = \{abba\}$ (slide 5)]
+:::machine[The running example: $L(M) = \{abba\}$]
 $M = (\{q_0, \dots, q_5\},\ \{a, b\},\ \delta,\ q_0,\ \{q_4\})$ with
 
 | $\delta$ | $a$ | $b$ |
@@ -176,16 +176,16 @@ Examples on the running DFA: $\delta^*(q_0, ab) = q_2$, $\;\delta^*(q_0, abba) =
 :::
 
 :::remark[Observation]
-$\delta^*(q, w) = q'$ exactly when there is a *walk* from $q$ to $q'$ with label $w = \sigma_1 \sigma_2 \cdots \sigma_k$ (slide 19). E.g. there is a walk from $q_0$ to $q_5$ with label $abbbaa$.
+$\delta^*(q, w) = q'$ exactly when there is a *walk* from $q$ to $q'$ with label $w = \sigma_1 \sigma_2 \cdots \sigma_k$. E.g. there is a walk from $q_0$ to $q_5$ with label $abbbaa$.
 :::
 
-:::definition[Recursive definition of $\delta^*$ (slide 21)]
+:::definition[Recursive definition of $\delta^*$]
  $$\delta^*(q, \lambda) = q, \qquad \delta^*(q, w\sigma) = \delta\big(\delta^*(q, w), \sigma\big).$$
 Reading: to process $w\sigma$, first process $w$ (reaching $q_1 = \delta^*(q, w)$), then take one more step $\delta(q_1, \sigma) = q'$.
 :::
 
 ::::example[Unfolding the recursion]
-Compute $\delta^*(q_0, ab)$ on the running DFA from the recursive definition (slide 22).
+Compute $\delta^*(q_0, ab)$ on the running DFA from the recursive definition.
 
 :::solution
 $$\begin{gathered} \delta^*(q_0, ab) = \delta\big(\delta^*(q_0, a), b\big) = \delta\big(\delta(\delta^*(q_0, \lambda), a), b\big) \\[4pt] = \delta\big(\delta(q_0, a), b\big) = \delta(q_1, b) = q_2 . \end{gathered}$$
@@ -206,13 +206,13 @@ multi: |-
   abba
   abbbaa
   λ
-note: 'Watch δ* being built up: after each Step ▶ the status line shows δ*(q₀, prefix) = current state and the trace q₀ —a→ q₁ —b→ …. The second automaton in the menu is the same graph with F = {q₀, q₂, q₄} (slide 25), accepting {λ, ab, abba}.'
+note: 'Watch δ* being built up: after each Step ▶ the status line shows δ*(q₀, prefix) = current state and the trace q₀ —a→ q₁ —b→ …. The second automaton in the menu is the same graph with F = {q₀, q₂, q₄}, accepting {λ, ab, abba}.'
 ```
 
 ```python
 # The transition function is a dictionary keyed by (state, symbol); δ* is the loop
 # that applies it symbol by symbol; accept iff the final state is in F. Outputs: q2,
-# q4, q5, q0 — as on the slides.
+# q4, q5, q0.
 # A DFA as a Python dictionary: the transition TABLE of the running example
 delta = {
     ('q0','a'): 'q1', ('q0','b'): 'q5',
@@ -255,8 +255,8 @@ for w in ["ab", "abba", "abbbaa", ""]:
 Given a DFA $M = (Q, \Sigma, \delta, q_0, F)$, the **language accepted by $M$** is the set of all strings that drive $M$ to a final state:
  $$L(M) = \{\, w \in \Sigma^* : \delta^*(q_0, w) \in F \,\}.$$
 The language *rejected* by $M$ is $\overline{L(M)} = \{\, w \in \Sigma^* : \delta^*(q_0, w) \notin F \,\}$.
-- Running example (slide 24): $L(M) = \{abba\}$ — the only walk from $q_0$ to $q_4$ has label $abba$.
-- Same graph with $F = \{q_0, q_2, q_4\}$ (slide 25): $L(M) = \{\lambda, ab, abba\}$.
+- Running example: $L(M) = \{abba\}$ — the only walk from $q_0$ to $q_4$ has label $abba$.
+- Same graph with $F = \{q_0, q_2, q_4\}$: $L(M) = \{\lambda, ab, abba\}$.
 :::
 
 ### More examples
@@ -296,12 +296,12 @@ multi: |-
   001
   1001
   λ
-note: All the example DFAs of the lecture. Pick one, run a string step by step, or open "Multiple run…" to test a whole list (λ = empty string). For the 001 automaton, watch how the state name always equals the longest suffix of the input that is a prefix of 001.
+note: All the example DFAs of this unit. Pick one, run a string step by step, or open "Multiple run…" to test a whole list (λ = empty string). For the 001 automaton, watch how the state name always equals the longest suffix of the input that is a prefix of 001.
 ...
 ```
 
 ```python
-# Two of the slide DFAs as nested dictionaries, each cross-checked against a direct
+# Two of the example DFAs as nested dictionaries, each cross-checked against a direct
 # Python test of the language property. The trap states keep the tables total.
 def make_dfa(table, start, finals):
     """table: {state: {symbol: next_state}}  (total: every state has every symbol)."""
@@ -312,7 +312,7 @@ def make_dfa(table, start, finals):
         return q in finals
     return accepts
 
-# L = { w : w does not contain the substring 001 }   (slide 30)
+# L = { w : w does not contain the substring 001 }
 no_001 = make_dfa({
     'λ':   {'0': '0',   '1': 'λ'},
     '0':   {'0': '00',  '1': 'λ'},
@@ -320,7 +320,7 @@ no_001 = make_dfa({
     '001': {'0': '001', '1': '001'},        # trap state
 }, start='λ', finals={'λ', '0', '00'})
 
-# L = { awa : w in {a,b}* }   (slide 33)
+# L = { awa : w in {a,b}* }
 awa = make_dfa({
     'q0': {'a': 'q2', 'b': 'q4'},
     'q2': {'a': 'q3', 'b': 'q2'},
@@ -368,7 +368,7 @@ So $\delta(q, a)$ is a *set* of states — possibly several (a **choice**), poss
 
 ### Choices, hanging, acceptance
 
-::::example[Choices and hanging (slide 38)]
+::::example[Choices and hanging]
 The NFA over $\{a\}$ has $q_0 \xrightarrow{a} q_1$ and $q_0 \xrightarrow{a} q_3$ — two choices on $a$ —
 then $q_1 \xrightarrow{a} q_2$ (final); $q_2$ and $q_3$ have no transitions.
 
@@ -395,7 +395,7 @@ An NFA $M$ **accepts** $w$ if there is at least one computation of $M$ that cons
 
 ### Null (λ) transitions
 
-$q_0 \xrightarrow{a} q_1 \xrightarrow{\lambda} q_2 \xrightarrow{a} q_3$ (slide 69): on a λ-transition the read head does not move. $aa$ is accepted ($q_0 \to q_1 \to q_2$ without reading $\to q_3$); $aaa$ is rejected (the automaton hangs in $q_3$). Again $L = \{aa\}$.
+$q_0 \xrightarrow{a} q_1 \xrightarrow{\lambda} q_2 \xrightarrow{a} q_3$: on a λ-transition the read head does not move. $aa$ is accepted ($q_0 \to q_1 \to q_2$ without reading $\to q_3$); $aaa$ is rejected (the automaton hangs in $q_3$). Again $L = \{aa\}$.
 
 :::note[More NFA examples (all in the simulator)]
 - $q_0 \xrightarrow{a} q_1 \xrightarrow{b} q_2$ (final) $\xrightarrow{\lambda} q_3 \xrightarrow{\lambda} q_0$: $L = \{ab, abab, ababab, \dots\} = \{ab\}^+$.
@@ -411,7 +411,7 @@ $\delta^*(q_i, w)$ is the *set* of states $q_j$ such that there is a walk from $
  $$L(M) = \{\, w \in \Sigma^* : \delta^*(q_0, w) \cap F \ne \varnothing \,\}.$$
 :::
 
-::::example[$\delta^*$ of an NFA (slide 103)]
+::::example[$\delta^*$ of an NFA]
 The NFA has $q_0 \xrightarrow{a} q_1 \xrightarrow{b} q_2 \xrightarrow{\lambda} q_3 \xrightarrow{\lambda} q_0$, $q_1 \xrightarrow{a} q_4$, $q_1 \xrightarrow{a} q_5$ and $F = \{q_0, q_5\}$.
 
 ```automaton
@@ -495,7 +495,7 @@ Non-determinism is not randomness: the machine does not "pick" a branch. To deci
 :::equations
 - *NFA transition function*: $\delta : Q \times (\Sigma \cup \{\lambda\}) \to 2^Q$ — A set of next states, possibly empty; λ-moves allowed.
 - *Language of an NFA*: $L(M) = \{\, w \in \Sigma^* : \delta^*(q_0, w) \cap F \ne \varnothing \,\}$ — Some walk labelled w from q₀ ends in a final state.
-- *Slide-103 example*: $\begin{gathered} \delta^*(q_0, a) = \{q_1\}, \quad \delta^*(q_0, aa) = \{q_4, q_5\}, \quad \delta^*(q_0, ab) = \{q_2, q_3, q_0\} \\[4pt] L(M) = \{ab\}^* \cup \{ab\}^*\{aa\} \end{gathered}$ — Values of δ* on the six-state NFA.
+- *The six-state NFA*: $\begin{gathered} \delta^*(q_0, a) = \{q_1\}, \quad \delta^*(q_0, aa) = \{q_4, q_5\}, \quad \delta^*(q_0, ab) = \{q_2, q_3, q_0\} \\[4pt] L(M) = \{ab\}^* \cup \{ab\}^*\{aa\} \end{gathered}$ — Values of δ* on the six-state NFA.
 :::
 
 ## Equivalence of NFAs and DFAs — the Subset Construction
@@ -504,7 +504,7 @@ Non-determinism is not randomness: the machine does not "pick" a branch. To deci
 
 :::definition[Equivalent automata]
 An FA $M_1$ is **equivalent** to an FA $M_2$ if $L(M_1) = L(M_2)$ — both accept the same language.
-Example (slide 116): the NFA $M_1$ with $q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_0$ ($q_0$ final) and the DFA $M_2$ with the extra trap state $q_2$ both accept $\{10\}^*$. (Both are in the simulator on the previous pages.)
+Example: the NFA $M_1$ with $q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_0$ ($q_0$ final) and the DFA $M_2$ with the extra trap state $q_2$ both accept $\{10\}^*$. (Both are in the simulator on the previous pages.)
 :::
 
 ### NFAs accept exactly the regular languages
@@ -536,7 +536,7 @@ Given an NFA $M$ with states $Q = \{q_0, q_1, q_2, \dots\}$, the DFA $M'$ has st
 5. If the NFA accepts $\lambda$, mark $\{q_0\}$ as final as well.
 :::
 
-::::example[A conversion (slides 124–137)]
+::::example[A conversion]
 Convert to a DFA the NFA $M$ with $q_0 \xrightarrow{a} q_1$ (final), $q_1 \circlearrowleft a$,
 $q_1 \xrightarrow{\lambda} q_2$, $q_2 \xrightarrow{b} q_0$.
 
@@ -551,7 +551,7 @@ machine: nfa-conv
 - $\varnothing$ goes to $\varnothing$ on $a$ and $b$ (the trap state).
 - $q_1 \in F$, so $\{q_1, q_2\}$ is final. The NFA does not accept $\lambda$, so $\{q_0\}$ stays non-final.
 
-The result, the 3-state DFA $M'$ of slide 137 with $L(M') = L(M)$:
+The result, a 3-state DFA $M'$ with $L(M') = L(M)$:
 
 | $\delta'$ | $a$ | $b$ |
 |---|---|---|
@@ -575,7 +575,7 @@ trans: "q0 a q12; q0 b empty; q12 a q12; q12 b q0; empty a,b empty"
 If the conversion algorithm applied to an NFA $M$ yields the DFA $M'$, then $L(M) = L(M')$.
 
 :::proof
-(Slides 140–149.) show $L(M) \subseteq L(M')$ and $L(M') \subseteq L(M)$. For the first, take $w = \sigma_1 \sigma_2 \cdots \sigma_k \in L(M)$, so $M$ has a walk $q_0 \xrightarrow{\sigma_1} \cdots \xrightarrow{\sigma_k} q_f$ with $q_f \in F$. More generally one proves, **by induction on $|v|$**, that whenever $M$ has a walk $q_0 \xrightarrow{v} q_m$, the DFA has a walk $\{q_0\} \xrightarrow{v} \{q_m, \dots\}$ (a state containing $q_m$). Basis $|v| = 1$: this is step 2 of the algorithm. Induction step $v = v'\sigma_{k+1}$: by hypothesis $\{q_0\} \xrightarrow{v'} \{q_d, \dots\}$, and step 2 adds $\{q_d, \dots\} \xrightarrow{\sigma_{k+1}} \{q_e, \dots\}$. Since $q_f$ is final, the DFA state $\{q_f, \dots\}$ is marked final by step 4, so $w \in L(M')$. The other inclusion is similar.
+ show $L(M) \subseteq L(M')$ and $L(M') \subseteq L(M)$. For the first, take $w = \sigma_1 \sigma_2 \cdots \sigma_k \in L(M)$, so $M$ has a walk $q_0 \xrightarrow{\sigma_1} \cdots \xrightarrow{\sigma_k} q_f$ with $q_f \in F$. More generally one proves, **by induction on $|v|$**, that whenever $M$ has a walk $q_0 \xrightarrow{v} q_m$, the DFA has a walk $\{q_0\} \xrightarrow{v} \{q_m, \dots\}$ (a state containing $q_m$). Basis $|v| = 1$: this is step 2 of the algorithm. Induction step $v = v'\sigma_{k+1}$: by hypothesis $\{q_0\} \xrightarrow{v'} \{q_d, \dots\}$, and step 2 adds $\{q_d, \dots\} \xrightarrow{\sigma_{k+1}} \{q_e, \dots\}$. Since $q_f$ is final, the DFA state $\{q_f, \dots\}$ is marked final by step 4, so $w \in L(M')$. The other inclusion is similar.
 :::
 ::::
 
@@ -592,14 +592,14 @@ machines:
 - nfa-aa
 - nfa-abstar-aa
 machine: nfa-conv
-note: 'The four-step algorithm animated: each Step ▶ computes one δ*(…, a) (the NFA states involved light up on the left, the new DFA state/transition on the right) and appends the line to the log; steps 3–4 mark the final states. ▶ Play runs it automatically. The first NFA is the slide example; the others convert the NFAs of the previous page.'
+note: 'The four-step algorithm animated: each Step ▶ computes one δ*(…, a) (the NFA states involved light up on the left, the new DFA state/transition on the right) and appends the line to the log; steps 3–4 mark the final states. ▶ Play runs it automatically. The first NFA is the worked example; the others convert the NFAs of the previous page.'
 ```
 
 ```python
-# The algorithm exactly as on the slides. Output: δ′({q0}, a) = {q1,q2}, δ′({q0}, b) =
+# The algorithm step by step. Output: δ′({q0}, a) = {q1,q2}, δ′({q0}, b) =
 # ∅, δ′({q1,q2}, a) = {q1,q2}, δ′({q1,q2}, b) = {q0}, ∅ loops; final = [{q1,q2}].
 # Subset construction for an NFA given as delta[(state, symbol)] -> set ('' = λ)
-delta = {('q0','a'): {'q1'}, ('q1','a'): {'q1'}, ('q1',''): {'q2'}, ('q2','b'): {'q0'}}   # slide 124
+delta = {('q0','a'): {'q1'}, ('q1','a'): {'q1'}, ('q1',''): {'q2'}, ('q2','b'): {'q0'}}
 q0, F, alphabet = 'q0', {'q1'}, ['a', 'b']
 
 def closure(S):
@@ -637,7 +637,7 @@ The DFA state after reading w is precisely the set δ*(q₀, w) of NFA states �
 :::equations
 - *Equivalence*: $M_1 \equiv M_2 \iff L(M_1) = L(M_2)$ — Same language, possibly very different graphs.
 - *Step 2 of the algorithm*: $\delta'\big(\{q_i, \dots, q_m\}, a\big) = \delta^*(q_i, a) \cup \dots \cup \delta^*(q_m, a)$ — Union of the NFA moves (with λ-closure) of every member.
-- *Example (slide 137)*: $\begin{gathered} \delta'(\{q_0\}, a) = \{q_1, q_2\}, \quad \delta'(\{q_0\}, b) = \varnothing \\[4pt] \delta'(\{q_1, q_2\}, a) = \{q_1, q_2\}, \quad \delta'(\{q_1, q_2\}, b) = \{q_0\}, \quad F' = \{\{q_1, q_2\}\} \end{gathered}$ — The resulting DFA.
+- *Example*: $\begin{gathered} \delta'(\{q_0\}, a) = \{q_1, q_2\}, \quad \delta'(\{q_0\}, b) = \varnothing \\[4pt] \delta'(\{q_1, q_2\}, a) = \{q_1, q_2\}, \quad \delta'(\{q_1, q_2\}, b) = \{q_0\}, \quad F' = \{\{q_1, q_2\}\} \end{gathered}$ — The resulting DFA.
 :::
 
 ## DFA Minimisation
@@ -680,7 +680,7 @@ Otherwise they are **distinguishable** (some $w$ leads one to $F$ and the other 
    that contain a final state of $M$.
 :::
 
-::::example[Minimising a DFA (slides 154–158)]
+::::example[Minimising a DFA]
 Minimise the DFA with $q_0 \xrightarrow{a} q_1$ (final), $q_0 \xrightarrow{b} q_2$, $q_1 \circlearrowleft a$,
 $q_1 \xrightarrow{b} q_2$, $q_2 \xrightarrow{a} q_1$, $q_2 \xrightarrow{b} q_0$, and $q_3 \circlearrowleft a$, $q_3 \xrightarrow{b} q_2$.
 
@@ -723,13 +723,13 @@ machines:
 - dfa-10star
 - dfa-anb
 machine: dfa-min
-note: 'Step ▶ walks through the algorithm: inaccessible states are greyed and removed, then the current partition is shown by colouring the states block by block after every refinement round; the last step draws the minimal DFA M′. The first DFA is the slide example; try the others — e.g. the {abba} DFA is already minimal, while the prefix-ab DFA is too.'
+note: 'Step ▶ walks through the algorithm: inaccessible states are greyed and removed, then the current partition is shown by colouring the states block by block after every refinement round; the last step draws the minimal DFA M′. The first DFA is the worked example; try the others — e.g. the {abba} DFA is already minimal, while the prefix-ab DFA is too.'
 ```
 
 ```python
 # The same procedure the simulator animates. Output: removed q3; classes {q0,q2} and
 # {q1}; transitions 0,2 —a→ 1, 0,2 —b→ 0,2, 1 —a→ 1, 1 —b→ 0,2; initial 0,2; final [1]
-# — the DFA of slide 158.
+# — the worked example DFA.
 # DFA minimisation: remove inaccessible states, then partition refinement
 table = {'q0': {'a':'q1','b':'q2'}, 'q1': {'a':'q1','b':'q2'}, 'q2': {'a':'q1','b':'q0'}, 'q3': {'a':'q3','b':'q2'}}
 start, F, alphabet = 'q0', {'q1'}, ['a', 'b']
@@ -772,6 +772,6 @@ Minimise in two moves: drop what cannot be reached, then merge states that no in
 :::equations
 - *Indistinguishable states*: $\begin{gathered} p \equiv q \iff \forall w \in \Sigma^*: \\[4pt] \delta^*(p,w) \in F \iff \delta^*(q,w) \in F \end{gathered}$ — No continuation w separates p from q.
 - *Refinement test*: if $p, q$ are in the same block but $\delta(p,a)$ and $\delta(q,a)$ are in different blocks, then $p$ and $q$ are distinguishable — split the block, and repeat until stable.
-- *Slide example*: $\begin{gathered} q_3 \text{ inaccessible}, \qquad q_0 \equiv q_2 \\[4pt] M' :\quad \{0{,}2\} \xrightarrow{a} \{1\}, \quad \{0{,}2\} \xrightarrow{b} \{0{,}2\}, \quad \{1\} \xrightarrow{a} \{1\}, \quad \{1\} \xrightarrow{b} \{0{,}2\} \end{gathered}$ — Result of slide 158.
+- *Worked example*: $\begin{gathered} q_3 \text{ inaccessible}, \qquad q_0 \equiv q_2 \\[4pt] M' :\quad \{0{,}2\} \xrightarrow{a} \{1\}, \quad \{0{,}2\} \xrightarrow{b} \{0{,}2\}, \quad \{1\} \xrightarrow{a} \{1\}, \quad \{1\} \xrightarrow{b} \{0{,}2\} \end{gathered}$ — The result of the minimisation.
 :::
 

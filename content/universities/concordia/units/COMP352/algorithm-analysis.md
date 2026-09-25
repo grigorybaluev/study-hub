@@ -91,7 +91,7 @@ controls:
 note: "f(n) = 3n² + 10n + 20 against c·n². The title says whether the pair (c, n₀) witnesses f(n) = O(n²). With c = 4 the crossing is at n₀ = 7; with c = 5 it is earlier; with c = 3 no n₀ ever works, because f(n)/n² approaches 3 from above — so 3 is the infimum of usable constants, never attained."
 ```
 
-Rules that make big-O usable without witnesses each time (slides 28–37):
+Rules that make big-O usable without witnesses each time:
 
 - **Drop lower-order terms and constant factors**: $a_d n^d + \dots + a_0$ is $O(n^d)$;
   $3n^4 + 6n^3 + 10n^2 + 5n + 4$ is $O(n^4)$; $3\log n + 5$ is $O(\log n)$.
@@ -108,7 +108,7 @@ constant may win, as $f_1(n) = 3000$ versus $f_2(n) = n^2$ shows below $n = 55$.
 
 ## Finding the big-O of code
 
-Five shapes cover most methods (slides 38–44):
+Five shapes cover most methods:
 
 1. **No loop, no recursion** — a fixed number of statements: $O(1)$, whatever $n$ is.
 2. **A loop whose variable is halved (or doubled) each pass** — `while (n > 1) n = n / 2;`
@@ -162,7 +162,7 @@ note: 'The status bar shows the total number of steps the program made. Run with
 
 **Asymptotic analysis** compares algorithms by growth rate alone: given the same
 problem, the one with the slower-growing worst case is better *for large enough
-inputs*. The classic demonstration (slides 49–53) computes **prefix averages**: for an
+inputs*. The classic demonstration computes **prefix averages**: for an
 array $X$, the array $A$ with $A[i]$ the mean of $X[0..i]$. The obvious algorithm sums
 $X[0..i]$ afresh for each $i$ — two nested loops, $1 + 2 + \dots + n = n(n+1)/2$
 additions, $O(n^2)$. Keeping a running sum makes each prefix cost one addition: $O(n)$.
@@ -207,7 +207,7 @@ note: 'Same answers. Step through each call and compare the step counts: for n =
 ## Big-Omega, big-Theta, and plain English
 
 Big-O is an upper bound, and on its own it is loose: $2n$ is $O(n^{100})$. Two
-companions tighten it (slides 54–65):
+companions tighten it:
 
 > **Definition.** $f(n)$ is $\Omega(g(n))$ if $f(n) \ge c \cdot g(n)$ for all
 > $n \ge n_0$, for some $c > 0$, $n_0 \ge 1$ — $g$ is a *lower* bound on $f$'s growth.
@@ -238,5 +238,4 @@ $\approx 2\times$ means linear, $+1$ step means logarithmic.
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — ch. 4 slides](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Analysis.html) — a compact walk through the same chapter with the seven functions and the loop cases.
 - [Big O Cheat Sheet](https://www.bigocheatsheet.com/) — the complexities of every structure and sort in this course on one page, for later reference.

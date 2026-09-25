@@ -29,7 +29,7 @@ week.
 
 Before databases, a **file processing system** gave each application its own files:
 customer lists in one program, invoices in another. The disadvantages are the reasons
-databases exist (deck DB01, slides 7–10): **redundancy** (the same address stored twice)
+databases exist: **redundancy** (the same address stored twice)
 and hence **inconsistency** (updated in one place only); programs tied to the file
 formats, so every change to a layout breaks code; no controlled concurrent access; no
 standard way to ask an unanticipated question; no integrity rules enforced anywhere.
@@ -39,7 +39,7 @@ behind a schema.
 The course covers three aspects of the field: **modelling and design** (E/R diagrams,
 the relational model, functional dependencies and normal forms — units 4–8),
 **database programming** (SQL, relational algebra, Datalog — units 2–3 and 9–12), and
-DBMS implementation only in outline (this unit). A quick test from the slides: the
+DBMS implementation only in outline (this unit). A quick test: the
 main source of a database's *design* is the requirements of the users, not the DBMS.
 
 ## Data models and the relational model
@@ -60,8 +60,7 @@ that a query is a statement about the tables' contents, not a navigation.
 
 The objectives of a DBMS pull in opposite directions — simple enough for an untrained
 user, powerful enough to run complex transactions efficiently — and the resolution is
-to describe the data at three levels, each with its own schema (deck DB01, slides
-18–22):
+to describe the data at three levels, each with its own schema:
 
 | level | schema | who sees it | says |
 |---|---|---|---|
@@ -99,7 +98,7 @@ note: "The conceptual schema is the Employee table; the two views are external s
 
 Three kinds of input reach the system: **queries** (from users and programs),
 **modifications** (insert, delete, update) and **schema modifications** (from the
-DBA). Inside, three components handle them (deck DB01, slides 26–30):
+DBA). Inside, three components handle them:
 
 - The **query processor** parses a statement, chooses a plan (an **optimizer** picks
   among equivalent orders of operations using statistics about the data), and executes
@@ -112,7 +111,7 @@ DBA). Inside, three components handle them (deck DB01, slides 26–30):
   progress (isolation), and permanent once committed (durability) — using **logs** to
   recover from crashes and **locks** to control concurrent access.
 
-Around it, the users (slide 31): naive users through forms and applications,
+Around it, the users: naive users through forms and applications,
 application programmers through embedded SQL, specialised users, and the DBA who owns
 the schema, the access rights and the physical organisation.
 
@@ -150,5 +149,4 @@ note: "The whole shape of SQL in one statement: what to output (SELECT), from wh
 
 ## Further reading
 
-- [Ullman & Widom — A First Course in Database Systems, ch. 1](http://infolab.stanford.edu/~ullman/fcdb.html) — The textbook the decks follow; ch. 1 is the DBMS overview.
 - [SQLite — Architecture](https://www.sqlite.org/arch.html) — A real query processor, storage manager and transaction manager, in the engine that powers the examples on these pages.

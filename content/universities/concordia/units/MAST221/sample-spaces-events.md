@@ -21,9 +21,9 @@ to combine them.
 A **random experiment** is a process or activity which produces a number of possible outcomes. The outcomes cannot be predicted with absolute certainty.
 :::
 
-Standard examples from the slides and the lecture:
+Standard examples:
 
-- **Example 1 — two coins.** Flip two coins and observe the possible outcomes of heads and tails. (In the notes: *coin flipping*, with $X$ = number of heads.)
+- **Example 1 — two coins.** Flip two coins and observe the possible outcomes of heads and tails. (Often called *coin flipping*, with $X$ = number of heads.)
 - **Example 2 — marbles.** Select two marbles *without replacement* from a bag containing 1 white, 1 red and 2 green marbles.
 - **Example 3 — two dice.** Roll two dice and observe the *sum* of the points on the top faces.
 - **A die.** One die has $S = \{1, 2, \dots, 6\}$: $6^1 = 6$ outcomes. Two dice: $6^2 = 36$ outcomes.
@@ -72,7 +72,7 @@ note: 'A tree diagram of the sample space: each level is one trial, each leaf is
 ```python
 # Enumerating sample spaces with itertools (product for ordered outcomes, combinations
 # for selection without replacement), then drawing the sample space as the tree
-# diagram from the slides.
+# diagram.
 import itertools
 import matplotlib.pyplot as plt
 
@@ -168,7 +168,7 @@ In this sample space, “the first die shows 3” is a compound event with 6 ele
 id: dice-sum-grid
 controls:
   - {id: sum, label: 'Event E: sum of the two dice equals', min: 2, max: 12, step: 1, default: 7, decimals: 0}
-note: The 6 × 6 grid is the sample space from the slide (row = first die, column = second die). Highlighted cells are the outcomes making up the compound event "sum = k". Note that (1,6) and (6,1) are separate cells.
+note: The 6 × 6 grid is the sample space (row = first die, column = second die). Highlighted cells are the outcomes making up the compound event "sum = k". Note that (1,6) and (6,1) are separate cells.
 ...
 ```
 

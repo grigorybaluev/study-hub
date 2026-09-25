@@ -47,7 +47,7 @@ tables:
     'Alien' 1979 117 color Fox
     'Gone With the Wind' 1939 231 color MGM
 expr: "π(title, year; σ(studioName = 'Fox' and length >= 100; movie))"
-note: "The deck's first query — title and year of every Fox movie of at least 100 minutes — evaluated inside-out: the selection keeps two tuples, the projection keeps two columns. Try π(studioName; movie) and watch the duplicate Fox disappear (set semantics); then σ(length > 200 or year < 1950; movie). The Greek letters and the words project/select are both accepted."
+note: "The first query — title and year of every Fox movie of at least 100 minutes — evaluated inside-out: the selection keeps two tuples, the projection keeps two columns. Try π(studioName; movie) and watch the duplicate Fox disappear (set semantics); then σ(length > 200 or year < 1950; movie). The Greek letters and the words project/select are both accepted."
 ```
 
 ## Joins
@@ -88,8 +88,7 @@ note: "The natural join pairs on title and year (the shared attributes) and keep
 
 ## Bag semantics
 
-SQL keeps duplicates, so the algebra is also defined on **bags** (deck DB07, slides
-31–45): projection without duplicate elimination is faster (no sort), and
+SQL keeps duplicates, so the algebra is also defined on **bags**: projection without duplicate elimination is faster (no sort), and
 aggregation needs the multiplicities. On bags with multiplicities $m$ (in $r$) and
 $n$ (in $s$): union gives $m + n$, intersection $\min(m, n)$, difference
 $\max(0, m - n)$; selection, product and join treat each copy separately. The
@@ -119,7 +118,7 @@ note: "Bag union: (1, 2) appears 2 + 1 times, (3, 4) 1 + 2 times. Evaluate r ∩
 
 ## Expressing constraints
 
-An algebra expression can *state* a rule as well as ask a question (slides 46–56): a
+An algebra expression can *state* a rule as well as ask a question: a
 constraint is "$E = \emptyset$" or "$E_1 \subseteq E_2$". Referential integrity of
 `StarsIn` toward `Movie`: $\pi_{title, year}(StarsIn) \subseteq \pi_{title,
 year}(Movie)$. A functional dependency `name → address` on `Star`: join `Star` with a
@@ -137,7 +136,7 @@ subtract those from all students. The **division** operator packages this:
 
 > **Definition.** For $r(X, Y)$ and $s(Y)$, $r \div s$ is the set of $X$-values $x$
 > such that $(x, y) \in r$ for **every** $y \in s$. In terms of the other operators,
-> $r \div s = \pi_X(r) - \pi_X\big((\pi_X(r) \times s) - r\big)$ — the deck's
+> $r \div s = \pi_X(r) - \pi_X\big((\pi_X(r) \times s) - r\big)$ — the
 > "for all" strategy, written once.
 
 ```sim
@@ -180,5 +179,4 @@ note: "Joe and Ann are enrolled in all three sports; Sue misses Football. Now ev
 
 ## Further reading
 
-- [Ullman & Widom — ch. 2.4 and 5.1](http://infolab.stanford.edu/~ullman/fcdb.html) — The set and bag versions of the algebra with the movie schema.
 - [Codd, "Relational Completeness of Data Base Sublanguages" (1972)](https://forum.thethirdmanifesto.com/wp-content/uploads/asgarosforum/887/Codd-Relational-Completeness.pdf) — Why the algebra and the calculus have the same power, and where division comes from.

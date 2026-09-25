@@ -10,7 +10,7 @@ requires:
 reinforces: []
 ---
 
-The previous lecture built power series by manipulating the geometric one. The Taylor
+The previous unit built power series by manipulating the geometric one. The Taylor
 series answers the general question: *if* $f$ has a power series about $a$, what are its
 coefficients? They are the derivatives of $f$ at $a$ — and the partial sums are the
 polynomials that best mimic $f$ near $a$.
@@ -69,7 +69,7 @@ radius $\infty$. Differentiating term by term: $\cos x = \displaystyle\sum_{n=0}
 :::insight
 Uniqueness: a function has *at most one* power series about a given point. So whichever route
 produced a series — substitution, integration, or the derivative formula — it is *the* Taylor
-series. This is why last lecture's tricks were legitimate shortcuts.
+series. This is why the last unit's tricks were legitimate shortcuts.
 :::
 
 ## Taylor polynomials and the remainder
@@ -176,7 +176,7 @@ $$
 \int_0^1 e^{-x^2}\,dx = \sum_{n=0}^{\infty}\frac{(-1)^n}{n!\,(2n+1)} = 1 - \frac13 + \frac{1}{10} - \frac{1}{42} + \frac{1}{216} - \dots \approx 0.7468 ,
 $$
 
-with the alternating series estimate giving the accuracy. This is the integral that lecture 2
+with the alternating series estimate giving the accuracy. This is the integral that unit 2
 could only bound; the series computes it — and it is the one behind every normal-distribution
 table.
 :::

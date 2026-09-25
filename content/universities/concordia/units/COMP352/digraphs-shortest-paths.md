@@ -80,11 +80,11 @@ note: "The matrix on the right is G₀, then G_k after each round k; the highlig
 > it is a DAG — prerequisites, task dependencies and build orders are DAGs precisely
 > when they can be scheduled.
 
-Two algorithms, both $O(n + m)$. **By in-degrees** (deck 22, slides 44–55): compute
+Two algorithms, both $O(n + m)$. **By in-degrees**: compute
 every vertex's in-degree; repeatedly output a vertex of in-degree 0, remove it, and
 decrement the in-degrees of its out-neighbours, adding those that reach 0 to the
 ready set. If the ready set empties before every vertex is out, the remaining vertices
-lie on a cycle. **By DFS** (slides 56–65): run DFS and number each vertex when its call
+lie on a cycle. **By DFS**: run DFS and number each vertex when its call
 *finishes*, counting down from $n$ — a vertex finishes after every vertex reachable
 from it, so finishing order reversed is a topological order.
 
@@ -177,11 +177,11 @@ note: 'Dijkstra with the labels in a map and the "priority queue" a linear scan 
 ## Negative weights: Bellman-Ford and DAGs
 
 Dijkstra's argument needs non-negative weights; with a negative edge a vertex may be
-finalised too early. **Bellman-Ford** (deck 23, slides 26–27) drops the cloud: start
+finalised too early. **Bellman-Ford** drops the cloud: start
 with the same labels and simply relax *every* edge, $n - 1$ times over. After round
 $i$ every shortest path with at most $i$ edges is correct, and no shortest path has
 more than $n - 1$ edges, so the labels are final — $O(nm)$, and an $n$-th round that
-still improves something proves a negative cycle. On a **DAG** (slides 28–29) even
+still improves something proves a negative cycle. On a **DAG** even
 that is more than needed: relax the edges of each vertex in topological order, once —
 $O(n + m)$, negative weights allowed, because every path reaches a vertex only through
 vertices earlier in the order.
@@ -212,5 +212,4 @@ note: "The edge B→C weighs −3, so Dijkstra would finalise C at 2 and miss th
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Directed Graphs and Shortest Paths (ch. 14 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Graphs.html) — Transitive closure, topological sort and Dijkstra with the same figures.
 - [Sedgewick & Wayne — Shortest Paths](https://algs4.cs.princeton.edu/44sp/) — Dijkstra with an indexed priority queue, the DAG algorithm and Bellman-Ford, with negative-cycle detection.

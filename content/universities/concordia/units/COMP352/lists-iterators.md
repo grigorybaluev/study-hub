@@ -105,8 +105,7 @@ element" that stays valid while the element stays in the list:
 > implements every method in $O(1)$: the position *is* the node.
 
 The **sequence ADT** combines both views — index methods and position methods, plus
-`atIndex(i)` and `indexOf(p)` to convert — and is where the comparison lands (deck 6,
-slide 36):
+`atIndex(i)` and `indexOf(p)` to convert — and is where the comparison lands:
 
 | operation | array | doubly linked list |
 |---|---|---|
@@ -195,5 +194,4 @@ note: 'A positional list with sentinels: every insertion is addBetween, every re
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — List and Iterator ADTs (ch. 7 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Lists.html) — Array lists, positional lists and iterators with the same tables.
 - [Java API — ListIterator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ListIterator.html) — The cursor-between-elements model that positions approximate.

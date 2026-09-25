@@ -24,7 +24,7 @@ how that is done and what goes wrong when two keys land on the same index.
 > **Definition.** A **map** stores entries (key, value) with **unique keys**:
 > `get(k)` returns the value for `k` or `null`; `put(k, v)` inserts, or replaces the
 > value and returns the old one; `remove(k)`; `size()`, `isEmpty()`; and the views
-> `keySet()`, `values()`, `entrySet()`. A **dictionary** (deck 12) is the same without
+> `keySet()`, `values()`, `entrySet()`. A **dictionary** is the same without
 > uniqueness: several entries may share a key, so it has `find(k)`, `findAll(k)`,
 > `insert(k, v)` and `remove(e)` by entry.
 
@@ -91,7 +91,7 @@ Deleting cannot simply empty a cell — that would break the probe sequences tha
 through it — so a removed entry is replaced by an **AVAILABLE** marker that searches
 skip and insertions may reuse. The table must be **rehashed** into a larger array
 before the load factor reaches about $\frac12$; past that the expected number of
-probes grows without bound (deck 11, slides 38–40).
+probes grows without bound.
 
 ```sim
 id: ds-352-hash-probing
@@ -102,7 +102,7 @@ scheme: linear
 buckets: 13
 data: [18, 41, 22, 44, 59, 32, 31, 73]
 ops: ["insert 25", "find 44", "remove 18", "find 44", "insert 18"]
-note: "The deck's example: N = 13, h(k) = k mod 13. 44 collides with 18 and lands at 6; 31 then probes past both. remove(18) leaves an AVAILABLE marker, and find(44) must step over it — delete the marker in your head and 44 would be lost. Re-insert 18 into the marker's cell. Then change the scheme in the block to quadratic or double and rerun."
+note: "An example: N = 13, h(k) = k mod 13. 44 collides with 18 and lands at 6; 31 then probes past both. remove(18) leaves an AVAILABLE marker, and find(44) must step over it — delete the marker in your head and 44 would be lost. Re-insert 18 into the marker's cell. Then change the scheme in the block to quadratic or double and rerun."
 ```
 
 ```sim
@@ -195,5 +195,4 @@ operations logarithmic.
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Maps and Hash Tables (ch. 10 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Hashing.html) — Hash codes, compression, chaining and probing with the same examples.
 - [Java API — HashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html) — Initial capacity, load factor and the rehashing policy of the real thing.

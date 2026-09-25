@@ -159,7 +159,7 @@ $O(1)$; the doubly linked list of the next unit does too.
 ## Growable arrays and amortised analysis
 
 When a push meets a full array, the fixed-size version throws; the useful version
-replaces the array with a bigger one and copies. Two policies (slides 29–34):
+replaces the array with a bigger one and copies. Two policies:
 
 - **Incremental**: grow by a constant $c$ each time. Over $n$ pushes the array is
   replaced $k = n/c$ times, copying $c, 2c, \dots, kc$ elements: total
@@ -208,5 +208,4 @@ note: "The array doubles at pushes 3, 5 and 9; the running total in the descript
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Stacks, Queues and Deques (ch. 6 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/StacksQueues.html) — The ADTs, array implementations and applications in the same order.
 - [Java API — ArrayDeque](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ArrayDeque.html) — The class that plays stack, queue and deque in real programs, with its amortised guarantees.

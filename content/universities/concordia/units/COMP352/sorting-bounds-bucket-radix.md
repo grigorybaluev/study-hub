@@ -141,5 +141,4 @@ note: 'Each pass is a bucket sort on one digit; the buckets are ArrayLists so th
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Sorting Lower Bound, Bucket and Radix Sort (ch. 12 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Sorting.html) — The decision-tree argument and both linear sorts.
 - [Sedgewick & Wayne — String Sorts](https://algs4.cs.princeton.edu/51radix/) — LSD and MSD radix sort with the stability argument and the comparison to the lower bound.

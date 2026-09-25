@@ -86,7 +86,7 @@ A complete tree is exactly the tree with no gaps under level numbering, so a hea
 stored in an array with no references: the root at index $0$ (in the course's 0-based
 version), the children of $i$ at $2i + 1$ and $2i + 2$, the parent at
 $\lfloor (i-1)/2 \rfloor$, and the last node at index $n - 1$. Insert appends at index
-$n$; removeMin swaps index $0$ with $n - 1$ and shrinks. The table (deck 9, slide 26):
+$n$; removeMin swaps index $0$ with $n - 1$ and shrinks. The table:
 
 | operation | time |
 |---|---|
@@ -153,8 +153,7 @@ construction** places all keys in the array and then runs down-heap on each inte
 node from the last one to the root: the subtrees below are already heaps by the time a
 node is fixed. Each node travels at most the height of its subtree, and small subtrees
 dominate — half the nodes are leaves that travel nothing — so the total is $O(n)$
-rather than $O(n \log n)$ (deck 9, slides 43–45: summing over the nodes gives a bound
-of $2n$ swaps).
+rather than $O(n \log n)$.
 
 ```sim
 id: ds-352-heap-bottom-up
@@ -164,7 +163,7 @@ mode: heap
 data: [16, 15, 4, 12, 6, 9, 23, 20, 25, 5, 11, 27, 7, 8, 10]
 build: bottom-up
 ops: ["build", "heapSort"]
-note: "The deck's example keys. Bottom-up: the array is laid out as a complete tree, then down-heap runs on internal nodes from the last (index 6) back to the root — most of them move one step or none, which is why the total is linear. heap-sort then swaps the root to the end and shrinks the heap, n times: the sorted tail grows from the right (descending, since this is a min-heap)."
+note: "An example keys. Bottom-up: the array is laid out as a complete tree, then down-heap runs on internal nodes from the last (index 6) back to the root — most of them move one step or none, which is why the total is linear. heap-sort then swaps the root to the end and shrinks the heap, n times: the sorted tail grows from the right (descending, since this is a min-heap)."
 ```
 
 **Equations**
@@ -181,5 +180,4 @@ note: "The deck's example keys. Bottom-up: the array is laid out as a complete t
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Priority Queues (ch. 9 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/PriorityQueues.html) — The ADT, list implementations, heaps and heap-sort.
 - [Sedgewick & Wayne — Priority Queues](https://algs4.cs.princeton.edu/24pq/) — Binary heaps, heap-sort and the bottom-up construction with an animation.

@@ -32,13 +32,13 @@ attribute holds a set, list or record (that is why a star's several addresses be
 several tuples or another relation). Keys carry over from E/R: a **key** of a relation
 is a minimal set of attributes no two tuples agree on, underlined in the schema.
 
-The model's strength (deck DB03, slide 6) is that its query languages — relational
+The model's strength is that its query languages — relational
 algebra and SQL — are simple to state and to reason about, and a query optimizer can
 rewrite an expression into any equivalent one.
 
 ## From E/R to relations
 
-The conversion is a set of rules applied element by element (deck DB03, slides 8–23):
+The conversion is a set of rules applied element by element:
 
 1. **Entity set** `E` with attributes $a_1 \dots a_n$ → relation `E(a₁, …, aₙ)` with
    the same key. (`Movies(title, year, length, filmType)`.)
@@ -84,7 +84,7 @@ in the added attributes for entities that take part in no relationship — the r
 ## isa hierarchies
 
 An isa hierarchy — `Cartoons isa Movies`, `MurderMysteries isa Movies` — can become
-relations in three ways (slides 24–30), each with a cost:
+relations in three ways, each with a cost:
 
 | approach | relations | a cartoon murder mystery is | cost |
 |---|---|---|---|
@@ -92,7 +92,7 @@ relations in three ways (slides 24–30), each with a cost:
 | **object-oriented** | one per *subtree* (possible class combination): `Movies`, `MoviesC`, `MoviesMM`, `MoviesCMM`, each with every attribute of its combination | exactly one tuple, in `MoviesCMM` | many relations; queries must union them |
 | **nulls** | one wide relation with every attribute of every subclass; inapplicable attributes are `NULL` | one tuple, `weapon` set, other subclass attributes `NULL` | nulls everywhere; cannot tell "not a cartoon" from "unknown" |
 
-A quick test from the deck: with `E1 = {a1, a2}` and `E2 = {b1, b2}`, a many-one
+A quick test: with `E1 = {a1, a2}` and `E2 = {b1, b2}`, a many-one
 relationship from `E1` to `E2` can contain `(a1, b1), (a2, b1)` but not
 `(a1, b1), (a1, b2)`.
 
@@ -134,5 +134,4 @@ note: "The E/R-style relations, reassembled: an outer join per subclass (unit 11
 
 ## Further reading
 
-- [Ullman & Widom — ch. 2.2 and 4.5–4.6](http://infolab.stanford.edu/~ullman/fcdb.html) — The relational model and the E/R-to-relational rules, with the same examples.
 - [Codd, "A Relational Model of Data for Large Shared Data Banks" (1970)](https://dl.acm.org/doi/10.1145/362384.362685) — Where relations, normal form and the algebra come from.

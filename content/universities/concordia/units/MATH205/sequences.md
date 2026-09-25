@@ -164,7 +164,7 @@ $L^2 - L - 2 = 0$ and $L = 2$ (the root $-1$ is impossible for positive terms).
 :::insight
 This is the one theorem that proves convergence *without knowing the
 limit*. An increasing sequence that cannot pass $M$ has nowhere to go but up to its
-least upper bound. It is the tool for recursive sequences, and, next lecture, for
+least upper bound. It is the tool for recursive sequences, and, next unit, for
 series with positive terms — whose partial sums are automatically increasing.
 :::
 

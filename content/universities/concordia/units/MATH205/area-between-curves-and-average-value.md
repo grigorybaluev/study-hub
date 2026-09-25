@@ -14,7 +14,7 @@ reinforces:
 Two direct uses of the definite integral. The first generalises "area under a curve" to
 "area between two curves", which is where the sign of the integrand starts to matter;
 the second answers "what is the average of a function over an interval?" and revisits
-the mean value theorem for integrals from lecture 4.
+the mean value theorem for integrals from unit 4.
 
 ## Area between curves
 
@@ -120,7 +120,7 @@ $$
 
 :::theorem[Mean value theorem for integrals]
 If $f$ is continuous on $[a, b]$, there is a $c \in [a, b]$ with $f(c) = f_{\text{av}}$, i.e.
-$\displaystyle\int_a^b f(x)\,dx = f(c)\,(b - a)$. (Proved in lecture 4.)
+$\displaystyle\int_a^b f(x)\,dx = f(c)\,(b - a)$. (Proved in unit 4.)
 :::
 
 Geometrically: a rectangle of height $f(c)$ on the base $[a, b]$ has exactly the area

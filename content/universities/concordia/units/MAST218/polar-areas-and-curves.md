@@ -12,7 +12,7 @@ reinforces: []
 ---
 
 Areas come out of polar equations as naturally as lengths did — the building block is a
-circular sector instead of a rectangle. The second half of the lecture is a catalogue:
+circular sector instead of a rectangle. The second half of the unit is a catalogue:
 cardioids, limaçons, circles through the pole and roses, with the symmetry tests that make
 sketching them quick, and the recipe for the area between two of them.
 
@@ -199,7 +199,7 @@ $$
 ::::
 
 :::note
-The lecture sketch marks the $x$-intercepts $(1, 0)$ and $(1, \pi)$ as vertical tangents. The
+A quick sketch may mark the $x$-intercepts $(1, 0)$ and $(1, \pi)$ as vertical tangents. The
 slope there is $-1$ at $\theta = 0$ and $1$ at $\theta = \pi$; the vertical tangents are at
 $\theta = \tfrac{7\pi}{6}$ and $\tfrac{11\pi}{6}$, as the sim shows.
 :::
@@ -307,7 +307,7 @@ $r = A\cos\theta + B\sin\theta$.
 ::::
 
 :::note
-The lecture notes complete the square as $(y + 2)^2$ and place the centre at $(1, -2)$. Since
+A slip is easy here: completing the square as $(y + 2)^2$ places the centre at $(1, -2)$. Since
 $y^2 - 4y + 4 = (y - 2)^2$, the centre is $(1, 2)$: at $\theta = \tfrac{\pi}{2}$ the curve is at $r = 4$,
 the point $(0, 4)$, which is above the axis.
 :::

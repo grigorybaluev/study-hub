@@ -211,5 +211,4 @@ inconsistent.
 
 ## Further reading
 
-- [Nicholson, *Linear Algebra with Applications*, §1.1–1.2](https://lyryx.com/linear-algebra-applications/) — systems and Gaussian elimination.
 - [SageMath matrix methods](https://doc.sagemath.org/html/en/reference/matrices/sage/matrix/matrix2.html) — `rref`, `augment`, `swap_rows`, `rescale_row`, `add_multiple_of_row`.

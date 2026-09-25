@@ -97,8 +97,8 @@ $$
 p(x) = P(X = x)
 $$
 
-for every real $x$. It is zero except at the countably many values $X$ takes. Miller & Miller
-call it the *probability distribution* and write $f(x)$; $p_X(x)$ is used when several random
+for every real $x$. It is zero except at the countably many values $X$ takes. It is also
+called the *probability distribution* and written $f(x)$; $p_X(x)$ is used when several random
 variables are around.
 :::
 

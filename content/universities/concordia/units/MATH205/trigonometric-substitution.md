@@ -12,7 +12,7 @@ reinforces: []
 ---
 
 Roots of quadratics — $\sqrt{a^2 - x^2}$, $\sqrt{a^2 + x^2}$, $\sqrt{x^2 - a^2}$ — block every
-technique so far. The fix is a substitution that runs *backwards* compared with lecture
+technique so far. The fix is a substitution that runs *backwards* compared with unit
 6: instead of $u = g(x)$, set $x = g(\theta)$ for a trigonometric $g$ chosen so that a
 Pythagorean identity turns the radicand into a perfect square.
 
@@ -79,8 +79,8 @@ $$
 \int_0^{\pi/2} a\cos\theta\cdot a\cos\theta\,d\theta = a^2\int_0^{\pi/2}\cos^2\theta\,d\theta = a^2\Big[\frac{\theta}{2} + \frac{\sin 2\theta}{4}\Big]_0^{\pi/2} = \frac{\pi a^2}{4}\ ✓
 $$
 
-The $\cos^2\theta$ integral is the "both even" case of the previous lecture — trigonometric
-substitution almost always hands a trigonometric integral to the previous lecture's methods.
+The $\cos^2\theta$ integral is the "both even" case of the previous unit — trigonometric
+substitution almost always hands a trigonometric integral to the previous unit's methods.
 :::
 ::::
 

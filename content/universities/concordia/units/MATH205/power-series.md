@@ -59,7 +59,7 @@ $R$ is the **radius of convergence** ($R = 0$ in case 1, $R = \infty$ in case 2)
 The radius comes from the ratio test on $|c_{n+1}(x-a)^{n+1}| / |c_n(x-a)^n| = |x - a|\cdot|c_{n+1}/c_n|$:
 if $|c_{n+1}/c_n| \to \ell$ the series converges for $|x - a| < 1/\ell$, so $R = 1/\ell$ (with
 $R = \infty$ if $\ell = 0$ and $R = 0$ if $\ell = \infty$). The endpoints give ratio limit $1$
-and must be **checked separately**, with the tests of lectures 16–19.
+and must be **checked separately**, with the tests of units 16–19.
 
 ::::example[Radius, then endpoints]
 Find the interval of convergence of $\displaystyle\sum_{n=1}^{\infty}\frac{(x - 3)^n}{n}$, and the radius of $\displaystyle\sum_{n=0}^{\infty}\frac{x^n}{n!}$ and of $\displaystyle\sum_{n=0}^{\infty} n!\,x^n$.
@@ -123,9 +123,9 @@ The series in 3, with coefficients $c_n = \sum_{j=0}^n a_j b_{n-j}$, is the **Ca
 
 :::insight
 Inside its radius a power series behaves like a polynomial: add,
-scale, multiply term by term. The justification is absolute convergence (lecture 19),
+scale, multiply term by term. The justification is absolute convergence,
 which is what case 3 of the theorem guarantees strictly inside the interval. The
-next lecture adds the two remaining polynomial operations — differentiate and
+next unit adds the two remaining polynomial operations — differentiate and
 integrate.
 :::
 
