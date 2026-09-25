@@ -65,6 +65,23 @@ plotly:
   - r-logical-filter
   - r-matrix-index
   - r-roundoff
+  - r-hist-bins
+  - r-boxplot-fences
+  - r-qq-shapes
+  - r-fixed-point
+  - r-root-convergence
+  - r-binary-search
+  - r-mc-convergence
+  - r-lcg-lattice
+  - r-inverse-transform
+  - r-markov-weather
+  - r-mc-integral
+  - r-rejection
+  - r-importance-tail
+  - r-lu-steps
+  - r-eigen-ellipse
+  - r-svd-lowrank
+  - r-conditioning
   - calc-riemann-sums
   - calc-signed-area
   - calc-antiderivative-family
