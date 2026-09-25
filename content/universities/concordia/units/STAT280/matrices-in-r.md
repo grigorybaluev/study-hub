@@ -414,6 +414,13 @@ works this way, with one refinement: it reorders the rows as it goes (**partial 
 avoids dividing by zero and keeps rounding error small. Once $A$ is factored, each new right-hand
 side costs only the two cheap triangular solves.
 
+```sim
+id: r-lu-steps
+controls:
+  - {id: step, label: "step", min: 0, max: 15, step: 1, default: 0, decimals: 0}
+note: "The worked example, one entry at a time: steps 1–9 fill U and L column by column, 10–12 are forward elimination for y, and 13–15 back substitution for x. The highlighted cell is the one computed at that step, and the title shows the one-unknown equation that gives it. Every equation uses only entries already filled in."
+```
+
 ### Accuracy: direct solve versus the inverse
 
 Hilbert matrices are close to singular, which magnifies rounding error. With a known solution of

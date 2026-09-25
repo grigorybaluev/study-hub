@@ -255,6 +255,14 @@ mean(T.inv <= 1)
 ## [1] 0.3942
 ```
 
+```sim
+id: r-inverse-transform
+controls:
+  - {id: rate, label: "rate λ", min: 0.1, max: 5, step: 0.1, default: 0.5, decimals: 1}
+  - {id: n, label: "number of draws", min: 100, max: 10000, step: 100, default: 2000, decimals: 0}
+note: "Left: a uniform U is read on the vertical axis, carried across to the CDF and down to T = F⁻¹(U) (six draws shown). Evenly spread heights give values of T that bunch up where F is steep, which is where the density is high. Right: the histogram of all n draws against the exponential density λe^(−λt)."
+```
+
 The gaps between successive points of a Poisson process with rate $\lambda$ are independent
 exponentials with rate $\lambda$, which gives a second way to simulate the process: add up
 exponential waiting times.
@@ -394,6 +402,16 @@ X <- Z1
 Y <- rho * Z1 + sqrt(1 - rho^2) * Z2
 c(sd(X), sd(Y), cor(X, Y))            # 1, 1 and rho
 ## [1] 0.9984269 1.0011022 0.7990026
+```
+
+```sim
+id: covariance-scatter
+controls:
+  - {id: rho, label: "correlation ρ", min: -0.95, max: 0.95, step: 0.05, default: 0.8, decimals: 2}
+  - {id: sx, label: "σ_X", min: 0.5, max: 2, step: 0.1, default: 1, decimals: 1}
+  - {id: sy, label: "σ_Y", min: 0.5, max: 2, step: 0.1, default: 1, decimals: 1}
+  - {id: n, label: "number of pairs", min: 50, max: 2000, step: 50, default: 500, decimals: 0}
+note: "Pairs built exactly as above, X = σ_X Z₁ and Y = σ_Y(ρZ₁ + √(1 − ρ²) Z₂), from independent standard normals. At ρ = 0 the cloud is round. As |ρ| grows it narrows along a line, and the sample correlation tracks the ρ you chose."
 ```
 
 The general version uses a matrix square root of the covariance matrix. If $\Sigma = R^{\mathsf T} R$
@@ -536,6 +554,14 @@ round(Pn, 4)
 ```
 
 After thirty steps every row of $P^n$ is the same: the chain has forgotten where it started.
+
+```sim
+id: r-markov-weather
+controls:
+  - {id: start, label: "today: 1 sunny · 2 cloudy · 3 rainy", min: 1, max: 3, step: 1, default: 3, decimals: 0}
+  - {id: n, label: "days ahead t", min: 0, max: 20, step: 1, default: 5, decimals: 0}
+note: "The probability of each weather t days ahead, which is the row of Pᵗ for today's state. Whatever the start, the three curves settle onto the stationary distribution (dotted) within about a week: the chain forgets where it started. Compare the value at t = 2 with the P2 matrix in the R output."
+```
 
 ### The stationary distribution
 

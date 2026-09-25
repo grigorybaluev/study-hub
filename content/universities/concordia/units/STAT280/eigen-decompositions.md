@@ -87,6 +87,16 @@ V %*% diag(e$values) %*% t(V)     # S rebuilt from its eigen-decomposition
 The rebuilt matrix has entries like $-3.8 \times 10^{-15}$ where $S$ has zeros: rounding error,
 numerically zero.
 
+```sim
+id: r-eigen-ellipse
+controls:
+  - {id: a, label: "a (top-left)", min: -3, max: 3, step: 0.1, default: 2, decimals: 1}
+  - {id: b, label: "b (both off-diagonal entries)", min: -2, max: 2, step: 0.1, default: 1, decimals: 1}
+  - {id: d, label: "d (bottom-right)", min: -3, max: 3, step: 0.1, default: 1, decimals: 1}
+  - {id: theta, label: "direction of v (degrees)", min: 0, max: 180, step: 1, default: 70, decimals: 0}
+note: "A symmetric matrix [a b; b d] maps the unit circle onto an ellipse. Its axes point along the eigenvectors, which are always perpendicular, and their half-lengths are |λ₁| and |λ₂|. Turn v until Av lies along it: that happens only at the two eigenvector directions, where A acts as pure scaling. The title checks trace = λ₁ + λ₂ and det = λ₁λ₂."
+```
+
 A matrix that is not symmetric may have complex eigenvalues. A rotation by 90° leaves no real
 direction unchanged, and R reports the eigenvalues $\pm i$:
 
@@ -210,6 +220,13 @@ round(rank1, 1)
 ## [5,] 89.5 80.4 100.7 72.3
 max(abs(scores - rank1))
 ## [1] 0.7971585
+```
+
+```sim
+id: r-svd-lowrank
+controls:
+  - {id: k, label: "rank k (singular values kept)", min: 1, max: 12, step: 1, default: 2, decimals: 0}
+note: "A 24 × 24 matrix drawn as an image (a smooth background, a bright band and a ring), next to its best rank-k approximation, the sum of the first k terms dᵢuᵢvᵢᵀ. The singular values fall off fast. Rank 1 already captures the background, and a handful of terms rebuild the ring. The rest is detail that a compressed version can drop."
 ```
 
 ## The Cholesky decomposition
@@ -354,6 +371,13 @@ sapply(2:8, function(n) kappa(1 / (outer(1:n, 1:n, "+") - 1), exact = TRUE))
 ## [6] 4.753674e+08 1.525758e+10
 kappa(S, exact = TRUE)
 ## [1] 3.324033
+```
+
+```sim
+id: r-conditioning
+controls:
+  - {id: n, label: "size n of the Hilbert matrix", min: 2, max: 12, step: 1, default: 8, decimals: 0}
+note: "For each n, the system Hx = b is built with true solution x = (1, …, 1) and solved in double precision, both directly (Gaussian elimination with pivoting, as solve(H, b) does) and through the inverse. The errors roughly follow κ × machine epsilon (dotted): about log₁₀ κ digits are lost. At n = 12, κ ≈ 10¹⁶ and no digit is left."
 ```
 
 :::caution[A small determinant is not the warning sign]
