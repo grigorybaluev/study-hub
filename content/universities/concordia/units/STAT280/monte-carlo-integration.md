@@ -182,6 +182,14 @@ round(runs, 2)                              # one column per run of 10 000
 ## std.error 0.85 0.24 0.41 0.22 0.87 0.51 0.21 0.29
 ```
 
+```sim
+id: r-mc-integral
+controls:
+  - {id: g, label: "integral: 1 x³ · 2 √x · 3 sin x · 4 x^(−0.8)", min: 1, max: 4, step: 1, default: 2, decimals: 0}
+  - {id: logn, label: "log₁₀ of the number of points n", min: 2, max: 5, step: 0.1, default: 4, decimals: 1}
+note: "The running estimate (b − a)·mean(g(Uᵢ)) with its 95 % band, against the exact value. For the first three the band shrinks steadily like 1/√n and covers the truth. Choose 4, x^(−0.8) on (0, 1): the estimate runs low and then jumps whenever a point lands very near 0, and the band itself jumps. This is what infinite variance looks like."
+```
+
 ## Rejection sampling
 
 The last unit could only generate distributions with an invertible $F$, or conditional versions of
@@ -266,6 +274,14 @@ curve(kh(x) / acc, add = TRUE)                     # the normalised target densi
 curve(dnorm(x) / acc, add = TRUE, lty = 2)         # the envelope f / k
 ```
 
+```sim
+id: r-rejection
+controls:
+  - {id: n, label: "number of proposals", min: 200, max: 5000, step: 100, default: 1500, decimals: 0}
+  - {id: c, label: "envelope looseness c (k·h scaled down by c)", min: 1, max: 3, step: 0.1, default: 1, decimals: 1}
+note: "Left: proposals Y from the normal envelope, each lifted to a uniform height under f(Y). The green ones fall under k·h and are kept. Right: the kept values follow the wavy target density. Raise c to make the envelope needlessly loose: the kept values still have the right distribution, but the acceptance rate drops to 75 %/c."
+```
+
 ## Importance sampling
 
 ### Weighted averages
@@ -326,6 +342,14 @@ sd(W) / sqrt(100000)                  # its standard error
 
 Plain Monte Carlo saw the event twice in 100 000 draws; the importance-sampling estimate is within
 1 % of the exact value, with a standard error about 250 times smaller than the probability itself.
+
+```sim
+id: r-importance-tail
+controls:
+  - {id: c, label: "threshold c in P(Z > c)", min: 1, max: 6, step: 0.1, default: 4, decimals: 1}
+  - {id: logn, label: "log₁₀ of draws per run", min: 2, max: 4.5, step: 0.1, default: 4, decimals: 1}
+note: "Twelve independent runs of each method, shown as estimate ÷ exact value (1 is perfect). At c = 1 both work. From c = 3 upward, plain Monte Carlo mostly sees no event and reports 0, then occasionally a huge overestimate. Importance sampling stays within a few percent at every c, because every proposal lands in the event and carries a small weight."
+```
 
 :::insight
 Write the integral as an expected value, then simulate and average: uniform points for bounded

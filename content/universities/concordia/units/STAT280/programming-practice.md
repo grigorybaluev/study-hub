@@ -215,6 +215,17 @@ identical(bubble(v), sort(v))
 ## [1] TRUE
 ```
 
+```sim
+id: stat280-merge-sort
+custom: true
+engine: ds
+mode: sort
+algo: merge
+data: [8, 3, 6, 1, 9, 2, 7]
+ops: ["sort"]
+note: "The vector from the R example, sorted by merge sort. Each row of bars under the array is one level of recursion: the halves are split until single elements remain, then merged pairwise by taking the smaller front element. Change the data to longer or already-sorted input and watch the comparison count stay near n log₂ n."
+```
+
 Comparing a new function with a trusted one (`sort()`) on a large random input is a strong test.
 
 ## Debugging and maintenance
@@ -423,6 +434,14 @@ binary.search(names.sorted, 73514)
 ## [1] 17
 ceiling(log2(100000))                    # the most binary search can need
 ## [1] 17
+```
+
+```sim
+id: r-binary-search
+controls:
+  - {id: n, label: "length of the sorted list", min: 2, max: 1000, step: 1, default: 1000, decimals: 0}
+  - {id: pct, label: "target position (% of the way down the list)", min: 0, max: 100, step: 1, default: 73, decimals: 0}
+note: "Each row is one comparison: the bar is the range of positions that could still hold the target, and the marker is the middle position compared with it. The range halves every time, so even for 1000 names at most 10 comparisons are needed, wherever the target sits. The scan from the start needs as many comparisons as the target's position."
 ```
 
 For $n$ look-ups the difference is roughly $n^2/2$ against $n \log_2 n$ comparisons, which is the

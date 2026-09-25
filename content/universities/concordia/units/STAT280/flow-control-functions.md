@@ -95,6 +95,15 @@ only a small part of the error. A `for` loop needs the number of steps in advanc
 loop below stops when the answer is good enough instead.
 :::
 
+```sim
+id: r-fixed-point
+controls:
+  - {id: a, label: "a in g(x) = a·cos(x)", min: 0.2, max: 2, step: 0.05, default: 1, decimals: 2}
+  - {id: x0, label: "starting value x₀", min: -1, max: 2, step: 0.05, default: 0.2, decimals: 2}
+  - {id: steps, label: "number of steps", min: 1, max: 40, step: 1, default: 15, decimals: 0}
+note: "The cobweb of x ← g(x): go up to the curve, across to y = x, up again. With a = 1 the steps spiral into the fixed point, because |g′(x*)| < 1. Push a past about 1.32: the slope at the fixed point exceeds 1, and the iterates spiral outward into a back-and-forth cycle that never reaches x*. The loan iteration in the example has a slope just below 1, which is why it crawls."
+```
+
 ## Choosing what runs: if() and else
 
 :::definition[if statement]
@@ -222,6 +231,13 @@ x
 
 Four steps from $x_0 = 2$ give the root $2.0945514815\ldots$ to eleven digits.
 
+```sim
+id: newton-method
+controls:
+  - {id: x0, label: "starting guess x₀", min: 0.5, max: 4, step: 0.1, default: 3, decimals: 1}
+note: "The same f(x) = x³ − 2x − 5: each step follows the tangent at the current guess down to the x-axis. From x₀ = 2 or 3 the tangents land almost on the root at once. Start near 0.8, where f′(x) = 0 at x ≈ 0.816: the tangent is nearly flat and throws the next guess far away."
+```
+
 ### repeat, break and next
 
 `repeat { commands }` loops forever; a `break` inside it (usually `if (condition) break`) is the
@@ -279,6 +295,13 @@ c(root = (lo + hi) / 2, iterations = iterations)
 ```
 
 Bisection is slower than Newton's method but cannot fail once a sign change is bracketed.
+
+```sim
+id: r-root-convergence
+controls:
+  - {id: x0, label: "Newton's starting guess x₀", min: -2, max: 4, step: 0.05, default: 2, decimals: 2}
+note: "The error |x − root| after each step, on a log scale. Bisection is a straight line: every step halves the interval and gains the same fraction of a digit, and 31 steps reach 1e-10. Once Newton is close, each step roughly doubles the number of correct digits, so its line plunges. From a poor start (x₀ near 0.8, or negative) it wanders for many steps before the plunge."
+```
 
 :::insight
 Use `for` when the number of passes is known, `while` when a condition decides, and `repeat`
