@@ -142,8 +142,7 @@ note: 'Step through the digit loop and watch d, reversed and n — n is consumed
 
 ## Reading a loop you did not write
 
-The outline's third objective — describe the output of someone else's program — is
-mostly loops.
+Describing the output of someone else's program is mostly a matter of reading its loops.
 
 :::steps[Reading a loop you did not write]
 1. Identify the loop variable and its start, stop and step.

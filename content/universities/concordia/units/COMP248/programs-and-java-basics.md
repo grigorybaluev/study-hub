@@ -14,7 +14,7 @@ types and the arithmetic rules that decide what `7 / 2` means.
 
 ## From problem to program
 
-The course objectives put it in order: *develop an algorithm* for a simple problem, then
+Programming comes in three steps: *develop an algorithm* for a simple problem, then
 *write a complete Java program* given the algorithm, then be able to *describe the output*
 of a program someone else wrote. Programming is the middle step; the first and last are
 thinking.
@@ -62,8 +62,8 @@ reader — the compiler ignores it, so keep it consistent anyway.
 :::note
 `System.out.println(x)` prints `x` and moves to the next line;
 `System.out.print(x)` prints and stays on the line. Comments are `// to end of line` or
-`/* between markers */`. The outline lists "internal code documentation" as a graded
-skill: a comment says *why*, the code already says *what*.
+`/* between markers */`. Good internal documentation is a skill of its own: a comment
+says *why*, the code already says *what*.
 :::
 
 ```sim

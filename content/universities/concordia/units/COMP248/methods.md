@@ -18,8 +18,7 @@ as a test driver.
 ## Why methods
 
 `main` grows until nobody can read it. A **method** names a piece of work so it can be
-written once, tested once, and called wherever needed — the first tool for the outline's
-design objective. The methods in this unit are `static`: they belong to the class, need
+written once, tested once, and called wherever needed — the first tool of program design. The methods in this unit are `static`: they belong to the class, need
 no object, and are called by name from `main` or from each other. Instance methods, the
 ones that belong to an object, come with classes in the next unit.
 

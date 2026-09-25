@@ -209,8 +209,7 @@ r is Rectangle 3.0 x 4.0, area 12.0
 
 The conventional order inside a class file: fields, then
 constructors, then methods (accessors and mutators, then the rest), with a comment on
-each public method saying what it does and what it requires — the outline's "internal
-code documentation".
+each public method saying what it does and what it requires.
 
 ::::exercise[What does this print?]
 ```java
