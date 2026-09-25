@@ -330,10 +330,10 @@ a <- rnorm(n)
 b <- rnorm(n)
 system.time({ s1 <- c(); for (k in 1:n) s1 <- c(s1, a[k] + b[k]) })   # grow
 ##    user  system elapsed 
-##   2.255   1.905   4.375 
+##   2.117   1.667   3.850 
 system.time({ s2 <- numeric(n); for (k in 1:n) s2[k] <- a[k] + b[k] })  # preallocate
 ##    user  system elapsed 
-##   0.008   0.000   0.009 
+##   0.007   0.000   0.007 
 system.time(s3 <- a + b)                                                # vectorise
 ##    user  system elapsed 
 ##       0       0       0 
@@ -382,10 +382,10 @@ horner(2, coef)
 xs <- seq(-5, 5, length.out = 2e6)
 system.time(direct.poly(xs, coef))
 ##    user  system elapsed 
-##   0.259   0.027   0.297 
+##   0.230   0.020   0.253 
 system.time(horner(xs, coef))
 ##    user  system elapsed 
-##   0.042   0.004   0.049 
+##   0.034   0.003   0.038 
 ```
 
 :::example[Finding a name in a list]

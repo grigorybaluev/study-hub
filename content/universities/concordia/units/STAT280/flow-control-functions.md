@@ -267,8 +267,6 @@ $10^{-6}$ ($2^{-20} \approx 9.5 \times 10^{-7}$).
 ```r
 lo <- 2; hi <- 3                       # f(2) < 0 < f(3)
 iterations <- 0
-lo <- 2; hi <- 3                       # f(2) < 0 < f(3)
-iterations <- 0
 repeat {
   mid <- (lo + hi) / 2
   if (f(lo) * f(mid) <= 0) hi <- mid else lo <- mid
