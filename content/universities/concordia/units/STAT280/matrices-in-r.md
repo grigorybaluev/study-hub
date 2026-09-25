@@ -3,7 +3,6 @@ title: Vectors and matrices in R
 order: 11
 status: outline
 weeks: [11]
-textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 6"
 introduces: []
 requires:
   - {concept: r-programming, strength: hard}

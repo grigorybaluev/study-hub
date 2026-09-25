@@ -2,9 +2,7 @@
 title: Data storage, special values and packages
 order: 3
 status: detailed
-notes: ["Lecture 3 · slides 10–12 · Lecture 4 · slide 4", "Lecture 4 · slides 2–3", "Lecture 4 · slides 12–15", "Lecture 4 · slides 16–18"]
 weeks: [2]
-textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 2"
 introduces: [missing-data]
 requires:
   - {concept: r-programming, strength: hard}

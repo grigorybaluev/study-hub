@@ -3,7 +3,6 @@ title: Programming statistical graphics
 order: 5
 status: outline
 weeks: [4]
-textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 3"
 introduces: [data-visualization]
 requires:
   - {concept: r-programming, strength: hard}

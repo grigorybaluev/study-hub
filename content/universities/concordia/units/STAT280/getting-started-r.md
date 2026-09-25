@@ -2,9 +2,7 @@
 title: Getting started with R
 order: 1
 status: detailed
-notes: ["Lecture 1 · slides 1–13", "Lecture 1 · slides 14–20", "Lecture 2 · slides 3–10, 18", "Lecture 2 · slides 11–17"]
 weeks: [1]
-textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 1-2"
 introduces: [r-programming]
 requires: []
 reinforces:
@@ -39,7 +37,7 @@ R is open-source software based on the **S** language, developed at Bell Labs in
 ### Installation
 
 - **R** (4.4.1) from `https://www.r-project.org/`
-- **RStudio Desktop** (free version) from `https://rstudio.com/products/rstudio/download/` (textbook §1.6)
+- **RStudio Desktop** (free version) from `https://rstudio.com/products/rstudio/download/`
 
 R can be used without RStudio, but R must already be installed in order to use RStudio.
 

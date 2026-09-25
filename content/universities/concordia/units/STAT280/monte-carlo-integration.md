@@ -3,7 +3,6 @@ title: Monte Carlo integration and advanced simulation
 order: 10
 status: outline
 weeks: [10]
-textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 5"
 introduces: [monte-carlo-integration]
 requires:
   - {concept: integral, strength: hard}
