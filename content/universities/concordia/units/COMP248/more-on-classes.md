@@ -19,10 +19,27 @@ look like before writing it.
 
 ## Static members
 
-> **Definition.** A **static** field belongs to the class, not to any object: there is
-> exactly one copy, shared by every instance, and it exists even when no object does. A
-> **static method** belongs to the class too — it is called as `ClassName.method()` and
-> has no `this`, so it can use only its parameters and static fields.
+:::definition
+A **static** field belongs to the class, not to any object: there is
+exactly one copy, shared by every instance, and it exists even when no object does. A
+**static method** belongs to the class too — it is called as `ClassName.method()` and
+has no `this`, so it can use only its parameters and static fields.
+:::
+
+:::syntax[Static members]
+```java
+public static final <type> <NAME> = <value>;    // a class constant
+private static <type> <field>;                   // one copy, shared by all objects
+public static <return type> <method>(<parameters>) { … }
+
+<ClassName>.<field>
+<ClassName>.<method>(<arguments>)
+```
+
+- Outside the class, static members are reached through the class name, not an object.
+- Inside a static method there is no `this`: no instance fields, no instance methods without
+  an object in front.
+:::
 
 Static fields are for what is shared: a counter of how many objects have been created, a
 running total, a **class constant** (`public static final double RATE = 0.05;` — the
@@ -59,12 +76,41 @@ code: |
 note: 'The Variables panel shows Ticket.sold once, under static fields, while each object has its own number and seat. Step through the three constructors and watch the shared counter feed the per-object number.'
 ```
 
+::::exercise[What does this print?]
+```java
+class Box {
+    static int made = 0;
+    int id;
+    Box() { made++; id = made; }
+}
+
+// in main
+Box a = new Box();
+Box b = new Box();
+Box c = new Box();
+System.out.println(a.id + " " + b.id + " " + c.id + " "
+        + Box.made + " " + a.made);
+```
+
+:::solution
+```text
+1 2 3 3 3
+```
+
+`made` is static: one counter shared by every `Box`, so each constructor sees the count so far
+and stores it in that object's own `id`. `Box.made` and `a.made` name the same variable (reading
+a static field through an object compiles, but it misleads the reader).
+:::
+::::
+
 ## Overloading
 
-> **Definition.** Two methods (or constructors) in one class are **overloaded** when
-> they share a name but differ in their parameter lists — number or types. The compiler
-> picks the one whose parameters match the arguments' types, widening (`int` to
-> `double`) if no exact match exists.
+:::definition
+Two methods (or constructors) in one class are **overloaded** when
+they share a name but differ in their parameter lists — number or types. The compiler
+picks the one whose parameters match the arguments' types, widening (`int` to
+`double`) if no exact match exists.
+:::
 
 Overloading is for one *operation* on several kinds of input — `print(int)`,
 `print(double)`, `print(String)`; a `Point()` and a `Point(int, int)` — not for two
@@ -139,8 +185,7 @@ class you have never seen.
 
 ## Designing a class
 
-Before writing a class, answer four questions in writing:
-
+:::steps[Designing a class: four questions, answered in writing first]
 1. **What does one object represent?** One noun from the problem; if the answer has
    "and" in it, that is two classes.
 2. **What must always be true of it?** The invariants — those become checks in the
@@ -148,22 +193,25 @@ Before writing a class, answer four questions in writing:
 3. **What can the outside do with it?** The public methods, named for what they do
    (`deposit`, `isOverdue`, `toString`), each with a one-line comment.
 4. **What is shared by all objects?** Static fields and constants.
+:::
 
 Then fields (`private`), constructors (every one leaves a valid object), accessors only
 where needed, `toString` always, `equals` when objects will be compared. An
 **immutable** class — no mutators, fields set once by the constructor — is the simplest
 kind and a good default for values like a `Point` or a `Date`.
 
-> **Key insight.** `static` means "of the class, not of the object": one shared copy, no
-> `this`. Overloading is one name for one operation on several types, resolved at compile
-> time by the arguments. The wrappers and `Math` are the standard library's way of giving
-> primitives a class to hang utilities on — and a class's design is decided by its
-> invariants and its public methods, not by its fields.
+:::insight
+`static` means "of the class, not of the object": one shared copy, no
+`this`. Overloading is one name for one operation on several types, resolved at compile
+time by the arguments. The wrappers and `Math` are the standard library's way of giving
+primitives a class to hang utilities on — and a class's design is decided by its
+invariants and its public methods, not by its fields.
+:::
 
-**Equations**
-
+:::equations
 - *Static versus instance storage*: a class with $s$ static fields and $f$ instance fields, instantiated $k$ times, holds $s + k f$ field values.
 - *Overload resolution*: among candidates with the right arity, choose the one every argument converts to with the least widening, and reject the call if two are equally specific.
+:::
 
 ## Further reading
 
