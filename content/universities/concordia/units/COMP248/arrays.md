@@ -16,15 +16,36 @@ two-dimensional arrays.
 
 ## Declaring, creating, indexing
 
-> **Definition.** An **array** is a fixed-size sequence of elements of one type, stored
-> together and accessed by an integer **index** from `0` to `length - 1`.
+:::definition
+An **array** is a fixed-size sequence of elements of one type, stored
+together and accessed by an integer **index** from `0` to `length - 1`.
+:::
+
+:::syntax[Arrays]
+```java
+<type>[] <name> = new <type>[<length>];
+<type>[] <name> = {<value>, <value>, …};
+<name>[<index>]
+<name>.length
+```
+
+- `new <type>[<length>]` creates `<length>` elements, each set to the type's default value.
+- `{…}` creates the array from a list; its length is the number of values. It is allowed only
+  in a declaration (elsewhere write `new int[] {…}`).
+- `<index>` is any `int` expression from `0` to `length - 1`.
+- `.length` is a field, without parentheses.
+:::
 
 ```java
 int[] marks = new int[5];          // 5 ints, all 0
 marks[0] = 78;                     // index, not position: first element is 0
 marks[4] = 91;                     // last valid index is length - 1
 double[] prices = {1.5, 4.25, 39.9};   // initialiser: size from the list
-System.out.println(marks.length);  // 5 — a field, no parentheses (unlike String.length())
+System.out.println(marks.length);  // a field, no parentheses (unlike String.length())
+```
+
+```output
+5
 ```
 
 The type is `int[]`; `new int[5]` creates the array and fills it with the type's default
@@ -39,6 +60,17 @@ The counting loop `for (int i = 0; i < a.length; i++)` visits every index and is
 form to use when the index matters (position, neighbours, writing into the array). The
 **enhanced for** `for (int x : a)` visits every *value* in order and is the form to use
 when it does not — it cannot modify the elements or tell you where it is.
+
+:::syntax[Enhanced for]
+```java
+for (<type> <variable> : <array>) {
+    <body>
+}
+```
+
+- `<variable>` takes each element's value in turn, from index 0 up.
+- Assigning to `<variable>` changes only the copy, not the array.
+:::
 
 ```sim
 id: java-array-basics
@@ -127,6 +159,27 @@ code: |
 note: 'Look at the #ids in the Variables panel — a and b share #1, c is #2. Writing through b changes a; writing to c does not. == on arrays compares identity; Arrays.equals compares contents.'
 ```
 
+::::exercise[What does this print?]
+```java
+int[] a = {1, 2, 3, 4};
+int[] b = a;
+b[1] = 10;
+a = new int[] {5, 6};
+b[0] = a[1] + b[1];
+System.out.println(Arrays.toString(a) + " " + Arrays.toString(b));
+```
+
+:::solution
+```text
+[5, 6] [16, 10, 3, 4]
+```
+
+`b = a` makes both names refer to the first array, so `b[1] = 10` changes it through either
+name. Then `a` is pointed at a new array `{5, 6}`, and `b` still refers to the old one. So
+`b[0] = a[1] + b[1] = 6 + 10`, written into the old array.
+:::
+::::
+
 ## Two-dimensional arrays
 
 A table is an array of arrays: `double[][] grid = new double[3][4];` has 3 **rows** of 4
@@ -155,15 +208,17 @@ code: |
 note: 'Row sums with the row index outside and the column index inside. Add a column-sum loop with the two loops swapped, and print t[1] on its own — it is an ordinary int[].'
 ```
 
-> **Key insight.** An array turns "many variables" into one variable plus an index, and
-> the index is what a loop counts. The two facts to carry forward: valid indices are
-> `0 … length - 1`, and an array variable is a reference — assignment shares, it does not
-> copy.
+:::insight
+An array turns "many variables" into one variable plus an index, and
+the index is what a loop counts. The two facts to carry forward: valid indices are
+`0 … length - 1`, and an array variable is a reference — assignment shares, it does not
+copy.
+:::
 
-**Equations**
-
+:::equations
 - *Valid indices*: $0 \le i \le n - 1$ for an array of length $n$; the mirror of index $i$ is $n - 1 - i$, which is why the in-place reverse loops while $i < \lfloor n/2 \rfloor$.
 - *Two-dimensional size*: `new T[r][c]` holds $r \cdot c$ elements, visited by a nested loop of $r \cdot c$ passes; the main diagonal of a square table is $t[i][i]$.
+:::
 
 ## Further reading
 

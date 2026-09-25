@@ -7,6 +7,7 @@ prereqs: []
 coreqs: [MATH204]
 requirements: []
 source: concordia-cs-ds-sequence-v3
+pages: programming
 ---
 
 First programming course in Java: variables and types, control flow, methods, arrays,

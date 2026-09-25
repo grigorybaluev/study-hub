@@ -16,9 +16,32 @@ it with constructors, `this`, and encapsulation — private data behind public m
 
 ## Class and object
 
-> **Definition.** A **class** describes a kind of object: the data each one holds (its
-> **fields**, or instance variables) and what it can do (its **methods**). An **object**
-> is one instance, created with `new`, with its own copy of every field.
+:::definition
+A **class** describes a kind of object: the data each one holds (its
+**fields**, or instance variables) and what it can do (its **methods**). An **object**
+is one instance, created with `new`, with its own copy of every field.
+:::
+
+:::syntax[Class, object, method call]
+```java
+public class <Name> {
+    private <type> <field>;
+    public <Name>(<parameters>) {
+        <statements>
+    }
+    public <return type> <method>(<parameters>) {
+        <statements>
+    }
+}
+
+<Name> <variable> = new <Name>(<arguments>);
+<variable>.<method>(<arguments>)
+```
+
+- Fields come first, then constructors, then methods; a public class lives in `<Name>.java`.
+- A constructor has the class's name and no return type; `new` runs it on the new object.
+- Instance methods are declared without `static`; they are called *on* an object, with a dot.
+:::
 
 `String` and `Scanner` were classes someone else wrote; now you write one. A class
 models one thing from the problem — a bank account, a point, a student — and the fields
@@ -116,10 +139,12 @@ note: 'Step into the constructors: this is the object being built, name alone is
 
 ## Encapsulation
 
-> **Definition.** **Encapsulation** (information hiding) is declaring fields `private`,
-> so only the class's own methods can touch them, and exposing what the outside needs
-> through `public` methods. **Accessors** (getters, `getName()`) read a field;
-> **mutators** (setters, `setName(…)`) change one — and can refuse.
+:::definition
+**Encapsulation** (information hiding) is declaring fields `private`,
+so only the class's own methods can touch them, and exposing what the outside needs
+through `public` methods. **Accessors** (getters, `getName()`) read a field;
+**mutators** (setters, `setName(…)`) change one — and can refuse.
+:::
 
 The point is not ceremony. A `private double balance` with a `withdraw` method that
 checks the amount means no code anywhere can make the balance negative; a `public`
@@ -163,20 +188,67 @@ note: 'The balance can only move through deposit and withdraw, and both check th
 `System.out.println(obj)` and string concatenation call the object's **`toString()`**
 method; without one you get something like `Rectangle@1b6d3586`. Define
 `public String toString()` to return a readable description, and printing objects (and
-debugging) becomes easy. The conventional order inside a class file: fields, then
+debugging) becomes easy:
+
+```java
+// in class Rectangle
+public String toString() {
+    return "Rectangle " + width + " x " + height;
+}
+
+// in main
+Rectangle r = new Rectangle(3, 4);
+System.out.println(r);
+System.out.println("r is " + r + ", area " + r.area());
+```
+
+```output
+Rectangle 3.0 x 4.0
+r is Rectangle 3.0 x 4.0, area 12.0
+```
+
+The conventional order inside a class file: fields, then
 constructors, then methods (accessors and mutators, then the rest), with a comment on
 each public method saying what it does and what it requires — the outline's "internal
 code documentation".
 
-> **Key insight.** A class bundles state and the operations allowed on it, and `private`
-> is what makes the bundle mean something: the object can only be changed through methods
-> that keep it valid. A constructor makes a valid object; `this` names it from inside;
-> `toString` shows it.
+::::exercise[What does this print?]
+```java
+class Counter {
+    private int count;
+    public Counter(int count) { count = count; }
+    public void add(int count) { this.count += count; }
+    public int get() { return count; }
+}
 
-**Equations**
+// in main
+Counter c = new Counter(5);
+c.add(3);
+System.out.println(c.get());
+```
 
+:::solution
+```text
+3
+```
+
+In the constructor, `count` means the parameter both times: the parameter shadows the field,
+so `count = count` assigns the parameter to itself and the field keeps its default, 0. `add`
+uses `this.count`, the field, so it becomes 3. The fix is `this.count = count;`.
+:::
+::::
+
+:::insight
+A class bundles state and the operations allowed on it, and `private`
+is what makes the bundle mean something: the object can only be changed through methods
+that keep it valid. A constructor makes a valid object; `this` names it from inside;
+`toString` shows it.
+:::
+
+:::equations
 - *One class, many objects*: $k$ calls to `new C(…)` produce $k$ objects with $k$ separate copies of each field and one shared copy of each method.
 - *Invariant*: a condition $I$ on the fields such that every constructor establishes $I$ and every method preserves $I$ — e.g. $\texttt{balance} \ge 0$.
+:::
 
 ## Further reading
 

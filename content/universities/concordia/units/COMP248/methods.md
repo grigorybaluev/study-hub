@@ -25,10 +25,27 @@ ones that belong to an object, come with classes in the next unit.
 
 ## Defining and calling
 
-> **Definition.** A **method definition** has a **header** — return type, name,
-> **parameter list** — and a **body**. A **call** `name(arguments)` runs the body with
-> each parameter initialised from the corresponding argument, and the call *evaluates to*
-> the value given by `return`.
+:::definition
+A **method definition** has a **header** — return type, name,
+**parameter list** — and a **body**. A **call** `name(arguments)` runs the body with
+each parameter initialised from the corresponding argument, and the call *evaluates to*
+the value given by `return`.
+:::
+
+:::syntax[Static method]
+```java
+public static <return type> <name>(<type> <param>, <type> <param>, …) {
+    <statements>
+    return <expression>;
+}
+```
+
+- `<return type>` is the type of the value the call produces, or `void` for none.
+- The parameter list may be empty, `()`; each parameter is a type and a name, like a declaration.
+- `return <expression>;` ends the call with that value; its type must fit `<return type>`. A
+  `void` method uses `return;` (or none) to end.
+- A call is `<name>(<arguments>)`, with one argument per parameter, in order.
+:::
 
 ```java
 public static double average(int a, int b) {   // header: returns double, takes two ints
@@ -79,11 +96,13 @@ the only way out is `return`. Arguments are matched to parameters **by position*
 each must be assignable to its parameter's type (an `int` argument to a `double`
 parameter is fine; the reverse is a compile error).
 
-> **Definition — Pass by value.** Java copies the *value* of each argument into the
-> parameter. For a primitive that is the number itself, so the method cannot change the
-> caller's variable. For an array (or any object) the value is the *reference*, so the
-> method works on the caller's array and can change its elements — but reassigning the
-> parameter to a new array changes nothing outside.
+:::definition[Pass by value]
+Java copies the *value* of each argument into the
+parameter. For a primitive that is the number itself, so the method cannot change the
+caller's variable. For an array (or any object) the value is the *reference*, so the
+method works on the caller's array and can change its elements — but reassigning the
+parameter to a new array changes nothing outside.
+:::
 
 ```sim
 id: java-pass-by-value
@@ -109,6 +128,31 @@ code: |
   System.out.println(Arrays.toString(v));
 note: 'Three calls, one rule. n is a copy of 21; a in doubleAll is a copy of the reference #1, so writing through it changes v; a in replace is pointed at a new array #2 and v never knows. Watch the #ids as you step.'
 ```
+
+::::exercise[What does this print?]
+```java
+public class F {
+    static int f(int n) {
+        n = n + 10;
+        return n * 2;
+    }
+    public static void main(String[] args) {
+        int n = 1;
+        int r = f(n) + f(f(n));
+        System.out.println(n + " " + r);
+    }
+}
+```
+
+:::solution
+```text
+1 86
+```
+
+Each call gets its own `n`, a copy of the argument, so `main`'s `n` stays 1. `f(1)` is
+`(1 + 10) · 2 = 22`, and `f(f(1)) = f(22) = (22 + 10) · 2 = 64`, so `r` is 22 + 64 = 86.
+:::
+::::
 
 ## Returning results, not printing them
 
@@ -149,15 +193,17 @@ code: |
 note: 'A driver: each line states the expected answer beside the actual one. Break the leap-year rule (drop the || y % 400 == 0) and see which lines disagree.'
 ```
 
-> **Key insight.** A method is a contract: given these parameters, it returns this
-> value, and touches nothing else it was not handed. Primitives go in as copies; arrays go
-> in as references to the caller's data. Keep computing and printing apart, and `main`
-> becomes the place where you check the contract holds.
+:::insight
+A method is a contract: given these parameters, it returns this
+value, and touches nothing else it was not handed. Primitives go in as copies; arrays go
+in as references to the caller's data. Keep computing and printing apart, and `main`
+becomes the place where you check the contract holds.
+:::
 
-**Equations**
-
+:::equations
 - *Call as an expression*: if $f$ has header `T f(P1 a, P2 b)`, then `f(x, y)` has type $T$ and the body runs with $a = x$, $b = y$ (copies); the call's value is whatever `return` yields.
 - *Leap year*: $y$ is a leap year iff $4 \mid y \land (100 \nmid y \lor 400 \mid y)$.
+:::
 
 ## Further reading
 

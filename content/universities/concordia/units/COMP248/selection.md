@@ -16,9 +16,11 @@ to turn the cases of a problem into conditions.
 
 ## Boolean expressions
 
-> **Definition.** A **boolean expression** evaluates to `true` or `false`. The
-> **relational operators** `< <= > >= == !=` compare two numbers (or two chars); the
-> **logical operators** `&&` (and), `||` (or), `!` (not) combine booleans.
+:::definition
+A **boolean expression** evaluates to `true` or `false`. The
+**relational operators** `< <= > >= == !=` compare two numbers (or two chars); the
+**logical operators** `&&` (and), `||` (or), `!` (not) combine booleans.
+:::
 
 Precedence, high to low: `!`, then arithmetic, then relational, then `==` / `!=`, then
 `&&`, then `||`. So `x > 0 && x < 10` needs no parentheses, but write them whenever a
@@ -34,6 +36,24 @@ Booleans are values: `boolean passed = mark >= 50;` stores the answer, and
 `if (passed)` reads better than `if (passed == true)`.
 
 ## if, else and chains
+
+:::syntax[if, else if, else]
+```java
+if (<condition>) {
+    <statements>
+} else if (<condition>) {
+    <statements>
+} else {
+    <statements>
+}
+```
+
+- Each `<condition>` is a boolean expression, in parentheses.
+- The conditions are tested top to bottom; the first one that is `true` runs its block, and the
+  rest are skipped.
+- `else if` parts are optional and may repeat; the final `else` is optional and runs when no
+  condition held.
+:::
 
 ```java
 if (mark >= 50) {
@@ -112,6 +132,26 @@ note: 'Three comparisons that catch people out — doubles, case, and uppercase 
 
 When one value is matched against several constants, `switch` reads better than a chain:
 
+:::syntax[switch]
+```java
+switch (<expression>) {
+    case <constant>:
+        <statements>
+        break;
+    case <constant>:
+    case <constant>:
+        <statements>
+        break;
+    default:
+        <statements>
+}
+```
+
+- `<expression>` is an `int`, `char` or `String` (or an enum).
+- Each `case` label is a constant; control jumps to the matching label and runs until a `break`.
+- Stacked labels share one body; `default` runs when no label matches.
+:::
+
 ```java
 switch (day) {
     case "sat":
@@ -157,9 +197,41 @@ note: 'Two breaks are missing on purpose — ''B'' prints three lines. Add them 
 
 ## The conditional operator
 
-`cond ? a : b` is an *expression* that yields `a` when `cond` is true and `b` otherwise —
-an if/else that produces a value. `max = x > y ? x : y;` is idiomatic; anything longer
-than one line belongs in an `if`.
+:::syntax[Conditional operator]
+```java
+<condition> ? <value if true> : <value if false>
+```
+
+- The whole thing is an *expression*: it yields one of the two values, so it can sit inside an
+  assignment, a call or a `println`.
+- Both values must have compatible types.
+:::
+
+An if/else that produces a value: `max = x > y ? x : y;` is idiomatic; anything longer than
+one line belongs in an `if`.
+
+::::exercise[What does this print?]
+```java
+int x = 5, y = 12;
+if (x > 3)
+    if (y < 10)
+        System.out.println("A");
+else
+    System.out.println("B");
+System.out.println(x > 3 && y < 10 || x == 5 ? "C" : "D");
+```
+
+:::solution
+```text
+B
+C
+```
+
+The indentation lies: the `else` belongs to the nearest `if`, `y < 10`, not to `x > 3`. Since
+`x > 3` holds and `y < 10` does not, the inner `else` prints `B`. On the last line `&&` binds
+tighter than `||`: `(true && false) || true` is `true`, so the conditional yields `"C"`.
+:::
+::::
 
 ## Designing the conditions
 
@@ -169,14 +241,16 @@ they cover all inputs and do not overlap, order them from most to least specific
 then translate each into a condition. An else-if chain whose last branch is a plain
 `else` is a guarantee that no input falls through.
 
-> **Key insight.** Selection is deciding *which* statements run. Every decision is a
-> boolean expression; the shape of the code — chain, nest, switch — should mirror the
-> shape of the cases, and braces plus a final `else` are what keep it honest.
+:::insight
+Selection is deciding *which* statements run. Every decision is a
+boolean expression; the shape of the code — chain, nest, switch — should mirror the
+shape of the cases, and braces plus a final `else` are what keep it honest.
+:::
 
-**Equations**
-
+:::equations
 - *De Morgan's laws*, the way you rewrite negated conditions: $\lnot(p \land q) \equiv \lnot p \lor \lnot q$ and $\lnot(p \lor q) \equiv \lnot p \land \lnot q$ — so `!(x < 0 || x > 9)` is `x >= 0 && x <= 9`.
 - *Tolerance comparison*: treat doubles $a$ and $b$ as equal when $|a - b| < \varepsilon$ for a small $\varepsilon$ such as $10^{-9}$.
+:::
 
 ## Further reading
 
