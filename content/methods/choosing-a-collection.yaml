@@ -1,0 +1,40 @@
+id: choosing-a-collection
+title: Choosing a Java collection
+description: >-
+  Three questions pick the interface: are values looked up by a key, do duplicates matter, is the
+  order of processing fixed by arrival or priority. The iteration order you need then picks the
+  implementation.
+start: key
+nodes:
+  - {id: key, kind: decision, label: "Are values looked up by a key?"}
+  - {id: map-order, kind: decision, label: "Keys needed in sorted order?"}
+  - {id: hash-map, kind: method, label: "HashMap<K, V>", concept: hash-table}
+  - {id: tree-map, kind: method, label: "TreeMap<K, V>", concept: binary-search-tree}
+  - {id: duplicates, kind: decision, label: "Must duplicates be excluded?"}
+  - {id: set-order, kind: decision, label: "Elements needed in sorted order?"}
+  - {id: hash-set, kind: method, label: "HashSet<E>", concept: collections}
+  - {id: tree-set, kind: method, label: "TreeSet<E>", concept: collections}
+  - {id: processing, kind: decision, label: "In what order are elements taken out?"}
+  - {id: deque, kind: method, label: "ArrayDeque<E> as a Queue or stack", concept: queue}
+  - {id: priority, kind: method, label: "PriorityQueue<E>", concept: priority-queue}
+  - {id: list, kind: method, label: "ArrayList<E>", concept: collections}
+  - {id: chosen, kind: end, label: "Declare it by its interface: Map, Set, Queue, List"}
+edges:
+  - {from: key, to: map-order, label: "yes"}
+  - {from: key, to: duplicates, label: "no"}
+  - {from: map-order, to: hash-map, label: "no"}
+  - {from: map-order, to: tree-map, label: "yes"}
+  - {from: hash-map, to: chosen}
+  - {from: tree-map, to: chosen}
+  - {from: duplicates, to: set-order, label: "yes"}
+  - {from: duplicates, to: processing, label: "no"}
+  - {from: set-order, to: hash-set, label: "no"}
+  - {from: set-order, to: tree-set, label: "yes"}
+  - {from: hash-set, to: chosen}
+  - {from: tree-set, to: chosen}
+  - {from: processing, to: deque, label: "by arrival"}
+  - {from: processing, to: priority, label: "by priority"}
+  - {from: processing, to: list, label: "by index"}
+  - {from: deque, to: chosen}
+  - {from: priority, to: chosen}
+  - {from: list, to: chosen}

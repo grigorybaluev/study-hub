@@ -1,0 +1,27 @@
+id: power-series-for-f
+title: Finding a power series for f
+description: >-
+  Computing Taylor coefficients is the last resort. Most functions in the course are a known
+  series in disguise: the geometric series with a substitution, a derivative or integral of it,
+  or a known Maclaurin series after a substitution.
+start: geometric
+nodes:
+  - {id: geometric, kind: decision, label: "Can f be written as c/(1 − u)?"}
+  - {id: adapt, kind: method, label: "Put u into Σ uⁿ; valid for |u| < 1", concept: power-series}
+  - {id: calculus, kind: decision, label: "Is f′ or ∫ f of that form?"}
+  - {id: term-by-term, kind: method, label: "Expand it, integrate or differentiate term by term, fix the constant", concept: power-series}
+  - {id: known, kind: decision, label: "Built from eˣ, sin, cos or (1 + x)ᵏ by substitution or times xⁿ?"}
+  - {id: substitute, kind: method, label: "Substitute into the known Maclaurin series", concept: taylor-series}
+  - {id: taylor, kind: method, label: "Taylor coefficients f⁽ⁿ⁾(a)/n!", concept: taylor-series}
+  - {id: series, kind: end, label: "Series found, with its interval of convergence"}
+edges:
+  - {from: geometric, to: adapt, label: "yes"}
+  - {from: geometric, to: calculus, label: "no"}
+  - {from: adapt, to: series}
+  - {from: calculus, to: term-by-term, label: "yes"}
+  - {from: calculus, to: known, label: "no"}
+  - {from: term-by-term, to: series}
+  - {from: known, to: substitute, label: "yes"}
+  - {from: known, to: taylor, label: "no"}
+  - {from: substitute, to: series}
+  - {from: taylor, to: series}

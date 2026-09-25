@@ -1,0 +1,26 @@
+id: diagonalizable
+title: Is A diagonalizable?
+description: >-
+  A is diagonalizable exactly when it has n independent eigenvectors. Distinct eigenvalues
+  guarantee that; a repeated eigenvalue needs as many independent eigenvectors as its
+  multiplicity.
+start: polynomial
+nodes:
+  - {id: polynomial, kind: method, label: "Solve det(A − λI) = 0; note multiplicities", concept: eigenvalue}
+  - {id: real, kind: decision, label: "Are all the eigenvalues real?"}
+  - {id: distinct, kind: decision, label: "n distinct eigenvalues?"}
+  - {id: eigenspaces, kind: method, label: "For each repeated λ: dim null(A − λI)", concept: eigenvalue}
+  - {id: enough, kind: decision, label: "Geometric = algebraic multiplicity for every λ?"}
+  - {id: diagonalize, kind: method, label: "P = eigenvectors as columns, D = eigenvalues", concept: diagonalization}
+  - {id: yes-diag, kind: end, label: "Diagonalizable: A = P D P⁻¹"}
+  - {id: not-diag, kind: end, label: "Not diagonalizable (over ℝ)"}
+edges:
+  - {from: polynomial, to: real}
+  - {from: real, to: distinct, label: "yes"}
+  - {from: real, to: not-diag, label: "no"}
+  - {from: distinct, to: diagonalize, label: "yes"}
+  - {from: distinct, to: eigenspaces, label: "no"}
+  - {from: eigenspaces, to: enough}
+  - {from: enough, to: diagonalize, label: "yes"}
+  - {from: enough, to: not-diag, label: "no"}
+  - {from: diagonalize, to: yes-diag}

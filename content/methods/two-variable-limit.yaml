@@ -1,0 +1,23 @@
+id: two-variable-limit
+title: Does a two-variable limit exist?
+description: >-
+  A point in the plane can be approached along infinitely many paths, so no number of agreeing
+  paths proves a limit exists: two disagreeing paths prove it does not, and only a bound (a
+  squeeze, often in polar coordinates) proves it does.
+start: substitute
+nodes:
+  - {id: substitute, kind: decision, label: "Is f continuous at (a, b)?"}
+  - {id: value, kind: method, label: "The limit is f(a, b)", concept: continuity}
+  - {id: paths, kind: method, label: "Try paths: the axes, lines y = mx, curves like x = y²", concept: multivariable-function}
+  - {id: disagree, kind: decision, label: "Do two paths give different values?"}
+  - {id: squeeze, kind: method, label: "Bound |f − L| by something → 0 (polar: r → 0)", concept: limit}
+  - {id: exists, kind: end, label: "The limit exists"}
+  - {id: dne, kind: end, label: "The limit does not exist"}
+edges:
+  - {from: substitute, to: value, label: "yes"}
+  - {from: substitute, to: paths, label: "no"}
+  - {from: value, to: exists}
+  - {from: paths, to: disagree}
+  - {from: disagree, to: dne, label: "yes"}
+  - {from: disagree, to: squeeze, label: "no"}
+  - {from: squeeze, to: exists}

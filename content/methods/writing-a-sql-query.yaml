@@ -1,0 +1,32 @@
+id: writing-a-sql-query
+title: Writing a SQL query
+description: >-
+  Build the query clause by clause from the question: which tables hold the data and how they
+  join, whether unmatched rows must survive, whether the answer is per group, and whether a row
+  qualifies by comparison with other rows.
+start: tables
+nodes:
+  - {id: tables, kind: decision, label: "Is all the data in one table?"}
+  - {id: join, kind: method, label: "JOIN the tables on their keys", concept: sql}
+  - {id: unmatched, kind: decision, label: "Must rows without a match still appear?"}
+  - {id: outer, kind: method, label: "LEFT OUTER JOIN from the table that must be kept", concept: sql}
+  - {id: groups, kind: decision, label: "An answer per group (count, sum, average …)?"}
+  - {id: group-by, kind: method, label: "GROUP BY; HAVING filters groups", concept: sql}
+  - {id: others, kind: decision, label: "Does a row qualify by comparison with other rows?"}
+  - {id: subquery, kind: method, label: "Subquery: IN, EXISTS / NOT EXISTS, or a scalar", concept: sql}
+  - {id: select, kind: method, label: "SELECT the columns; WHERE filters rows", concept: relational-algebra}
+  - {id: query, kind: end, label: "Query written: test it on a tiny instance"}
+edges:
+  - {from: tables, to: join, label: "no"}
+  - {from: tables, to: groups, label: "yes"}
+  - {from: join, to: unmatched}
+  - {from: unmatched, to: outer, label: "yes"}
+  - {from: unmatched, to: groups, label: "no"}
+  - {from: outer, to: groups}
+  - {from: groups, to: group-by, label: "yes"}
+  - {from: groups, to: others, label: "no"}
+  - {from: group-by, to: others}
+  - {from: others, to: subquery, label: "yes"}
+  - {from: others, to: select, label: "no"}
+  - {from: subquery, to: select}
+  - {from: select, to: query}

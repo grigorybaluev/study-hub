@@ -1,0 +1,26 @@
+id: inverting-a-matrix
+title: Is A invertible, and what is A⁻¹?
+description: >-
+  Only a square matrix with nonzero determinant (full rank) has an inverse. For a 2×2 matrix the
+  formula is quickest; for anything larger, row-reduce A beside the identity until the identity
+  moves to the other side.
+start: square
+nodes:
+  - {id: square, kind: decision, label: "Is A square?"}
+  - {id: test, kind: method, label: "Compute det A (or the rank)", concept: determinant}
+  - {id: nonzero, kind: decision, label: "det A ≠ 0 (rank n)?"}
+  - {id: size, kind: decision, label: "Is A 2×2?"}
+  - {id: formula, kind: method, label: "A⁻¹ = (1/(ad − bc)) [d −b; −c a]", concept: matrix-inverse}
+  - {id: gauss-jordan, kind: method, label: "Row-reduce [A | I] to [I | A⁻¹]", concept: matrix-inverse}
+  - {id: inverse, kind: end, label: "A⁻¹ found: check A A⁻¹ = I"}
+  - {id: singular, kind: end, label: "Not invertible"}
+edges:
+  - {from: square, to: test, label: "yes"}
+  - {from: square, to: singular, label: "no"}
+  - {from: test, to: nonzero}
+  - {from: nonzero, to: size, label: "yes"}
+  - {from: nonzero, to: singular, label: "no"}
+  - {from: size, to: formula, label: "yes"}
+  - {from: size, to: gauss-jordan, label: "no"}
+  - {from: formula, to: inverse}
+  - {from: gauss-jordan, to: inverse}

@@ -1,0 +1,32 @@
+id: computing-a-determinant
+title: Computing a determinant
+description: >-
+  Look for structure before computing: a triangular matrix, a zero or repeated row, or a sparse row
+  each make the determinant short work. Without structure, row-reduce to create it, keeping track
+  of how each operation changes the determinant.
+start: size
+nodes:
+  - {id: size, kind: decision, label: "What size is A?"}
+  - {id: formula, kind: method, label: "det A = ad − bc", concept: determinant}
+  - {id: triangular, kind: decision, label: "Triangular (or diagonal)?"}
+  - {id: diagonal, kind: method, label: "Product of the diagonal entries", concept: determinant}
+  - {id: zero, kind: decision, label: "A zero row or column, or two proportional rows?"}
+  - {id: singular, kind: method, label: "det A = 0", concept: determinant}
+  - {id: sparse, kind: decision, label: "A row or column that is mostly zeros?"}
+  - {id: cofactor, kind: method, label: "Cofactor expansion along it, signs (−1)^(i+j)", concept: determinant}
+  - {id: reduce, kind: method, label: "Row-reduce: a swap flips the sign, scaling a row scales det", concept: determinant}
+  - {id: found, kind: end, label: "Determinant found"}
+edges:
+  - {from: size, to: formula, label: "2×2"}
+  - {from: size, to: triangular, label: "3×3 or larger"}
+  - {from: formula, to: found}
+  - {from: triangular, to: diagonal, label: "yes"}
+  - {from: triangular, to: zero, label: "no"}
+  - {from: diagonal, to: found}
+  - {from: zero, to: singular, label: "yes"}
+  - {from: zero, to: sparse, label: "no"}
+  - {from: singular, to: found}
+  - {from: sparse, to: cofactor, label: "yes"}
+  - {from: sparse, to: reduce, label: "no"}
+  - {from: cofactor, to: found}
+  - {from: reduce, to: triangular}

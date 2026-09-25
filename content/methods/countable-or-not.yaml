@@ -1,0 +1,26 @@
+id: countable-or-not
+title: Countable or not?
+description: >-
+  Countable means listable. Show a listing (or a bijection with ℕ), or build the set from
+  countable sets by operations that keep countability. To show a set is not countable, let any
+  proposed list produce an element it misses.
+start: finite
+nodes:
+  - {id: finite, kind: decision, label: "Is it finite?"}
+  - {id: listable, kind: decision, label: "Can you list it: a first, second, third … element?"}
+  - {id: enumerate, kind: method, label: "Give the listing, or a bijection with ℕ", concept: countability}
+  - {id: built, kind: decision, label: "A subset, countable union or finite product of countable sets?"}
+  - {id: closure, kind: method, label: "Those operations keep a set countable", concept: countability}
+  - {id: diagonal, kind: method, label: "Diagonal argument: every list misses an element", concept: countability}
+  - {id: countable, kind: end, label: "Countable"}
+  - {id: uncountable, kind: end, label: "Uncountable"}
+edges:
+  - {from: finite, to: countable, label: "yes"}
+  - {from: finite, to: listable, label: "no"}
+  - {from: listable, to: enumerate, label: "yes"}
+  - {from: listable, to: built, label: "no"}
+  - {from: enumerate, to: countable}
+  - {from: built, to: closure, label: "yes"}
+  - {from: built, to: diagonal, label: "no"}
+  - {from: closure, to: countable}
+  - {from: diagonal, to: uncountable}

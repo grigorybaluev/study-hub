@@ -1,0 +1,32 @@
+id: evaluating-a-limit
+title: Evaluating a limit
+description: >-
+  Substitute first: a continuous function's limit is its value. Only when substitution fails does
+  the form it produces choose the tool, and every algebraic repair ends by substituting again.
+start: substitute
+nodes:
+  - {id: substitute, kind: decision, label: "Does substituting x = a give a number?"}
+  - {id: value, kind: method, label: "The limit is f(a)", concept: continuity}
+  - {id: form, kind: decision, label: "What does substitution give?"}
+  - {id: repair, kind: decision, label: "Which algebra removes the 0/0?"}
+  - {id: cancel, kind: method, label: "Factor and cancel the common factor", concept: limit}
+  - {id: rationalise, kind: method, label: "Multiply by the conjugate", concept: limit}
+  - {id: lhopital, kind: method, label: "L'Hôpital: take lim f′/g′", concept: derivative}
+  - {id: one-sided, kind: method, label: "Compute both one-sided limits and compare", concept: limit}
+  - {id: squeeze, kind: method, label: "Squeeze between two functions with the same limit", concept: limit}
+  - {id: found, kind: end, label: "Limit found: a number, ±∞, or does not exist"}
+edges:
+  - {from: substitute, to: value, label: "yes"}
+  - {from: substitute, to: form, label: "no"}
+  - {from: value, to: found}
+  - {from: form, to: repair, label: "0/0"}
+  - {from: form, to: one-sided, label: "c/0 or a break"}
+  - {from: form, to: squeeze, label: "oscillating"}
+  - {from: repair, to: cancel, label: "factor"}
+  - {from: repair, to: rationalise, label: "a square root"}
+  - {from: repair, to: lhopital, label: "neither"}
+  - {from: cancel, to: substitute}
+  - {from: rationalise, to: substitute}
+  - {from: lhopital, to: substitute}
+  - {from: one-sided, to: found}
+  - {from: squeeze, to: found}

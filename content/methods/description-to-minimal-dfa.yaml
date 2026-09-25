@@ -1,0 +1,26 @@
+id: description-to-minimal-dfa
+title: From a description to a minimal DFA
+description: >-
+  Design a DFA directly when you can name what it must remember. When the language is easier to
+  guess at (where a pattern starts, which alternative applies), write an NFA or a regular
+  expression and let the subset construction do the remembering. Minimise either way.
+start: direct
+nodes:
+  - {id: direct, kind: decision, label: "Can you name, in a few states, what must be remembered?"}
+  - {id: design, kind: method, label: "Design the DFA: one state per thing to remember", concept: dfa}
+  - {id: easier, kind: decision, label: "Easier as a regex or as an NFA?"}
+  - {id: thompson, kind: method, label: "Regex → ε-NFA", concept: regular-expression}
+  - {id: nfa, kind: method, label: "Build the NFA: let it guess", concept: nfa}
+  - {id: subset, kind: method, label: "Subset construction: states are sets of NFA states", concept: nfa}
+  - {id: minimise, kind: method, label: "Minimise: merge indistinguishable states", concept: dfa-minimization}
+  - {id: minimal, kind: end, label: "Minimal DFA (unique up to renaming)"}
+edges:
+  - {from: direct, to: design, label: "yes"}
+  - {from: direct, to: easier, label: "no"}
+  - {from: design, to: minimise}
+  - {from: easier, to: thompson, label: "regex"}
+  - {from: easier, to: nfa, label: "NFA"}
+  - {from: thompson, to: subset}
+  - {from: nfa, to: subset}
+  - {from: subset, to: minimise}
+  - {from: minimise, to: minimal}

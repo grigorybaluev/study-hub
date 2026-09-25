@@ -1,0 +1,26 @@
+id: is-it-a-subspace
+title: Is W a subspace?
+description: >-
+  The zero vector is the fastest test: without it W fails at once. Spans and solution sets of
+  homogeneous systems are always subspaces; anything else needs the two closure checks, and one
+  concrete failure is enough to say no.
+start: zero
+nodes:
+  - {id: zero, kind: decision, label: "Does W contain the zero vector?"}
+  - {id: recognise, kind: decision, label: "Is W a span, or the solutions of Ax = 0?"}
+  - {id: known, kind: method, label: "Spans and null spaces are subspaces", concept: vector-space}
+  - {id: closure, kind: method, label: "Check u + v ∈ W and cu ∈ W for arbitrary u, v, c", concept: vector-space}
+  - {id: closed, kind: decision, label: "Do both closures hold in general?"}
+  - {id: counterexample, kind: method, label: "Give specific u, v or c that leave W", concept: vector-space}
+  - {id: subspace, kind: end, label: "W is a subspace"}
+  - {id: not-subspace, kind: end, label: "W is not a subspace"}
+edges:
+  - {from: zero, to: recognise, label: "yes"}
+  - {from: zero, to: not-subspace, label: "no"}
+  - {from: recognise, to: known, label: "yes"}
+  - {from: recognise, to: closure, label: "no"}
+  - {from: known, to: subspace}
+  - {from: closure, to: closed}
+  - {from: closed, to: subspace, label: "yes"}
+  - {from: closed, to: counterexample, label: "no"}
+  - {from: counterexample, to: not-subspace}

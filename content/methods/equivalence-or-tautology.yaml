@@ -1,0 +1,23 @@
+id: equivalence-or-tautology
+title: Is it a tautology, or are two formulas equivalent?
+description: >-
+  One falsifying row settles a "no", so look for it first. A "yes" needs every row: a chain of
+  known laws when one suggests itself, a truth table otherwise.
+start: falsify
+nodes:
+  - {id: falsify, kind: decision, label: "Can you find an assignment that makes it fail?"}
+  - {id: counterexample, kind: method, label: "Give that one row", concept: propositional-logic}
+  - {id: laws, kind: decision, label: "Does a chain of known laws suggest itself?"}
+  - {id: chain, kind: method, label: "Rewrite step by step: p → q ≡ ¬p ∨ q, De Morgan, distributivity …", concept: logical-inference}
+  - {id: table, kind: method, label: "Truth table: compare every row", concept: propositional-logic}
+  - {id: holds, kind: end, label: "Tautology / equivalent"}
+  - {id: fails, kind: end, label: "Not a tautology / not equivalent"}
+edges:
+  - {from: falsify, to: counterexample, label: "yes"}
+  - {from: falsify, to: laws, label: "no"}
+  - {from: counterexample, to: fails}
+  - {from: laws, to: chain, label: "yes"}
+  - {from: laws, to: table, label: "no"}
+  - {from: chain, to: holds}
+  - {from: table, to: holds}
+  - {from: table, to: fails}

@@ -1,0 +1,27 @@
+id: limit-of-a-sequence
+title: Limit of a sequence
+description: >-
+  A sequence given by a formula borrows the limit of the matching function. When it does not,
+  trap it between two sequences, or show it is monotone and bounded so that a limit exists and can
+  be found from the recursion.
+start: function
+nodes:
+  - {id: function, kind: decision, label: "Is a_n = f(n) for an f whose limit at ∞ you can find?"}
+  - {id: from-f, kind: method, label: "lim f(x) as x → ∞ (L'Hôpital allowed) is the limit", concept: sequence}
+  - {id: trapped, kind: decision, label: "Trapped between two sequences with the same limit?"}
+  - {id: squeeze, kind: method, label: "Squeeze theorem", concept: sequence}
+  - {id: monotone, kind: decision, label: "Monotone and bounded?"}
+  - {id: mct, kind: method, label: "It converges; find L from the recursion", concept: sequence}
+  - {id: subsequences, kind: method, label: "Find two subsequences with different limits, or unbounded growth", concept: sequence}
+  - {id: found, kind: end, label: "Limit found, or divergence shown"}
+edges:
+  - {from: function, to: from-f, label: "yes"}
+  - {from: function, to: trapped, label: "no"}
+  - {from: from-f, to: found}
+  - {from: trapped, to: squeeze, label: "yes"}
+  - {from: trapped, to: monotone, label: "no"}
+  - {from: squeeze, to: found}
+  - {from: monotone, to: mct, label: "yes"}
+  - {from: monotone, to: subsequences, label: "no"}
+  - {from: mct, to: found}
+  - {from: subsequences, to: found}

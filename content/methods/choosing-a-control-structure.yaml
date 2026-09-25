@@ -1,0 +1,32 @@
+id: choosing-a-control-structure
+title: Choosing a control structure
+description: >-
+  First decide whether the code chooses or repeats. A choice on one value against constants is a
+  switch; anything else is if/else. A repetition whose count is known before it starts is a for
+  loop; otherwise the question is whether the body must run once before the test.
+start: repeat
+nodes:
+  - {id: repeat, kind: decision, label: "Is something repeated?"}
+  - {id: constants, kind: decision, label: "One value compared against several constants?"}
+  - {id: switch, kind: method, label: "switch", concept: selection}
+  - {id: if-else, kind: method, label: "if / else if / else", concept: selection}
+  - {id: known, kind: decision, label: "Is the number of repetitions known before the loop starts?"}
+  - {id: for, kind: method, label: "for loop over a counter", concept: iteration}
+  - {id: once, kind: decision, label: "Must the body run once before the test?"}
+  - {id: do-while, kind: method, label: "do-while", concept: iteration}
+  - {id: while, kind: method, label: "while", concept: iteration}
+  - {id: code, kind: end, label: "Written: trace it on a small input"}
+edges:
+  - {from: repeat, to: constants, label: "no"}
+  - {from: repeat, to: known, label: "yes"}
+  - {from: constants, to: switch, label: "yes"}
+  - {from: constants, to: if-else, label: "no"}
+  - {from: switch, to: code}
+  - {from: if-else, to: code}
+  - {from: known, to: for, label: "yes"}
+  - {from: known, to: once, label: "no"}
+  - {from: for, to: code}
+  - {from: once, to: do-while, label: "yes"}
+  - {from: once, to: while, label: "no"}
+  - {from: do-while, to: code}
+  - {from: while, to: code}

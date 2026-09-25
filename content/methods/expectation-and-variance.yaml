@@ -1,0 +1,32 @@
+id: expectation-and-variance
+title: Finding E[X] and Var(X)
+description: >-
+  The definition always works but is often the long way. A named distribution has its moments in
+  a table, a sum splits by linearity, a known mgf gives the moments by differentiation, and a
+  two-stage experiment is handled by conditioning on the first stage.
+start: named
+nodes:
+  - {id: named, kind: decision, label: "Is X a named distribution?"}
+  - {id: table, kind: method, label: "Read E[X] and Var(X) from its table"}
+  - {id: sum, kind: decision, label: "Is X a sum of simpler variables (e.g. indicators)?"}
+  - {id: linearity, kind: method, label: "E[ΣXᵢ] = ΣE[Xᵢ]; Var adds the covariances", concept: expected-value}
+  - {id: mgf-known, kind: decision, label: "Is the mgf given, or easy to find?"}
+  - {id: mgf, kind: method, label: "E[X] = M′(0), E[X²] = M″(0)", concept: moment-generating-function}
+  - {id: two-stage, kind: decision, label: "Does X depend on another random quantity?"}
+  - {id: condition, kind: method, label: "E[X] = E[E[X | Y]]", concept: conditional-expectation}
+  - {id: definition, kind: method, label: "Σ x p(x) or ∫ x f(x) dx; Var = E[X²] − μ²", concept: variance}
+  - {id: found, kind: end, label: "Mean and variance found"}
+edges:
+  - {from: named, to: table, label: "yes"}
+  - {from: named, to: sum, label: "no"}
+  - {from: table, to: found}
+  - {from: sum, to: linearity, label: "yes"}
+  - {from: sum, to: mgf-known, label: "no"}
+  - {from: linearity, to: found}
+  - {from: mgf-known, to: mgf, label: "yes"}
+  - {from: mgf-known, to: two-stage, label: "no"}
+  - {from: mgf, to: found}
+  - {from: two-stage, to: condition, label: "yes"}
+  - {from: two-stage, to: definition, label: "no"}
+  - {from: condition, to: found}
+  - {from: definition, to: found}

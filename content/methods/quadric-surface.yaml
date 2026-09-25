@@ -1,0 +1,32 @@
+id: quadric-surface
+title: Identifying a quadric surface
+description: >-
+  Put the equation in standard form and count: how many variables are squared, with which signs,
+  and what is on the other side. Traces (slices by planes x = k, y = k, z = k) confirm the shape.
+start: standard
+nodes:
+  - {id: standard, kind: method, label: "Complete the squares; divide to get standard form", concept: quadric-surface}
+  - {id: squared, kind: decision, label: "How many variables are squared?"}
+  - {id: signs, kind: decision, label: "Signs of the squares, and the right-hand side"}
+  - {id: third, kind: decision, label: "The third variable is …"}
+  - {id: same-sign, kind: decision, label: "Do the two squares have the same sign?"}
+  - {id: ellipsoid, kind: end, label: "Ellipsoid"}
+  - {id: one-sheet, kind: end, label: "Hyperboloid of one sheet"}
+  - {id: two-sheets, kind: end, label: "Hyperboloid of two sheets"}
+  - {id: cone, kind: end, label: "Elliptic cone"}
+  - {id: elliptic-paraboloid, kind: end, label: "Elliptic paraboloid"}
+  - {id: hyperbolic-paraboloid, kind: end, label: "Hyperbolic paraboloid (saddle)"}
+  - {id: cylinder, kind: end, label: "Cylinder (over a parabola or a conic)"}
+edges:
+  - {from: standard, to: squared}
+  - {from: squared, to: signs, label: "three"}
+  - {from: squared, to: third, label: "two"}
+  - {from: squared, to: cylinder, label: "one"}
+  - {from: signs, to: one-sheet, label: "one minus, = 1"}
+  - {from: signs, to: ellipsoid, label: "all plus, = 1"}
+  - {from: signs, to: cone, label: "one minus, = 0"}
+  - {from: signs, to: two-sheets, label: "two minus, = 1"}
+  - {from: third, to: same-sign, label: "linear"}
+  - {from: third, to: cylinder, label: "absent"}
+  - {from: same-sign, to: elliptic-paraboloid, label: "yes"}
+  - {from: same-sign, to: hyperbolic-paraboloid, label: "no"}
