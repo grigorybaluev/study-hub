@@ -197,6 +197,18 @@ blockquote.wiki p { margin: 0.4em 0; }
 .unit-body .blk-trace > .blk-head .blk-label { color: var(--callout-steps-line); }
 .unit-body .blk-exercise { border: 1.5px dashed var(--callout-steps-line); background: var(--callout-steps-bg); }
 .unit-body .blk-exercise > .blk-head .blk-label { color: var(--callout-steps-line); }
+/* programming pages (#131): the general form of a construct, and a program's output under its code */
+.unit-body .blk-syntax { border: 1px solid var(--code-line); border-left: 4px solid var(--callout-def-line); background: var(--bg-sunken); }
+.unit-body .blk-syntax > .blk-head .blk-label { color: var(--callout-def-line); }
+.unit-body .blk-syntax pre { margin: 0.2em 0 0.7em; box-shadow: none; }
+.unit-body .blk-syntax ul { margin: 0.3em 0 0; padding-left: 1.1em; }
+.unit-body pre:has(+ .code-output) { margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.unit-body .code-output { position: relative; margin: 0 0 1.2em; }
+.unit-body .code-output pre { margin: 0; border-top: 1px dashed var(--code-line); border-top-left-radius: 0; border-top-right-radius: 0; background: var(--bg-sunken); color: var(--fg); box-shadow: none; }
+.unit-body .code-output-label { position: absolute; top: 0.35em; right: 0.8em; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); }
+.unit-body .blk-trace table { margin: 0.5em 0 0.3em; font-variant-numeric: tabular-nums; }
+.unit-body.pages-programming :is(p, li) { line-height: 1.7; }
+.unit-body.pages-programming pre { font-size: 0.86rem; }
 /* a table and its diagram (#111): side by side when there is room, a switch when there is not */
 .unit-body .views { container-type: inline-size; margin: 0.8em 0; }
 .unit-body .views-switch { display: none; gap: 0.3em; margin-bottom: 0.5em; }

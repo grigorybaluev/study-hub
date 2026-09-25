@@ -104,6 +104,8 @@ controls:
 note: 'A <- matrix(1:(nrow*ncol), nrow, ncol) is filled column by column, so A[k] walks down each column in turn. The highlighted cell is A[k]; the title gives the equivalent A[i, j]. Defaults reproduce the slide: A[3] = 3 = A[1, 2]. An index beyond nrow·ncol returns NA, exactly as in R.'
 ```
 
+Lecture 3's matrix examples plus dim()/byrow = TRUE and the true matrix square B %*% B, to contrast with the entry-wise B^2 on the slide.
+
 ```r
 A <- matrix(1:8, nrow = 2, ncol = 4); A
 ##      [,1] [,2] [,3] [,4]
@@ -137,8 +139,6 @@ v1 <- c(1, 2, 3); v2 <- c(5, 6, 7)
 rbind(v1, v2)
 cbind(v1, v2)
 ```
-
-Lecture 3's matrix examples plus dim()/byrow = TRUE and the true matrix square B %*% B, to contrast with the entry-wise B^2 on the slide.
 
 ## Arrays
 
@@ -282,6 +282,8 @@ note: A fixed sample of 10 values in [0, 10] is shifted by A = 10^k and both for
 ...
 ```
 
+The sin(pi*n) demonstration, all.equal() as the safe comparison, and Example 2.2 written as two small functions so the shift experiment is one line. The final sapply shows the one-pass error increasing with the shift A.
+
 ```r
 # Round-off: these should all be exactly 0
 n <- 1:3
@@ -310,8 +312,6 @@ c(var(x), two.pass(x), one.pass(x))      # one.pass is now garbage
 shifts <- 10^(0:12)
 sapply(shifts, function(A) one.pass(x - 1e10 + A))
 ```
-
-The sin(pi*n) demonstration, all.equal() as the safe comparison, and Example 2.2 written as two small functions so the shift experiment is one line. The final sapply shows the one-pass error increasing with the shift A.
 
 ## Missing Values, Inf, NaN & Dates
 

@@ -163,6 +163,8 @@ controls:
 note: 'Compares a:b*c + d (as R reads it: (a:b)*c + d) with a:(b*c + d). With the defaults this is the slide example 5:2*3 + 10 = 25 22 19 16 versus 5:16.'
 ```
 
+Every example from the "calculator" slides in one script. Note that several commands can share a line if separated by ; and that log() is the natural logarithm.
+
 ```r
 # R as a calculator
 (1+1)*1.2 - 4/5^2
@@ -197,8 +199,6 @@ sqrt(2); abs(-3.5); sign(-3.5); cos(pi)
 ## [1] -1
 ## [1] -1
 ```
-
-Every example from the "calculator" slides in one script. Note that several commands can share a line if separated by ; and that log() is the natural logarithm.
 
 ## Objects & the Global Environment
 
@@ -295,6 +295,8 @@ controls:
 note: 'R = P·i / (1 − (1+i)^(−n)) from Example 2.1, and how the instalment falls as n grows for the chosen P and i. Defaults reproduce the slide: R = 158.37.'
 ```
 
+Assignments, the loan example and the objects()/ls() listing from the slides, plus the SUM <- sum trick showing that functions are ordinary objects.
+
 ```r
 # Assignment stores a value without printing it
 my_result <- sqrt(2) + cos(pi/8)
@@ -323,8 +325,6 @@ SUM(x)
 
 getwd()                        # current working directory (use setwd() to change it)
 ```
-
-Assignments, the loan example and the objects()/ls() listing from the slides, plus the SUM <- sum trick showing that functions are ordinary objects.
 
 ## Writing & Calling Functions
 
@@ -395,6 +395,8 @@ note: The function from Exercise 1, evaluated on a vector of x-values — exactl
 ...
 ```
 
+The add.3.to example, both exercises from the slides (with checks), and a small function with a default argument mirroring how q(save, status, runLast) works.
+
 ```r
 # A first user-defined function
 add.3.to <- function(input){
@@ -436,8 +438,6 @@ power(3, 3)              # positional
 power(p = 3, x = 3)      # named
 ## [1] 27
 ```
-
-The add.3.to example, both exercises from the slides (with checks), and a small function with a default argument mirroring how q(save, status, runLast) works.
 
 ## Further reading
 

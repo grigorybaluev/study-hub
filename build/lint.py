@@ -396,6 +396,23 @@ _FA_JS = ROOT / "app" / "src" / "sims" / "automata.js"
 FA_MACHINES = set(re.findall(r"def\(\{ id: '([\w-]+)'", _FA_JS.read_text(encoding="utf-8"))) if _FA_JS.exists() else set()
 
 
+def code_fences(body: str):
+    """(line, language, language of the previous fence if only blank lines separate them) per opening fence."""
+    out, open_lang, open_len, prev, prev_end = [], None, 0, None, -1
+    lines = body.split("\n")
+    for n, text in enumerate(lines):
+        m = re.match(r"^(`{3,})\s*([\w-]*)\s*$", text)
+        if not m:
+            continue
+        if open_lang is None:
+            adjacent = prev_end >= 0 and all(not l.strip() for l in lines[prev_end + 1:n])
+            out.append((n + 1, m.group(2), prev if adjacent else None))
+            open_lang, open_len = m.group(2), len(m.group(1))
+        elif not m.group(2) and len(m.group(1)) >= open_len:   # a closing fence is at least as long, with no language
+            prev, prev_end, open_lang = open_lang, n, None
+    return out
+
+
 def lint_unit_structure(doc: Doc, pages: str | None, rep: Report):
     """Unit-page design (#89): container names always; for a designed kind, what is left to convert."""
     body = blank_fences(doc.body)
@@ -411,7 +428,15 @@ def lint_unit_structure(doc: Doc, pages: str | None, rep: Report):
             rep.error(doc.path, "automaton block needs `machine: <id>` or inline `states` and `trans`")
         elif spec.get("machine") and spec["machine"] not in FA_MACHINES:
             rep.error(doc.path, f"automaton block: unknown machine {spec['machine']!r} (not defined in app/src/sims/automata.js)")
-    if pages not in ("math", "theory"):   # theory inherits the math design (#111)
+    fences = code_fences(doc.body)
+    for k, (line, lang, prev) in enumerate(fences):
+        sim_code = k > 0 and fences[k - 1][2] == "sim"   # the code before it is a sim's code: collapsed, so no pre to attach to
+        if lang == "output" and (prev is None or prev in ("sim", "automaton", "solution-map", "output") or sim_code):
+            rep.warn(doc.path, f"body line {line}: an output block must come right after the code block it belongs to"
+                     + (" (not after a sim's collapsed code)" if sim_code else ""))
+        if pages == "programming" and not lang:   # every fence names its language (#131)
+            rep.warn(doc.path, f"body line {line}: code fence without a language")
+    if pages not in ("math", "theory", "programming"):   # theory inherits the math design (#111); programming (#131)
         return
     legacy = len(LEGACY_CALLOUT_RE.findall(body))
     if legacy:

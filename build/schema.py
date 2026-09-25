@@ -29,7 +29,8 @@ PAGE_KINDS = {"math", "theory", "programming", "systems", "data"}  # course `pag
 # `:::name[title]` containers a unit body may use; the app's Markdown.tsx has the same list
 BLOCKS = {"definition", "theorem", "lemma", "proposition", "corollary", "proof", "example", "solution",
           "note", "remark", "caution", "insight", "steps", "equations",
-          "algorithm", "machine", "trace", "exercise"}   # the last four: theory pages (#111)
+          "algorithm", "machine", "trace", "exercise",    # theory pages (#111), reused by programming pages
+          "syntax"}                                      # programming pages (#131)
 STRENGTH = {"hard", "soft"}
 METHOD_NODE_KINDS = {"decision", "method", "end"}  # content/methods/<id>.yaml graphs (#91)
 SEASONS = ("fall", "winter", "summer")  # ordered: index within a year
