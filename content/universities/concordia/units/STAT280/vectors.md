@@ -148,6 +148,8 @@ note: Shows how x + z pairs each element of x with an element of the shorter z, 
 ...
 ```
 
+All the vector examples from Lectures 2–3. set.seed() is not in the slides but makes the sample() output reproducible so you can compare runs.
+
 ```r
 # Creating and combining
 x.Vec <- c(1, 2, 3)
@@ -185,8 +187,6 @@ set.seed(280)                                  # makes the "random" draws reprod
 sample(1:6, size = 15, replace = TRUE)         # 15 die tosses
 sample(0:1, size = 15, replace = TRUE)         # 15 coin tosses (0 = heads, 1 = tails)
 ```
-
-All the vector examples from Lectures 2–3. set.seed() is not in the slides but makes the sample() output reproducible so you can compare runs.
 
 ## Character Vectors & Factors
 
@@ -433,6 +433,8 @@ note: dice.tossings <- sample(1:6, n, replace = TRUE), then the logical vector c
 ...
 ```
 
+Relational operators, the truth table built with cbind(), and logical subsetting with which(). The last two lines show the very common trick of summing a logical vector to count TRUEs.
+
 ```r
 class(pi); is.integer(pi); class(is.integer(pi))
 ## [1] "numeric"
@@ -470,8 +472,6 @@ which(!(dice.tossings == 5 | dice.tossings == 6))
 sum(dice.tossings >= 3)                # how many tosses were at least 3
 mean(dice.tossings >= 3)               # proportion of tosses at least 3
 ```
-
-Relational operators, the truth table built with cbind(), and logical subsetting with which(). The last two lines show the very common trick of summing a logical vector to count TRUEs.
 
 ## Further reading
 

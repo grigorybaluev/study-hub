@@ -66,7 +66,10 @@ syntax block: that is an example.
   load factors.
 - A static code block with its output is enough when nothing changes over time.
 - A code block placed **directly after** a sim is that sim's code. It collapses under the sim as
-  *Show … code*, whatever its language (Python, Java, R, …).
+  *Show … code*, whatever its language (Python, Java, R, …). Code the reader should see (an
+  ordinary example that happens to follow a sim) needs a sentence between the two. A sim's code
+  takes no output block: it is collapsed, so there is nothing for the output to attach to, and
+  lint warns.
 
 ### Parts
 
@@ -251,4 +254,5 @@ last pass by hand, and the off-by-one bugs go away.
   `algorithm` and `exercise` reused from theory with programming meanings; ```` ```output ````
   fences attach under their code; the code block after a sim collapses as *Show … code* in any
   language; programming pages get line-height 1.7 and slightly smaller code; lint warns about
-  fences without a language and misplaced output fences.
+  fences without a language and misplaced output fences. STAT 280 units 1–3 had recap scripts
+  right after sims; their captions moved above them so they stay visible.

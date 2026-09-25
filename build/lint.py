@@ -428,9 +428,12 @@ def lint_unit_structure(doc: Doc, pages: str | None, rep: Report):
             rep.error(doc.path, "automaton block needs `machine: <id>` or inline `states` and `trans`")
         elif spec.get("machine") and spec["machine"] not in FA_MACHINES:
             rep.error(doc.path, f"automaton block: unknown machine {spec['machine']!r} (not defined in app/src/sims/automata.js)")
-    for line, lang, prev in code_fences(doc.body):
-        if lang == "output" and (prev is None or prev in ("sim", "automaton", "solution-map", "output")):
-            rep.warn(doc.path, f"body line {line}: an output block must come right after the code block it belongs to")
+    fences = code_fences(doc.body)
+    for k, (line, lang, prev) in enumerate(fences):
+        sim_code = k > 0 and fences[k - 1][2] == "sim"   # the code before it is a sim's code: collapsed, so no pre to attach to
+        if lang == "output" and (prev is None or prev in ("sim", "automaton", "solution-map", "output") or sim_code):
+            rep.warn(doc.path, f"body line {line}: an output block must come right after the code block it belongs to"
+                     + (" (not after a sim's collapsed code)" if sim_code else ""))
         if pages == "programming" and not lang:   # every fence names its language (#131)
             rep.warn(doc.path, f"body line {line}: code fence without a language")
     if pages not in ("math", "theory", "programming"):   # theory inherits the math design (#111); programming (#131)
