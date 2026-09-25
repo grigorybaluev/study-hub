@@ -119,6 +119,14 @@ nclass.FD(big)
 hist(big, breaks = "Scott", main = "Scott's rule, n = 10000")
 ```
 
+```sim
+id: r-hist-bins
+controls:
+  - {id: logn, label: "log₁₀ of the sample size n", min: 1.5, max: 5, step: 0.1, default: 2.3, decimals: 1}
+  - {id: rule, label: "rule: 1 Sturges · 2 Scott · 3 Freedman–Diaconis", min: 1, max: 3, step: 1, default: 1, decimals: 0}
+note: "A fresh normal sample of n values, with the number of equal-width bins given by the chosen rule (R also moves the breaks to round numbers, so its counts differ slightly). Grow n with Sturges: the bins stay few and wide, and the histogram cannot follow the curve. Switch to Scott or FD at the same n to see the n^(1/3) rules add bins as the data allow."
+```
+
 With `freq = FALSE` the histogram is drawn on the **density** scale (total bar area 1), so a
 density curve can be laid over it with `curve(…, add = TRUE)`.
 
@@ -161,6 +169,13 @@ boxplot(y, horizontal = TRUE)
 
 Here the box runs from 4 to 9 (IQR 5), so the upper whisker may reach $9 + 7.5 = 16.5$: it stops
 at 10, the largest value within that limit, and 24 is drawn as an outlier.
+
+```sim
+id: r-boxplot-fences
+controls:
+  - {id: last, label: "the largest value (24 in the example)", min: 10, max: 30, step: 0.5, default: 24, decimals: 1}
+note: "The ten values of the example, with the last one movable. The box and the fences depend only on the hinges, which do not move while this value stays the largest. Slide it down: at 16.5 it touches the upper fence (9 + 1.5 × 5), and below that it stops being an outlier and the whisker stretches to reach it."
+```
 
 Box plots shine when **comparing groups**, each with a reasonable number of observations. The
 *formula* `y ~ group` reads "y depending on group", and `data =` names the data frame that holds
@@ -217,6 +232,14 @@ qqnorm(e, main = "Right-skewed data"); qqline(e)
 w <- rt(300, df = 3)
 qqnorm(w, main = "Heavy tails"); qqline(w)
 qqplot(z, 5 + 2 * z, main = "A linear change: still a straight line")
+```
+
+```sim
+id: r-qq-shapes
+controls:
+  - {id: kind, label: "data: 1 normal · 2 exponential · 3 t(3) · 4 uniform", min: 1, max: 4, step: 1, default: 1, decimals: 0}
+  - {id: n, label: "sample size", min: 20, max: 1000, step: 10, default: 200, decimals: 0}
+note: "A fresh sample plotted against normal quantiles, as qqnorm() and qqline() do. Normal data hug the line, apart from a little wobble at the ends. Exponential data bend upward at the right (right skew). t with 3 df pulls both ends away from the line (heavy tails), and uniform data flatten at both ends (light tails). Press Update a few times at n = 20 to see how much a small normal sample wanders."
 ```
 
 ## Choosing a high-level graphic

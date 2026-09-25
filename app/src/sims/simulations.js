@@ -1583,6 +1583,463 @@
                 legend: { orientation: 'h', y: -0.25 } }), cfg());
   }
 
+  // ══ STAT 280 — units 5–12: graphics, flow control, simulation, linear algebra ══
+  const C_OK = '#00a651', C_BAD = '#f87171', C_HI = '#facc15', C_GREY = '#6b7280';
+  const gauss = () => { let u = 0; while (u === 0) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random()); };
+  const range = (n, f) => Array.from({ length: n }, (_, k) => f(k));
+  const sum = a => a.reduce((s, v) => s + v, 0);
+  const mean = a => sum(a) / a.length;
+  const sdev = a => { const m = mean(a); return Math.sqrt(sum(a.map(v => (v - m) ** 2)) / (a.length - 1)); };
+  const dnormJ = (x, m = 0, s = 1) => Math.exp(-0.5 * ((x - m) / s) ** 2) / (s * Math.sqrt(2 * Math.PI));
+  // standard normal quantile (Acklam's rational approximation, relative error < 1.2e-9)
+  function qnormJ(p) {
+    const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+    const b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+    const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+    const d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+    const pl = 0.02425;
+    if (p < pl) { const q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+    if (p > 1 - pl) return -qnormJ(1 - p);
+    const q = p - 0.5, r = q * q;
+    return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+  }
+  // upper normal tail P(Z > x) for x >= 0 (continued fraction, accurate far into the tail)
+  function pnormUpper(x) {
+    if (x < 0) return 1 - pnormUpper(-x);
+    if (x < 3) { // series for the lower part: Phi(x) = 1/2 + phi(x) * sum x^(2k+1) / (1*3*...*(2k+1))
+      let term = x, s = x;
+      for (let k = 1; k < 200; k++) { term *= x * x / (2 * k + 1); s += term; if (term < 1e-17 * s) break; }
+      return 0.5 - dnormJ(x) * s;
+    }
+    let f = 0; for (let k = 60; k >= 1; k--) f = k / (x + f);
+    return dnormJ(x) / (x + f);
+  }
+  // quantile of a sorted array, R's default (type 7)
+  const quant = (s, p) => { const h = (s.length - 1) * p, lo = Math.floor(h); return s[lo] + (h - lo) * ((s[Math.min(lo + 1, s.length - 1)]) - s[lo]); };
+  // cyclic Jacobi eigen-decomposition of a symmetric matrix: { values, vectors (columns) }, sorted decreasing
+  function jacobiEigen(Ain) {
+    const n = Ain.length, A = Ain.map(r => r.slice()), V = range(n, i => range(n, j => (i === j ? 1 : 0)));
+    for (let sweep = 0; sweep < 100; sweep++) {
+      let off = 0; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) off += A[i][j] * A[i][j];
+      if (off < 1e-30) break;
+      for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) {
+        if (Math.abs(A[p][q]) < 1e-300) continue;
+        const th = (A[q][q] - A[p][p]) / (2 * A[p][q]);
+        const t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1)), c = 1 / Math.sqrt(t * t + 1), s = t * c;
+        for (let k = 0; k < n; k++) { const akp = A[k][p], akq = A[k][q]; A[k][p] = c * akp - s * akq; A[k][q] = s * akp + c * akq; }
+        for (let k = 0; k < n; k++) { const apk = A[p][k], aqk = A[q][k]; A[p][k] = c * apk - s * aqk; A[q][k] = s * apk + c * aqk; }
+        for (let k = 0; k < n; k++) { const vkp = V[k][p], vkq = V[k][q]; V[k][p] = c * vkp - s * vkq; V[k][q] = s * vkp + c * vkq; }
+      }
+    }
+    const order = range(n, i => i).sort((i, j) => A[j][j] - A[i][i]);
+    return { values: order.map(i => A[i][i]), vectors: V.map(row => order.map(i => row[i])) };
+  }
+  const matmul = (A, B) => A.map(r => B[0].map((_, j) => r.reduce((s, v, k) => s + v * B[k][j], 0)));
+  const hilbert = n => range(n, i => range(n, j => 1 / (i + j + 1)));
+  // Gaussian elimination with partial pivoting (what solve() does)
+  function gaussSolve(Ain, b) {
+    const n = Ain.length, A = Ain.map((r, i) => r.concat([b[i]]));
+    for (let c = 0; c < n; c++) {
+      let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+      [A[c], A[p]] = [A[p], A[c]];
+      for (let r = c + 1; r < n; r++) { const f = A[r][c] / A[c][c]; for (let k = c; k <= n; k++) A[r][k] -= f * A[c][k]; }
+    }
+    const x = new Array(n).fill(0);
+    for (let i = n - 1; i >= 0; i--) { let s = A[i][n]; for (let k = i + 1; k < n; k++) s -= A[i][k] * x[k]; x[i] = s / A[i][i]; }
+    return x;
+  }
+  const invert = A => { const n = A.length, cols = range(n, j => gaussSolve(A, range(n, i => (i === j ? 1 : 0)))); return range(n, i => range(n, j => cols[j][i])); };
+
+  // ── S8. Histogram bin rules ────────────────────────────────────
+  function rHistBins() {
+    const id = 'r-hist-bins';
+    const n = Math.round(Math.pow(10, val(id, 'logn', 2.3))), rule = Math.round(val(id, 'rule', 1));
+    const x = range(n, gauss), s = x.slice().sort((a, b) => a - b);
+    const lo = s[0], hi = s[n - 1], sd = sdev(x), iqr = quant(s, 0.75) - quant(s, 0.25);
+    const kSt = Math.ceil(Math.log2(n) + 1);
+    const kSc = Math.max(1, Math.ceil((hi - lo) / (3.49 * sd * Math.pow(n, -1 / 3))));
+    const kFD = Math.max(1, Math.ceil((hi - lo) / (2 * iqr * Math.pow(n, -1 / 3))));
+    const k = [kSt, kSc, kFD][rule - 1], names = ['Sturges', 'Scott', 'Freedman–Diaconis'];
+    const w = (hi - lo) / k, counts = new Array(k).fill(0);
+    x.forEach(v => { counts[Math.min(k - 1, Math.floor((v - lo) / w))]++; });
+    const mids = range(k, i => lo + (i + 0.5) * w), dens = counts.map(c => c / (n * w));
+    const cx = range(201, i => -4 + 8 * i / 200);
+    Plotly.newPlot(el(id), [
+      { type: 'bar', x: mids, y: dens, width: w * 0.98, marker: { color: C_R }, name: `${k} bins of width ${w.toFixed(3)}` },
+      { x: cx, y: cx.map(v => dnormJ(v)), mode: 'lines', line: { color: C_HI, width: 2 }, name: 'N(0, 1) density' },
+    ], layout({ title: `n = ${n}, ${names[rule - 1]}: ${k} bins<br>(for this sample: Sturges ${kSt} · Scott ${kSc} · FD ${kFD})`,
+                xaxis: ax({ title: 'x', range: [-4.2, 4.2] }), yaxis: ax({ title: 'density' }), bargap: 0, legend: { orientation: 'h', y: -0.22 },
+                margin: { t: 70, r: 20, b: 50, l: 55 } }), cfg());
+  }
+
+  // ── S9. Box plot: hinges, fences and outliers ──────────────────
+  function rBoxplotFences() {
+    const id = 'r-boxplot-fences';
+    const last = val(id, 'last', 24);
+    const y = [2, 4, 4, 5, 6, 7, 8, 9, 10, last], s = y.slice().sort((a, b) => a - b), n = s.length;
+    const n4 = Math.floor((n + 3) / 2) / 2, at = d => 0.5 * (s[Math.floor(d) - 1] + s[Math.ceil(d) - 1]);
+    const [mn, h1, med, h3, mx] = [1, n4, (n + 1) / 2, n + 1 - n4, n].map(at);
+    const H = h3 - h1, loF = h1 - 1.5 * H, hiF = h3 + 1.5 * H;
+    const inside = s.filter(v => v >= loF && v <= hiF), out = s.filter(v => v < loF || v > hiF);
+    const wLo = Math.min(...inside), wHi = Math.max(...inside);
+    const jit = s.map((_, i) => -0.35 + 0.08 * (i % 3));
+    const X = Math.max(32, mx + 2);
+    Plotly.newPlot(el(id), [
+      { x: [h1, h3, h3, h1, h1], y: [0.25, 0.25, -0.25, -0.25, 0.25], mode: 'lines', fill: 'toself', fillcolor: 'rgba(59,130,246,.25)', line: { color: C_R, width: 2 }, name: `box: hinges ${h1} and ${h3} (IQR ${H})` },
+      { x: [med, med], y: [-0.25, 0.25], mode: 'lines', line: { color: C_HI, width: 3 }, name: `median ${med}` },
+      { x: [wLo, h1, null, h3, wHi], y: [0, 0, null, 0, 0], mode: 'lines', line: { color: '#e5e7eb', width: 2 }, name: `whiskers to ${wLo} and ${wHi}` },
+      { x: [loF, loF, null, hiF, hiF], y: [-0.5, 0.5, null, -0.5, 0.5], mode: 'lines', line: { color: C_BAD, dash: 'dot' }, name: `fences at hinge ∓ 1.5·IQR: ${loF}, ${hiF}` },
+      { x: s, y: jit.map(j => j - 0.25), mode: 'markers', marker: { color: s.map(v => (v < loF || v > hiF) ? C_BAD : '#9ca3af'), size: 9 }, name: 'the ten values', hoverinfo: 'x' },
+    ], layout({ title: out.length ? `${out.join(', ')} lies beyond the fence ${hiF}: drawn as an outlier` : `every value is within [${loF}, ${hiF}]: no outliers, the whisker reaches ${wHi}`,
+                xaxis: ax({ title: 'value', range: [-8, X] }), yaxis: ax({ visible: false, range: [-0.9, 0.7] }), legend: { orientation: 'h', y: -0.3 } }), cfg());
+  }
+
+  // ── S10. QQ plots of four shapes ───────────────────────────────
+  function rQqShapes() {
+    const id = 'r-qq-shapes';
+    const kind = Math.round(val(id, 'kind', 1)), n = Math.round(val(id, 'n', 200));
+    const draw = [
+      () => gauss(),
+      () => -Math.log(1 - Math.random()),
+      () => { const z = gauss(), c = gauss() ** 2 + gauss() ** 2 + gauss() ** 2; return z / Math.sqrt(c / 3); },
+      () => Math.random(),
+    ][kind - 1];
+    const names = ['normal', 'exponential (right-skewed)', 't with 3 df (heavy tails)', 'uniform (light tails)'];
+    const s = range(n, draw).sort((a, b) => a - b), th = range(n, i => qnormJ((i + 0.5) / n));
+    const q1 = quant(s, 0.25), q3 = quant(s, 0.75), t1 = qnormJ(0.25), t3 = qnormJ(0.75), slope = (q3 - q1) / (t3 - t1), icpt = q1 - slope * t1;
+    const lx = [th[0], th[n - 1]];
+    Plotly.newPlot(el(id), [
+      { x: th, y: s, mode: 'markers', marker: { color: C_R, size: 5 }, name: 'sorted sample' },
+      { x: lx, y: lx.map(v => icpt + slope * v), mode: 'lines', line: { color: C_HI, width: 2 }, name: 'qqline (through the quartiles)' },
+    ], layout({ title: `qqnorm of ${n} ${names[kind - 1]} values`, xaxis: ax({ title: 'theoretical N(0, 1) quantiles' }), yaxis: ax({ title: 'sample quantiles' }),
+                legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
+  // ── S11. Fixed-point iteration: cobweb for x = a cos(x) ────────
+  function rFixedPoint() {
+    const id = 'r-fixed-point';
+    const a = val(id, 'a', 1), x0 = val(id, 'x0', 0.2), steps = Math.round(val(id, 'steps', 15));
+    const g = x => a * Math.cos(x);
+    let lo = -Math.abs(a) - 1, hi = Math.abs(a) + 1;   // the fixed point solves g(x) - x = 0 in [-|a|, |a|]
+    for (let k = 0; k < 200; k++) { const m = (lo + hi) / 2; if ((g(lo) - lo) * (g(m) - m) <= 0) hi = m; else lo = m; }
+    const xs = (lo + hi) / 2, slope = Math.abs(a * Math.sin(xs));
+    const px = [x0], py = [0]; let x = x0;
+    for (let k = 0; k < steps; k++) { const y = g(x); px.push(x, y); py.push(y, y); x = y; }
+    const R = Math.max(2, Math.abs(a) + 0.8), cx = range(301, i => -R + 2 * R * i / 300);
+    Plotly.newPlot(el(id), [
+      { x: cx, y: cx.map(g), mode: 'lines', line: { color: C_R, width: 2.5 }, name: `g(x) = ${a.toFixed(2)} cos x` },
+      { x: [-R, R], y: [-R, R], mode: 'lines', line: { color: C_GREY, dash: 'dash' }, name: 'y = x' },
+      { x: px, y: py, mode: 'lines+markers', line: { color: C_HI, width: 1.5 }, marker: { size: 4 }, name: 'x ← g(x), step by step' },
+      { x: [xs], y: [xs], mode: 'markers', marker: { color: C_OK, size: 11 }, name: `fixed point x* = ${xs.toFixed(5)}` },
+    ], layout({ title: `|g′(x*)| = ${slope.toFixed(3)} ${slope < 1 ? '< 1: the iteration converges' : '> 1: the iteration moves away from x*'}  ·  after ${steps} steps x = ${x.toFixed(5)}`,
+                xaxis: ax({ title: 'x', range: [-R, R], constrain: 'domain' }), yaxis: ax({ title: 'y', range: [-R, R], scaleanchor: 'x' }), legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
+  // ── S12. Newton versus bisection: error per step ───────────────
+  function rRootConvergence() {
+    const id = 'r-root-convergence';
+    const x0 = val(id, 'x0', 2);
+    const f = x => x ** 3 - 2 * x - 5, fp = x => 3 * x * x - 2, root = 2.0945514815423265;
+    const floor = 1e-16, en = [], eb = [];
+    let x = x0;
+    for (let k = 0; k <= 45; k++) { en.push(Math.max(Math.abs(x - root), floor)); if (Math.abs(x - root) < 1e-15 || !Number.isFinite(x)) break; x = x - f(x) / fp(x); }
+    let lo = 2, hi = 3;
+    for (let k = 0; k <= 45; k++) { const m = (lo + hi) / 2; eb.push(Math.max(Math.abs(m - root), floor)); if (f(lo) * f(m) <= 0) hi = m; else lo = m; }
+    const first = e => { const k = e.findIndex(v => v < 1e-10); return k < 0 ? 'not within 45' : k; };
+    Plotly.newPlot(el(id), [
+      { x: range(en.length, i => i), y: en, mode: 'lines+markers', line: { color: C_OK, width: 2.5 }, name: `Newton from x₀ = ${x0}` },
+      { x: range(eb.length, i => i), y: eb, mode: 'lines+markers', line: { color: C_R, width: 2 }, name: 'bisection on [2, 3]' },
+      { x: [0, 45], y: [1e-10, 1e-10], mode: 'lines', line: { color: C_GREY, dash: 'dot' }, name: 'tolerance 1e-10' },
+    ], layout({ title: `f(x) = x³ − 2x − 5: steps to an error below 1e-10 — Newton ${first(en)}, bisection ${first(eb)}`,
+                xaxis: ax({ title: 'step' }), yaxis: ax({ title: '|x − root|  (log scale)', type: 'log', range: [-16.5, 2] }), legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
+  // ── S13. Binary search: the interval halves each step ──────────
+  function rBinarySearch() {
+    const id = 'r-binary-search';
+    const n = Math.round(val(id, 'n', 1000)), target = Math.min(n, Math.max(1, Math.round(val(id, 'pct', 73) / 100 * n)));
+    const rows = []; let lo = 1, hi = n;
+    while (lo <= hi) { const mid = Math.floor((lo + hi) / 2); rows.push({ lo, hi, mid }); if (mid === target) break; if (mid < target) lo = mid + 1; else hi = mid - 1; }
+    const k = rows.length;
+    Plotly.newPlot(el(id), [
+      { type: 'bar', orientation: 'h', base: rows.map(r => r.lo - 0.5), x: rows.map(r => r.hi - r.lo + 1), y: rows.map((_, i) => i + 1), marker: { color: 'rgba(59,130,246,.55)' }, name: 'positions still possible', hovertemplate: 'step %{y}: %{base} …<extra></extra>' },
+      { x: rows.map(r => r.mid), y: rows.map((_, i) => i + 1), mode: 'markers', marker: { color: C_HI, size: 9, symbol: 'line-ns-open', line: { width: 3, color: C_HI } }, name: 'middle position compared' },
+      { x: [target, target], y: [0.4, k + 0.6], mode: 'lines', line: { color: C_OK, dash: 'dot' }, name: `target at position ${target}` },
+    ], layout({ title: `sorted list of ${n}: binary search needs ${k} comparison${k === 1 ? '' : 's'} (at most ⌈log₂ ${n}⌉ = ${Math.ceil(Math.log2(n))}), a scan from the start needs ${target}`,
+                xaxis: ax({ title: 'position in the sorted list', range: [0, n + 1] }), yaxis: ax({ title: 'comparison', autorange: 'reversed', dtick: 1 }), legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
+  // ── S14. Monte Carlo: the running estimate and its error bar ───
+  function rMcConvergence() {
+    const id = 'r-mc-convergence';
+    const m = Math.round(Math.pow(10, val(id, 'logm', 4))), runs = Math.round(val(id, 'runs', 5));
+    const grid = []; for (let k = 10; k <= m; k = Math.ceil(k * 1.08)) grid.push(k); if (grid[grid.length - 1] !== m) grid.push(m);
+    const traces = [];
+    let lastRun = null;
+    for (let r = 0; r < runs; r++) {
+      let s = 0, s2 = 0, gi = 0; const est = [], lo = [], hi = [];
+      for (let k = 1; k <= m; k++) {
+        const x = Math.max(Math.random(), Math.random(), Math.random()); s += x; s2 += x * x;
+        if (k === grid[gi]) { const mu = s / k, sd = Math.sqrt(Math.max(0, (s2 - k * mu * mu) / (k - 1))); est.push(mu); lo.push(mu - 1.96 * sd / Math.sqrt(k)); hi.push(mu + 1.96 * sd / Math.sqrt(k)); gi++; }
+      }
+      traces.push({ x: grid, y: est, mode: 'lines', line: { color: r === 0 ? C_R : 'rgba(156,163,175,.6)', width: r === 0 ? 2.5 : 1.2 }, name: r === 0 ? 'running mean (run 1)' : `run ${r + 1}`, showlegend: r < 2 });
+      if (r === 0) lastRun = { est, lo, hi };
+    }
+    traces.unshift({ x: grid.concat(grid.slice().reverse()), y: lastRun.hi.concat(lastRun.lo.slice().reverse()), fill: 'toself', fillcolor: 'rgba(59,130,246,.18)', line: { width: 0 }, name: 'run 1 ± 1.96 s/√m', hoverinfo: 'skip' });
+    traces.push({ x: [grid[0], m], y: [0.75, 0.75], mode: 'lines', line: { color: C_OK, dash: 'dash' }, name: 'E(X) = 3/4' });
+    const fin = lastRun.est[lastRun.est.length - 1], half = (lastRun.hi[lastRun.hi.length - 1] - fin);
+    Plotly.newPlot(el(id), traces, layout({ title: `X = max(U₁, U₂, U₃): after ${m} draws, run 1 gives ${fin.toFixed(4)} ± ${half.toFixed(4)}  (the band halves when m is 4× larger)`,
+      xaxis: ax({ title: 'number of draws m  (log scale)', type: 'log' }), yaxis: ax({ title: 'estimate of E(X)', range: [0.55, 0.95] }), legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
+  // ── S15. Congruential generator: period and lattice ────────────
+  function rLcgLattice() {
+    const id = 'r-lcg-lattice';
+    const b = Math.round(val(id, 'b', 7)), m = Math.round(val(id, 'm', 509)), seed = Math.round(val(id, 'seed', 1));
+    const xs = []; let x = seed % m, seen = new Map();
+    for (let k = 0; k < 5000; k++) { x = (b * x) % m; if (seen.has(x)) break; seen.set(x, k); xs.push(x); }
+    const period = xs.length, u = xs.map(v => v / m);
+    const zero = xs.includes(0);
+    Plotly.newPlot(el(id), [
+      { x: u.slice(0, -1), y: u.slice(1), mode: 'markers', marker: { color: C_R, size: 5 }, name: 'pairs (uₙ, uₙ₊₁)' },
+    ], layout({ title: zero ? `b = ${b}, m = ${m}: the sequence reaches 0 and stays there (m shares factors with b)` :
+                  `xₙ = ${b}·xₙ₋₁ mod ${m}, seed ${seed}: period ${period}${period === m - 1 ? ' (the maximum, m − 1)' : ` of a possible ${m - 1}`}<br>every pair lies on a few parallel lines — the lattice every such generator has`,
+                xaxis: ax({ title: 'uₙ', range: [0, 1], constrain: 'domain' }), yaxis: ax({ title: 'uₙ₊₁', range: [0, 1], scaleanchor: 'x' }), margin: { t: 70, r: 20, b: 50, l: 55 } }), cfg());
+  }
+
+  // ── S16. Inversion: exponential draws from uniforms ────────────
+  function rInverseTransform() {
+    const id = 'r-inverse-transform';
+    const lam = val(id, 'rate', 0.5), n = Math.round(val(id, 'n', 2000));
+    const U = range(n, () => Math.random()), T = U.map(u => -Math.log(1 - u) / lam);
+    const tMax = 6 / lam, ct = range(201, i => tMax * i / 200);
+    const shown = U.slice(0, 6), arrows = { x: [], y: [] };
+    shown.forEach(u => { const t = -Math.log(1 - u) / lam; arrows.x.push(0, Math.min(t, tMax), Math.min(t, tMax), null); arrows.y.push(u, u, 0, null); });
+    const w = tMax / 30, counts = new Array(30).fill(0); T.forEach(t => { if (t < tMax) counts[Math.floor(t / w)]++; });
+    Plotly.newPlot(el(id), [
+      { x: ct, y: ct.map(t => 1 - Math.exp(-lam * t)), mode: 'lines', line: { color: C_R, width: 2.5 }, name: 'F(t) = 1 − e^(−λt)' },
+      { x: arrows.x, y: arrows.y, mode: 'lines', line: { color: C_HI, width: 1.2 }, name: 'U on the vertical axis → T = F⁻¹(U)' },
+      { type: 'bar', x: range(30, i => (i + 0.5) * w), y: counts.map(c => c / (n * w)), width: w * 0.95, marker: { color: 'rgba(0,166,81,.6)' }, xaxis: 'x2', yaxis: 'y2', name: `histogram of ${n} values of T` },
+      { x: ct, y: ct.map(t => lam * Math.exp(-lam * t)), mode: 'lines', line: { color: C_HI, width: 2 }, xaxis: 'x2', yaxis: 'y2', name: 'density λe^(−λt)' },
+    ], layout({ title: `T = −log(1 − U)/λ with λ = ${lam}: sample mean ${mean(T).toFixed(3)} vs 1/λ = ${(1 / lam).toFixed(3)}`,
+                xaxis: ax({ title: 't', domain: [0, 0.45], range: [0, tMax] }), yaxis: ax({ title: 'F(t)', range: [0, 1.02] }),
+                xaxis2: ax({ title: 't', domain: [0.55, 1], range: [0, tMax], anchor: 'y2' }), yaxis2: ax({ title: 'density', anchor: 'x2' }),
+                legend: { orientation: 'h', y: -0.25 } }), cfg());
+  }
+
+  // ── S17. Markov chain: the distribution of X_t over time ───────
+  function rMarkovWeather() {
+    const id = 'r-markov-weather';
+    const start = Math.round(val(id, 'start', 3)), n = Math.round(val(id, 'n', 5));
+    const P = [[0.6, 0.3, 0.1], [0.3, 0.4, 0.3], [0.2, 0.4, 0.4]], names = ['sunny', 'cloudy', 'rainy'], cols = [C_HI, '#9ca3af', C_R];
+    const stat = [24 / 61, 22 / 61, 15 / 61];
+    let d = [0, 0, 0]; d[start - 1] = 1; const hist = [d];
+    for (let t = 1; t <= 20; t++) { d = [0, 1, 2].map(j => d.reduce((s, v, i) => s + v * P[i][j], 0)); hist.push(d); }
+    const traces = [];
+    names.forEach((nm, j) => {
+      traces.push({ x: range(21, t => t), y: hist.map(h => h[j]), mode: 'lines+markers', line: { color: cols[j], width: 2 }, marker: { size: 5 }, name: `P(Xₜ = ${nm})` });
+      traces.push({ x: [0, 20], y: [stat[j], stat[j]], mode: 'lines', line: { color: cols[j], dash: 'dot', width: 1 }, showlegend: false, hoverinfo: 'skip' });
+    });
+    traces.push({ x: [n, n], y: [0, 1], mode: 'lines', line: { color: '#e5e7eb', dash: 'dash' }, name: `t = ${n}` });
+    const h = hist[n];
+    Plotly.newPlot(el(id), traces, layout({ title: `start ${names[start - 1]}: after ${n} day${n === 1 ? '' : 's'} (${h.map(v => v.toFixed(3)).join(', ')})<br>stationary π = (24, 22, 15)/61 = (0.393, 0.361, 0.246), the dotted lines`,
+      xaxis: ax({ title: 'day t' }), yaxis: ax({ title: 'probability (row of Pᵗ)', range: [0, 1] }), legend: { orientation: 'h', y: -0.22 }, margin: { t: 70, r: 20, b: 50, l: 55 } }), cfg());
+  }
+
+  // ── S18. Monte Carlo integration: running estimate ─────────────
+  function rMcIntegral() {
+    const id = 'r-mc-integral';
+    const which = Math.round(val(id, 'g', 2)), n = Math.round(Math.pow(10, val(id, 'logn', 4)));
+    const cases = [
+      { g: x => x ** 3, a: 0, b: 1, exact: 0.25, label: '∫₀¹ x³ dx' },
+      { g: Math.sqrt, a: 1, b: 4, exact: 14 / 3, label: '∫₁⁴ √x dx' },
+      { g: Math.sin, a: 0, b: Math.PI, exact: 2, label: '∫₀^π sin x dx' },
+      { g: x => Math.pow(x, -0.8), a: 0, b: 1, exact: 5, label: '∫₀¹ x^(−0.8) dx  (infinite variance)' },
+    ], C = cases[which - 1];
+    const grid = []; for (let k = 10; k <= n; k = Math.ceil(k * 1.08)) grid.push(k); if (grid[grid.length - 1] !== n) grid.push(n);
+    let s = 0, s2 = 0, gi = 0; const est = [], lo = [], hi = [];
+    for (let k = 1; k <= n; k++) {
+      const v = (C.b - C.a) * C.g(C.a + (C.b - C.a) * (1 - Math.random())); s += v; s2 += v * v;
+      if (k === grid[gi]) { const mu = s / k, se = Math.sqrt(Math.max(0, (s2 - k * mu * mu) / (k - 1)) / k); est.push(mu); lo.push(mu - 1.96 * se); hi.push(mu + 1.96 * se); gi++; }
+    }
+    const fin = est[est.length - 1], se = (hi[hi.length - 1] - fin) / 1.96;
+    Plotly.newPlot(el(id), [
+      { x: grid.concat(grid.slice().reverse()), y: hi.concat(lo.slice().reverse()), fill: 'toself', fillcolor: 'rgba(59,130,246,.18)', line: { width: 0 }, name: 'estimate ± 1.96 SE', hoverinfo: 'skip' },
+      { x: grid, y: est, mode: 'lines', line: { color: C_R, width: 2.5 }, name: '(b − a) · mean of g(Uᵢ)' },
+      { x: [grid[0], n], y: [C.exact, C.exact], mode: 'lines', line: { color: C_OK, dash: 'dash' }, name: `exact ${+C.exact.toFixed(4)}` },
+    ], layout({ title: `${C.label}: ${fin.toFixed(4)} ± ${(1.96 * se).toFixed(4)} from ${n} points`,
+                xaxis: ax({ title: 'number of points n  (log scale)', type: 'log' }), yaxis: ax({ title: 'estimate', range: [C.exact * 0.6, C.exact * 1.4] }), legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
+  // ── S19. Rejection sampling under an envelope ──────────────────
+  function rRejection() {
+    const id = 'r-rejection';
+    const n = Math.round(val(id, 'n', 1500)), c = val(id, 'c', 1);
+    const kh = x => dnormJ(x) * (1 + Math.sin(3 * x) ** 2) / (2 * c);
+    const ax_ = [], ay = [], rx = [], ry = [];
+    for (let i = 0; i < n; i++) { const y = gauss(), h = Math.random() * dnormJ(y); if (h < kh(y)) { ax_.push(y); ay.push(h); } else { rx.push(y); ry.push(h); } }
+    const acc = ax_.length / n, cx = range(301, i => -4 + 8 * i / 300);
+    const w = 0.25, bins = range(32, i => -4 + (i + 0.5) * w), counts = new Array(32).fill(0);
+    ax_.forEach(v => { const k = Math.floor((v + 4) / w); if (k >= 0 && k < 32) counts[k]++; });
+    const target = x => dnormJ(x) * (1 + Math.sin(3 * x) ** 2) / (2 * 0.75);   // normalised: the integral of phi (1 + sin^2 3x) is 1.5
+    Plotly.newPlot(el(id), [
+      { x: rx, y: ry, mode: 'markers', marker: { color: 'rgba(248,113,113,.55)', size: 3 }, name: `rejected (${rx.length})` },
+      { x: ax_, y: ay, mode: 'markers', marker: { color: 'rgba(0,166,81,.7)', size: 3 }, name: `accepted (${ax_.length})` },
+      { x: cx, y: cx.map(v => dnormJ(v)), mode: 'lines', line: { color: '#e5e7eb', width: 2 }, name: 'envelope f = dnorm' },
+      { x: cx, y: cx.map(kh), mode: 'lines', line: { color: C_HI, width: 2 }, name: 'k·h(x)' },
+      { type: 'bar', x: bins, y: counts.map(v => v / (Math.max(1, ax_.length) * w)), width: w * 0.95, marker: { color: 'rgba(0,166,81,.6)' }, xaxis: 'x2', yaxis: 'y2', name: 'accepted values' },
+      { x: cx, y: cx.map(target), mode: 'lines', line: { color: C_HI, width: 2 }, xaxis: 'x2', yaxis: 'y2', name: 'target density' },
+    ], layout({ title: `accepted ${(100 * acc).toFixed(1)} % of ${n} proposals (theory ${(75 / c).toFixed(1)} %): a looser envelope wastes more`,
+                xaxis: ax({ title: 'proposal Y', domain: [0, 0.48], range: [-4, 4] }), yaxis: ax({ title: 'U · f(Y)', range: [0, 0.42] }),
+                xaxis2: ax({ title: 'x', domain: [0.56, 1], range: [-4, 4], anchor: 'y2' }), yaxis2: ax({ title: 'density', anchor: 'x2' }),
+                legend: { orientation: 'h', y: -0.25 } }), cfg());
+  }
+
+  // ── S20. Rare events: plain Monte Carlo vs importance sampling ─
+  function rImportanceTail() {
+    const id = 'r-importance-tail';
+    const cc = val(id, 'c', 4), n = Math.round(Math.pow(10, val(id, 'logn', 4))), runs = 12;
+    const exact = pnormUpper(cc), plain = [], imp = [];
+    for (let r = 0; r < runs; r++) {
+      let hits = 0, ws = 0;
+      for (let i = 0; i < n; i++) { if (gauss() > cc) hits++; const y = cc - Math.log(1 - Math.random()); ws += dnormJ(y) / Math.exp(-(y - cc)); }
+      plain.push(hits / n / exact); imp.push(ws / n / exact);
+    }
+    const zeros = plain.filter(v => v === 0).length;
+    Plotly.newPlot(el(id), [
+      { x: range(runs, i => i + 1), y: plain, mode: 'markers', marker: { color: C_BAD, size: 9 }, name: 'plain Monte Carlo: mean(z > c)' },
+      { x: range(runs, i => i + 1), y: imp, mode: 'markers', marker: { color: C_OK, size: 9, symbol: 'diamond' }, name: 'importance sampling: Y = c + Exp(1)' },
+      { x: [0.5, runs + 0.5], y: [1, 1], mode: 'lines', line: { color: '#e5e7eb', dash: 'dash' }, name: 'exact' },
+    ], layout({ title: `P(Z > ${cc.toFixed(1)}) = ${exact.toExponential(3)}: ${runs} runs of ${n} draws each${zeros ? ` — plain MC saw no event at all in ${zeros} runs` : ''}`,
+                xaxis: ax({ title: 'run', dtick: 1 }), yaxis: ax({ title: 'estimate ÷ exact value', range: [-0.1, 3] }), legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
+  // ── S21. LU decomposition and the two triangular solves ────────
+  function rLuSteps() {
+    const id = 'r-lu-steps';
+    const step = Math.round(val(id, 'step', 1));
+    const A = [[2, 1, 1], [4, 3, 3], [8, 7, 9]], b = [4, 10, 24], n = 3;
+    const L = range(n, i => range(n, j => (i === j ? 1 : null))), U = range(n, () => range(n, () => null)), y = [null, null, null], x = [null, null, null];
+    const script = [];
+    for (let j = 0; j < n; j++) {
+      for (let i = 0; i <= j; i++) script.push({ M: 'U', i, j });
+      for (let i = j + 1; i < n; i++) script.push({ M: 'L', i, j });
+    }
+    for (let i = 0; i < n; i++) script.push({ M: 'y', i });
+    for (let i = n - 1; i >= 0; i--) script.push({ M: 'x', i });
+    let desc = 'A = L U with L unit lower triangular: start with the 1s on its diagonal', cur = null;
+    const fmt = v => (Number.isInteger(v) ? String(v) : v.toFixed(3));
+    for (let s = 0; s < Math.min(step, script.length); s++) {
+      const t = script[s]; cur = t;
+      if (t.M === 'U') { const terms = range(t.i, k => `${fmt(L[t.i][k])}·${fmt(U[k][t.j])}`); const v = A[t.i][t.j] - range(t.i, k => L[t.i][k] * U[k][t.j]).reduce((p, q) => p + q, 0); U[t.i][t.j] = v;
+        desc = terms.length ? `u${t.i + 1}${t.j + 1} = a${t.i + 1}${t.j + 1} − ${terms.join(' − ')} = ${A[t.i][t.j]} − ${range(t.i, k => fmt(L[t.i][k] * U[k][t.j])).join(' − ')} = ${fmt(v)}` : `u${t.i + 1}${t.j + 1} = a${t.i + 1}${t.j + 1} = ${fmt(v)}`; }
+      if (t.M === 'L') { const terms = range(t.j, k => `${fmt(L[t.i][k])}·${fmt(U[k][t.j])}`); const v = (A[t.i][t.j] - range(t.j, k => L[t.i][k] * U[k][t.j]).reduce((p, q) => p + q, 0)) / U[t.j][t.j]; L[t.i][t.j] = v;
+        desc = `l${t.i + 1}${t.j + 1} = (a${t.i + 1}${t.j + 1}${terms.length ? ' − ' + terms.join(' − ') : ''}) / u${t.j + 1}${t.j + 1} = (${A[t.i][t.j]}${range(t.j, k => ' − ' + fmt(L[t.i][k] * U[k][t.j])).join('')}) / ${fmt(U[t.j][t.j])} = ${fmt(v)}`; }
+      if (t.M === 'y') { const v = b[t.i] - range(t.i, k => L[t.i][k] * y[k]).reduce((p, q) => p + q, 0); y[t.i] = v;
+        desc = `forward: y${t.i + 1} = b${t.i + 1}${range(t.i, k => ` − l${t.i + 1}${k + 1}·y${k + 1}`).join('')} = ${b[t.i]}${range(t.i, k => ` − ${fmt(L[t.i][k])}·${fmt(y[k])}`).join('')} = ${fmt(v)}`; }
+      if (t.M === 'x') { const later = range(n - 1 - t.i, k => t.i + 1 + k); const v = (y[t.i] - later.map(k => U[t.i][k] * x[k]).reduce((p, q) => p + q, 0)) / U[t.i][t.i]; x[t.i] = v;
+        desc = `back: x${t.i + 1} = (y${t.i + 1}${later.map(k => ` − u${t.i + 1}${k + 1}·x${k + 1}`).join('')}) / u${t.i + 1}${t.i + 1} = (${fmt(y[t.i])}${later.map(k => ` − ${fmt(U[t.i][k])}·${fmt(x[k])}`).join('')}) / ${fmt(U[t.i][t.i])} = ${fmt(v)}`; }
+    }
+    const panel = (M, xa, ya, name, hlM) => {
+      const cols = M[0].length;
+      const z = M.map((r, i) => r.map((v, j) => (cur && cur.M === hlM && cur.i === i && (cur.j === undefined || cur.j === j) ? 2 : v === null ? 0 : 1)));
+      const text = M.map(r => r.map(v => (v === null ? '?' : fmt(v))));
+      return { type: 'heatmap', z, text, texttemplate: '%{text}', textfont: { size: 17 }, colorscale: [[0, '#1f2937'], [0.5, '#1e3a5f'], [1, '#00a651']], zmin: 0, zmax: 2, showscale: false, xgap: 3, ygap: 3,
+               hoverinfo: 'skip', xaxis: xa, yaxis: ya, x: range(cols, j => `${name}${cols > 1 ? '[,' + (j + 1) + ']' : ''}`), y: range(n, i => `[${i + 1}]`) };
+    };
+    const col = v => v.map(e => [e]);
+    const axis = d => ax({ domain: d, side: 'top', showgrid: false, zeroline: false });
+    Plotly.newPlot(el(id), [
+      panel(L, 'x', 'y', 'L', 'L'), panel(U, 'x2', 'y', 'U', 'U'), panel(col(b), 'x3', 'y', 'b', '-'), panel(col(y), 'x4', 'y', 'y', 'y'), panel(col(x), 'x5', 'y', 'x', 'x'),
+    ], layout({ title: `step ${Math.min(step, script.length)} of ${script.length}:  ${desc}`,
+                xaxis: axis([0, 0.3]), xaxis2: axis([0.34, 0.64]), xaxis3: axis([0.7, 0.78]), xaxis4: axis([0.81, 0.89]), xaxis5: axis([0.92, 1]),
+                yaxis: ax({ autorange: 'reversed', showgrid: false, zeroline: false }), margin: { t: 90, r: 10, b: 20, l: 40 }, height: 330 }), cfg());
+  }
+
+  // ── S22. Eigenvectors of a symmetric 2 × 2 matrix ──────────────
+  function rEigenEllipse() {
+    const id = 'r-eigen-ellipse';
+    const a = val(id, 'a', 2), bb = val(id, 'b', 1), d = val(id, 'd', 1), th = val(id, 'theta', 70) * Math.PI / 180;
+    const tr = a + d, det = a * d - bb * bb, disc = Math.sqrt(Math.max(0, tr * tr / 4 - det));
+    const l1 = tr / 2 + disc, l2 = tr / 2 - disc;
+    const vec = l => (Math.abs(bb) > 1e-12 ? [bb, l - a] : (Math.abs(l - a) < 1e-12 ? [1, 0] : [0, 1]));
+    const unit = v => { const r = Math.hypot(v[0], v[1]); return [v[0] / r, v[1] / r]; };
+    const v1 = unit(vec(l1)), v2 = unit([-v1[1], v1[0]]);
+    const circ = range(181, i => 2 * Math.PI * i / 180);
+    const v = [Math.cos(th), Math.sin(th)], Av = [a * v[0] + bb * v[1], bb * v[0] + d * v[1]];
+    const ang = Math.abs(Math.atan2(v[0] * Av[1] - v[1] * Av[0], v[0] * Av[0] + v[1] * Av[1]) * 180 / Math.PI);
+    const R = Math.max(1.5, Math.abs(l1), Math.abs(l2)) * 1.15;
+    const seg = (p, q, color, name, width, dash) => ({ x: [p[0], q[0]], y: [p[1], q[1]], mode: 'lines+markers', marker: { size: [0, 8], color }, line: { color, width: width || 3, dash }, name });
+    Plotly.newPlot(el(id), [
+      { x: circ.map(Math.cos), y: circ.map(Math.sin), mode: 'lines', line: { color: C_GREY, dash: 'dot' }, name: 'unit circle' },
+      { x: circ.map(t => a * Math.cos(t) + bb * Math.sin(t)), y: circ.map(t => bb * Math.cos(t) + d * Math.sin(t)), mode: 'lines', line: { color: C_R, width: 2 }, name: 'its image under A' },
+      seg([0, 0], [l1 * v1[0], l1 * v1[1]], C_OK, `λ₁v₁, λ₁ = ${l1.toFixed(3)}`),
+      seg([0, 0], [l2 * v2[0], l2 * v2[1]], '#34d399', `λ₂v₂, λ₂ = ${l2.toFixed(3)}`),
+      seg([0, 0], v, '#e5e7eb', 'v (angle θ)', 2),
+      seg([0, 0], Av, C_HI, 'Av', 2.5, 'dash'),
+    ], layout({ title: `A = [${a} ${bb}; ${bb} ${d}]: trace ${tr.toFixed(2)} = λ₁ + λ₂, det ${det.toFixed(2)} = λ₁λ₂<br>angle between v and Av: ${ang.toFixed(1)}°${ang < 0.5 || ang > 179.5 ? ' — v is an eigenvector' : ''}`,
+                xaxis: ax({ range: [-R, R], title: 'x₁', constrain: 'domain' }), yaxis: ax({ range: [-R, R], scaleanchor: 'x', title: 'x₂' }), legend: { orientation: 'h', y: -0.22 }, margin: { t: 70, r: 20, b: 50, l: 55 } }), cfg());
+  }
+
+  // ── S23. Low-rank approximation with the SVD ───────────────────
+  let svdCache = null;
+  function rSvdLowrank() {
+    const id = 'r-svd-lowrank';
+    const k = Math.round(val(id, 'k', 2)), N = 24;
+    if (!svdCache) {
+      // a small "image": a smooth background, a bright bar, and a ring, with a little noise
+      const A = range(N, i => range(N, j => {
+        const r = Math.hypot(i - 14, j - 9);
+        return 0.3 + 0.25 * Math.sin(i / 5) * Math.cos(j / 7) + (i >= 3 && i <= 6 ? 0.5 : 0) + (Math.abs(r - 6) < 1.3 ? 0.6 : 0) + 0.04 * Math.sin(37 * i * j);
+      }));
+      const At = range(N, i => range(N, j => A[j][i]));
+      const e = jacobiEigen(matmul(At, A));
+      svdCache = { A, V: e.vectors, d: e.values.map(v => Math.sqrt(Math.max(0, v))) };
+    }
+    const { A, V, d } = svdCache;
+    const Vk = V.map(r => r.slice(0, k)), VkT = range(k, i => range(N, j => Vk[j][i]));
+    const Ak = matmul(matmul(A, Vk), VkT);     // A V_k V_kᵀ = the sum of the first k terms σᵢ uᵢ vᵢᵀ
+    const energy = sum(d.slice(0, k).map(v => v * v)) / sum(d.map(v => v * v));
+    const err = Math.max(...A.map((r, i) => Math.max(...r.map((v, j) => Math.abs(v - Ak[i][j])))));
+    const hm = (Z, xa, ya) => ({ type: 'heatmap', z: Z, colorscale: 'Viridis', zmin: 0, zmax: 1.7, showscale: false, xaxis: xa, yaxis: ya, hoverinfo: 'skip' });
+    Plotly.newPlot(el(id), [
+      hm(A, 'x', 'y'), hm(Ak, 'x2', 'y2'),
+      { type: 'bar', x: range(12, i => i + 1), y: d.slice(0, 12), marker: { color: range(12, i => (i < k ? C_OK : C_GREY)) }, xaxis: 'x3', yaxis: 'y3', name: 'singular values', hovertemplate: 'd%{x} = %{y:.3f}<extra></extra>' },
+    ], layout({ title: `rank ${k} keeps ${(100 * energy).toFixed(1)} % of the sum of squares (Σ dᵢ²); largest error ${err.toFixed(3)}`,
+                xaxis: ax({ domain: [0, 0.3], visible: false }), yaxis: ax({ domain: [0, 1], autorange: 'reversed', visible: false, scaleanchor: 'x' }),
+                xaxis2: ax({ domain: [0.35, 0.65], visible: false }), yaxis2: ax({ domain: [0, 1], autorange: 'reversed', visible: false, anchor: 'x2', scaleanchor: 'x2' }),
+                xaxis3: ax({ domain: [0.72, 1], title: 'i', anchor: 'y3', dtick: 1 }), yaxis3: ax({ domain: [0.1, 1], anchor: 'x3', title: 'dᵢ' }),
+                annotations: [{ text: 'original (24 × 24)', x: 0.15, y: -0.06, xref: 'paper', yref: 'paper', showarrow: false, font: { color: '#c8d0e0' } },
+                              { text: `rank-${k} approximation`, x: 0.5, y: -0.06, xref: 'paper', yref: 'paper', showarrow: false, font: { color: '#c8d0e0' } }],
+                showlegend: false, margin: { t: 50, r: 20, b: 40, l: 40 } }), cfg());
+  }
+
+  // ── S24. Conditioning of Hilbert matrices ──────────────────────
+  let condCache = null;
+  function rConditioning() {
+    const id = 'r-conditioning';
+    const nSel = Math.round(val(id, 'n', 8));
+    if (!condCache) {
+      condCache = range(11, t => {
+        const n = t + 2, H = hilbert(n), ones = new Array(n).fill(1), b = H.map(r => sum(r));
+        const e = jacobiEigen(H), kappa = e.values[0] / e.values[n - 1];
+        const x1 = gaussSolve(H, b), Hi = invert(H), x2 = Hi.map(r => r.reduce((s, v, j) => s + v * b[j], 0));
+        const err = x => Math.max(1e-17, Math.max(...x.map((v, i) => Math.abs(v - ones[i]))));
+        return { n, kappa, direct: err(x1), inv: err(x2) };
+      });
+    }
+    const C = condCache, sel = C[nSel - 2], ns = C.map(c => c.n);
+    Plotly.newPlot(el(id), [
+      { x: ns, y: C.map(c => c.kappa), mode: 'lines+markers', line: { color: C_HI, width: 2 }, name: 'condition number κ' },
+      { x: ns, y: C.map(c => c.kappa * 2.2e-16), mode: 'lines', line: { color: C_HI, dash: 'dot', width: 1 }, name: 'κ × machine epsilon  (the expected error)' },
+      { x: ns, y: C.map(c => c.direct), mode: 'lines+markers', line: { color: C_OK, width: 2 }, name: 'error of solve(H, b)' },
+      { x: ns, y: C.map(c => c.inv), mode: 'lines+markers', line: { color: C_BAD, width: 2 }, name: 'error of solve(H) %*% b' },
+      { x: [nSel, nSel], y: [1e-17, 1e17], mode: 'lines', line: { color: '#e5e7eb', dash: 'dash' }, name: `n = ${nSel}` },
+    ], layout({ title: `Hilbert n = ${nSel}: κ = ${sel.kappa.toExponential(2)} (about ${Math.max(0, Math.log10(sel.kappa)).toFixed(0)} digits lost); errors ${sel.direct.toExponential(1)} direct, ${sel.inv.toExponential(1)} via the inverse`,
+                xaxis: ax({ title: 'n', dtick: 1 }), yaxis: ax({ title: 'log scale', type: 'log', range: [-17, 17], exponentformat: 'power' }), legend: { orientation: 'h', y: -0.22 } }), cfg());
+  }
+
+
   // ── Dispatcher ─────────────────────────────────
   // ══════════════════════════════════════════════════════════════
   //  MATH 205 — Integrals, sequences and series
@@ -2151,6 +2608,23 @@
     'r-logical-filter':    rLogicalFilter,
     'r-matrix-index':      rMatrixIndex,
     'r-roundoff':          rRoundoff,
+    'r-hist-bins':         rHistBins,
+    'r-boxplot-fences':    rBoxplotFences,
+    'r-qq-shapes':         rQqShapes,
+    'r-fixed-point':       rFixedPoint,
+    'r-root-convergence':  rRootConvergence,
+    'r-binary-search':     rBinarySearch,
+    'r-mc-convergence':    rMcConvergence,
+    'r-lcg-lattice':       rLcgLattice,
+    'r-inverse-transform': rInverseTransform,
+    'r-markov-weather':    rMarkovWeather,
+    'r-mc-integral':       rMcIntegral,
+    'r-rejection':         rRejection,
+    'r-importance-tail':   rImportanceTail,
+    'r-lu-steps':          rLuSteps,
+    'r-eigen-ellipse':     rEigenEllipse,
+    'r-svd-lowrank':       rSvdLowrank,
+    'r-conditioning':      rConditioning,
     // MATH 205
     'calc-riemann-sums':   calcRiemannSums,
     'calc-signed-area':    calcSignedArea,

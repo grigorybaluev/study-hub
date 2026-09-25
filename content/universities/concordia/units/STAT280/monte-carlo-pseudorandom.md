@@ -82,6 +82,14 @@ running[c(10, 100, 1000, 10000)]
 ## [1] 0.7718187 0.7581181 0.7586796 0.7487292
 ```
 
+```sim
+id: r-mc-convergence
+controls:
+  - {id: logm, label: "log₁₀ of the number of draws m", min: 2, max: 5, step: 0.1, default: 4, decimals: 1}
+  - {id: runs, label: "independent runs", min: 1, max: 8, step: 1, default: 5, decimals: 0}
+note: "Running means of X = max(U₁, U₂, U₃) for several independent runs, on a log axis, with the 95 % band of the first run. Early on the runs disagree wildly. They close in on 3/4 at the 1/√m rate: each factor of 100 in m buys one more correct digit. Press Update to redraw with new random numbers."
+```
+
 :::insight
 Simulate the random variable many times and average: the average estimates the expected value,
 the proportion estimates the probability, and $s/\sqrt m$ says how far off the estimate is likely
@@ -176,6 +184,15 @@ Plausible-looking constants can give a poor generator. Checking the mean, the va
 histogram and the dependence between successive values is the minimum before trusting one.
 :::
 
+```sim
+id: r-lcg-lattice
+controls:
+  - {id: b, label: "multiplier b", min: 2, max: 200, step: 1, default: 7, decimals: 0}
+  - {id: m, label: "modulus m", min: 11, max: 1000, step: 1, default: 509, decimals: 0}
+  - {id: seed, label: "seed x₀", min: 1, max: 50, step: 1, default: 1, decimals: 0}
+note: "Each point is a pair of successive outputs (uₙ, uₙ₊₁) over one full cycle. They always fall on a few parallel lines, and a good multiplier makes those lines many and close together. With m = 509 (a prime) and b = 7, all 508 values appear (the full period), yet every pair lies on one of 7 lines: uₙ₊₁ = 7uₙ minus a whole number. b = 17 has a period of only 127, and a large b such as 200 spreads the lines out finely. Try b = 10, m = 1000 for the sequence that dies at 0, and b = 2, m = 11 for the small example."
+```
+
 ### runif() and set.seed()
 
 R's built-in generator (the *Mersenne Twister* by default) uses a different rule with a period of
@@ -230,6 +247,13 @@ The last line estimates $\pi$: a point uniform in the unit square falls inside t
 $x^2 + y^2 \le 1$ with probability equal to its area, $\pi/4$. It also shows that
 $\operatorname{Var}(U_1 + U_2) = \operatorname{Var}(U_1) + \operatorname{Var}(U_2)$ for independent
 variables.
+
+```sim
+id: monte-carlo-pi
+controls:
+  - {id: n, label: "number of points", min: 100, max: 20000, step: 100, default: 2000, decimals: 0}
+note: "The π estimate from the last line of the example, drawn on the square [−1, 1]² (the same ratio as the quarter disc in the unit square). The fraction of points inside the circle, times 4, estimates π. Press Update several times at 100 points and then at 20 000 to see how much the estimate moves between runs."
+```
 
 ### Sampling from a finite set: sample()
 
