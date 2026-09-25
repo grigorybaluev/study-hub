@@ -1,8 +1,8 @@
 // Renders a unit body: GFM + math + code highlighting, `:::name[title]` containers (#89) and
 // labelled blockquotes (legacy) as callouts,
 // ```sim fenced blocks as interactive simulations, ```solution-map blocks as stepped solutions beside
-// their method graph (#91), and a ```python block placed right after a
-// sim as that sim's code, collapsed under it.
+// their method graph (#91), a code block (any language) placed right after a sim as that sim's code,
+// collapsed under it, and an ```output block right after a code block as that code's output (#131).
 import { Children, Suspense, isValidElement, lazy, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -35,6 +35,7 @@ const BLOCKS: Record<string, string> = {
   proof: "Proof", example: "Example", solution: "Solution", note: "Note", remark: "Remark", caution: "Caution",
   insight: "Key insight", steps: "Steps", equations: "Equations",
   algorithm: "Algorithm", machine: "Machine", trace: "Trace", exercise: "Exercise",
+  syntax: "Syntax",
 };
 
 /**
@@ -182,14 +183,23 @@ function remarkViews() {
   return (tree: Root) => walk(tree);
 }
 
-/** Marks a python code block that directly follows a sim block (anywhere in the tree) as that sim's code. */
+/** Fences that are not program code: they never become a sim's code. */
+const NOT_CODE = new Set(["sim", "automaton", "solution-map", "output", "math"]);
+
+/** Display names for the "Show … code" summary under a sim. */
+const LANG_NAMES: Record<string, string> = {
+  python: "Python", r: "R", java: "Java", c: "C", cpp: "C++", sql: "SQL", js: "JavaScript", javascript: "JavaScript",
+  ts: "TypeScript", erlang: "Erlang", prolog: "Prolog", lisp: "Lisp", scheme: "Scheme", bash: "shell", sh: "shell",
+};
+
+/** Marks a code block (any language) that directly follows a sim block (anywhere in the tree) as that sim's code. */
 function remarkSimCode() {
   const walk = (node: Nodes) => {
     if (!("children" in node)) return;
     node.children.forEach((child, i) => {
       const prev = node.children[i - 1];
-      if (child.type === "code" && child.lang === "python" && prev?.type === "code" && prev.lang === "sim") {
-        child.data = { ...child.data, hProperties: { ...child.data?.hProperties, dataSimCode: true } };
+      if (child.type === "code" && child.lang && !NOT_CODE.has(child.lang) && prev?.type === "code" && prev.lang === "sim") {
+        child.data = { ...child.data, hProperties: { ...child.data?.hProperties, dataSimCode: child.lang } };
       }
       walk(child);
     });
@@ -216,7 +226,7 @@ export default function Markdown({ source }: { source: string }) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkMathFit, remarkMathDense, remarkMathPunct, remarkViews, remarkSimCode]}
-      rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim", "automaton", "solution-map"] }]]}
+      rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim", "automaton", "solution-map", "output"] }]]}
       components={{
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,
         code: ({ className, children, ...rest }) => {
@@ -248,8 +258,13 @@ export default function Markdown({ source }: { source: string }) {
           if (isValidElement(only)) {
             const cls = (only.props as { className?: string }).className ?? "";
             if (cls.includes("language-sim") || cls.includes("language-automaton") || cls.includes("language-solution-map")) return <>{children}</>;
-            if ((only.props as Record<string, unknown>)["data-sim-code"]) {
-              return <details className="sim-code"><summary>Show Python code</summary><pre>{children}</pre></details>;
+            const lang = (only.props as Record<string, unknown>)["data-sim-code"];
+            if (typeof lang === "string" && lang) {
+              return <details className="sim-code"><summary>Show {LANG_NAMES[lang] ?? lang} code</summary><pre>{children}</pre></details>;
+            }
+            // a program's output, attached under the code block right before it (#131)
+            if (cls.includes("language-output")) {
+              return <div className="code-output"><span className="code-output-label">Output</span><pre>{children}</pre></div>;
             }
           }
           return <pre>{children}</pre>;
