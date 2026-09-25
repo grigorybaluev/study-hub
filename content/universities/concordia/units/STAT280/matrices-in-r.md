@@ -32,13 +32,13 @@ $$
 A\mathbf x = \mathbf b, \quad A = \begin{pmatrix} 3 & -4 \\ 1 & 2 \end{pmatrix}, \quad \mathbf b = \begin{pmatrix} 6 \\ -3 \end{pmatrix}
 $$
 
-Statistics uses it everywhere: regression, smoothing, simulation (the Cholesky factor of the last
+Statistics uses it everywhere: regression, smoothing, simulation (the Cholesky factor of the simulation
 units). On a computer, two questions come first: is the answer **accurate** (rounding error), and
 is it **efficient**? Both often mean computing differently from the textbook formula: we will
 see that $\mathbf x = A^{-1}\mathbf b$ is the wrong way to solve $A\mathbf x = \mathbf b$. R calls the
 well-tested LAPACK library for this work.
 
-## Vectors and matrices in R
+## Matrices as R objects
 
 ### How matrices are stored
 
@@ -139,7 +139,7 @@ X$x2
 ## Error: $ operator is invalid for atomic vectors
 ```
 
-:::caution[No $ for matrices]
+:::caution[No dollar-sign access for matrices]
 A data frame is a list of columns, so `df$name` works. A matrix is a single vector with a
 dimension attribute, so `$` fails; use `X[, "name"]`.
 :::
