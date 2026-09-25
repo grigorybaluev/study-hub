@@ -341,15 +341,18 @@ dev.off()                                          # writes the file
 bitmaps. On screen, R opens a suitable device by itself.
 
 :::example[Custom axes on a log scale]
-The areas of the world's land masses (`islands`) range over five orders of magnitude, so the
-histogram is drawn for $\log_{10}$ of the areas. Suppressing the default axes (`axes = FALSE`)
+The lengths of major North American rivers (`rivers`) are strongly right-skewed, so the
+histogram is drawn for $\log_{10}$ of the lengths. Suppressing the default axes (`axes = FALSE`)
 and drawing a new one with `axis()` labels the ticks in the original units.
 :::
 
 ```r
-hist(log10(islands), breaks = "Scott", axes = FALSE, xlab = "Area (sq. miles)",
-     main = "Land masses, log scale")
-axis(1, at = 1:5, labels = 10^(1:5))     # label the log axis in original units
+range(rivers)                            # lengths of 141 North American rivers, in miles
+## [1]  135 3710
+ticks <- c(200, 500, 1000, 2000)
+hist(log10(rivers), breaks = 15, axes = FALSE, xlab = "Length (miles)",
+     main = "River lengths, log scale")
+axis(1, at = log10(ticks), labels = ticks)   # tick positions on the log scale, labels in miles
 axis(2)
 box()
 ```

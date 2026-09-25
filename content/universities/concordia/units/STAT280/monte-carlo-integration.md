@@ -187,10 +187,10 @@ round(runs, 2)                              # one column per run of 10 000
 The last unit could only generate distributions with an invertible $F$, or conditional versions of
 known ones. General-purpose methods reach much further. A typical target is a **posterior density
 known only up to a constant**: with a Binomial($n$, $p$) observation $x$ and a prior belief that $p$
-is near 0.7, Bayes' theorem gives
+is near 0.3, Bayes' theorem gives
 
 $$
-f(p \mid x) \;\propto\; e^{-(p - 0.7)^2 / (2 \cdot 0.1^2)}\; p^{x} (1-p)^{n-x}, \qquad 0 < p < 1
+f(p \mid x) \;\propto\; e^{-(p - 0.3)^2 / (2 \cdot 0.05^2)}\; p^{x} (1-p)^{n-x}, \qquad 0 < p < 1
 $$
 
 whose normalising constant is an integral nobody wants to compute.

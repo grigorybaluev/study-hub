@@ -447,8 +447,8 @@ to write everything in R, find the bottlenecks that remain too slow, and move on
 compiled language (the **Rcpp** package makes this practical).
 
 :::caution[Optimise with care]
-"Premature optimization is the root of all evil" (Donald Knuth). In order: **make it right**,
-**make it fast enough**, then **make sure it is still right**.
+"Premature optimization is the root of all evil" (Donald Knuth). Correctness comes first; speed up
+only what is too slow, and re-test after every change, because optimised code breaks easily.
 :::
 
 :::insight
