@@ -2,9 +2,7 @@
 title: Areas and distances
 order: 1
 status: detailed
-notes: ["Lecture 1 handout — learning/Slides/Lecture1.pdf (Stewart 5.1: area problem, sigma notation, distance problem)"]
 weeks: [1]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.1"
 introduces: [riemann-sum]
 requires:
   - {concept: limit, strength: hard}
@@ -15,7 +13,7 @@ reinforces: []
 Two questions that look unrelated — *how big is the region under a curve?* and *how far
 did a moving object go?* — turn out to have the same answer: chop the interval into small
 pieces, pretend the function is constant on each piece, add up, and let the pieces shrink.
-The sum is a **Riemann sum**; the limit is the integral of the next lecture.
+The sum is a **Riemann sum**; the limit is the integral of the next unit.
 
 ## The area problem
 

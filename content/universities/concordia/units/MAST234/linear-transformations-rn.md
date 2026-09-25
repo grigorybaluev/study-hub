@@ -3,7 +3,6 @@ title: Linear transformations of R^n
 order: 6
 status: outline
 weeks: [6]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 2.2, 2.3, 2.6"
 introduces:
   - {concept: linear-transformation, perspective: "maps R^n -> R^m: domain, codomain, range; every linear map is multiplication by a matrix; composition is matrix multiplication"}
 requires:

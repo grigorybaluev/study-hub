@@ -3,8 +3,6 @@ title: Special continuous distributions
 order: 11
 status: detailed
 weeks: [11, 12]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 6"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 187–195: the uniform and exponential random variables, memorylessness and the failing device", "Doedel, pp. 196–205: the standard and general normal random variables, the table of Φ, standardisation", "Doedel, pp. 206–212: the chi-square random variable and its moment-generating function", "Miller & Miller 6.3–6.4 and 6.6–6.7: the gamma and beta families and the normal approximations (not in Doedel's notes)"]
 introduces: [continuous-uniform-distribution, exponential-distribution, gamma-distribution, chi-square-distribution, beta-distribution, normal-distribution, normal-approximation]
 requires:
   - {concept: probability-density-function, strength: hard}
@@ -126,7 +124,7 @@ g(x; \theta) = \frac1\theta\,e^{-x/\theta}, \ x > 0
 F(x) = 1 - e^{-x/\theta},
 $$
 
-with $\mu = \theta$ and $\sigma^2 = \theta^2$. Doedel writes it with the rate $\lambda = 1/\theta$:
+with $\mu = \theta$ and $\sigma^2 = \theta^2$. It is often written with the rate $\lambda = 1/\theta$:
 $f(x) = \lambda e^{-\lambda x}$. The density $e^{-x}$ of units 5–8 is the case $\theta = 1$.
 :::
 
@@ -231,7 +229,7 @@ note: "Gamma: α sets the shape (α ≤ 1 is highest at 0, α > 1 rises then fal
 
 ```python
 # Gamma and beta densities with scipy.stats; note scipy's gamma takes the shape a = alpha
-# and scale = beta, which matches Miller & Miller's parametrisation.
+# and scale = beta, the parametrisation used here.
 import numpy as np
 from scipy import stats
 

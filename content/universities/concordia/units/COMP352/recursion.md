@@ -3,8 +3,6 @@ title: Recursion and its analysis
 order: 2
 status: detailed
 weeks: [2]
-notes: ["Deck 2, Recursion: slides 2–7 recursive methods, base cases, the run-time stack and frames; 8–16 linear recursion (LinearSum, ReverseArray, power by repeated squaring, tail recursion); 17–25 binary recursion (BinarySum, Fibonacci: exponential first attempt, linear version); 26–30 the English ruler; 31–35 multiple recursion (copying a folder, PuzzleSolve)"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 5"
 introduces: []
 requires:
   - {concept: recursion, strength: hard}
@@ -110,7 +108,7 @@ depth $\lceil \log_2 n \rceil$ — linear time, but only logarithmic stack space
 why divide-and-conquer sorts (unit 9) use this shape. The Fibonacci "first attempt"
 `fib(n) = fib(n−1) + fib(n−2)` is binary recursion with the *wrong* size reduction: the
 number of calls $n_k$ satisfies $n_k > 2^{k/2}$, so computing $F_{50}$ takes over $2^{25}$
-calls. The repair (slide 24) returns *two* numbers from each call — $(F_k, F_{k-1})$ — so
+calls. The repair returns *two* numbers from each call — $(F_k, F_{k-1})$ — so
 that each level needs only one recursive call: linear recursion, $O(n)$.
 
 ```sim
@@ -143,7 +141,7 @@ code: |
 note: 'Same numbers, 465 calls versus 12 for k = 12 — and the binary count grows by a factor of about 1.6 for every +1 in k (the step budget runs out near k = 15). Returning the pair is the whole trick: the information the second call would recompute is already in hand.'
 ```
 
-The **English ruler** (slides 26–30) is binary recursion drawing rather than
+The **English ruler** is binary recursion drawing rather than
 computing: `drawInterval(L)` draws the interval of length $L - 1$, a tick of length
 $L$, then the interval of length $L - 1$ again — $2^L - 1$ ticks from a three-line
 method.
@@ -185,5 +183,4 @@ note: "Binary recursion with the depth-n shape: moves(n) = moves(n−1) + 1 + mo
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Recursion (ch. 5 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Recursion.html) — Linear, binary and multiple recursion with the same examples.
 - [Sedgewick & Wayne — Recursion](https://introcs.cs.princeton.edu/java/23recursion/) — Towers of Hanoi, gcd and the Fibonacci trap, with running-time arguments.

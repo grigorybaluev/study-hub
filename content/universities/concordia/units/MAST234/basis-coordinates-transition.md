@@ -3,7 +3,6 @@ title: Basis, dimension, coordinates and transition matrices
 order: 8
 status: outline
 weeks: [8]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 6.3, 6.4"
 introduces:
   - {concept: basis-dimension, perspective: "coordinate vectors relative to a basis and the transition matrix between two bases"}
 requires:

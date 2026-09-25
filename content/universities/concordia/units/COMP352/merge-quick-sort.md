@@ -3,8 +3,6 @@ title: Merge sort and quick sort
 order: 9
 status: detailed
 weeks: [9]
-notes: ["Deck 15, Merge-Sort: slides 3 divide-and-conquer; 4–7 merge-sort and its tree; 8–18 execution example on 7 2 9 4 3 8 6 1; 19–21 the cost of merging two sorted arrays; 22 analysis, depth log n, O(n) per level; 23–24 comparison with heap-sort and the summary table. Deck 16, Quick-Sort: slides 3–7 quick-sort, partition, the quick-sort tree; 8–14 execution example; 15 worst case O(n²); 16–17 expected O(n log n) with a random pivot; 18–19 in-place partitioning; 20 summary table"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 12.1–12.2"
 introduces: [sorting-algorithms]
 requires:
   - {concept: recursion, strength: hard}
@@ -51,7 +49,7 @@ mode: sort
 algo: merge
 data: [7, 2, 9, 4, 3, 8, 6, 1]
 ops: ["sort"]
-note: "The deck's example. The coloured bars under the array are the recursion tree, one row per depth; each merge step shows the two halves combined. Count the comparisons: 17 for eight elements, against n log₂ n = 24 as the bound. Change the data to a sorted or reversed sequence — merge sort does not care."
+note: "An example. The coloured bars under the array are the recursion tree, one row per depth; each merge step shows the two halves combined. Count the comparisons: 17 for eight elements, against n log₂ n = 24 as the bound. Change the data to a sorted or reversed sequence — merge sort does not care."
 ```
 
 ```sim
@@ -116,7 +114,7 @@ ops: ["sort"]
 note: "In-place partition with the last element as pivot: l walks right past elements ≤ pivot, r walks left past elements ≥ pivot, out-of-place pairs are swapped, and when l and r cross the pivot is dropped between them — in its final position. Now run on 1 2 3 4 5 6 7 8: every partition peels off one element and the tree is a chain, n(n−1)/2 comparisons. Middle-element pivots fix that particular input; only a random pivot fixes every input in expectation."
 ```
 
-**In-place** quick-sort (deck 16, slides 18–19) partitions inside the array: with the
+**In-place** quick-sort partitions inside the array: with the
 pivot at the right end, index $l$ scans right until it finds an element $\ge$ pivot,
 $r$ scans left until it finds one $\le$ pivot; if $l < r$ they are swapped and the scans
 continue; when they cross, the pivot is swapped into position $l$. The subarrays on
@@ -179,5 +177,4 @@ note: 'The same in-place partition as the visualiser. The second call sorts an a
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Sorting and Selection (ch. 12 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Sorting.html) — Merge-sort and quick-sort with the same execution examples.
 - [Sedgewick & Wayne — Quicksort](https://algs4.cs.princeton.edu/23quicksort/) — The in-place partition, the random-shuffle argument and the three-way variant for many duplicates.

@@ -3,8 +3,6 @@ title: Expected value, moments and Chebyshev's theorem
 order: 7
 status: detailed
 weeks: [5, 6]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 4.1-4.4"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 101–109 and 163–170: expectation of discrete and continuous variables and of functions of them; the die, the toss-until-heads and the betting examples; the broken stick", "Doedel, pp. 108–109 and 169–170: variance and standard deviation", "Doedel, pp. 181–185: Markov's and Chebyshev's inequalities; the e^(−x) and exchange-rate examples"]
 introduces: [expected-value, variance, moment, chebyshev-inequality]
 requires:
   - {concept: random-variable, strength: hard}

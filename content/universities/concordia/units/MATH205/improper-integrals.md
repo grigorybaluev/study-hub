@@ -2,9 +2,7 @@
 title: Improper integrals
 order: 13
 status: detailed
-notes: ["Lecture 13 handout — learning/Slides/Lecture13.pdf (Stewart 7.8: type I and type II, convergence, comparison and limit comparison tests)"]
 weeks: [7]
-textbook: "Stewart, Calculus: Early Transcendentals, 7.8"
 introduces: [improper-integral]
 requires:
   - {concept: integral, strength: hard}

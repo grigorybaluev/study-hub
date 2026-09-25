@@ -3,7 +3,6 @@ title: Exception handling
 order: 4
 status: detailed
 weeks: [4]
-notes: ["COMP 249 course outline (Winter 2026): week 4, ch. 9, Exception Handling (first of two weeks)"]
 introduces: [exception-handling]
 requires:
   - {concept: class-and-object, strength: hard}

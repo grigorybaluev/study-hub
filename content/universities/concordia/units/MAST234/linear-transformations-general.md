@@ -3,7 +3,6 @@ title: Linear transformations of general vector spaces
 order: 9
 status: outline
 weeks: [9]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 9.1, 9.2, 5.5"
 introduces: []
 requires:
   - {concept: vector-space, strength: hard}

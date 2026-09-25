@@ -2,9 +2,7 @@
 title: Areas in polar coordinates and the classic polar curves
 order: 4
 status: detailed
-notes: ["Lecture 5 · Wed 23 Sep 2026 · p.6 (area bounded by a polar curve, area between two)", "Lecture 5 · p.7 (cardioids, table and tangents of r = 1 − sin θ, symmetry rules)", "Lecture 5 · p.8 (the four cardioids)", "Lecture 5 · p.9 (limaçons; the inner loop of r = 1 + 2cos θ)", "Lecture 5 · p.10 (circles r = a cos θ, a sin θ, 2cos θ + 4sin θ)", "Lecture 5 · p.11 (areas of intersection: two examples)", "Lecture 5 · p.12 (roses)"]
 weeks: [3]
-textbook: "Stewart, Multivariable Calculus, 9e, 10.3–10.4"
 introduces:
   - {concept: polar-coordinates, perspective: "areas, symmetry, and the classic curves — cardioids, limaçons, circles through the pole, roses"}
 requires:
@@ -14,7 +12,7 @@ reinforces: []
 ---
 
 Areas come out of polar equations as naturally as lengths did — the building block is a
-circular sector instead of a rectangle. The second half of the lecture is a catalogue:
+circular sector instead of a rectangle. The second half of the unit is a catalogue:
 cardioids, limaçons, circles through the pole and roses, with the symmetry tests that make
 sketching them quick, and the recipe for the area between two of them.
 
@@ -201,7 +199,7 @@ $$
 ::::
 
 :::note
-The lecture sketch marks the $x$-intercepts $(1, 0)$ and $(1, \pi)$ as vertical tangents. The
+A quick sketch may mark the $x$-intercepts $(1, 0)$ and $(1, \pi)$ as vertical tangents. The
 slope there is $-1$ at $\theta = 0$ and $1$ at $\theta = \pi$; the vertical tangents are at
 $\theta = \tfrac{7\pi}{6}$ and $\tfrac{11\pi}{6}$, as the sim shows.
 :::
@@ -309,7 +307,7 @@ $r = A\cos\theta + B\sin\theta$.
 ::::
 
 :::note
-The lecture notes complete the square as $(y + 2)^2$ and place the centre at $(1, -2)$. Since
+A slip is easy here: completing the square as $(y + 2)^2$ places the centre at $(1, -2)$. Since
 $y^2 - 4y + 4 = (y - 2)^2$, the centre is $(1, 2)$: at $\theta = \tfrac{\pi}{2}$ the curve is at $r = 4$,
 the point $(0, 4)$, which is above the axis.
 :::

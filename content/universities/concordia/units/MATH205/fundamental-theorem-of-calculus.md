@@ -2,9 +2,7 @@
 title: The fundamental theorem of calculus
 order: 4
 status: detailed
-notes: ["Lecture 4 handout — learning/Slides/Lecture4.pdf (Stewart 5.3: mean value theorem for integrals, FTC parts I and II, inverse processes)"]
 weeks: [2]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.3"
 introduces: [fundamental-theorem-of-calculus]
 requires:
   - {concept: integral, strength: hard}
@@ -13,7 +11,7 @@ requires:
 reinforces: []
 ---
 
-Lectures 2 and 3 built two things that look unrelated: a limit of sums (the definite
+Units 2 and 3 built two things that look unrelated: a limit of sums (the definite
 integral) and the reverse of differentiation (the antiderivative). The fundamental
 theorem says they are the same thing seen from two sides — which is why "integrate" ends
 up meaning "find an antiderivative and subtract".
@@ -128,15 +126,15 @@ $$
 \int_0^{\pi} \sin x\,dx = \big[-\cos x\big]_0^{\pi} = -\cos\pi - (-\cos 0) = 2
 $$
 
-The first is the limit of Riemann sums from lecture 1, now in one line.
+The first is the limit of Riemann sums from unit 1, now in one line.
 :::
 ::::
 
 :::caution
 Part II needs $f$ continuous on the *whole* interval.
 $\int_{-1}^{1} x^{-2}\,dx \ne \big[-1/x\big]_{-1}^{1} = -2$ — a positive function cannot
-have a negative integral. The integrand blows up at $0$; this is an improper integral
-(lecture 13), and it diverges.
+have a negative integral. The integrand blows up at $0$; this is an improper integral,
+and it diverges.
 :::
 
 ## Differentiation and integration as inverse processes

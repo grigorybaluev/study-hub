@@ -3,7 +3,6 @@ title: File I/O and serialization
 order: 6
 status: detailed
 weeks: [6]
-notes: ["COMP 249 course outline (Winter 2026): week 6, ch. 10, File I/O & Serialization"]
 introduces: [file-io]
 requires:
   - {concept: exception-handling, strength: hard}

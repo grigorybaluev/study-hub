@@ -3,8 +3,6 @@ title: Null values, outer joins, constraints and triggers
 order: 11
 status: detailed
 weeks: [9, 10]
-notes: ["Deck DB10, More on SQL — Null values, Triggers: slides 5–13 NULL, arithmetic on nulls, three-valued logic and its truth tables, the laws that fail; 14–22 joins in SQL, natural joins, outer joins (left, right, full); 23–29 constraints: keys, UNIQUE, PRIMARY KEY; 30–42 foreign keys, referential integrity and the policies (reject, cascade, set null); 43–50 attribute-based and tuple-based CHECK constraints, naming constraints; 51–52 assertions; 53–67 triggers: event-condition-action, AFTER/BEFORE, REFERENCING OLD/NEW, row-level and statement-level, examples"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 6.1.6, 6.3.8, 7"
 introduces: []
 requires:
   - {concept: sql, strength: hard}
@@ -95,8 +93,7 @@ note: "Every movie survives; Indie Film gets NULLs for the studio. Change LEFT t
 
 Referential integrity can be broken from either side: inserting a referencing tuple
 whose value does not exist (always rejected), and deleting or updating the referenced
-tuple. For the second, a **policy** is chosen per foreign key (deck DB10, slides
-34–42): `ON DELETE/UPDATE NO ACTION` (the default: reject the change), `CASCADE`
+tuple. For the second, a **policy** is chosen per foreign key: `ON DELETE/UPDATE NO ACTION` (the default: reject the change), `CASCADE`
 (delete or update the referencing tuples too), `SET NULL` (disconnect them). A
 studio whose president retires might `SET NULL` its `presC#`; deleting an executive
 who is a president then blanks the studio's field rather than failing.
@@ -145,7 +142,7 @@ triggers come in.
 > *tables*; the action is any sequence of SQL statements, which may undo the change
 > or raise an error.
 
-The deck's example (slides 55–63): after an update of `netWorth` on `MovieExec`, if
+An example: after an update of `netWorth` on `MovieExec`, if
 the new value is smaller than the old, put it back — a constraint "net worth never
 decreases" that no `CHECK` can state, because it compares two versions of a tuple.
 Row-level triggers see each tuple; a statement-level trigger sees the whole change
@@ -191,4 +188,3 @@ note: "The first update tries to lower a net worth: the trigger fires after the 
 ## Further reading
 
 - [SQLite — CREATE TRIGGER](https://www.sqlite.org/lang_createtrigger.html) — The trigger dialect that runs on this page, with `RAISE` and `INSTEAD OF`.
-- [Ullman & Widom — ch. 7](http://infolab.stanford.edu/~ullman/fcdb.html) — Keys, foreign keys, checks, assertions and triggers as in the deck.

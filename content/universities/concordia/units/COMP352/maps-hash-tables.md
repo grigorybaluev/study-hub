@@ -3,8 +3,6 @@ title: Maps, hash tables and dictionaries
 order: 7
 status: detailed
 weeks: [7]
-notes: ["Deck 10, Maps: slides 3–6 the map ADT and an example; 7–11 the list-based map, get/put/remove, O(n) performance. Deck 11, Hash Tables: slides 3–9 hash functions, tables and the SSN example; 10–18 hash codes (memory address, integer cast, summing components, polynomial accumulation, Horner); 19–22 compression functions, division and MAD; 23–26 separate chaining and the load factor; 27–37 open addressing, linear probing, search and deletion with AVAILABLE, double hashing, quadratic probing; 38–40 performance. Deck 12, Ordered Maps & Dictionaries: slides 3–6 ordered maps, binary search, performance; 7–14 the dictionary ADT (multiple entries per key), list-based dictionary, hash-table and search-table dictionaries"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 10"
 introduces: [dictionary, hash-table]
 requires:
   - {concept: array, strength: hard}
@@ -26,7 +24,7 @@ how that is done and what goes wrong when two keys land on the same index.
 > **Definition.** A **map** stores entries (key, value) with **unique keys**:
 > `get(k)` returns the value for `k` or `null`; `put(k, v)` inserts, or replaces the
 > value and returns the old one; `remove(k)`; `size()`, `isEmpty()`; and the views
-> `keySet()`, `values()`, `entrySet()`. A **dictionary** (deck 12) is the same without
+> `keySet()`, `values()`, `entrySet()`. A **dictionary** is the same without
 > uniqueness: several entries may share a key, so it has `find(k)`, `findAll(k)`,
 > `insert(k, v)` and `remove(e)` by entry.
 
@@ -93,7 +91,7 @@ Deleting cannot simply empty a cell — that would break the probe sequences tha
 through it — so a removed entry is replaced by an **AVAILABLE** marker that searches
 skip and insertions may reuse. The table must be **rehashed** into a larger array
 before the load factor reaches about $\frac12$; past that the expected number of
-probes grows without bound (deck 11, slides 38–40).
+probes grows without bound.
 
 ```sim
 id: ds-352-hash-probing
@@ -104,7 +102,7 @@ scheme: linear
 buckets: 13
 data: [18, 41, 22, 44, 59, 32, 31, 73]
 ops: ["insert 25", "find 44", "remove 18", "find 44", "insert 18"]
-note: "The deck's example: N = 13, h(k) = k mod 13. 44 collides with 18 and lands at 6; 31 then probes past both. remove(18) leaves an AVAILABLE marker, and find(44) must step over it — delete the marker in your head and 44 would be lost. Re-insert 18 into the marker's cell. Then change the scheme in the block to quadratic or double and rerun."
+note: "An example: N = 13, h(k) = k mod 13. 44 collides with 18 and lands at 6; 31 then probes past both. remove(18) leaves an AVAILABLE marker, and find(44) must step over it — delete the marker in your head and 44 would be lost. Re-insert 18 into the marker's cell. Then change the scheme in the block to quadratic or double and rerun."
 ```
 
 ```sim
@@ -197,5 +195,4 @@ operations logarithmic.
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Maps and Hash Tables (ch. 10 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Hashing.html) — Hash codes, compression, chaining and probing with the same examples.
 - [Java API — HashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html) — Initial capacity, load factor and the rehashing policy of the real thing.

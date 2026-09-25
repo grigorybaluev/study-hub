@@ -2,7 +2,6 @@
 title: Floating-point representation
 order: 2
 status: outline
-textbook: "Hamacher et al., Computer Organization and Embedded Systems, 6e, 9"
 introduces: [floating-point]
 requires:
   - {concept: number-representation, strength: hard}

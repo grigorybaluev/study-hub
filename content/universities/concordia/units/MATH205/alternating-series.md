@@ -2,9 +2,7 @@
 title: Alternating series
 order: 18
 status: detailed
-notes: ["Lecture 18 handout — learning/Slides/Lecture18.pdf (Stewart 11.5: alternating series test, alternating series estimation theorem)"]
 weeks: [10]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.5"
 introduces:
   - {concept: convergence-tests, perspective: "the alternating series test and the estimation theorem for its error"}
 requires:

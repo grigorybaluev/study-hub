@@ -2,7 +2,6 @@
 title: Assembly language
 order: 3
 status: outline
-textbook: "Hamacher et al., Computer Organization and Embedded Systems, 6e, 2, App. E"
 introduces: [assembly-language]
 requires:
   - {concept: number-representation, strength: hard}

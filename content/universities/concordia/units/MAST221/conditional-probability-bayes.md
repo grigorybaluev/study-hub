@@ -3,8 +3,6 @@ title: Conditional probability, independence and Bayes' theorem
 order: 3
 status: detailed
 weeks: [2]
-notes: ["Notes Lec 3 (Wed 16 Sep 2026) p.1: independence survives complements, with the proof", "Notes Lec 3 p.2: conditional probabilities satisfy the postulates; the three-event multiplication rule", "Notes Lec 3 p.3: the law of total probability with the proof; Bayes' theorem not yet covered in class"]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 2.6-2.8"
 introduces: [conditional-probability, independence, bayes-theorem]
 requires:
   - {concept: probability, strength: hard}
@@ -159,7 +157,7 @@ Fix $B$ with $P(B) \neq 0$. Then $P(\,\cdot \mid B)$ is a probability measure in
 3. for mutually exclusive $A_1, A_2, \dots$, $P(A_1 \cup A_2 \cup \cdots \mid B) = P(A_1 \mid B) + P(A_2 \mid B) + \cdots$.
 
 :::proof
-The lecture checked the three postulates (Notes Lec 3 p.2).
+Check the three postulates one by one.
 
 1. $P(A \cap B) \ge 0$ and $P(B) > 0$, so the quotient is non-negative.
 2. $P(B \mid B) = P(B \cap B)/P(B) = P(B)/P(B) = 1$: the new sample space is the certain event.
@@ -178,7 +176,7 @@ $$
 So every rule of the previous unit — complements, the addition rule, inclusion–exclusion —
 holds with "$\mid B$" appended to every term.
 
-:::note[A bound without the intersection (Notes Lec 3 p.3)]
+:::note[A bound without the intersection]
 $P(A \cup B) \ge 1 - P(A') - P(B')$, because $P(A \cup B) = 1 - P(A' \cap B')$ and
 $P(A' \cap B') \le P(A') + P(B')$ by the addition rule. Bounds of this kind (Bonferroni's)
 are what you reach for when $P(A \cap B)$ is unknown.
@@ -213,7 +211,7 @@ Multiply both sides of $P(B \mid A) = P(A \cap B)/P(A)$ by $P(A)$.
 ::::
 
 For three events the rule chains: write $A \cap B \cap C = (A \cap B) \cap C$ and apply the
-rule twice (Notes Lec 3 p.2).
+rule twice.
 
 :::corollary[Three events]
 Provided $P(A \cap B) \neq 0$,
@@ -297,7 +295,7 @@ If $P(A) \neq 0$ and $P(B) \neq 0$, then $P(B \mid A) = P(B)$ holds exactly when
 $P(A \mid B) = P(A)$, and exactly when $A$ and $B$ are independent.
 
 :::proof
-(Notes Lec 3 p.3.) $P(B \mid A) = P(B)$ says $P(A \cap B)/P(A) = P(B)$, i.e.
+ $P(B \mid A) = P(B)$ says $P(A \cap B)/P(A) = P(B)$, i.e.
 $P(A \cap B) = P(A)P(B)$; dividing that by $P(B)$ instead gives $P(A \cap B)/P(B) = P(A)$,
 i.e. $P(A \mid B) = P(A)$. Whichever event you condition on, the other is unmoved.
 :::
@@ -357,7 +355,7 @@ print(comb(n, k) * p**k * (1 - p)**(n - k))           # two makes in any order: 
 
 ### Independence survives complements
 
-The theorem the lecture proved in full (Notes Lec 3 p.1):
+The theorem, with its proof:
 
 ::::theorem[Complements of independent events]
 If $A$ and $B$ are independent, then so are (1) $A$ and $B'$, (2) $A'$ and $B$,
@@ -391,7 +389,7 @@ Events $A_1, \dots, A_k$ are independent if and only if the probability of
 the intersection of *any* 2, 3, …, $k$ of them is the product of their probabilities.
 :::
 
-For three events that is four equations, not one. In one direction, from the notes: if $A$,
+For three events that is four equations, not one. In one direction: if $A$,
 $B$, $C$ are independent then so are $A$ and $B \cap C$, since
 $P(A \cap (B \cap C)) = P(A)P(B)P(C) = P(A)\,P(B \cap C)$.
 
@@ -430,7 +428,7 @@ total probability; going backwards — from the outcome to the stage — is Baye
 
 :::definition[Partition]
 Events $B_1, \dots, B_k$ form a **partition** of $S$ when they are pairwise mutually
-exclusive and their union is $S$ (Notes Lec 3 p.3).
+exclusive and their union is $S$.
 :::
 
 ::::theorem[Law of total probability]
@@ -441,8 +439,6 @@ P(A) = \sum_{i=1}^{k} P(B_i)\,P(A \mid B_i).
 $$
 
 :::proof
-(As in the notes.)
-
 $$
 A = A \cap S = A \cap (B_1 \cup \cdots \cup B_k) = (A \cap B_1) \cup \cdots \cup (A \cap B_k),
 $$

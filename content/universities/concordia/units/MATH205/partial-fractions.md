@@ -2,9 +2,7 @@
 title: Partial fractions
 order: 11
 status: detailed
-notes: ["Lecture 11 handout — learning/Slides/Lecture11.pdf (Stewart 7.4: polynomials and roots, proper and improper fractions, the four cases)"]
 weeks: [6]
-textbook: "Stewart, Calculus: Early Transcendentals, 7.4"
 introduces: [partial-fractions]
 requires:
   - {concept: substitution-rule, strength: hard}

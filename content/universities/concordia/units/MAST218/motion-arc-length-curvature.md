@@ -3,7 +3,6 @@ title: Motion in space, arc length and curvature
 order: 10
 status: outline
 weeks: [8]
-textbook: "Stewart, Multivariable Calculus, 9e, 13.3-13.4"
 introduces: [curvature]
 requires:
   - {concept: vector-function, strength: hard}

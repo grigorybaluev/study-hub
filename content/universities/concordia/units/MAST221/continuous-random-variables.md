@@ -3,8 +3,6 @@ title: Continuous random variables and densities
 order: 5
 status: detailed
 weeks: [3, 4]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 3.3-3.4"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 142–149: continuous random variables, the pointer example, the density as the derivative of the distribution function, the e^(−x) example and the c·xⁿ(1 − xⁿ) exercise"]
 introduces: [probability-density-function]
 requires:
   - {concept: random-variable, strength: hard}

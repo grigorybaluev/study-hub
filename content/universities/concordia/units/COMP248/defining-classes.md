@@ -3,7 +3,6 @@ title: Defining classes
 order: 8
 status: detailed
 weeks: [9]
-notes: ["COMP 248 course outline (Fall 2016): week 9, Defining Classes (continued); lab exercise 5; course objective CO5d, design and implement a class"]
 introduces: [class-and-object]
 requires:
   - {concept: function-definition, strength: hard}

@@ -49,7 +49,7 @@ R is based on a **command-line interface**, the *console*, where the user types 
 
 **R Markdown** lets you write documents containing chunks of R code and LaTeX formulas (`https://rmarkdown.rstudio.com/`). Recommended but not mandatory; beyond the course it is a great tool for reproducible research.
 
-### Font conventions used in the slides (and on these pages)
+### Font conventions used on these pages
 
 Output is indicated with the `##` prefix; user input is given without any prefix:
 
@@ -60,7 +60,7 @@ Output is indicated with the `##` prefix; user input is given without any prefix
 
 The number `[1]` indicates that this is the first (here: the only) element of the output for the given command.
 
-> **Key insight.** R is a command-line language: you type commands into the console and R prints results prefixed (in these notes) by ##. RStudio wraps that console in an IDE with an editor, environment pane and help pane.
+> **Key insight.** R is a command-line language: you type commands into the console and R prints results prefixed (on these pages) by ##. RStudio wraps that console in an IDE with an editor, environment pane and help pane.
 
 ```r
 # The very first command: R prints the value of an expression.
@@ -160,10 +160,10 @@ controls:
   - {id: b, label: b, min: 1, max: 9, step: 1, default: 2, decimals: 0}
   - {id: c, label: c, min: 1, max: 5, step: 1, default: 3, decimals: 0}
   - {id: d, label: d, min: 0, max: 20, step: 1, default: 10, decimals: 0}
-note: 'Compares a:b*c + d (as R reads it: (a:b)*c + d) with a:(b*c + d). With the defaults this is the slide example 5:2*3 + 10 = 25 22 19 16 versus 5:16.'
+note: 'Compares a:b*c + d (as R reads it: (a:b)*c + d) with a:(b*c + d). With the defaults this is the example above: 5:2*3 + 10 = 25 22 19 16 versus 5:16.'
 ```
 
-Every example from the "calculator" slides in one script. Note that several commands can share a line if separated by ; and that log() is the natural logarithm.
+Every calculator example of this part in one script. Note that several commands can share a line if separated by ; and that log() is the natural logarithm.
 
 ```r
 # R as a calculator
@@ -248,7 +248,7 @@ SUM(x)
 ## [1] 55
 ```
 
-### Example 2.1 — applying a formula
+### Example: applying a formula
 
 > **Example.**
 > An individual takes out a loan today of $P$ at a monthly interest rate $i$, to be paid back in $n$ monthly instalments of size $R$, beginning one month from now. Given $P$, $n$ and $i$,
@@ -284,7 +284,7 @@ When you quit R/RStudio (`q()` or the ✕ button) the objects in the workspace a
 
 **Equations**
 
-- *Loan instalment (Example 2.1)*: $R = P\,\frac{i}{1-(1+i)^{-n}}$ — P = 1500, i = 0.01, n = 10 gives R = 158.3731.
+- *Loan instalment*: $R = P\,\frac{i}{1-(1+i)^{-n}}$ — P = 1500, i = 0.01, n = 10 gives R = 158.3731.
 
 ```sim
 id: r-loan
@@ -292,10 +292,10 @@ controls:
   - {id: P, label: Loan P, min: 500, max: 20000, step: 100, default: 1500, decimals: 0}
   - {id: i, label: Monthly rate i, min: 0.001, max: 0.03, step: 0.001, default: 0.01, decimals: 3}
   - {id: n, label: Instalments n, min: 1, max: 60, step: 1, default: 10, decimals: 0}
-note: 'R = P·i / (1 − (1+i)^(−n)) from Example 2.1, and how the instalment falls as n grows for the chosen P and i. Defaults reproduce the slide: R = 158.37.'
+note: 'R = P·i / (1 − (1+i)^(−n)) from the loan example, and how the instalment falls as n grows for the chosen P and i. Defaults reproduce the example: R = 158.37.'
 ```
 
-Assignments, the loan example and the objects()/ls() listing from the slides, plus the SUM <- sum trick showing that functions are ordinary objects.
+Assignments, the loan example and the objects()/ls() listing, plus the SUM <- sum trick showing that functions are ordinary objects.
 
 ```r
 # Assignment stores a value without printing it
@@ -303,7 +303,7 @@ my_result <- sqrt(2) + cos(pi/8)
 my_result
 ## [1] 2.338093
 
-# Example 2.1: monthly instalment for a loan
+# Monthly instalment for a loan
 i <- 0.01                      # monthly interest rate
 n <- 10                        # number of instalments
 P <- 1500                      # amount borrowed
@@ -395,7 +395,7 @@ note: The function from Exercise 1, evaluated on a vector of x-values — exactl
 ...
 ```
 
-The add.3.to example, both exercises from the slides (with checks), and a small function with a default argument mirroring how q(save, status, runLast) works.
+The add.3.to example, both exercises (with checks), and a small function with a default argument mirroring how q(save, status, runLast) works.
 
 ```r
 # A first user-defined function
@@ -441,9 +441,8 @@ power(p = 3, x = 3)      # named
 
 ## Further reading
 
-- [The R Project for Statistical Computing](https://www.r-project.org/) — Download R (the slides recommend 4.4.1).
+- [The R Project for Statistical Computing](https://www.r-project.org/) — Download R.
 - [RStudio Desktop](https://posit.co/download/rstudio-desktop/) — The free IDE used in the course.
 - [R Markdown](https://rmarkdown.rstudio.com/) — Documents mixing R code, output and LaTeX — recommended for assignments and reproducible research.
-- [Textbook: A First Course in Statistical Programming with R (Braun & Murdoch)](https://www.cambridge.org/core/books/first-course-in-statistical-programming-with-r/) — Cambridge University Press; the 2nd edition is freely available as an eBook through the Concordia Library.
 - [R documentation — Arithmetic operators](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Arithmetic.html) — Official reference for +, -, *, /, ^, %% and %/%.
 - [R documentation — function](https://stat.ethz.ch/R-manual/R-devel/library/base/html/function.html) — Formal reference for function definition and argument matching.

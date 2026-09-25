@@ -3,7 +3,6 @@ title: Matrix multiplication, special matrices and determinants
 order: 4
 status: outline
 weeks: [4]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 2.3, 2.4, 3.1, 3.2, 5.4"
 introduces: []
 requires:
   - {concept: matrix, strength: hard}

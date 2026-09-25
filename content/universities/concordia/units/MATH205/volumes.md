@@ -2,9 +2,7 @@
 title: Volumes
 order: 12
 status: detailed
-notes: ["Lecture 12 handout — learning/Slides/Lecture12.pdf (Stewart 6.2: cross-sections, volume as ∫A(x)dx, solids of revolution)"]
 weeks: [6]
-textbook: "Stewart, Calculus: Early Transcendentals, 6.2"
 introduces: [volume-by-slicing]
 requires:
   - {concept: integral, strength: hard}

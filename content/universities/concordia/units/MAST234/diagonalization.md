@@ -3,7 +3,6 @@ title: Diagonalizable matrices and dynamical systems
 order: 12
 status: outline
 weeks: [12]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 5.5, 9.2"
 introduces: [diagonalization]
 requires:
   - {concept: eigenvalue, strength: hard}

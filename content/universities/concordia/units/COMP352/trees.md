@@ -3,8 +3,6 @@ title: Trees
 order: 5
 status: detailed
 weeks: [5]
-notes: ["Deck 7, Trees: slides 3–7 what a tree is, terminology, ordered trees; 8–11 the tree ADT with positions and its performance; 12–14 preorder and postorder traversals; 15–18 binary trees, arithmetic expression and decision trees, properties (n, e, i, h); 19–22 the binary tree ADT, inorder, printing and evaluating expressions; 23–25 Euler tour; 26–31 linked and array-based representations with their performance; 32–33 the template method pattern for traversals"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 8"
 introduces:
   - {concept: tree, perspective: "the tree ADT: general and binary trees, traversals, linked and array representations"}
 requires:
@@ -32,7 +30,7 @@ children, then combine".
 > the **height** of a tree is the maximum depth of a node (a single node: 0). A tree is
 > **ordered** when the children of every node have a linear order.
 
-The tree ADT (slides 8–11) is position-based like the node list: `root()`,
+The tree ADT is position-based like the node list: `root()`,
 `parent(p)`, `children(p)`, `isInternal(p)`, `isExternal(p)`, `isRoot(p)`, `size()`,
 `isEmpty()`, `replace(p, e)`, plus iterators over elements and positions. Depth and
 height come from two short recursions: `depth(p)` is 0 at the root and
@@ -139,12 +137,12 @@ note: "The same expression tree as the Java example. The tour sequence marks eac
 
 ## Representations
 
-**Linked structure** (slides 26–28): each node holds its element, a reference to the
+**Linked structure**: each node holds its element, a reference to the
 parent, and either a list of children (general tree) or `left` and `right` (binary).
 Space $O(n)$; `parent`, `left`, `right`, `isInternal` are $O(1)$; `children(p)` is
 $O(c_p)$; a full traversal $O(n)$.
 
-**Array-based binary tree** (slides 29–31): number the nodes by level, root $1$, and for
+**Array-based binary tree**: number the nodes by level, root $1$, and for
 the node at index $p$ put the left child at $2p$ and the right at $2p + 1$ (parent at
 $\lfloor p/2 \rfloor$). No references at all, $O(1)$ navigation — but the array must
 be long enough for the *deepest* possible index, $2^{h+1} - 1$, so an unbalanced tree
@@ -174,5 +172,4 @@ note: "height / depth labels each node with d (its depth, counted from the root)
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Trees (ch. 8 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Trees.html) — Terminology, traversals, expression trees and the two representations.
 - [Sedgewick & Wayne — Binary Trees](https://algs4.cs.princeton.edu/32bst/) — Traversals and the linked representation in Java, leading into search trees.

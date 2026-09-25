@@ -458,8 +458,6 @@ def lint_unit(c: Content, doc: Doc, rep: Report):
     weeks = doc.meta.get("weeks")
     if weeks is not None and not (isinstance(weeks, list) and all(isinstance(w, int) for w in weeks)):
         rep.warn(doc.path, "weeks should be a list of integers")
-    if "textbook" in doc.meta and not doc.meta["textbook"]:
-        rep.warn(doc.path, "textbook is empty")
 
     seen: dict[str, set] = {}
     for key in ("introduces", "requires", "reinforces"):

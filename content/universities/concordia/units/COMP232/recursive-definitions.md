@@ -2,7 +2,6 @@
 title: Recursive definitions
 order: 9
 status: detailed
-notes: ["Lecture slides main3, pp. 22-30"]
 introduces:
   - {concept: recursion, perspective: "recursively defined functions, sequences and sets; Fibonacci; properties proved by induction"}
 requires:
