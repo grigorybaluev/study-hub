@@ -3,7 +3,6 @@ title: More on classes
 order: 10
 status: detailed
 weeks: [11, 12]
-notes: ["COMP 248 course outline (Fall 2016): weeks 11–12, More on Classes; lab exercises 7–8; assignment 4 due"]
 introduces: []
 requires:
   - {concept: object-reference, strength: hard}

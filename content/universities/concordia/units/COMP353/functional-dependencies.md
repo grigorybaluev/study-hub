@@ -3,8 +3,6 @@ title: Functional dependencies
 order: 6
 status: detailed
 weeks: [4, 5]
-notes: ["Deck DB04, Design Theory — Functional Dependencies and Rules: slides 2–9 FDs, keys as FDs, trivial FDs, why FDs matter; 10–14 redundancy and anomalies, the role of FDs in detecting redundancy; 15–19 implication, satisfying a set of FDs, closure F⁺, covering and equivalence; 20–22 Armstrong's axioms and derived rules; 23–31 the implication problem, attribute closure X⁺, the algorithm and the examples on R(A, B, C, D, E, H)"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 3.1–3.2"
 introduces: [functional-dependency]
 requires:
   - {concept: relational-model, strength: hard}

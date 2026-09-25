@@ -2,9 +2,7 @@
 title: Taylor and Maclaurin series
 order: 22
 status: detailed
-notes: ["Lecture 22 handout — learning/Slides/Lecture22.pdf (Stewart 11.10: coefficient formula, Maclaurin series, Taylor polynomials and remainder, convergence to f)"]
 weeks: [11]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.10"
 introduces: [taylor-series]
 requires:
   - {concept: power-series, strength: hard}

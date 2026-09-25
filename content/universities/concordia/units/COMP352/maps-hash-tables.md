@@ -3,8 +3,6 @@ title: Maps, hash tables and dictionaries
 order: 7
 status: detailed
 weeks: [7]
-notes: ["Deck 10, Maps: slides 3–6 the map ADT and an example; 7–11 the list-based map, get/put/remove, O(n) performance. Deck 11, Hash Tables: slides 3–9 hash functions, tables and the SSN example; 10–18 hash codes (memory address, integer cast, summing components, polynomial accumulation, Horner); 19–22 compression functions, division and MAD; 23–26 separate chaining and the load factor; 27–37 open addressing, linear probing, search and deletion with AVAILABLE, double hashing, quadratic probing; 38–40 performance. Deck 12, Ordered Maps & Dictionaries: slides 3–6 ordered maps, binary search, performance; 7–14 the dictionary ADT (multiple entries per key), list-based dictionary, hash-table and search-table dictionaries"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 10"
 introduces: [dictionary, hash-table]
 requires:
   - {concept: array, strength: hard}

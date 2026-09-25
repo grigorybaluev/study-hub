@@ -2,9 +2,7 @@
 title: The integral test
 order: 16
 status: detailed
-notes: ["Lecture 16 handout — learning/Slides/Lecture16.pdf (Stewart 11.3: positive series, integral test, p-series)"]
 weeks: [9]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.3"
 introduces:
   - {concept: convergence-tests, perspective: "the integral test and the p-series it settles"}
 requires:

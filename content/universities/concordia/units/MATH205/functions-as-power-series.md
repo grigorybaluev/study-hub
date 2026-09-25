@@ -2,9 +2,7 @@
 title: Functions as power series
 order: 21
 status: detailed
-notes: ["Lecture 21 handout — learning/Slides/Lecture21.pdf (Stewart 11.9: analytic functions, term-by-term differentiation and integration)"]
 weeks: [11]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.9"
 introduces: []
 requires:
   - {concept: power-series, strength: hard}

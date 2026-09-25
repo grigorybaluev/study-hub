@@ -2,9 +2,7 @@
 title: Vectors, span, and the rank of a matrix
 order: 2
 status: detailed
-notes: ["Lecture notebook Week02.ipynb"]
 weeks: [2]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 1.2, 2.1-2.3"
 introduces: [linear-combination-span, matrix-rank]
 requires:
   - {concept: vector, strength: hard}

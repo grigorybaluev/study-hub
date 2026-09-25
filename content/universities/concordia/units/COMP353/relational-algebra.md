@@ -3,8 +3,6 @@ title: Relational algebra
 order: 9
 status: detailed
 weeks: [7]
-notes: ["Deck DB07, Relational Algebra: slides 2–3 query languages and the operators; 4–9 compatibility, union, intersection, difference; 10–12 projection; 13–15 selection; 16–17 Cartesian product; 18–23 theta-join, equi-join, natural join; 24–29 expressing queries, renaming; 30 dependent and independent operators; 31–45 bag semantics for every operator; 46–56 expressing constraints in RA (referential integrity, FDs, domains); 57–64 'for all' queries and the division operator. Deck RA-division: the division operator with the Enrolled and Customer/Branch/Account examples"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 2.4, 5.1–5.2"
 introduces: [relational-algebra]
 requires:
   - {concept: relational-model, strength: hard}

@@ -2,9 +2,7 @@
 title: Probability of an event and its rules
 order: 2
 status: detailed
-notes: ["Slides 9–11, 15–16 · Notes Lec 1 p.1", "Slides 12–13, 17–19", "Slide 14 · Notes Lec 1 pp.1–2", "Notes Lec 1 pp.1–2", "Notes Lec 1 p.2", "Notes Lec 1 p.3"]
 weeks: [1, 2]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 2.4-2.5"
 introduces: [probability, inclusion-exclusion]
 requires:
   - {concept: sample-space, strength: hard}

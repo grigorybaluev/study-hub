@@ -2,9 +2,7 @@
 title: Sequences
 order: 14
 status: detailed
-notes: ["Lecture 14 handout — learning/Slides/Lecture14.pdf (Stewart 11.1: definition, bounded and monotonic sequences, convergence, limit rules, monotone convergence theorem)"]
 weeks: [8]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.1"
 introduces: [sequence]
 requires:
   - {concept: limit, strength: hard}

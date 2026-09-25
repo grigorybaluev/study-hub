@@ -3,8 +3,6 @@ title: Recursion and its analysis
 order: 2
 status: detailed
 weeks: [2]
-notes: ["Deck 2, Recursion: slides 2–7 recursive methods, base cases, the run-time stack and frames; 8–16 linear recursion (LinearSum, ReverseArray, power by repeated squaring, tail recursion); 17–25 binary recursion (BinarySum, Fibonacci: exponential first attempt, linear version); 26–30 the English ruler; 31–35 multiple recursion (copying a folder, PuzzleSolve)"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 5"
 introduces: []
 requires:
   - {concept: recursion, strength: hard}

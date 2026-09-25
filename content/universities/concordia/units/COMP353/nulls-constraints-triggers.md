@@ -3,8 +3,6 @@ title: Null values, outer joins, constraints and triggers
 order: 11
 status: detailed
 weeks: [9, 10]
-notes: ["Deck DB10, More on SQL — Null values, Triggers: slides 5–13 NULL, arithmetic on nulls, three-valued logic and its truth tables, the laws that fail; 14–22 joins in SQL, natural joins, outer joins (left, right, full); 23–29 constraints: keys, UNIQUE, PRIMARY KEY; 30–42 foreign keys, referential integrity and the policies (reject, cascade, set null); 43–50 attribute-based and tuple-based CHECK constraints, naming constraints; 51–52 assertions; 53–67 triggers: event-condition-action, AFTER/BEFORE, REFERENCING OLD/NEW, row-level and statement-level, examples"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 6.1.6, 6.3.8, 7"
 introduces: []
 requires:
   - {concept: sql, strength: hard}

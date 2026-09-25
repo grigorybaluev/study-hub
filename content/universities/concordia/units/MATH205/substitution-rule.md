@@ -2,9 +2,7 @@
 title: The substitution rule
 order: 6
 status: detailed
-notes: ["Lecture 6 handout — learning/Slides/Lecture6.pdf (Stewart 5.5: substitution for indefinite and definite integrals, symmetric functions)"]
 weeks: [3]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.5"
 introduces: [substitution-rule]
 requires:
   - {concept: antiderivative, strength: hard}

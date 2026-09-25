@@ -99,7 +99,8 @@ Units
   A unit that revisits a concept from a new angle is `teaching` with a `perspective`.
 - `status: detailed` (from lecture notes) | `outline` (official outline only) |
   `planned` (no outline). The outline is the initial hypothesis; notes are ground truth.
-  Record provenance in `weeks`, `textbook`, `notes`.
+  Record when it was taught in `weeks`. Units carry no source or author attributions: no
+  textbook, lecture, slide or deck references in frontmatter or body (owner decision, #135).
 - `review: draft` (default) | `reviewed` records the owner's editing pass, separate from
   `status` (which records the source). Only the owner flips a unit to `reviewed`.
 - Every course the student has taken gets units, at least coarse concept-introducing
@@ -165,7 +166,8 @@ Courses and programs
 
 ## Content rules
 
-- Own words only. No lecture slides, textbook figures, or copied problem sets.
+- Own words only. No lecture slides, textbook figures, or copied problem sets, and no
+  attribution of a unit's material to them (#135).
 - Attributed CC BY-SA 4.0 text (a Wikipedia summary) may be *displayed* by the app, fetched
   at view time with the article link and licence named; it is never pasted into `content/`.
 - Roadmaps are authored here (CC BY-SA). roadmap.sh's content is under a personal-use-only

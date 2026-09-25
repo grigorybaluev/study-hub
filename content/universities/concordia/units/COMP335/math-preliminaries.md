@@ -2,9 +2,7 @@
 title: Mathematical preliminaries
 order: 1
 status: detailed
-notes: ["Lecture 1 · slides 5–17", "Lecture 1 · slides 18–28", "Lecture 1 · slides 29–40"]
 weeks: [1]
-textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 1.1"
 introduces:
   - {concept: graph, perspective: "transition graphs of automata"}
   - {concept: tree, perspective: "derivation trees"}

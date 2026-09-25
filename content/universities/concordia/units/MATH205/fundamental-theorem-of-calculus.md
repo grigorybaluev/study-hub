@@ -2,9 +2,7 @@
 title: The fundamental theorem of calculus
 order: 4
 status: detailed
-notes: ["Lecture 4 handout — learning/Slides/Lecture4.pdf (Stewart 5.3: mean value theorem for integrals, FTC parts I and II, inverse processes)"]
 weeks: [2]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.3"
 introduces: [fundamental-theorem-of-calculus]
 requires:
   - {concept: integral, strength: hard}

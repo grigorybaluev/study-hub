@@ -3,8 +3,6 @@ title: Product moments, linear combinations and conditional expectation
 order: 9
 status: detailed
 weeks: [8]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 4.6-4.8"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 104–106 and 167: expected values of functions of two random variables, E[XY] = E[X]E[Y] and E[X + Y] = E[X] + E[Y]", "Doedel, pp. 107–117 and 175–177: covariance, the variance of a sum, the zero-covariance-but-dependent exercise", "Doedel, p. 186: the average of n exam scores"]
 introduces: [covariance, conditional-expectation]
 requires:
   - {concept: joint-distribution, strength: hard}

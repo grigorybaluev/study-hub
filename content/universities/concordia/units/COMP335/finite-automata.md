@@ -2,9 +2,7 @@
 title: Finite automata
 order: 3
 status: detailed
-notes: ["Lecture 1 · slides 90–119", "Lecture 2 · slides 4–22", "Lecture 2 · slides 23–35", "Lecture 2 · slides 37–113", "Lecture 2 · slides 114–149", "Lecture 2 · slides 150–158"]
 weeks: [2]
-textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 2"
 introduces: [dfa, nfa, dfa-minimization]
 requires:
   - {concept: formal-language, strength: hard}

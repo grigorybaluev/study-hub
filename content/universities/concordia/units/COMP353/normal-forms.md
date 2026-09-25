@@ -3,8 +3,6 @@ title: Normal forms
 order: 8
 status: detailed
 weeks: [6]
-notes: ["Deck DB05: slides 31–34 normal forms as guarantees, 1NF, 2NF, 3NF definitions, BCNF. Deck DB06, Normal Forms for Relational Data: slides 1–4 the hierarchy 1NF ⊃ 2NF ⊃ 3NF ⊃ BCNF, the 3NF and BCNF conditions; 5–6 decomposition into BCNF and the ABCDE example; 7–12 3NF decomposition by synthesis, adding a key relation, the example R = ABCDE with {BD → E, C → B, CE → A}, when 3NF cannot reach BCNF; 13–15 the chase test for lossless join with examples; 16–17 checking dependency preservation"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 3.3–3.5"
 introduces: [normalization]
 requires:
   - {concept: functional-dependency, strength: hard}

@@ -2,9 +2,7 @@
 title: Areas and distances
 order: 1
 status: detailed
-notes: ["Lecture 1 handout — learning/Slides/Lecture1.pdf (Stewart 5.1: area problem, sigma notation, distance problem)"]
 weeks: [1]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.1"
 introduces: [riemann-sum]
 requires:
   - {concept: limit, strength: hard}

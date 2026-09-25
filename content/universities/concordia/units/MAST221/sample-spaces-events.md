@@ -2,9 +2,7 @@
 title: Sample spaces and events
 order: 1
 status: detailed
-notes: ["Slides 1–3 · Notes Lec 1 (Wed 9 Sep 2026) p.1", "Slides 3–8"]
 weeks: [1]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 2.1-2.3"
 introduces: [sample-space, event]
 requires:
   - {concept: set, strength: hard}

@@ -3,8 +3,6 @@ title: Priority queues and heaps
 order: 6
 status: detailed
 weeks: [6]
-notes: ["Deck 8, Priority Queues: slides 3–6 the priority queue ADT, entries, applications; 7–8 total orders; 9–16 entries and comparators; 17–19 PQ-sort and the unsorted/sorted list implementations; 20–27 selection-sort and insertion-sort as PQ-sort, in-place versions. Deck 9, Heaps: slides 5–11 heap-order and complete-tree properties, height ⌊log n⌋; 12–18 insertion and up-heap; 19–25 removal and down-heap, updating; 26 performance table; 27–30 heap-sort; 31 array-based heap; 32–45 merging, bottom-up construction and its O(n) analysis"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 9"
 introduces: [priority-queue, heap]
 requires:
   - {concept: tree, strength: hard}

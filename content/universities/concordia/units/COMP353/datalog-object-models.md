@@ -3,8 +3,6 @@ title: Datalog and object data models
 order: 12
 status: detailed
 weeks: [11, 12]
-notes: ["Deck DB11, Logical Query Languages — Datalog: slides 2–5 rules, heads, subgoals, local and global variables; 6–9 variable-based and tuple-based interpretations; 10 programs; 11–18 the relational-algebra operations as rules (union, intersection, difference, projection, selection, product, joins); 19 a program on the movie schema; 20–24 expressive power, recursion, fixpoint evaluation, the sequel example; 25–28 dependency, stratification of negation, safe rules. Deck DB12, Object Definition Language: slides 2–5 the object-oriented world, class declarations, properties; 6–9 attributes, keys, single-value constraints; 10–16 types, collection types, examples; 17–34 relationships, inverses, multiplicity; 35–41 inheritance, multiple inheritance"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 5.3–5.4, 4.9"
 introduces: [datalog]
 requires:
   - {concept: relational-algebra, strength: hard}

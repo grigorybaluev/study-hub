@@ -3,8 +3,6 @@ title: Entity-relationship modelling
 order: 4
 status: detailed
 weeks: [3]
-notes: ["Deck DB02, Conceptual Database Design — the E/R Model: slides 2–5 the design process and notations; 6–9 entities, entity sets, attributes, relationships; 10–14 multiplicity of binary relationships, arrows, many-one and one-one; 15–21 multiway relationships, attributes on relationships and moving them to entity sets; 22–25 roles; 26–28 converting n-ary relationships to binary; 29–31 isa hierarchies; 32–45 constraints: keys, superkeys, choosing a primary key, single-value, referential integrity, domain and degree constraints; 46–51 weak entity sets and their sources; 52–53 design principles"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 4.1–4.4"
 introduces: [entity-relationship-model]
 requires:
   - {concept: database-system, strength: hard}

@@ -2,9 +2,7 @@
 title: Power series
 order: 20
 status: detailed
-notes: ["Lecture 20 handout — learning/Slides/Lecture20.pdf (Stewart 11.8: definition, the three possibilities, interval and radius of convergence, algebra of power series, Cauchy product)"]
 weeks: [11]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.8"
 introduces: [power-series]
 requires:
   - {concept: series, strength: hard}

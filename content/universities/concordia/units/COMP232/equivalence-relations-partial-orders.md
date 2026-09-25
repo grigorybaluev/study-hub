@@ -2,7 +2,6 @@
 title: Equivalence relations and partial orders
 order: 11
 status: detailed
-notes: ["Lecture slides main3, pp. 74-90"]
 introduces: []
 requires:
   - {concept: relation, strength: hard}

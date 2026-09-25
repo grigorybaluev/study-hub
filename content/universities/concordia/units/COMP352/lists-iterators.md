@@ -3,8 +3,6 @@ title: Lists, positional lists and iterators
 order: 4
 status: detailed
 weeks: [4]
-notes: ["Deck 5, Linked Lists & Iterators: slides 3–8 singly linked list, insert/remove at head and tail; 9–10 stack and queue on a linked list; 11–15 doubly linked list with header/trailer, addAfter, remove; 16–20 iterators, Iterable, for-each, ListIterator. Deck 6, Array Lists, Node Lists & Sequences: slides 3–12 the array list ADT, insertion/removal by shifting, performance, growable arrays, array-list deque methods; 13–21 node lists and the Position ADT; 22–29 sequences and the linked implementation; 30–36 array-based sequence with a circular array, comparison table; 37–38 favourites list"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 7"
 introduces: []
 requires:
   - {concept: linked-list, strength: hard}

@@ -3,8 +3,6 @@ title: Special continuous distributions
 order: 11
 status: detailed
 weeks: [11, 12]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 6"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 187–195: the uniform and exponential random variables, memorylessness and the failing device", "Doedel, pp. 196–205: the standard and general normal random variables, the table of Φ, standardisation", "Doedel, pp. 206–212: the chi-square random variable and its moment-generating function", "Miller & Miller 6.3–6.4 and 6.6–6.7: the gamma and beta families and the normal approximations (not in Doedel's notes)"]
 introduces: [continuous-uniform-distribution, exponential-distribution, gamma-distribution, chi-square-distribution, beta-distribution, normal-distribution, normal-approximation]
 requires:
   - {concept: probability-density-function, strength: hard}

@@ -2,7 +2,6 @@
 title: Limits and continuity
 order: 2
 status: outline
-textbook: "Thomas' Calculus"
 introduces: [limit, continuity]
 requires:
   - {concept: function, strength: hard}

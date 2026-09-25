@@ -3,7 +3,6 @@ title: Arrays of primitive types
 order: 6
 status: detailed
 weeks: [6, 7]
-notes: ["COMP 248 course outline (Fall 2016): weeks 6–7, Arrays of primitive types; practical midterm exam in the week-7 lab; assignment 2 due"]
 introduces: [array]
 requires:
   - {concept: iteration, strength: hard}

@@ -2,9 +2,7 @@
 title: Integration by parts
 order: 7
 status: detailed
-notes: ["Lecture 7 handout — learning/Slides/Lecture7.pdf (Stewart 7.1: from the product rule, ∫u dv = uv − ∫v du, definite version)"]
 weeks: [4]
-textbook: "Stewart, Calculus: Early Transcendentals, 7.1"
 introduces: [integration-by-parts]
 requires:
   - {concept: antiderivative, strength: hard}

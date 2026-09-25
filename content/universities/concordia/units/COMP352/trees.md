@@ -3,8 +3,6 @@ title: Trees
 order: 5
 status: detailed
 weeks: [5]
-notes: ["Deck 7, Trees: slides 3–7 what a tree is, terminology, ordered trees; 8–11 the tree ADT with positions and its performance; 12–14 preorder and postorder traversals; 15–18 binary trees, arithmetic expression and decision trees, properties (n, e, i, h); 19–22 the binary tree ADT, inorder, printing and evaluating expressions; 23–25 Euler tour; 26–31 linked and array-based representations with their performance; 32–33 the template method pattern for traversals"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 8"
 introduces:
   - {concept: tree, perspective: "the tree ADT: general and binary trees, traversals, linked and array representations"}
 requires:

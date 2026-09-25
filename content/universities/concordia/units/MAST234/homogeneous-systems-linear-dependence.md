@@ -2,9 +2,7 @@
 title: Linear independence, homogeneous systems and the kernel
 order: 3
 status: detailed
-notes: ["Lecture notebook Week03.ipynb"]
 weeks: [3]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 1.3, 5.2, 5.4"
 introduces: [linear-independence]
 requires:
   - {concept: linear-combination-span, strength: hard}

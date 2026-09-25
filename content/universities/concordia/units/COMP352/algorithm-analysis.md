@@ -3,8 +3,6 @@ title: Analysis of algorithms
 order: 1
 status: detailed
 weeks: [1]
-notes: ["Deck 1, Analysis of Algorithms (Goodrich & Tamassia, modified by Hanna & Mellah): slides 2–11 experimental vs. abstract analysis, worstTime(n); 12–19 pseudocode, the seven functions, the RAM model, primitive operations; 20–37 growth rate and big-O; 38–44 finding big-O of loops (cases 1–4); 45–53 asymptotic analysis, prefix averages; 54–76 big-Omega, big-Theta, plain-English table, worstTime and growth rate"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 4"
 introduces: [algorithm-analysis]
 requires:
   - {concept: function, strength: hard}

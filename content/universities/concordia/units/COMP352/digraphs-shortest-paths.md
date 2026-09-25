@@ -3,8 +3,6 @@ title: Digraphs, topological order and shortest paths
 order: 12
 status: detailed
 weeks: [12]
-notes: ["Deck 22, Directed Graphs: slides 3–5 digraphs and scheduling; 6–9 reachability, strong connectivity, transitive closure; 10–25 digraph traversal by DFS, the flights example, testing strong connectivity; 26–27 strong connectivity algorithm and strongly connected components; 28–40 transitive closure by repeated DFS, Floyd-Warshall and its example; 41–55 DAGs, topological ordering, the in-degree algorithm; 56–65 DFS-based topological sort. Deck 23, Shortest Paths: slides 2–5 weighted graphs and path properties; 6–7 negative-weight edges and cycles; 8–17 Dijkstra's algorithm, relaxation, the cloud, examples; 18–23 the heap-based adaptable PQ and the O((n + m) log n) analysis; 24 the shortest-path tree; 25 why Dijkstra fails with negative weights; 26–27 Bellman-Ford; 28–29 the DAG-based algorithm"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 14.4–14.6"
 introduces: [shortest-path]
 requires:
   - {concept: graph, strength: hard}

@@ -3,8 +3,6 @@ title: Special discrete distributions
 order: 10
 status: detailed
 weeks: [9, 10]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 5"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 118–129: the Bernoulli and binomial random variables, the recurrence for binomial probabilities, the mean and variance through a sum of Bernoulli trials, the 12-toss and 12-roll tables", "Doedel, pp. 130–137: the Poisson random variable as a limit of the binomial, its recurrence, the customers-per-hour and wire-defect examples, binomial against Poisson tables", "Miller & Miller 5.5–5.6 and 5.8: negative binomial, geometric, hypergeometric and multinomial distributions (not in Doedel's notes)"]
 introduces: [discrete-uniform-distribution, bernoulli-distribution, binomial-distribution, geometric-distribution, negative-binomial-distribution, hypergeometric-distribution, poisson-distribution, multinomial-distribution]
 requires:
   - {concept: probability-mass-function, strength: hard}

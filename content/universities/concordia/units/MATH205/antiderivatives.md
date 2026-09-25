@@ -2,9 +2,7 @@
 title: Antiderivatives
 order: 3
 status: detailed
-notes: ["Lecture 3 handout — learning/Slides/Lecture3.pdf (Stewart 4.9: definition, table of antiderivatives, linearity rules)"]
 weeks: [2]
-textbook: "Stewart, Calculus: Early Transcendentals, 4.9"
 introduces: [antiderivative]
 requires:
   - {concept: derivative, strength: hard}

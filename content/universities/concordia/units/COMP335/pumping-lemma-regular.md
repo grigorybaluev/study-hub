@@ -3,7 +3,6 @@ title: Pumping lemma for regular languages
 order: 6
 status: outline
 weeks: [5]
-textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 4.3"
 introduces: [pumping-lemma-regular]
 requires:
   - {concept: regular-language, strength: hard}

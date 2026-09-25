@@ -3,8 +3,6 @@ title: The relational model and E/R-to-relational design
 order: 5
 status: detailed
 weeks: [3, 4]
-notes: ["Deck DB03, Relational Data Model: slides 2–6 relations, attributes, tuples, schema and instance, relational query languages; 7–12 converting entity sets to relations; 13–19 converting relationships, keys of relationship relations, renaming attributes, many-one relationships; 20–23 weak entity sets; 24–30 isa hierarchies: E/R style, object-oriented style, nulls; 31 a quick test on multiplicity"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 2.2, 4.5–4.6"
 introduces: [relational-model]
 requires:
   - {concept: entity-relationship-model, strength: hard}

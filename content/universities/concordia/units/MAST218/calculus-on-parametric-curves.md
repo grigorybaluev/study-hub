@@ -2,9 +2,7 @@
 title: Calculus on parametric curves
 order: 2
 status: detailed
-notes: ["Lecture 3 · Wed 16 Sep 2026 · p.1 (second-order derivative, length proposition)", "Lecture 3 · p.2 (length vs distance, surface area, examples 1–2)", "Lecture 3 · p.3 (sphere about the y-axis; sketching method S1–S3)", "Lecture 3 · p.4 (loop example: table, tangents, direction, sketch)", "Lecture 3 · p.5 (length and area of the loop; translations)"]
 weeks: [2]
-textbook: "Stewart, Multivariable Calculus, 9e, 10.2"
 introduces:
   - {concept: arc-length, perspective: "of a parametric curve, traced exactly once"}
   - distance-travelled

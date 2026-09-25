@@ -3,8 +3,6 @@ title: Nested queries and views
 order: 10
 status: detailed
 weeks: [8]
-notes: ["Deck DB09, More on SQL — Nested Queries and Views: slides 2–3 subqueries that produce a scalar; 4–6 subqueries in the WHERE clause; 7–8 conditions on relations: EXISTS, IN, ALL, ANY; 9–11 conditions on tuples; 12–14 correlated subqueries and scoping; 15–22 views, views in queries, renaming view attributes; 23–29 updating views: insertion, deletion and modification, when a view is updatable"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 6.3, 8.1–8.2"
 introduces: []
 requires:
   - {concept: sql, strength: hard}

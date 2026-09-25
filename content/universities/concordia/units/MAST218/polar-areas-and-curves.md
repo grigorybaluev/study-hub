@@ -2,9 +2,7 @@
 title: Areas in polar coordinates and the classic polar curves
 order: 4
 status: detailed
-notes: ["Lecture 5 · Wed 23 Sep 2026 · p.6 (area bounded by a polar curve, area between two)", "Lecture 5 · p.7 (cardioids, table and tangents of r = 1 − sin θ, symmetry rules)", "Lecture 5 · p.8 (the four cardioids)", "Lecture 5 · p.9 (limaçons; the inner loop of r = 1 + 2cos θ)", "Lecture 5 · p.10 (circles r = a cos θ, a sin θ, 2cos θ + 4sin θ)", "Lecture 5 · p.11 (areas of intersection: two examples)", "Lecture 5 · p.12 (roses)"]
 weeks: [3]
-textbook: "Stewart, Multivariable Calculus, 9e, 10.3–10.4"
 introduces:
   - {concept: polar-coordinates, perspective: "areas, symmetry, and the classic curves — cardioids, limaçons, circles through the pole, roses"}
 requires:

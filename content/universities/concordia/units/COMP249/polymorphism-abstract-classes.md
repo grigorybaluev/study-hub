@@ -3,7 +3,6 @@ title: Polymorphism and abstract classes
 order: 3
 status: detailed
 weeks: [3]
-notes: ["COMP 249 course outline (Winter 2026): week 3, ch. 8, Polymorphism and Abstract Classes"]
 introduces: [polymorphism]
 requires:
   - {concept: inheritance, strength: hard}

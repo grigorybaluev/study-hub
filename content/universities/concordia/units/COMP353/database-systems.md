@@ -3,8 +3,6 @@ title: Database systems
 order: 1
 status: detailed
 weeks: [1]
-notes: ["Deck DB01, Introduction to Databases and SQL: slides 3–13 what a database and a DBMS are, file processing systems and their disadvantages, advantages of databases, aspects of database studies; 14–17 data models, the relational model; 18–24 objectives, the three views/levels of data, schemas and instances, data independence; 25–31 DBMS architecture (query processor, storage manager, transaction manager), users; 32–35 database languages, SQL's history"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 1"
 introduces: [database-system]
 requires:
   - {concept: set, strength: soft}

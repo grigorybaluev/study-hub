@@ -3,8 +3,6 @@ title: Canonical covers and decompositions
 order: 7
 status: detailed
 weeks: [5]
-notes: ["Deck DB05, Schema Refinement — Minimal Bases: slides 2–3 the cost of closures, covers; 4–6 canonical cover (minimal basis) and the algorithm; 7–19 the worked example on R(A, B, C, D, E, H) with F = {A → B, DE → A, BC → E, AC → E, BCD → A, AED → B}; 20–21 several canonical covers are possible; 22–24 dealing with redundancy by decomposing Star(name, address, phone); 25–26 decomposition and spurious tuples; 27–28 lossless-join decomposition and the test; 29–30 dependency-preserving decomposition"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 3.2–3.4"
 introduces: []
 requires:
   - {concept: functional-dependency, strength: hard}

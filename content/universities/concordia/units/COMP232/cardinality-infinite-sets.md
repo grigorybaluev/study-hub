@@ -2,7 +2,6 @@
 title: Cardinality of infinite sets
 order: 12
 status: detailed
-notes: ["cardinality-infinite-sets handout"]
 introduces: [countability]
 requires:
   - {concept: function, strength: hard}

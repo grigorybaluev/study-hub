@@ -2,9 +2,7 @@
 title: Languages, grammars and automata
 order: 2
 status: detailed
-notes: ["Lecture 1 · slides 44–55", "Lecture 1 · slides 56–65", "Lecture 1 · slides 66–89"]
 weeks: [1]
-textbook: "Linz & Rodger, An Introduction to Formal Languages and Automata, 7e, 1.2"
 introduces: [formal-language, grammar, automaton]
 requires:
   - {concept: set, strength: hard}

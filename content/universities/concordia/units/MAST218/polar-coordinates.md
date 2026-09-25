@@ -2,9 +2,7 @@
 title: Polar coordinates and polar curves
 order: 3
 status: detailed
-notes: ["Lecture 4 · Fri 18 Sep 2026 · p.1 (pole, polar axis, sign conventions, equivalent pairs)", "Lecture 4 · p.2 (polar ↔ Cartesian, examples)", "Lecture 4 · p.3 (polar curves, Cartesian ↔ polar equations, lines θ = k)", "Lecture 4 · p.4 (circles r = a, tangent slope, arc length)", "Lecture 4 · p.5 (the spiral r = 5^θ: length and slope)"]
 weeks: [3]
-textbook: "Stewart, Multivariable Calculus, 9e, 10.3–10.4"
 introduces: [polar-coordinates]
 requires:
   - {concept: trigonometric-functions, strength: hard}

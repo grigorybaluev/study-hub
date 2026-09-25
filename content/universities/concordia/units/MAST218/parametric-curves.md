@@ -2,9 +2,7 @@
 title: Parametric curves
 order: 1
 status: detailed
-notes: ["Lecture 1 · Wed 9 Sep 2026 · p.1", "Lecture 1 · Wed 9 Sep 2026 · p.2", "Lecture 2 · p.1", "Lecture 2 · pp.1–3", "Lecture 2 · p.3", "Lecture 2 · pp.4–5", "Lecture 2 · pp.6–7"]
 weeks: [1]
-textbook: "Stewart, Multivariable Calculus, 9e, 10.1-10.2"
 introduces: [parametric-curve]
 requires:
   - {concept: derivative, strength: hard}

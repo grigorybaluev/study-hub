@@ -2,9 +2,7 @@
 title: Indefinite integrals and net change
 order: 5
 status: detailed
-notes: ["Lecture 5 handout — learning/Slides/Lecture5.pdf (Stewart 5.4: indefinite integral, table, integrating rules, net change theorem)"]
 weeks: [3]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.4"
 introduces: []
 requires:
   - {concept: antiderivative, strength: hard}

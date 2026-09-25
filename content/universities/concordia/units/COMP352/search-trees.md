@@ -3,8 +3,6 @@ title: Binary search trees and AVL trees
 order: 8
 status: detailed
 weeks: [8]
-notes: ["Deck 13, Binary Search Trees: slides 3–4 the BST property and inorder; 5 search; 6 insertion; 7–8 deletion, the two-children case with the inorder successor; 9 performance, height h. Deck 14, AVL Trees: slides 3–4 the balance problem and the height-balance property; 5–8 height of an AVL tree is O(log n); 9–16 insertion, trinode restructuring, the four cases, worked example; 17–19 removal and rebalancing up the path; 20 running times"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 11.1–11.2"
 introduces: [binary-search-tree]
 requires:
   - {concept: tree, strength: hard}

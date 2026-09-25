@@ -3,7 +3,6 @@ title: Strings and console I/O
 order: 2
 status: detailed
 weeks: [2]
-notes: ["COMP 248 course outline (Fall 2016): week 2, Java Basics (continued)"]
 introduces: [string]
 requires:
   - {concept: variables-and-expressions, strength: hard}

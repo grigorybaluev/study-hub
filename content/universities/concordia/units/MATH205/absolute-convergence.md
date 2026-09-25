@@ -2,9 +2,7 @@
 title: Absolute convergence and the ratio and root tests
 order: 19
 status: detailed
-notes: ["Lecture 19 handout — learning/Slides/Lecture19.pdf (Stewart 11.6: absolute and conditional convergence, ratio test, root test, Riemann's rearrangement theorem)"]
 weeks: [10]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.6"
 introduces:
   - {concept: convergence-tests, perspective: "absolute versus conditional convergence, and the ratio and root tests"}
 requires:

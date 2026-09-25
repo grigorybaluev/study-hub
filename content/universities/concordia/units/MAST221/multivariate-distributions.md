@@ -3,8 +3,6 @@ title: Multivariate, marginal and conditional distributions
 order: 6
 status: detailed
 weeks: [4]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 3.5-3.7"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 82–100: joint pmf and joint distribution function of the three-toss pair (number of heads, toss of the first head), independence, conditional pmfs", "Doedel, pp. 150–166: joint densities, marginal densities, independence of e^(−x−y), conditional densities"]
 introduces: [joint-distribution]
 requires:
   - {concept: random-variable, strength: hard}

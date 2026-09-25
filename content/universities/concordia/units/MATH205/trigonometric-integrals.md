@@ -2,9 +2,7 @@
 title: Trigonometric integrals
 order: 9
 status: detailed
-notes: ["Lecture 9 handout — learning/Slides/Lecture9.pdf (Stewart 7.2: powers of sine and cosine, powers of tangent and secant, products with different frequencies)"]
 weeks: [5]
-textbook: "Stewart, Calculus: Early Transcendentals, 7.2"
 introduces: [trigonometric-integrals]
 requires:
   - {concept: substitution-rule, strength: hard}

@@ -2,7 +2,6 @@
 title: Methods of proof
 order: 4
 status: detailed
-notes: ["Lecture slides main1, pp. 81-100"]
 introduces: [proof-techniques]
 requires:
   - {concept: logical-inference, strength: hard}

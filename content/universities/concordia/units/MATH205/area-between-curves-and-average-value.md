@@ -2,9 +2,7 @@
 title: Area between curves and average value
 order: 8
 status: detailed
-notes: ["Lecture 8 handout — learning/Slides/Lecture8.pdf (Stewart 6.1: area between curves in x and in y; 6.5: average value, mean value theorem for integrals)"]
 weeks: [3]
-textbook: "Stewart, Calculus: Early Transcendentals, 6.1 and 6.5"
 introduces: []
 requires:
   - {concept: integral, strength: hard}

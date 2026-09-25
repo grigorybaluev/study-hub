@@ -2,9 +2,7 @@
 title: Linear systems and the Gauss–Jordan method
 order: 1
 status: detailed
-notes: ["Lecture notebook Week01.ipynb"]
 weeks: [1]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 1.1-1.2"
 introduces:
   - {concept: computer-algebra-system, perspective: "SageMath as the course's calculator: exact matrices over QQ, symbolic entries over SR"}
 requires:

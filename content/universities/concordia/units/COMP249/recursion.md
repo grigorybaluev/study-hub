@@ -3,7 +3,6 @@ title: Recursion
 order: 7
 status: detailed
 weeks: [7]
-notes: ["COMP 249 course outline (Winter 2026): week 7, ch. 11, Recursion"]
 introduces:
   - {concept: recursion, perspective: "methods that call themselves in Java: the call stack, base cases, tracing, and the recursive versions of loops, searches and string algorithms"}
 requires:

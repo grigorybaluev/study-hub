@@ -2,7 +2,6 @@
 title: Input/output organization
 order: 6
 status: outline
-textbook: "Hamacher et al., Computer Organization and Embedded Systems, 6e, 3"
 introduces: [io-and-interrupts]
 requires:
   - {concept: cpu-organization, strength: hard}

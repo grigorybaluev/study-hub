@@ -3,8 +3,6 @@ title: Random variables and discrete distributions
 order: 4
 status: detailed
 weeks: [3]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 3.1-3.2"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 71–81: discrete random variables, the probability mass function and the distribution function, the three-toss and toss-until-heads examples"]
 introduces: [random-variable, probability-mass-function, cumulative-distribution-function]
 requires:
   - {concept: probability, strength: hard}

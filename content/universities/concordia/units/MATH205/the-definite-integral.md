@@ -2,9 +2,7 @@
 title: The definite integral
 order: 2
 status: detailed
-notes: ["Lecture 2 handout — learning/Slides/Lecture2.pdf (Stewart 5.2: partition, Riemann sum, norm, definition, integrability, properties)"]
 weeks: [1]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.2"
 introduces: [integral]
 requires:
   - {concept: riemann-sum, strength: hard}

@@ -3,8 +3,6 @@ title: Graphs, depth-first and breadth-first search
 order: 11
 status: detailed
 weeks: [11]
-notes: ["Deck 19, Graphs: slides 3–7 graphs, edge types, directed/undirected/mixed, applications; 8–16 terminology (endpoints, incidence, degree, parallel edges, self-loops, paths, cycles, subgraphs, connectivity, forests, spanning trees); 17–19 properties (sum of degrees 2m, m ≤ n(n−1)/2); 20–21 the graph ADT; 22–36 edge list, adjacency list and adjacency matrix with the performance table. Deck 20, DFS: slides 3–6 subgraphs, connectivity, trees, spanning trees; 7–13 the DFS algorithm and example; 14–17 analysis O(n + m), the maze; 18–21 properties, path finding, cycle finding. Deck 21, BFS: slides 3–8 the algorithm by levels; 9–11 example; 12–15 analysis and properties; 16–19 DFS vs. BFS, biconnected components, back edges"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 14.1–14.3"
 introduces:
   - {concept: graph, perspective: "the graph ADT: edge list, adjacency list and adjacency matrix, with the cost of every operation"}
   - graph-traversal

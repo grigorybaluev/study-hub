@@ -3,8 +3,6 @@ title: Merge sort and quick sort
 order: 9
 status: detailed
 weeks: [9]
-notes: ["Deck 15, Merge-Sort: slides 3 divide-and-conquer; 4–7 merge-sort and its tree; 8–18 execution example on 7 2 9 4 3 8 6 1; 19–21 the cost of merging two sorted arrays; 22 analysis, depth log n, O(n) per level; 23–24 comparison with heap-sort and the summary table. Deck 16, Quick-Sort: slides 3–7 quick-sort, partition, the quick-sort tree; 8–14 execution example; 15 worst case O(n²); 16–17 expected O(n log n) with a random pivot; 18–19 in-place partitioning; 20 summary table"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 12.1–12.2"
 introduces: [sorting-algorithms]
 requires:
   - {concept: recursion, strength: hard}

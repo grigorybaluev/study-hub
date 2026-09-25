@@ -2,7 +2,6 @@
 title: Sets
 order: 5
 status: detailed
-notes: ["Lecture slides main2, pp. 1-19"]
 introduces: [set]
 requires:
   - {concept: propositional-logic, strength: hard}

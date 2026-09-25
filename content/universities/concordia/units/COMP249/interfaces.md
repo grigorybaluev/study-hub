@@ -3,7 +3,6 @@ title: Interfaces
 order: 8
 status: detailed
 weeks: [8]
-notes: ["COMP 249 course outline (Winter 2026): week 8, ch. 13, Interfaces & Inner Classes (first week: interfaces)"]
 introduces: [interface]
 requires:
   - {concept: polymorphism, strength: hard}

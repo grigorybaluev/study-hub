@@ -3,8 +3,6 @@ title: Conditional probability, independence and Bayes' theorem
 order: 3
 status: detailed
 weeks: [2]
-notes: ["Notes Lec 3 (Wed 16 Sep 2026) p.1: independence survives complements, with the proof", "Notes Lec 3 p.2: conditional probabilities satisfy the postulates; the three-event multiplication rule", "Notes Lec 3 p.3: the law of total probability with the proof; Bayes' theorem not yet covered in class"]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 2.6-2.8"
 introduces: [conditional-probability, independence, bayes-theorem]
 requires:
   - {concept: probability, strength: hard}

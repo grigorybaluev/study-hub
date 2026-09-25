@@ -3,8 +3,6 @@ title: SQL modifications and schema definition
 order: 3
 status: detailed
 weeks: [2]
-notes: ["Deck DB01: slides 74–79 INSERT (values and query results); 80–83 DELETE; 84–85 UPDATE; 86–88 CREATE TABLE and DROP TABLE; 89–90 data types, dates and times; 91–92 ALTER TABLE across vendors; 93–95 attribute properties, NOT NULL and DEFAULT. Deck DB10: slides 2–4 user-defined domains"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 6.5–6.6, 7.1"
 introduces: []
 requires:
   - {concept: sql, strength: hard}

@@ -3,8 +3,6 @@ title: Stacks, queues and deques
 order: 3
 status: detailed
 weeks: [3]
-notes: ["Deck 3, Stacks: slides 2–3 abstract data types; 4–10 the stack ADT, exceptions, applications, the method stack; 11–17 array-based implementation, performance, linked alternative; 18–23 parentheses matching, HTML tags, evaluating arithmetic expressions with two stacks; 24–28 computing spans, quadratic vs. linear; 29–34 growable arrays, incremental vs. doubling, amortisation. Deck 4, Queues: slides 2–5 the queue ADT and applications; 6–13 circular array, f and r, enqueue/dequeue, exceptions; 14 round robin; 15 growable queue; 16–18 the deque ADT"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 6"
 introduces: [abstract-data-type, stack, queue]
 requires:
   - {concept: array, strength: hard}

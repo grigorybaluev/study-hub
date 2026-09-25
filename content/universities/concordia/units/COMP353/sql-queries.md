@@ -3,8 +3,6 @@ title: SQL queries
 order: 2
 status: detailed
 weeks: [1, 2]
-notes: ["Deck DB01: slides 36–43 SELECT-FROM-WHERE, the WHERE clause; 44–57 products and joins, join in SQL, joining relations; 58–62 aggregation operators; 63–72 grouping, nulls in aggregation, HAVING; 73 ORDER BY. Deck DB08, More on SQL Queries: slides 2–6 the SELECT clause (renaming, expressions, constants); 7–10 string comparison, LIKE and escapes; 11 ordering; 12–13 products and joins; 14–20 union, intersection, difference, duplicate elimination, UNION ALL. Silberschatz ch. 4 deck: basic structure, set operations, aggregate functions, joined relations"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 6.1–6.4"
 introduces: [sql]
 requires:
   - {concept: database-system, strength: hard}

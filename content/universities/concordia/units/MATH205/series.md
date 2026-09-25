@@ -2,9 +2,7 @@
 title: Series
 order: 15
 status: detailed
-notes: ["Lecture 15 handout — learning/Slides/Lecture15.pdf (Stewart 11.2: partial sums, convergence, geometric, telescoping and harmonic series, divergence test)"]
 weeks: [8]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.2"
 introduces: [series]
 requires:
   - {concept: sequence, strength: hard}

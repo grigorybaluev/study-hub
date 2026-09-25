@@ -40,8 +40,6 @@ export interface UnitNode {
   status: "detailed" | "outline" | "planned";
   review: "draft" | "reviewed";
   weeks: number[];
-  textbook: string | null;
-  notes: string[] | null;
   /** Sim blocks in the body and how many carry each `verified:` check; verified = both. */
   sims: { total: number; interface: number; content: number; verified: number };
   body: string;

@@ -2,9 +2,7 @@
 title: Trigonometric substitution
 order: 10
 status: detailed
-notes: ["Lecture 10 handout — learning/Slides/Lecture10.pdf (Stewart 7.3: the three substitutions with their θ-ranges and identities)"]
 weeks: [5]
-textbook: "Stewart, Calculus: Early Transcendentals, 7.3"
 introduces: [trigonometric-substitution]
 requires:
   - {concept: substitution-rule, strength: hard}

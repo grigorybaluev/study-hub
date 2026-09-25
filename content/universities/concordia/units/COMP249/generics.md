@@ -3,7 +3,6 @@ title: Generics
 order: 10
 status: detailed
 weeks: [10]
-notes: ["COMP 249 course outline (Winter 2026): week 10, ch. 14, Generics"]
 introduces: [generics]
 requires:
   - {concept: class-and-object, strength: hard}
