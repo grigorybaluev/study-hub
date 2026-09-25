@@ -109,7 +109,7 @@ Units
   lemma, proposition, corollary, proof, example, solution, note, remark, caution, insight,
   steps, equations; names in `build/schema.py` BLOCKS), nested with more colons on the outer
   (`::::example` around `:::solution`); fenced code with a language; `## Further reading`.
-  A course's `pages:` field (`math | programming | systems | data`) picks the unit-page
+  A course's `pages:` field (`math | theory | programming | systems | data`) picks the unit-page
   design; each kind's rules and specimens are one page, `app/src/design/<kind>.md`, served
   at `/design/<kind>`. Change the design there first. Legacy `> **Label.**` callouts still
   render; `scripts/convert_callouts.py <COURSE>` converts them (lint lists what is left).
@@ -118,9 +118,10 @@ Units
   diagram, and a table directly next to one renders as Table | Diagram views (`/design/theory`).
   Interactive examples are ```` ```sim ```` fenced YAML blocks (`id`, `controls`, `note`, or
   `custom: true` + `mode` for automata) placed where they belong in the text; lint checks
-  ids against `app/src/sims/registry.yaml`. A ```` ```python ```` block placed directly after
+  ids against `app/src/sims/registry.yaml`. A code block in any language placed directly after
   a sim block (only blank lines between) is that sim's code: it renders collapsed under the
-  sim as "Show Python code". `verified: [interface, content]` in a sim block records the two
+  sim as "Show Python code", "Show Java code", …. An ```` ```output ```` block directly after a
+  code block is that code's output and renders attached under it (`/design/programming`). `verified: [interface, content]` in a sim block records the two
   hand checks of #93 (each only after it was actually done); until both are there the sim
   shows "Needs verification". A worked solution can be a ```` ```solution-map ```` block
   (`id`, `method`, `task`, `steps: [{node, answer, text}]`): it steps through the solution beside

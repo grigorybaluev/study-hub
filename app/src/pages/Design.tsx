@@ -4,9 +4,10 @@ import { Link, useParams } from "react-router-dom";
 import Markdown from "../components/Markdown";
 import math from "../design/math.md?raw";
 import theory from "../design/theory.md?raw";
+import programming from "../design/programming.md?raw";
 import solutionMap from "../design/solution-map.md?raw";
 
-const SPECIMENS: Record<string, string> = { math, theory, "solution-map": solutionMap };
+const SPECIMENS: Record<string, string> = { math, theory, programming, "solution-map": solutionMap };
 
 export default function Design() {
   const { kind = "" } = useParams();
