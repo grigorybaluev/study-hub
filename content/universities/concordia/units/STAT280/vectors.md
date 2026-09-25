@@ -2,9 +2,7 @@
 title: Vectors
 order: 2
 status: detailed
-notes: ["Lecture 2 · slides 20–27 · Lecture 3 · slide 2", "Lecture 3 · slides 3–9", "Lecture 4 · slides 5–10"]
 weeks: [1]
-textbook: "Braun & Murdoch, A First Course in Statistical Programming with R, 3e, 2"
 requires:
   - {concept: r-programming, strength: hard}
 reinforces:
@@ -386,7 +384,7 @@ tolower(char.vector) == "a"      # case-insensitive search
 
 ### Boolean algebra
 
-Complex conditions are built with `!` (not), `&` (and), `|` (or), defined by the **truth table** (Table 2.1 of the textbook):
+Complex conditions are built with `!` (not), `&` (and), `|` (or), defined by the **truth table**:
 
 | A | B | !A | !B | A & B | A \| B |
 |---|---|---|---|---|---|
