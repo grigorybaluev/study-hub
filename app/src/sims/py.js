@@ -881,7 +881,17 @@
         views.push(this.objView(o, val));
       }
       const oldest = Math.min(...this.frames.map(f => (f.stmtOid == null ? Infinity : f.stmtOid)));
-      const unreachable = [...this.alive].filter(o => !seen.has(o) && !o.hidden && !(o.oid > oldest));
+      // dashed "cycle garbage" only for what no root reaches; objects held by a loop, a built-in
+      // module (sys.argv) or other hidden holders are reachable, just not drawn
+      const reach = new Set(), stack = this.roots().slice();
+      while (stack.length) {
+        const x = stack.pop(); if (!x || typeof x !== 'object' || reach.has(x)) continue; reach.add(x);
+        stack.push(...this.children(x));
+        if (x.type === T.method) stack.push(x.self, x.func);
+        for (const k of ['src', 'live', 'superOf', 'userIter', 'getitemOf']) if (x[k]) stack.push(k === 'superOf' ? x[k].self : x[k]);
+        if (x.arr) stack.push(...x.arr);
+      }
+      const unreachable = [...this.alive].filter(o => !seen.has(o) && !o.hidden && !(o.oid > oldest) && !reach.has(o));
       for (const o of unreachable) { seen.set(o, objs.length); objs.push(o); }
       for (let k = views.length; k < objs.length; k++) views.push({ ...this.objView(objs[k], val), unreachable: true });
       return { frames, objs: views };
@@ -892,7 +902,11 @@
       if (o.type === T.list || o.type === T.tuple || o.type === T.deque) return { ...base, kind: 'seq', items: o.items.map(val) };
       if (o.type === T.dict) return { ...base, kind: 'map', items: [...o.map.values()].map(e => [val(e.k), val(e.v)]) };
       if (o.type === T.set || o.type === T.frozenset) return { ...base, kind: 'set', items: this.setOrder(o).map(val) };
-      if (o.type === T.function) return { ...base, kind: 'func', label: `${o.name}(${o.params.map(p => (p.kind === 'varargs' ? '*' : p.kind === 'kwargs' ? '**' : '') + p.name).join(', ')})` };
+      if (o.type === T.function) {
+        const label = `${o.name}(${o.params.map(p => (p.kind === 'varargs' ? '*' : p.kind === 'kwargs' ? '**' : '') + p.name).join(', ')})`;
+        const defs = o.params.map((p, k) => [p.name + '=', o.defaults[k]]).filter(([, d]) => d && this.alive.has(d));
+        return defs.length ? { ...base, kind: 'attrs', label: 'function ' + label + ', defaults', items: defs.map(([n, d]) => [n, val(d)]) } : { ...base, kind: 'func', label };
+      }
       if (o.type === T.method) return { ...base, kind: 'attrs', label: 'bound method', items: [['__self__', val(o.self)], ['__func__', val(o.func)]] };
       if (o.isType) return { ...base, kind: 'attrs', label: `class ${o.name}` + (o.bases.length && o.bases[0] !== OBJECT ? `(${o.bases.map(b => b.name).join(', ')})` : ''), items: [...o.dict].filter(([n]) => !n.startsWith('__') || n === '__init__' || /^__\w+__$/.test(n) && o.dict.get(n).type === T.function).map(([n, v]) => [n, val(v)]) };
       if (o.type === T.module) return { ...base, kind: 'attrs', label: `module ${o.name}`, items: [...o.dict].filter(([n]) => !n.startsWith('__')).map(([n, v]) => [n, val(v)]) };
