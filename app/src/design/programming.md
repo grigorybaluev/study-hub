@@ -67,6 +67,11 @@ syntax block: that is an example.
   Its Memory panel names each pointer's target (`→ arr[1]`, `→ block #2`), and its Memory check
   panel reports what valgrind would: invalid reads and writes, double frees, leaks at exit. A
   `files:` map adds headers and more `.c` files, shown as tabs, for multi-file programs.
+- **Python stepper** (`engine: py`) when the point is Python's *object model*: names bound to
+  references, aliasing, mutable versus immutable values, `self`, class versus instance attributes,
+  reference counts. Frames are on the left, objects on the right, and arrows join them; an object
+  with no references left disappears, and a cycle stays (dashed) until `gc.collect()`. A `files:`
+  map adds the program's own modules and packages.
 - **Data-structure visualiser** (`engine: ds`) when the point is the *state* of a structure after
   each operation: stacks, lists, trees, heaps, hash tables, sorting.
 - **Plotly sim** (a registry id) when the point is a *quantity*: growth rates, running times,
@@ -259,6 +264,25 @@ files:
 note: 'Specimen of a multi-file C program. count is static in counter.c: main.c cannot name it, only call the two functions the header declares.'
 ```
 
+### Names and objects, step by step (Python)
+
+```sim
+id: spec-py-objects
+custom: true
+engine: py
+code: |
+  def add_item(items, item):
+      items.append(item)
+      return items
+
+  cart = ["tea"]
+  same = cart
+  copy = cart[:]
+  add_item(same, "milk")
+  print(cart, copy, cart is same)
+note: 'Specimen of the Python stepper. cart and same are two arrows to one list; copy points at a second list. Inside add_item, items is a third arrow to the same list, so the append is visible through cart.'
+```
+
 ### A data structure, operation by operation
 
 ```sim
@@ -320,6 +344,8 @@ last pass by hand, and the off-by-one bugs go away.
 
 ## Change log
 
+- 2026-09-26: the Python stepper (`engine: py`, #138): frames and objects joined by arrows, with
+  reference counts and the cycle collector.
 - 2026-09-26: the C stepper (`engine: c`, #137) for COMP 348: a memory view of the stack, the heap
   and static data, valgrind-style checks, and multi-file programs as tabs.
 - 2026-09-25: answers to "what does this print?" go in a `text` fence inside the solution; COMP 248
