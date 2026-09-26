@@ -158,6 +158,11 @@ const cases = [
   "errFile": 1
  },
  {
+  "name": "CPython set order for int sets: literals, loops, operators",
+  "code": "seen = set()\nfor n in [3, 1, 4, 1, 5, 9, 2, 6, 5, 3]:\n    seen.add(n)\nodd = {1, 3, 5, 7, 9}\nprint(seen, seen & odd, seen - odd, seen | {10}, {3, 1, 2, 3})\nprint({100, 5, 64, 33, 8, 1}, {-1, -5, 3, 0}, set(range(20, 0, -3)), {17, 9, 1, 25})\nprint({x * 7 for x in range(12)})",
+  "expect": "{1, 2, 3, 4, 5, 6, 9} {1, 3, 5, 9} {2, 4, 6} {1, 2, 3, 4, 5, 6, 9, 10} {1, 2, 3}\n{64, 33, 1, 100, 5, 8} {0, 3, -1, -5} {2, 5, 8, 11, 14, 17, 20} {17, 1, 25, 9}\n{0, 35, 70, 7, 42, 77, 14, 49, 21, 56, 28, 63}\n"
+ },
+ {
   "name": "while/else and walrus",
   "code": "data = [3, 5, 8, 1]\ni = 0\nwhile i < len(data):\n    if data[i] > 6:\n        print(\"found\", data[i])\n        break\n    i += 1\nelse:\n    print(\"none\")\nif (n := len(data)) > 3:\n    print(n)",
   "expect": "found 8\n4\n"

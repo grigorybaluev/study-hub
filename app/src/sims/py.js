@@ -945,16 +945,16 @@
       } finally { o.reprBusy = false; }
     }
     addr(o) { return '0x7f' + (0x3a2c000000 + o.oid * 48).toString(16); }
-    // CPython's small-int set order: by value modulo the table size, for non-negative ints
+    // CPython's set iteration order for sets of ints: replay the set's adds and deletes (o.log) into a
+    // simulated table — open addressing with up to 9 linear probes when they fit, then perturbed
+    // jumps; deletes leave dummies that later adds may reuse; resize to the next power of two above
+    // 4 × used when fill × 5 ≥ mask × 3. Other sets keep insertion order, which CPython's
+    // randomised string hashes make unpredictable anyway.
     setOrder(o) {
       const els = [...o.map.values()];
-      if (els.length && els.every(e => e.type === T.int && e.v >= 0n && e.v < 1n << 30n)) {
-        let size = 8; while (els.length * 5 >= size * 3) size *= 4;
-        const slots = new Array(size).fill(null);
-        for (const e of els) { let i = Number(e.v % BigInt(size)); while (slots[i]) i = (i + 1) % size; slots[i] = e; }
-        return slots.filter(Boolean);
-      }
-      return els;
+      if (!els.length || !els.every(e => isInt(e) && e.v > -(1n << 62n) && e.v < (1n << 62n))) return els;
+      const log = o.log && o.log.length ? o.log : els.map(e => ['a', e]);
+      return simulateIntSet(log);
     }
     emit(s) { this.out += s; }
 
@@ -1317,7 +1317,13 @@
         case 'name': return this.lookup(e.id, e.line);
         case 'tuple': return this.mkTuple(this.evalItems(e.items));
         case 'list': return this.mkList(this.evalItems(e.items));
-        case 'set': { const s = this.mkSet(); for (const x of this.evalItems(e.items)) this.setAdd(s, x); return s; }
+        case 'set': {
+          let items = this.evalItems(e.items);
+          if (items.length >= 3 && e.items.every(x => x.k === 'num' || x.k === 'str' || x.k === 'const' || (x.k === 'unary' && x.a.k === 'num'))) {
+            const pre = set(); for (const x of items) this.setAdd(pre, x); items = this.setOrder(pre);
+          }
+          const s = this.mkSet(); for (const x of items) this.setAdd(s, x); return s;
+        }
         case 'dict': { const d = this.mkDict(); e.keys.forEach((k, i) => this.dictSet(d, this.eval(k), this.eval(e.vals[i]))); return d; }
         case 'attr': return this.getattr(this.eval(e.a), e.name, e.line);
         case 'sub': return this.getitem(this.eval(e.a), e.i.k === 'slice' ? this.evalSlice(e.i) : this.eval(e.i));
@@ -1467,7 +1473,8 @@
     /* ── containers ── */
     dictSet(d, k, v) { const h = hashKey(k); const e = d.map.get(h); if (e) e.v = v; else d.map.set(h, { k, v }); }
     dictGet(d, k) { const e = d.map.get(hashKey(k)); return e ? e.v : undefined; }
-    setAdd(s, x) { const h = hashKey(x); if (!s.map.has(h)) s.map.set(h, x); }
+    setAdd(s, x) { const h = hashKey(x); if (!s.map.has(h)) { s.map.set(h, x); (s.log = s.log || []).push(['a', x]); } }
+    setDel(s, x) { const h = hashKey(x); if (!s.map.has(h)) return false; s.map.delete(h); (s.log = s.log || []).push(['d', x]); return true; }
     index(o, i, n) {
       if (!isInt(i)) raise('TypeError', `${o.type.name} indices must be integers or slices, not ${typeName(i)}`);
       let k = Number(i.v); if (k < 0) k += n;
@@ -1630,12 +1637,18 @@
       if (op === '%' && isStr(a)) return str(this.percentFormat(a.v, b));
       if ((a.type === T.set || a.type === T.frozenset || a.type === T.dict_keys) && (b.type === T.set || b.type === T.frozenset || b.type === T.dict_keys)) {
         const A = a.type === T.dict_keys ? this.toSet(a) : a, B = b.type === T.dict_keys ? this.toSet(b) : b;
-        const r = inplace && a.type === T.set ? a : this.mkSet();
-        const keysA = [...A.map], keysB = [...B.map];
-        if (op === '|') { if (r !== a) keysA.forEach(([h, v]) => r.map.set(h, v)); keysB.forEach(([h, v]) => { if (!r.map.has(h)) r.map.set(h, v); }); return r; }
-        if (op === '&') { const out = keysA.filter(([h]) => B.map.has(h)); r.map = new Map(out); return r; }
-        if (op === '-') { const out = keysA.filter(([h]) => !B.map.has(h)); r.map = new Map(out); return r; }
-        if (op === '^') { const out = keysA.filter(([h]) => !B.map.has(h)).concat(keysB.filter(([h]) => !A.map.has(h))); r.map = new Map(out); return r; }
+        const ordA = this.setOrder(A), ordB = this.setOrder(B);
+        if (inplace && a.type === T.set) {
+          if (op === '|') { for (const x of ordB) this.setAdd(a, x); return a; }
+          if (op === '&') { for (const x of ordA) if (!B.map.has(hashKey(x))) this.setDel(a, x); return a; }
+          if (op === '-') { for (const x of ordB) this.setDel(a, x); return a; }
+          if (op === '^') { for (const x of ordB) { if (a.map.has(hashKey(x))) this.setDel(a, x); else this.setAdd(a, x); } return a; }
+        }
+        const r = this.mkSet(a.type === T.frozenset ? T.frozenset : T.set);
+        if (op === '|') { for (const x of ordA) this.setAdd(r, x); for (const x of ordB) this.setAdd(r, x); return r; }
+        if (op === '&') { const [small, big] = A.map.size <= B.map.size ? [ordA, B] : [ordB, A]; for (const x of small) if (big.map.has(hashKey(x))) this.setAdd(r, x); return r; }
+        if (op === '-') { for (const x of ordA) if (!B.map.has(hashKey(x))) this.setAdd(r, x); return r; }
+        if (op === '^') { for (const x of ordA) this.setAdd(r, x); for (const x of ordB) { if (r.map.has(hashKey(x))) this.setDel(r, x); else this.setAdd(r, x); } return r; }
       }
       if (op === '|' && a.type === T.dict && b.type === T.dict) { const r = inplace ? a : this.mkDict(); if (!inplace) for (const e of a.map.values()) this.dictSet(r, e.k, e.v); for (const e of b.map.values()) this.dictSet(r, e.k, e.v); return r; }
       raise('TypeError', `unsupported operand type(s) for ${op}${inplace ? '=' : ''}: '${typeName(a)}' and '${typeName(b)}'`);
@@ -1717,6 +1730,49 @@
       try { this.execBlock(body); } finally { this.frames.pop(); }
       return m;
     }
+  }
+  function simulateIntSet(log) {
+    const M64 = (1n << 64n) - 1n, DUMMY = { dummy: true };
+    const hashOf = e => (e.v === -1n ? -2n : e.v) & M64;
+    let tab = new Array(8).fill(null), fill = 0, used = 0;
+    const find = (t, e) => {
+      const mask = BigInt(t.length - 1), h = hashOf(e);
+      let perturb = h, i = h & mask;
+      for (let guard = 0; guard < 10000; guard++) {
+        const x = t[Number(i)]; if (!x) return -1; if (x !== DUMMY && x.v === e.v) return Number(i);
+        if (i + 9n <= mask) for (let j = 1n; j <= 9n; j++) { const y = t[Number(i + j)]; if (!y) return -1; if (y !== DUMMY && y.v === e.v) return Number(i + j); }
+        perturb >>= 5n; i = (i * 5n + 1n + perturb) & mask;
+      }
+      return -1;
+    };
+    const place = (t, e) => { // returns true when an empty (not dummy) slot was used
+      const mask = BigInt(t.length - 1), h = hashOf(e);
+      let perturb = h, i = h & mask, free = -1;
+      for (;;) {
+        const x = t[Number(i)];
+        if (!x) { if (free >= 0) { t[free] = e; return false; } t[Number(i)] = e; return true; }
+        if (x === DUMMY && free < 0) free = Number(i);
+        if (i + 9n <= mask) for (let j = 1n; j <= 9n; j++) {
+          const y = t[Number(i + j)];
+          if (!y) { if (free >= 0) { t[free] = e; return false; } t[Number(i + j)] = e; return true; }
+          if (y === DUMMY && free < 0) free = Number(i + j);
+        }
+        perturb >>= 5n; i = (i * 5n + 1n + perturb) & mask;
+      }
+    };
+    for (const [op, e] of log) {
+      if (op === 'c') { tab = new Array(8).fill(null); fill = used = 0; continue; }
+      if (op === 'd') { const k = find(tab, e); if (k >= 0) { tab[k] = DUMMY; used--; } continue; }
+      if (find(tab, e) >= 0) continue;
+      if (place(tab, e)) fill++;
+      used++;
+      if (fill * 5 >= (tab.length - 1) * 3) {
+        let n = 8; const min = used > 50000 ? used * 2 : used * 4; while (n <= min) n <<= 1;
+        const next = new Array(n).fill(null); for (const x of tab) if (x && x !== DUMMY) place(next, x);
+        tab = next; fill = used;
+      }
+    }
+    return tab.filter(x => x && x !== DUMMY);
   }
   function lastLine(body) { let l = 0; const walk = ss => { for (const s of ss || []) { l = Math.max(l, s.line); walk(s.body); walk(s.orelse); walk(s.fin); (s.handlers || []).forEach(h => walk(h.body)); } }; walk(body); return l; }
   PyExc.prototype.withArg = function (k) { this.obj.args = [k]; return this; };
@@ -1968,9 +2024,9 @@
     if (o.type === T.set || o.type === T.frozenset) {
       const other = a => { const s = it.mkSet(); for (const x of it.toArray(a)) it.setAdd(s, x); return s; };
       const M = {
-        add: a => { it.setAdd(o, a[0]); return NONE; }, remove: a => { const h = hashKey(a[0]); if (!o.map.has(h)) throw new PyExc(mkExc('KeyError')).withArg(a[0]); o.map.delete(h); return NONE; },
-        discard: a => { o.map.delete(hashKey(a[0])); return NONE; }, pop: () => { if (!o.map.size) raise('KeyError', 'pop from an empty set'); const x = it.setOrder(o)[0]; o.map.delete(hashKey(x)); return x; },
-        clear: () => { o.map.clear(); return NONE; }, copy: () => { const s = it.mkSet(o.type); for (const [h, x] of o.map) s.map.set(h, x); return s; },
+        add: a => { it.setAdd(o, a[0]); return NONE; }, remove: a => { if (!it.setDel(o, a[0])) throw new PyExc(mkExc('KeyError')).withArg(a[0]); return NONE; },
+        discard: a => { it.setDel(o, a[0]); return NONE; }, pop: () => { if (!o.map.size) raise('KeyError', 'pop from an empty set'); const x = it.setOrder(o)[0]; it.setDel(o, x); return x; },
+        clear: () => { o.map.clear(); o.log = [['c']]; return NONE; }, copy: () => { const s = it.mkSet(o.type); for (const [h, x] of o.map) s.map.set(h, x); return s; },
         union: a => a.reduce((acc, x) => it.binop('|', acc, other(x)), o), intersection: a => a.reduce((acc, x) => it.binop('&', acc, other(x)), o),
         difference: a => a.reduce((acc, x) => it.binop('-', acc, other(x)), o), symmetric_difference: a => it.binop('^', o, other(a[0])),
         issubset: a => bool([...o.map.keys()].every(h => other(a[0]).map.has(h))), issuperset: a => { const s = other(a[0]); return bool([...s.map.keys()].every(h => o.map.has(h))); },
