@@ -72,6 +72,11 @@ syntax block: that is an example.
   reference counts. Frames are on the left, objects on the right, and arrows join them; an object
   with no references left disappears, and a cycle stays (dashed) until `gc.collect()`. A `files:`
   map adds the program's own modules and packages.
+- **Clojure evaluator** (`engine: clj`) when the point is *evaluation*: the innermost form about to
+  be evaluated is highlighted and then replaced by its value, each call gets a frame with its
+  bindings, and the REPL panel lists every top-level form with its value. Futures and agents run as
+  threads under a deterministic scheduler, so `swap!` and transaction retries can be watched. The
+  `persistent-vector` mode of the data-structure visualiser shows path copying.
 - **Data-structure visualiser** (`engine: ds`) when the point is the *state* of a structure after
   each operation: stacks, lists, trees, heaps, hash tables, sorting.
 - **Plotly sim** (a registry id) when the point is a *quantity*: growth rates, running times,
@@ -283,6 +288,19 @@ code: |
 note: 'Specimen of the Python stepper. cart and same are two arrows to one list; copy points at a second list. Inside add_item, items is a third arrow to the same list, so the append is visible through cart.'
 ```
 
+### Reduction, step by step (Clojure)
+
+```sim
+id: spec-clj-reduction
+custom: true
+engine: clj
+code: |
+  (defn square [n] (* n n))
+  (- (+ 3 (square 4)) 1)
+  (reduce + (map square [1 2 3]))
+note: 'Specimen of the Clojure evaluator. Step through the second form: (square 4) becomes 16, then (+ 3 16) becomes 19, then the whole form 18. Inside square the frame shows n = 4.'
+```
+
 ### A data structure, operation by operation
 
 ```sim
@@ -344,6 +362,8 @@ last pass by hand, and the off-by-one bugs go away.
 
 ## Change log
 
+- 2026-09-27: the Clojure evaluator (`engine: clj`, #139): a reduction view, frames, a REPL panel
+  and threads; ds mode `persistent-vector`.
 - 2026-09-26: the Python stepper (`engine: py`, #138): frames and objects joined by arrows, with
   reference counts and the cycle collector.
 - 2026-09-26: the C stepper (`engine: c`, #137) for COMP 348: a memory view of the stack, the heap
