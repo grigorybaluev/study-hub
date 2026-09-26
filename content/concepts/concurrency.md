@@ -2,8 +2,9 @@
 title: Concurrency
 domain: programming
 wikipedia: "Concurrency (computer science)"
-aliases: ["actor model", "message passing", "Erlang"]
+aliases: ["concurrent programming", "thread", "race condition", "critical section", "lock (concurrency)", "mutex", "deadlock", "parallelism"]
 maps_to: [study-hub/ds-core/programming-fundamentals, study-hub/ds-core/computing-systems]
 ---
 
-Running computations at the same time; the actor model and message passing.
+Independent threads of control whose steps may interleave, and the coordination their shared state
+needs: race conditions, critical sections, locks and deadlock.
