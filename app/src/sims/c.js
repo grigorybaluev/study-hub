@@ -442,7 +442,7 @@
           if (this.eat('=')) init = this.initializer();
           if (d.type.k === 'array' && d.type.n == null && !d.type.nExpr && init) {
             const n = init.k === 'list' ? init.items.length : init.k === 'str' ? init.v.length + 1 : null;
-            if (n != null) d.type = arr(d.type.of, init.k === 'list' ? Math.max(n, ...init.items.map((it, i) => it.index != null ? it.index + 1 : i + 1)) : n);
+            if (n != null) d.type = arr(d.type.of, init.k === 'list' ? Math.max(n, ...init.items.map(it => it.pos + 1)) : n);
           }
           out.push({ k: 'decl', name: d.name, type: d.type, init, storage: sp.storage, line: d.line });
         }
@@ -701,7 +701,7 @@
     let digits = p > 0 ? d : '0'.repeat(-p) + d, point = p > 0 ? p : 0;
     const [r, sh] = roundDigits(digits, point + prec);
     let intPart, frac;
-    if (sh) { const all = '1' + r; intPart = all.slice(0, point + 1); frac = all.slice(point + 1, point + 1 + prec); }
+    if (sh) { const all = r + '0'; intPart = all.slice(0, point + 1); frac = all.slice(point + 1, point + 1 + prec); } // rounding carried into a new leading digit
     else { intPart = r.slice(0, point) || '0'; frac = r.slice(point); }
     intPart = intPart.replace(/^0+(?=\d)/, '');
     return intPart + (prec > 0 ? '.' + frac : '');
@@ -729,6 +729,8 @@
     return s;
   }
   // printf-style formatting; `take()` returns the next argument value
+  // bytes (one char per byte) → text, for output that may hold UTF-8 sequences
+  function utf8(bytes) { try { return decodeURIComponent(escape(bytes)); } catch (_) { return bytes; } }
   function formatC(fmt, take, readStr) {
     let out = '';
     for (let i = 0; i < fmt.length; i++) {
@@ -757,7 +759,7 @@
         s = v.toString(conv === 'o' ? 8 : conv === 'u' ? 10 : 16);
         if (conv === 'X') s = s.toUpperCase();
         if (prec !== null) s = prec === 0 && v === 0n ? '' : s.padStart(prec, '0');
-        if (flags.includes('#') && v !== 0n) s = (conv === 'o' ? '0' : conv === 'x' ? '0x' : conv === 'X' ? '0X' : '') + s;
+        if (flags.includes('#') && v !== 0n) { if (conv === 'o') s = '0' + s; else if (conv === 'x' || conv === 'X') neg = conv; }
       } else if ('fFeEgGaA'.includes(conv)) {
         const a = take(); const x = typeof a.v === 'bigint' ? Number(a.v) : a.v;
         neg = x < 0 || Object.is(x, -0);
@@ -770,7 +772,7 @@
       else if (conv === 'p') { numeric = false; const a = take(); s = a.v === 0 ? '(nil)' : hex(a.v); }
       else if (conv === 'n') { take(); continue; }
       else { out += '%' + flags + width + (prec !== null ? '.' + prec : '') + len + conv; continue; }
-      let sign = numeric && 'dieEfFgG'.includes(conv) ? (neg ? '-' : flags.includes('+') ? '+' : flags.includes(' ') ? ' ' : '') : '';
+      let sign = numeric && 'dieEfFgG'.includes(conv) ? (neg ? '-' : flags.includes('+') ? '+' : flags.includes(' ') ? ' ' : '') : (neg === 'x' ? '0x' : neg === 'X' ? '0X' : '');
       const w = +width || 0;
       const total = sign.length + s.length;
       if (total < w) {
@@ -1065,12 +1067,15 @@
       this.tuIncludes = new Map(tus.map(tu => [tu.idx, tu.includes]));
       const mainFn = this.funcs.get('main');
       const snippet = !mainFn || !mainFn.def;
+      // bare statements run as main's body; their declarations are main's locals, unless the snippet
+      // also defines functions, which must be able to see them: then they are globals
+      const snippetLocals = snippet && !tus[0].items.some(it => it.k === 'fndef');
       const mainBody = [];
       for (const tu of tus) {
         this.curTU = tu.idx;
         for (const it of tu.items) {
           if (it.k === 'decl') {
-            if (snippet && tu.idx === 0 && it.storage !== 'extern') { mainBody.push({ k: 'declstmt', decls: [it], line: it.line }); continue; }
+            if (snippetLocals && tu.idx === 0 && it.storage !== 'extern') { mainBody.push({ k: 'declstmt', decls: [it], line: it.line }); continue; }
             if (it.storage === 'extern') continue;
             const key = it.storage === 'static' ? tu.idx + ':' + it.name : it.name;
             const old = this.globals.get(key);
@@ -1245,42 +1250,61 @@
       const a = this.allocLocal(type, d.line);
       this.undef(a, sizeOf(type));
       const v = { name: d.name, type, addr: a, live: true };
-      if (d.init) this.initialize(a, type, d.init, d.line, false);
+      // the name is in scope from its declarator on, so `int *p = malloc(sizeof *p)` works
       f.scopes[f.scopes.length - 1].set(d.name, v);
       f.vars.push(v);
+      if (d.init) this.initialize(a, type, d.init, d.line, false);
     }
     initialize(a, type, init, line, isStatic) {
-      if (type.k === 'array') {
-        const n = type.n, es = sizeOf(type.of);
-        if (init.k === 'str' && type.of.k === 'int' && type.of.size === 1) {
-          const bytes = new Uint8Array(n);
-          bytes.set(init.v.slice(0, n));
-          if (init.v.length > n) this.warn(`initializer-string for char array is too long`, line);
-          this.wr(a, bytes, line); return;
-        }
-        if (init.k !== 'list') throw cerr(`array initializer must be an initializer list`, line);
-        this.wr(a, new Uint8Array(n * es), line);
-        init.items.forEach(it => { const k = it.index != null ? it.index : it.pos; if (k < n) this.initialize(a + k * es, type.of, it.v, line, isStatic); else this.warn('excess elements in array initializer', line); });
+      const isCharArr = t => t.k === 'array' && t.of.k === 'int' && t.of.size === 1;
+      if (isCharArr(type) && (init.k === 'str' || (init.k === 'list' && init.items.length === 1 && init.items[0].v.k === 'str'))) {
+        const str = init.k === 'str' ? init : init.items[0].v;
+        const bytes = new Uint8Array(type.n);
+        bytes.set(str.v.slice(0, type.n));
+        if (str.v.length > type.n) this.warn('initializer-string for char array is too long', line);
+        this.wr(a, bytes, line); return;
+      }
+      if (init.k === 'list' && (type.k === 'array' || type.k === 'struct')) {
+        this.wr(a, new Uint8Array(sizeOf(type)), line);
+        const cur = { i: 0 };
+        this.initAggregate(a, type, init.items, cur, line, isStatic, true);
+        if (cur.i < init.items.length) this.warn(`excess elements in ${type.k === 'array' ? 'array' : 'struct'} initializer`, line);
         return;
       }
-      if (type.k === 'struct') {
-        if (init.k === 'list') {
-          this.wr(a, new Uint8Array(sizeOf(type)), line);
-          let fi = 0;
-          for (const it of init.items) {
-            const f = it.field ? type.fields.find(x => x.name === it.field) : type.fields[fi];
-            if (!f) { if (it.field) throw cerr(`field designator '${it.field}' does not refer to any field in type '${typeStr(type)}'`, line); this.warn('excess elements in struct initializer', line); break; }
-            this.initialize(a + f.offset, f.type, it.v, line, isStatic);
-            fi = type.fields.indexOf(f) + 1;
-          }
-          return;
-        }
-      }
+      if (type.k === 'array') throw cerr('array initializer must be an initializer list', line);
       if (init.k === 'list') { if (!init.items.length) { this.store(a, type, this.convert(V(T.int, 0n), type, line), line); return; } init = init.items[0].v; }
       const v = this.eval(init);
       this.checkAssign(type, v, init, line, true);
       this.store(a, type, this.convert(v, type, line), line);
       this.hintHeap(type, v);
+    }
+    // fills the elements of an array or the fields of a struct from items[cur.i…]; a braced item
+    // initialises one element, a bare value starts filling the element's own parts (brace elision)
+    initAggregate(a, type, items, cur, line, isStatic, braced) {
+      const n = type.k === 'array' ? type.n : type.fields.length;
+      let k = 0;
+      while (cur.i < items.length && (k < n || (braced && (items[cur.i].field || items[cur.i].index != null)))) {
+        const it = items[cur.i];
+        if (it.field || it.index != null) {
+          if (!braced) return; // a designator belongs to the enclosing braces
+          if (type.k === 'struct' && it.field) { k = type.fields.findIndex(f => f.name === it.field); if (k < 0) throw cerr(`field designator '${it.field}' does not refer to any field in type '${typeStr(type)}'`, line); }
+          else if (type.k === 'array' && it.index != null) k = it.index;
+          else throw cerr('designator does not match the type', line);
+          if (k >= n) { this.warn('excess elements in initializer', line); cur.i++; continue; }
+        }
+        const et = type.k === 'array' ? type.of : type.fields[k].type;
+        const ea = a + (type.k === 'array' ? k * sizeOf(type.of) : type.fields[k].offset);
+        if (it.v.k === 'list' || !(et.k === 'array' || et.k === 'struct') || (et.k === 'array' && et.of.k === 'int' && et.of.size === 1 && it.v.k === 'str')) {
+          this.initialize(ea, et, it.v, line, isStatic);
+          cur.i++;
+        } else {
+          const sub = { i: cur.i };
+          const plain = items.map(x => (x === it ? { ...x, field: null, index: null } : x));
+          this.initAggregate(ea, et, plain, sub, line, isStatic, false);
+          cur.i = sub.i;
+        }
+        k++;
+      }
     }
     hintHeap(type, v) {
       if (type.k === 'ptr' && v.t.k === 'ptr' && typeof v.v === 'number' && v.v >= HEAP_BASE && v.v < HEAP_END) {
@@ -1289,6 +1313,7 @@
       }
     }
     checkAssign(to, v, e, line) {
+      if (isScalar(to) && v.t.k === 'struct') throw cerr(`initializing '${typeStr(to)}' with an expression of incompatible type '${typeStr(v.t)}'`, line);
       if (to.k === 'ptr' && isInt(v.t) && !(e && e.k === 'num' && e.v === 0n) && !(e && e.k === 'cast')) this.warn(`incompatible integer to pointer conversion initializing '${typeStr(to)}' with an expression of type '${typeStr(v.t)}'`, line);
       if (to.k === 'ptr' && v.t.k === 'ptr' && v.t.to.c && !to.to.c && to.to.k !== 'void') this.warn(`assigning to '${typeStr(to)}' from '${typeStr(v.t)}' discards qualifiers`, line);
       if (isInt(to) && v.t.k === 'ptr') this.warn(`incompatible pointer to integer conversion initializing '${typeStr(to)}' with an expression of type '${typeStr(v.t)}'`, line);
@@ -1601,6 +1626,7 @@
         }
       };
       scan(STATIC_BASE, this.mem.staticTop);
+      if (this.frames.length) scan(Math.floor(this.sp / 8) * 8, STACK_TOP); // exit() leaves the frames alive
       const direct = new Set(reach);
       const pointedByLost = new Set();
       for (const b of live) if (!reach.has(b)) {
@@ -1810,7 +1836,7 @@
       try { it.trace.push({ ...(it.trace[it.trace.length - 1] || { frames: [], heap: [], statics: [] }), line: error.line, note: 'error', outLen: it.out.length, errs: it.errors.length }); } catch (_) { /* keep going */ }
     }
     const report = { errors: it.errors, leaks: error && error.name === 'StepLimit' ? null : it.leakReport(), exitCode };
-    return { trace: it.trace, out: it.out, error, warnings: it.warnings, report, steps: it.steps };
+    return { trace: it.trace, out: utf8(it.out), outRaw: it.out, error, warnings: it.warnings, report, steps: it.steps };
   };
   C.format = formatC;
 
@@ -1878,7 +1904,7 @@
         return `<div class="jv-frame${ri === 0 ? ' top' : ''}"><div class="jv-frame-name">${esc(f.name)}()</div>${rows ? `<table class="c-tbl">${rows}</table>` : '<div class="jv-empty">no variables yet</div>'}</div>`;
       }).join('');
       const heap = cur.heap.length ? cur.heap.map(b => `<div class="c-block${b.alive ? '' : ' freed'}${cls('h|' + b.id, b.val)}" data-a="${b.a}" data-size="${b.size}"><div class="c-block-head"><b>#${b.id}</b> ${esc(b.how)}(${b.size}) <span class="c-addr">${esc(b.addr)}</span> <span class="c-line">${L(b.line)}${b.alive ? '' : `, freed ${L(b.freeLine)}`}</span></div>${b.alive ? `<div class="c-block-val">${esc(b.val)}</div>` : ''}</div>`).join('') : '<div class="jv-empty">nothing allocated</div>';
-      const statics = cur.statics.filter(s => !s.name.startsWith('std')).map(v => row({ ...v, name: v.owner ? `${v.owner}.${v.name}` : v.name }, 's|' + v.addr)).join('');
+      const statics = cur.statics.map(v => row({ ...v, name: v.owner ? `${v.owner}.${v.name}` : v.name }, 's|' + v.addr)).join('');
       return `<div class="c-sec"><div class="c-sec-title">Stack <span>grows down ↓</span></div>${frames || '<div class="jv-empty">empty</div>'}</div>
         <div class="c-col"><div class="c-sec"><div class="c-sec-title">Heap</div>${heap}</div>
         ${statics ? `<div class="c-sec"><div class="c-sec-title">Static data</div><table class="c-tbl">${statics}</table></div>` : ''}</div>`;
@@ -1893,7 +1919,7 @@
         const lk = r.report.leaks;
         lines.push(`<div class="c-rep-sum"><b>HEAP SUMMARY:</b> in use at exit: ${lk.inUse} bytes in ${lk.blocks} block${lk.blocks === 1 ? '' : 's'}<br>total heap usage: ${lk.allocs} alloc${lk.allocs === 1 ? '' : 's'}, ${lk.frees} free${lk.frees === 1 ? '' : 's'}, ${lk.bytes} bytes allocated</div>`);
         lk.lost.forEach(b => lines.push(`<div class="c-rep-err">${b.size} bytes in 1 block (#${b.id}) are ${b.kind} — allocated at ${L(b.line)}</div>`));
-        lk.reachable.forEach(b => lines.push(`<div class="c-rep-ok">${b.size} bytes in 1 block (#${b.id}) are still reachable through a global — allocated at ${L(b.line)}</div>`));
+        lk.reachable.forEach(b => lines.push(`<div class="c-rep-ok">${b.size} bytes in 1 block (#${b.id}) are still reachable (a global or a live variable still points at them) — allocated at ${L(b.line)}</div>`));
         if (!lk.blocks) lines.push('<div class="c-rep-ok">All heap blocks were freed — no leaks are possible.</div>');
       }
       if (!lines.length) return '';
@@ -1919,7 +1945,7 @@
       const codeHtml = tabs + (this.editing
         ? `<textarea class="jv-editor" spellcheck="false" rows="${Math.max(3, lines.length + 1)}">${esc(file.text)}</textarea>`
         : `<pre class="jv-listing">${lines.map((l, k) => `<span class="jv-ln${curLine === k + 1 ? ' cur' : ''}${errLine === k + 1 ? ' err' : ''}${warnLines.has(k + 1) ? ' warn' : ''}"><span class="jv-no">${k + 1}</span>${highlight(l) || ' '}</span>`).join('')}</pre>`);
-      const outText = cur ? this.result.out.slice(0, cur.outLen) : '';
+      const outText = cur ? utf8(this.result.outRaw.slice(0, cur.outLen)) : '';
       let errHtml = '';
       if (err && last) {
         errHtml = err.kind === 'compile'

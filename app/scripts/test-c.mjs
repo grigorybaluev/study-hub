@@ -251,6 +251,37 @@ const cases = [
   "expect": "3\none\ntwo\n"
  },
  {
+  "name": "a variable in its own initializer, and brace elision",
+  "code": "#include <stdio.h>\n#include <stdlib.h>\nstruct A { int x; int y[2]; };\nstruct B { int k; struct A a; };\nint main(void) {\n    int *p = malloc(sizeof *p * 3);\n    p[0] = 1;\n    int m[2][3] = {1, 2, 3, 4, 5, 6};\n    struct A a = {1, 2, 3};\n    struct A b = {1, {2, 3}};\n    struct B c = {7, 8, 9, 10};\n    struct A d = {.y = {5, 6}, .x = 4};\n    int q[] = {[3] = 9, 1};\n    printf(\"%d %d %d %d %d %d %d %d %zu\\n\", m[1][2], m[0][1], a.y[1], b.y[0], c.a.y[1], d.x, d.y[1], q[4], sizeof q / sizeof q[0]);\n    free(p);\n    return 0;\n}",
+  "expect": "6 2 3 2 10 4 6 1 5\n"
+ },
+ {
+  "name": "rounding that carries into a new digit, and the # flag",
+  "code": "#include <stdio.h>\nint main(void) {\n    printf(\"%.2f %.0f %.2f %g %.1f %.3e\\n\", 9.996, 9.6, 99.999, 9.9999999, 0.95, 9.9996);\n    printf(\"%#06x %#o %#X\\n\", 31, 8, 255);\n    return 0;\n}",
+  "expect": "10.00 10 100.00 10 0.9 1.000e+01\n0x001f 010 0XFF\n"
+ },
+ {
+  "name": "UTF-8 text in strings",
+  "code": "#include <stdio.h>\n#include <string.h>\nint main(void) {\n    char s[] = \"café\";\n    printf(\"%s has %zu bytes → ok\\n\", s, strlen(s));\n    return 0;\n}",
+  "expect": "café has 5 bytes → ok\n"
+ },
+ {
+  "name": "a snippet whose functions use its globals",
+  "code": "int count = 0;\nvoid inc(void) { count++; }\ninc();\ninc();\nprintf(\"%d\\n\", count);",
+  "expect": "2\n"
+ },
+ {
+  "name": "exit() keeps live blocks reachable; globals named std… are shown",
+  "code": "#include <stdlib.h>\nint students = 3;\nint main(void) { int *p = malloc(8); exit(0); }",
+  "report": {
+   "leaks": 0,
+   "reachable": 1
+  },
+  "statics": [
+   "students"
+  ]
+ },
+ {
   "name": "bit operations and unsigned wrap",
   "code": "#include <stdio.h>\nint main(void) {\n    unsigned char c = 250;\n    c += 10;\n    printf(\"%d\\n\", c);\n    int x = 0xF0;\n    printf(\"%d %d %d %d\\n\", x & 0x3C, x | 1, x ^ 0xFF, ~0);\n    printf(\"%d %d\\n\", -16 >> 2, 1 << 31);\n    unsigned int m = 1u << 31;\n    printf(\"%u\\n\", m >> 4);\n    printf(\"%d\\n\", (-1 < 1u));\n    return 0;\n}",
   "expect": "4\n48 241 15 -1\n-4 -2147483648\n134217728\n0\n"
@@ -276,9 +307,12 @@ for (const c of cases) {
       if (c.report.allocs !== undefined && L.allocs !== c.report.allocs) problems.push('allocs ' + L.allocs + ', expected ' + c.report.allocs);
       if (c.report.frees !== undefined && L.frees !== c.report.frees) problems.push('frees ' + L.frees + ', expected ' + c.report.frees);
       for (const k of c.report.kinds || []) if (!L.lost.some(b => b.kind === k)) problems.push('no ' + k + ' block');
+      if (c.report.reachable !== undefined && L.reachable.length !== c.report.reachable) problems.push('reachable blocks ' + L.reachable.length + ', expected ' + c.report.reachable);
     }
   }
   if (!r.error && !r.trace.length) problems.push('empty trace');
+  const lastStep = r.trace[r.trace.length - 1];
+  for (const n of c.statics || []) if (!lastStep || !lastStep.statics.some(v => v.name === n)) problems.push('static data lacks ' + n);
   if (problems.length) { failed++; console.log('FAIL ' + c.name + '\n  ' + problems.join('\n  ')); }
 }
 console.log(`${cases.length - failed}/${cases.length} passed`);
