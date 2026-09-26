@@ -62,6 +62,11 @@ syntax block: that is an example.
 - **Java stepper** (```` ```sim ```` with `engine: java`) when the point is *execution*: the order in
   which statements run, how variables change, what a call stack looks like. The reader should be
   asked to predict something and then check it: "change `<=` to `<` and predict the output".
+- **C stepper** (`engine: c`) when the point is *memory*: addresses, what a pointer points at,
+  stack frames appearing and disappearing, heap blocks from `malloc` and `free`, a missing `'\0'`.
+  Its Memory panel names each pointer's target (`→ arr[1]`, `→ block #2`), and its Memory check
+  panel reports what valgrind would: invalid reads and writes, double frees, leaks at exit. A
+  `files:` map adds headers and more `.c` files, shown as tabs, for multi-file programs.
 - **Data-structure visualiser** (`engine: ds`) when the point is the *state* of a structure after
   each operation: stacks, lists, trees, heaps, hash tables, sorting.
 - **Plotly sim** (a registry id) when the point is a *quantity*: growth rates, running times,
@@ -195,6 +200,65 @@ static int binarySearch(int[] a, int key) {
 }
 ```
 
+### Memory, step by step (C)
+
+```sim
+id: spec-c-memory
+custom: true
+engine: c
+code: |
+  #include <stdio.h>
+  #include <stdlib.h>
+
+  void fill(int *a, int n) {
+      for (int i = 0; i < n; i++)
+          a[i] = i * i;
+  }
+
+  int main(void) {
+      int n = 4;
+      int *squares = malloc(n * sizeof(int));
+      fill(squares, n);
+      int *third = &squares[2];
+      printf("%d %d\n", squares[3], *third);
+      return 0;
+  }
+note: 'Specimen of the C stepper. Step into fill: a is a copy of the pointer, so it points at the same block #1 that main owns. The program never frees the block, and the Memory check reports it as definitely lost at exit.'
+```
+
+A multi-file program: each file is a tab, and the stepper switches to the file that is running.
+
+```sim
+id: spec-c-files
+custom: true
+engine: c
+code: |
+  #include <stdio.h>
+  #include "counter.h"
+
+  int main(void) {
+      bump();
+      bump();
+      printf("%d\n", current());
+      return 0;
+  }
+files:
+  counter.h: |
+    #ifndef COUNTER_H
+    #define COUNTER_H
+    void bump(void);
+    int current(void);
+    #endif
+  counter.c: |
+    #include "counter.h"
+
+    static int count = 0;
+
+    void bump(void) { count++; }
+    int current(void) { return count; }
+note: 'Specimen of a multi-file C program. count is static in counter.c: main.c cannot name it, only call the two functions the header declares.'
+```
+
 ### A data structure, operation by operation
 
 ```sim
@@ -256,6 +320,8 @@ last pass by hand, and the off-by-one bugs go away.
 
 ## Change log
 
+- 2026-09-26: the C stepper (`engine: c`, #137) for COMP 348: a memory view of the stack, the heap
+  and static data, valgrind-style checks, and multi-file programs as tabs.
 - 2026-09-25: answers to "what does this print?" go in a `text` fence inside the solution; COMP 248
   is the first course on this design (#133).
 - 2026-09-25: first version (#131): `syntax` block for the general form of a construct; `trace`,
