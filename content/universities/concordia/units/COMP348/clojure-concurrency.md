@@ -1,6 +1,6 @@
 ---
 title: "Clojure concurrency: futures, atoms, agents and software transactional memory"
-order: 17
+order: 18
 status: detailed
 weeks: [13]
 introduces: []
