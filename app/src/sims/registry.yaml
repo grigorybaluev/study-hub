@@ -6,6 +6,10 @@
 # java: the Java-subset stepper in java.js; a block with `custom: true` and `engine: java` carries the
 #   program in `code` (and optionally `stdin`, and `files` — a map of file name to text that seeds the
 #   virtual file system the program's File/PrintWriter/Scanner(File) see).
+# c: the C-subset stepper in c.js; `custom: true`, `engine: c`, the program in `code` (a whole
+#   program, or bare statements that run as the body of main), optionally `stdin`, `args` (the
+#   command-line arguments after the program name) and `files` — a map of file name to text: .c
+#   files are compiled and linked with the program, .h files are what `#include "name.h"` pastes.
 plotly:
   - euler-demo
   - rk4-comparison
@@ -114,6 +118,8 @@ plotly:
 automata:
   modes: [run, convert, minimize, derive, tool, graph, proofs]
 java:
+  modes: [run]
+c:
   modes: [run]
 # ds: modes of DS.mount in ds.js (data-structure visualiser); a block carries `mode` plus mode-specific keys
 #   (`data`, `ops`, `capacity`, `kind`, `algo`, `edges`, …) — see the header of ds.js.
