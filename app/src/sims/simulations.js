@@ -2692,8 +2692,8 @@
     if (SIMS[id]) {
       try { SIMS[id](); } catch (e) { console.warn('Sim error:', id, e); }
     } else if (cfg && cfg.custom) {
-      // custom simulators mount themselves into #sim-<id>: automata / grammars (default), the Java stepper, the data-structure visualiser, the database engine, the C and Python steppers, the Clojure evaluator
-      const engine = cfg.engine === 'java' ? window.JAVA : cfg.engine === 'ds' ? window.DS : cfg.engine === 'db' ? window.DB : cfg.engine === 'c' ? window.C : cfg.engine === 'py' ? window.PY : cfg.engine === 'clj' ? window.CLJ : window.FA;
+      // custom simulators mount themselves into #sim-<id>: automata / grammars (default), the Java stepper, the data-structure visualiser, the database engine, the C and Python steppers, the Clojure evaluator, the Erlang stepper
+      const engine = cfg.engine === 'java' ? window.JAVA : cfg.engine === 'ds' ? window.DS : cfg.engine === 'db' ? window.DB : cfg.engine === 'c' ? window.C : cfg.engine === 'py' ? window.PY : cfg.engine === 'clj' ? window.CLJ : cfg.engine === 'erl' ? window.ERL : window.FA;
       if (engine) try { engine.mount(id, cfg); } catch (e) { console.warn('Sim error:', id, e); }
     }
   };

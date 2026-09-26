@@ -216,10 +216,16 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
                 rep.error(doc.path, f"sim {cfg['id']!r}: unknown engine {engine!r}")
                 continue
             modes = registry.get(engine, {}).get("modes") or []
-            if cfg.get("mode", "run") not in modes:
+            if cfg.get("mode", "shell" if engine == "erl" else "run") not in modes:
                 rep.error(doc.path, f"sim {cfg['id']!r}: {engine} mode {cfg.get('mode')!r} not in {modes}")
             if engine in ("java", "c", "py", "clj") and not isinstance(cfg.get("code"), str):
                 rep.error(doc.path, f"sim {cfg['id']!r}: {engine} block needs a `code` string")
+            if engine == "erl" and cfg.get("mode", "shell") == "shell" and not isinstance(cfg.get("shell"), str):
+                rep.error(doc.path, f"sim {cfg['id']!r}: erl block needs a `shell` string (the expressions typed at the shell)")
+            if engine == "erl" and cfg.get("mode") == "shared" and not (
+                isinstance(cfg.get("threads"), dict) and all(isinstance(v, list) for v in cfg["threads"].values())
+            ):
+                rep.error(doc.path, f"sim {cfg['id']!r}: erl shared block needs `threads`, a map of thread name to instructions")
             if engine in ("java", "c", "py") and "files" in cfg and not (
                 isinstance(cfg["files"], dict) and all(isinstance(k, str) and isinstance(v, str) for k, v in cfg["files"].items())
             ):

@@ -16,6 +16,11 @@
 # clj: the Clojure-subset evaluator in clj.js; `custom: true`, `engine: clj`, the forms in `code`; the REPL
 #   panel lists each top-level form and its value (`repl: false` hides it). Futures and agents run as
 #   threads under a deterministic scheduler, so swap! and dosync retries can be seen.
+# erl: the Erlang stepper in erl.js; `custom: true`, `engine: erl`. Mode `shell` (the default): a module in
+#   `code` (optional) and the expressions typed at the shell in `shell`, each ended by a full stop; the
+#   processes it spawns run under a deterministic scheduler, with their mailboxes shown. Mode `shared`:
+#   `shared` (variables and start values), `threads` (name -> list of instructions: `v = expr`, `lock m`,
+#   `unlock m`, `print expr`) and `schedule` (a string of thread names, or round-robin).
 plotly:
   - euler-demo
   - rk4-comparison
@@ -132,6 +137,8 @@ py:
   modes: [run]
 clj:
   modes: [run]
+erl:
+  modes: [shell, shared]
 # ds: modes of DS.mount in ds.js (data-structure visualiser); a block carries `mode` plus mode-specific keys
 #   (`data`, `ops`, `capacity`, `kind`, `algo`, `edges`, …) — see the header of ds.js.
 ds:
