@@ -1956,7 +1956,7 @@
       const base = this.tab * LINE_BASE;
       const tr = this.result ? this.result.trace : [];
       const cur = tr[this.i] || null;
-      const last = this.i === tr.length - 1;
+      const last = !tr.length || this.i === tr.length - 1;
       const prev = this.i > 0 ? tr[this.i - 1] : null;
       const err = this.result && this.result.error;
       const curLine = cur && cur.line != null ? cur.line - base : null;
