@@ -103,6 +103,31 @@ const cases = [
   "note": "transaction retry"
  },
  {
+  "name": "review regressions: syntax-quote macros, redefining a var, :while, lazy for",
+  "code": "(defmacro unless [c & body] `(if ~c nil (do ~@body)))\n(unless false (println \"ran\") 1)\n(def x 1)\n(def x (inc x))\nx\n(for [x [1 5 2] :while (< x 3)] x)\n(for [x (range) :while (< x 3)] x)\n(take 3 (for [x (range)] (* x x)))\n(doseq [x [1 5 2] :while (< x 3)] (println x))\n(for [x [1 2] y [10 20] :when (odd? x)] (+ x y))\n",
+  "expect": "⇒ #'user/unless\nran\n⇒ 1\n⇒ #'user/x\n⇒ #'user/x\n⇒ 2\n⇒ (1)\n⇒ (0 1 2)\n⇒ (0 1 4)\n1\n⇒ nil\n⇒ (11 21)\n"
+ },
+ {
+  "name": "review regressions: printing through threads, future errors, commute, lazy concat/distinct/zipmap, destructuring, ##Inf, compare, lazy-seq",
+  "code": "(println (map (fn [x] (Thread/sleep 5) x) [1 2]))\n(println (map deref [(future (Thread/sleep 50) 1) (future 2)]))\n(def f (future (/ 1 0)))\n(+ 1 2)\n(def r (ref 0))\n(def ts (doall (map (fn [_] (future (dosync (commute r inc)))) (range 3))))\n(doseq [t ts] @t)\n@r\n(take 3 (concat [1] (range)))\n(take 3 (distinct (range)))\n(zipmap [:a :b :c] (range))\n(let [[a b] (range)] [a b])\n(let [[x & xs] (iterate inc 5)] [x (take 2 xs)])\n(let [{:keys [a b] :or {b 7}} {:a 1}] [a b])\n(/ 1.0 0)\n(compare \"a\" \"c\")\n(compare \\a \\d)\n(compare :a :c)\n(name :a/b)\n(defn nat [n] (lazy-seq (cons n (nat (inc n)))))\n(take 3 (nat 0))\n",
+  "expect": "(1 2)\n⇒ nil\n(1 2)\n⇒ nil\n⇒ #'user/f\n⇒ 3\n⇒ #'user/r\n⇒ #'user/ts\n⇒ nil\n⇒ 3\n⇒ (1 0 1)\n⇒ (0 1 2)\n⇒ {:a 0, :b 1, :c 2}\n⇒ [0 1]\n⇒ [5 (6 7)]\n⇒ [1 7]\n⇒ ##Inf\n⇒ -2\n⇒ -3\n⇒ -2\n⇒ \"b\"\n⇒ #'user/nat\n⇒ (0 1 2)\n"
+ },
+ {
+  "name": "a lazy cell is realized once even when two threads force it",
+  "code": "(def xs (map (fn [x] (println \"computing\" x) (* x 10)) [1 2]))\n(def a (future (doall xs)))\n(def b (future (doall xs)))\n@a @b (count xs)",
+  "lastValue": "2",
+  "outputCount": [
+   "computing 1",
+   1
+  ]
+ },
+ {
+  "name": "commute does not make transactions retry",
+  "code": "(def r (ref 0))\n(def ts (doall (map (fn [_] (future (dosync (commute r inc)))) (range 3))))\n(doseq [t ts] @t)\n@r",
+  "lastValue": "3",
+  "noNote": "retry"
+ },
+ {
   "name": "the step view never realizes an infinite sequence",
   "code": "(def nats (iterate inc 0))\n(take 3 nats)",
   "lastValue": "(0 1 2)"
@@ -121,6 +146,8 @@ for (const c of cases) {
   else if (r.error) problems.push('unexpected error ' + JSON.stringify(r.error));
   if (c.lastValue && (!r.results.length || r.results[r.results.length - 1].value !== c.lastValue)) problems.push('last value ' + (r.results.length ? r.results[r.results.length - 1].value : 'none') + ', expected ' + c.lastValue);
   if (c.note && !r.notes.some(n => n.s.includes(c.note))) problems.push('no note containing ' + c.note);
+  if (c.noNote && r.notes.some(n => n.s.includes(c.noNote))) problems.push('unexpected note containing ' + c.noNote);
+  if (c.outputCount && r.out.split(c.outputCount[0]).length - 1 !== c.outputCount[1]) problems.push(JSON.stringify(c.outputCount[0]) + ' printed ' + (r.out.split(c.outputCount[0]).length - 1) + ' times');
   if (!r.error && !r.trace.length) problems.push('empty trace');
   if (problems.length) { failed++; console.log('FAIL ' + c.name + '\n  ' + problems.join('\n  ')); }
 }

@@ -127,8 +127,8 @@
 
   /* ── number formatting: Java's Double.toString ── */
   function dbl(x) {
-    if (Number.isNaN(x)) return 'NaN';
-    if (!Number.isFinite(x)) return x > 0 ? 'Infinity' : '-Infinity';
+    if (Number.isNaN(x)) return '##NaN';
+    if (!Number.isFinite(x)) return x > 0 ? '##Inf' : '##-Inf';
     if (x === 0) return Object.is(x, -0) ? '-0.0' : '0.0';
     const a = Math.abs(x);
     const m = /^(-?)(\d)(?:\.(\d+))?e([-+]\d+)$/.exec(x.toExponential());
@@ -171,7 +171,7 @@
     if (x instanceof Var) return `#'${x.ns}/${x.name}`;
     if (x instanceof Atom) return `#object[clojure.lang.Atom {:status :ready, :val ${pr(x.v, true, depth + 1)}}]`;
     if (x instanceof Ref) return `#object[clojure.lang.Ref {:status :ready, :val ${pr(x.v, true, depth + 1)}}]`;
-    if (x instanceof Agent) return `#object[clojure.lang.Agent {:status :ready, :val ${pr(x.v, true, depth + 1)}}]`;
+    if (x instanceof Agent) return `#object[clojure.lang.Agent {:status ${x.error ? ':failed' : ':ready'}, :val ${pr(x.v, true, depth + 1)}}]`;
     if (x instanceof Future) return `#object[clojure.core$future_call {:status ${x.done ? ':ready' : ':pending'}, :val ${x.done ? pr(x.v, true, depth + 1) : 'nil'}}]`;
     return String(x);
   }
@@ -213,10 +213,20 @@
       if (out.length > limit) throw err('OutOfMemoryError', 'an infinite sequence was realized (use take)');
     }
   }
+  // the first cell of a sequence without realizing more than that
+  function cellSync(s) {
+    if (s === null || s === undefined) return null;
+    if (s instanceof CVec || s instanceof CList || s instanceof CSet) return s.items.length ? [s.items[0], s.items.length > 1 ? new CList(s.items.slice(1)) : null] : null;
+    if (s instanceof CMap) return s.entries.length ? [new CVec(s.entries[0]), s.entries.length > 1 ? new CList(s.entries.slice(1).map(e => new CVec(e))) : null] : null;
+    if (s instanceof Cons) return [s.first, s.rest];
+    if (s instanceof Lazy) return forceSync(s);
+    if (typeof s === 'string') return s.length ? [new Char(s[0]), s.length > 1 ? s.slice(1) : null] : null;
+    throw err('UnsupportedOperationException', 'nth not supported on this type: ' + className(s).split('.').pop());
+  }
   function forceSync(l) {
     if (l.realized) return l.cell;
-    const g = l.gen(); let r;
-    for (;;) { r = g.next(); if (r.done) break; }
+    const g = l.gen(); let r, n = 0;
+    for (;;) { r = g.next(); if (r.done) break; if (++n > 100000 || (r.value && (r.value.kind === 'sleep' || r.value.kind === 'block'))) throw err('IllegalStateException', 'this lazy sequence waits on another thread here; realize it with doall first'); }
     l.cell = r.value; l.realized = true;
     return l.cell;
   }
@@ -253,6 +263,10 @@
       if (c === '#' && src[i + 1] === '(') { i++; const body = one(); const f = new CList([new Sym('fn*'), body]); f.anon = true; return mk(f); }
       if (c === "'") { i++; return mk(new CList([new Sym('quote'), one()])); }
       if (c === '@') { i++; return mk(new CList([new Sym('deref'), one()])); }
+      if (c === '`') { i++; return mk(new CList([new Sym('syntax-quote'), one()])); }
+      if (c === '~' && src[i + 1] === '@') { i += 2; return mk(new CList([new Sym('unquote-splicing'), one()])); }
+      if (c === '~') { i++; return mk(new CList([new Sym('unquote'), one()])); }
+      if (c === '#' && src[i + 1] === '"') { i++; const s2 = one(); return new RegExp(s2); }
       if (c === '^') { i++; one(); return one(); } // metadata: read and drop (^:private is handled by defn-)
       if (c === '#' && src[i + 1] === "'") { i += 2; return mk(new CList([new Sym('var'), one()])); }
       if (c === '"') {
@@ -285,7 +299,7 @@
      3. Evaluator (generators), threads and the scheduler
      ════════════════════════════════════════════════════════════════ */
   class Env { constructor(parent, vars) { this.parent = parent; this.vars = vars || new Map(); } get(n) { for (let e = this; e; e = e.parent) if (e.vars.has(n)) return { found: true, v: e.vars.get(n) }; return { found: false }; } }
-  const SPECIAL = new Set(['def', 'defn', 'defn-', 'defmacro', 'fn', 'fn*', 'let', 'if', 'do', 'when', 'when-not', 'if-not', 'cond', 'and', 'or', 'quote', 'loop', 'recur', 'ns', 'require', 'import', 'comment', 'doseq', 'dotimes', 'dosync', 'future', 'var', 'try', 'throw', '->', '->>', 'time', 'letfn', 'case', 'condp', 'when-let', 'if-let', 'for']);
+  const SPECIAL = new Set(['syntax-quote', 'lazy-seq', 'def', 'defn', 'defn-', 'defmacro', 'fn', 'fn*', 'let', 'if', 'do', 'when', 'when-not', 'if-not', 'cond', 'and', 'or', 'quote', 'loop', 'recur', 'ns', 'require', 'import', 'comment', 'doseq', 'dotimes', 'dosync', 'future', 'var', 'try', 'throw', '->', '->>', 'time', 'letfn', 'case', 'condp', 'when-let', 'if-let', 'for']);
   const STEP = Symbol('step');
 
   class Interp {
@@ -410,21 +424,29 @@
     bindPattern(p, v, vars) {
       if (p instanceof Sym) { vars.set(p.name, v); return; }
       if (p instanceof CVec) {
-        const items = v === null ? [] : realizeSync(v);
+        let s = v;
         for (let k = 0; k < p.items.length; k++) {
           const q = p.items[k];
-          if (q instanceof Sym && q.name === '&') { this.bindPattern(p.items[k + 1], items.length > k ? new CList(items.slice(k)) : null, vars); return; }
-          if (q instanceof Kw && q.name === 'as') { this.bindPattern(p.items[k + 1], v, vars); return; }
-          this.bindPattern(q, items[k] === undefined ? null : items[k], vars);
+          if (q instanceof Sym && q.name === '&') { this.bindPattern(p.items[k + 1], s === null || cellSync(s) === null ? null : s, vars); k++; continue; }
+          if (q instanceof Kw && q.name === 'as') { this.bindPattern(p.items[k + 1], v, vars); k++; continue; }
+          const c = s === null ? null : cellSync(s);
+          this.bindPattern(q, c ? c[0] : null, vars);
+          s = c ? c[1] : null;
         }
         return;
       }
       if (p instanceof CList && p.mapLiteral) {
+        const orIdx = p.items.findIndex((x, k) => k % 2 === 0 && x instanceof Kw && x.name === 'or');
+        const defaults = orIdx >= 0 ? p.items[orIdx + 1] : null;
+        const dflt = name => { if (!defaults) return null; const k2 = defaults.items.findIndex((x, j) => j % 2 === 0 && x instanceof Sym && x.name === name); return k2 >= 0 ? defaults.items[k2 + 1] : null; };
+        const look = (key, name) => { const got = v instanceof CMap ? mapGet(v, key) : undefined; return got === undefined ? dflt(name) : got; };
         for (let k = 0; k < p.items.length; k += 2) {
+          if (k === orIdx) continue;
           const key = p.items[k], val = p.items[k + 1];
-          if (key instanceof Kw && key.name === 'keys') for (const s of val.items) vars.set(s.name, v instanceof CMap ? (mapGet(v, kw(s.name)) ?? null) : null);
+          if (key instanceof Kw && key.name === 'keys') for (const s of val.items) vars.set(s.name, look(kw(s.name), s.name));
+          else if (key instanceof Kw && key.name === 'strs') for (const s of val.items) vars.set(s.name, look(s.name, s.name));
           else if (key instanceof Kw && key.name === 'as') vars.set(val.name, v);
-          else if (key instanceof Sym) vars.set(key.name, v instanceof CMap ? (mapGet(v, val) ?? null) : null);
+          else if (key instanceof Sym) vars.set(key.name, look(val, key.name));
         }
         return;
       }
@@ -455,13 +477,17 @@
       const evBody = function* (self, forms, e) { let v = null; for (const f of forms) { v = yield* self.ev(f, e, act); if (v instanceof Recur) return v; } return v; };
       switch (name) {
         case 'quote': return it[1];
+        case 'syntax-quote': return yield* this.syntaxQuote(it[1], env, act);
+        case 'lazy-seq': { const self = this, body = it.slice(1); return new Lazy(function* () { let v = null; for (const f of body) v = yield* self.ev(f, env, act); return yield* self.seqCell(v); }); }
         case 'var': { const v = this.vars.get(this.ns + '/' + it[1].name); if (!v) throw new CljError('RuntimeException', `Unable to resolve var: ${it[1].name} in this context`, true); return v; }
         case 'do': return yield* evBody(this, it.slice(1), env);
         case 'def': {
           if (!(it[1] instanceof Sym)) throw new CljError('RuntimeException', 'First argument to def must be a Symbol', true);
           if (act) { act.cur = form; yield* this.step(this.cur, 'eval', form); }
-          const vr = this.defVar(it[1].name, null);
-          vr.v = it.length > 2 ? yield* this.ev(it[it.length - 1], env, act) : null;
+          const exists = this.vars.has(this.ns + '/' + it[1].name);
+          if (!exists) this.defVar(it[1].name, null);   // unbound until the init is evaluated, as Clojure's var
+          const v = it.length > 2 ? yield* this.ev(it[it.length - 1], env, act) : null;
+          const vr = this.defVar(it[1].name, v);
           if (act) act.done.set(form, vr);
           return vr;
         }
@@ -541,17 +567,25 @@
         case 'comment': return null;
         case 'doseq': case 'for': {
           const b = it[1].items; const results = [];
+          if (name === 'for' && !b.slice(2).some(x => x instanceof Sym || x instanceof CVec)) return yield* this.lazyFor(it, env, act);
           const walk = function* (self, k, e) {
             if (k >= b.length) { const v = yield* evBody(self, it.slice(2), e); if (name === 'for') results.push(v); return; }
             const key = b[k];
-            if (key instanceof Kw) { if (key.name === 'when') { if (truthy(yield* self.ev(b[k + 1], e, act))) yield* walk(self, k + 2, e); return; } if (key.name === 'let') { const vars = new Map(); const e2 = new Env(e, vars); const lb = b[k + 1].items; for (let j = 0; j < lb.length; j += 2) self.bindPattern(lb[j], yield* self.ev(lb[j + 1], e2, act), vars); yield* walk(self, k + 2, e2); return; } if (key.name === 'while') { if (truthy(yield* self.ev(b[k + 1], e, act))) yield* walk(self, k + 2, e); return; } }
+            if (key instanceof Kw) { if (key.name === 'when') { if (truthy(yield* self.ev(b[k + 1], e, act))) yield* walk(self, k + 2, e); return; } if (key.name === 'let') { const vars = new Map(); const e2 = new Env(e, vars); const lb = b[k + 1].items; for (let j = 0; j < lb.length; j += 2) self.bindPattern(lb[j], yield* self.ev(lb[j + 1], e2, act), vars); yield* walk(self, k + 2, e2); return; } if (key.name === 'while') { if (truthy(yield* self.ev(b[k + 1], e, act))) yield* walk(self, k + 2, e); else throw STOP_WHILE; return; } }
             const coll = yield* self.ev(b[k + 1], e, act);
             let s = coll;
             for (;;) {
               const cell = yield* self.seqCell(s); if (!cell) break;
               const vars = new Map(); self.bindPattern(key, cell[0], vars);
               if (act) for (const f of it.slice(2)) self.clearDone(act, f);
-              yield* walk(self, k + 2, new Env(e, vars));
+              try { yield* walk(self, k + 2, new Env(e, vars)); }
+              catch (x) {
+                // a false :while among this binding's modifiers ends this binding's loop
+                if (x !== STOP_WHILE) throw x;
+                let j = k + 2; while (j < b.length && b[j] instanceof Kw) j += 2;
+                if (b.slice(k + 2, j).some(y => y instanceof Kw && y.name === 'while')) break;
+                throw x;
+              }
               s = cell[1];
             }
           };
@@ -591,12 +625,48 @@
           const fut = new Future();
           const body = it.slice(1);
           const self = this;
-          fut.thread = this.spawn('future', function* () { const act2 = { name: 'future', vars: new Map(), body, done: new Map(), cur: null, form }; self.cur.frames.push(act2); let v = null; for (const f of body) v = yield* self.ev(f, env, act2); fut.v = v; fut.done = true; return v; });
+          fut.thread = this.spawn('future', function* () {
+            const act2 = { name: 'future', vars: new Map(), body, done: new Map(), cur: null, form }; self.cur.frames.push(act2);
+            try { let v = null; for (const f of body) v = yield* self.ev(f, env, act2); fut.v = v; }
+            catch (e) { if (!(e instanceof CljError) || e.cls === 'StepLimit') throw e; fut.error = e; self.cur.frames.length = 0; }
+            fut.done = true; return fut.v;
+          });
           return fut;
         }
         case 'dosync': return yield* this.dosync(it.slice(1), env, act);
       }
       throw new CljError('RuntimeException', 'unsupported special form ' + name, true);
+    }
+    // (for [x coll :when … :let […] :while …] body) with one binding: a lazy sequence
+    *lazyFor(it, env, act) {
+      const b = it[1].items, key = b[0], self = this;
+      const mods = []; for (let k = 2; k < b.length; k += 2) mods.push([b[k].name, b[k + 1]]);
+      const from = s => new Lazy(function* () {
+        for (;;) {
+          const c = yield* self.seqCell(s); if (!c) return null;
+          const vars = new Map(); self.bindPattern(key, c[0], vars); let e = new Env(env, vars), skip = false;
+          for (const [m, f] of mods) {
+            if (m === 'let') { const v2 = new Map(); e = new Env(e, v2); for (let j = 0; j < f.items.length; j += 2) self.bindPattern(f.items[j], yield* self.ev(f.items[j + 1], e, act), v2); }
+            else if (m === 'when') { if (!truthy(yield* self.ev(f, e, act))) { skip = true; break; } }
+            else if (m === 'while') { if (!truthy(yield* self.ev(f, e, act))) return null; }
+          }
+          if (skip) { s = c[1]; continue; }
+          let v = null; for (const f of it.slice(2)) v = yield* self.ev(f, e, act);
+          return [v, from(c[1])];
+        }
+      });
+      return from(yield* this.ev(b[1], env, act));
+    }
+    *syntaxQuote(x, env, act) {
+      const isCall = (f, n) => f instanceof CList && f.items[0] instanceof Sym && f.items[0].name === n;
+      if (isCall(x, 'unquote')) return yield* this.ev(x.items[1], env, act);
+      if (x instanceof CList && !x.mapLiteral && !x.setLiteral) {
+        const out = [];
+        for (const y of x.items) { if (isCall(y, 'unquote-splicing')) out.push(...(yield* this.toArray(yield* this.ev(y.items[1], env, act)))); else out.push(yield* this.syntaxQuote(y, env, act)); }
+        return new CList(out);
+      }
+      if (x instanceof CVec) { const out = []; for (const y of x.items) { if (isCall(y, 'unquote-splicing')) out.push(...(yield* this.toArray(yield* this.ev(y.items[1], env, act)))); else out.push(yield* this.syntaxQuote(y, env, act)); } return new CVec(out); }
+      return x;
     }
     clearDone(act, form) { if (!form || typeof form !== 'object') return; act.done.delete(form); if (form.items) for (const x of form.items) this.clearDone(act, x); }
     nsClause(clause) {
@@ -623,12 +693,27 @@
         if (s === null || s === undefined) return null;
         if (s instanceof CVec || s instanceof CList) return s.items.length ? [s.items[0], s.items.length > 1 ? new CList(s.items.slice(1)) : null] : null;
         if (s instanceof Cons) return [s.first, s.rest];
-        if (s instanceof Lazy) { if (!s.realized) { s.cell = yield* s.gen(); s.realized = true; } return s.cell; }
+        if (s instanceof Lazy) {
+          if (!s.realized) {
+            if (s.realizing) { while (!s.realized) { this.cur.blockedOn = s; yield* this.step(this.cur, 'block', null); } this.cur.blockedOn = null; return s.cell; }
+            s.realizing = true;
+            try { s.cell = yield* s.gen(); } finally { s.realizing = false; }
+            s.realized = true;
+          }
+          return s.cell;
+        }
         if (s instanceof CSet) return s.items.length ? [s.items[0], s.items.length > 1 ? new CList(s.items.slice(1)) : null] : null;
         if (s instanceof CMap) return s.entries.length ? [new CVec(s.entries[0]), s.entries.length > 1 ? new CList(s.entries.slice(1).map(e => new CVec(e))) : null] : null;
         if (typeof s === 'string') return s.length ? [new Char(s[0]), s.length > 1 ? s.slice(1) : null] : null;
         throw err('IllegalArgumentException', `Don't know how to create ISeq from: ${className(s)}`);
       }
+    }
+    // realize every lazy sequence inside x through the scheduler (so sleeps and derefs inside work)
+    *realizeDeep(x, depth = 0) {
+      if (depth > 50 || x === null || typeof x !== 'object') return;
+      if (x instanceof Lazy || x instanceof Cons) { let s = x, n = 0; for (;;) { const c = yield* this.seqCell(s); if (!c) return; yield* this.realizeDeep(c[0], depth + 1); s = c[1]; if (++n > 200000) throw err('OutOfMemoryError', 'an infinite sequence was realized (use take)'); } }
+      if (x instanceof CVec || x instanceof CList || x instanceof CSet) for (const y of x.items) yield* this.realizeDeep(y, depth + 1);
+      if (x instanceof CMap) for (const [k, v] of x.entries) { yield* this.realizeDeep(k, depth + 1); yield* this.realizeDeep(v, depth + 1); }
     }
     *toArray(s, limit = 200000) { const out = []; for (;;) { const c = yield* this.seqCell(s); if (!c) return out; out.push(c[0]); s = c[1]; if (out.length > limit) throw err('OutOfMemoryError', 'an infinite sequence was realized (use take)'); } }
 
@@ -674,7 +759,7 @@
     *dosync(body, env, act) {
       if (this.cur.tx) { let v = null; for (const f of body) v = yield* this.ev(f, env, act); return v; }
       for (let attempt = 1; ; attempt++) {
-        const tx = { start: this.txCounter, reads: new Map(), writes: new Map() };
+        const tx = { start: this.txCounter, reads: new Map(), writes: new Map(), commuted: new Map(), commutes: [] };
         this.cur.tx = tx;
         let v = null, retry = false;
         try { for (const f of body) v = yield* this.ev(f, env, act); }
@@ -686,6 +771,8 @@
           if (!conflict) {
             this.txCounter++;
             for (const [r, val] of tx.writes) { r.v = val; r.version = this.txCounter; }
+            // commuted refs: apply the function again to the value current at commit time
+            for (const [r, f, rest] of tx.commutes) { if (tx.writes.has(r)) continue; r.v = runSync(this, f, [r.v, ...rest]); r.version = this.txCounter; }
             yield* this.step(this.cur, 'commit', null);
             return v;
           }
@@ -698,6 +785,7 @@
     emitNote(s) { this.notes = this.notes || []; this.notes.push({ at: this.steps, s }); }
   }
   const RETRY = { retry: true };
+  const STOP_WHILE = { stop: 'while' };
   const isFnValue = v => v instanceof Fn || v instanceof Builtin;
   const truthy = v => v !== null && v !== undefined && v !== false;
   const short = s => (s.length > 70 ? s.slice(0, 67) + '…' : s);
@@ -724,7 +812,7 @@
     };
     const div = (a, b) => {
       num(a); num(b);
-      if (typeof a === 'number' || typeof b === 'number') { const y = toNum(b); if (y === 0 && isInt(b)) throw err('ArithmeticException', 'Divide by zero'); return toNum(a) / y; }
+      if (typeof a === 'number' || typeof b === 'number') return toNum(a) / toNum(b);
       const [an, ad] = a instanceof Ratio ? [a.n, a.d] : [a, 1n], [bn, bd] = b instanceof Ratio ? [b.n, b.d] : [b, 1n];
       if (bn === 0n) throw err('ArithmeticException', 'Divide by zero');
       return ratio(an * bd, ad * bn);
@@ -746,7 +834,7 @@
     def('<', a => cmpChain(a, c => c < 0)); def('>', a => cmpChain(a, c => c > 0)); def('<=', a => cmpChain(a, c => c <= 0)); def('>=', a => cmpChain(a, c => c >= 0));
     def('==', a => a.every((x, k) => k === 0 || toNum(a[k - 1]) === toNum(x)));
     def('=', a => a.every((x, k) => k === 0 || equals(a[k - 1], x))); def('not=', a => !a.every((x, k) => k === 0 || equals(a[k - 1], x)));
-    def('compare', a => BigInt(Math.sign(compare(a[0], a[1]))));
+    def('compare', a => BigInt(isNum(a[0]) && isNum(a[1]) ? Math.sign(compare(a[0], a[1])) : compare(a[0], a[1])));
     def('not', a => !truthy(a[0])); def('identity', a => a[0]);
     def('zero?', a => toNum(num(a[0])) === 0); def('pos?', a => toNum(num(a[0])) > 0); def('neg?', a => toNum(num(a[0])) < 0);
     def('even?', a => { if (!isInt(a[0])) throw err('IllegalArgumentException', 'Argument must be an integer: ' + pr(a[0])); return a[0] % 2n === 0n; });
@@ -755,15 +843,15 @@
     def('number?', a => isNum(a[0])); def('integer?', a => isInt(a[0])); def('string?', a => typeof a[0] === 'string'); def('keyword?', a => a[0] instanceof Kw); def('symbol?', a => a[0] instanceof Sym);
     def('vector?', a => a[0] instanceof CVec); def('map?', a => a[0] instanceof CMap); def('set?', a => a[0] instanceof CSet); def('list?', a => a[0] instanceof CList); def('seq?', a => a[0] instanceof CList || a[0] instanceof Lazy || a[0] instanceof Cons);
     def('fn?', a => a[0] instanceof Fn || a[0] instanceof Builtin); def('coll?', a => [CList, CVec, CMap, CSet, Lazy, Cons].some(C => a[0] instanceof C));
-    def('str', a => a.map(x => (x === null ? '' : pr(x, false))).join(''));
-    def('name', a => (a[0] instanceof Kw || a[0] instanceof Sym ? a[0].name : String(a[0])));
+    gdef('str', function* (a) { for (const x of a) if (x instanceof CVec || x instanceof CMap || x instanceof CSet || x instanceof CList) yield* this.realizeDeep(x); return a.map(x => (x === null ? '' : x instanceof Lazy ? 'clojure.lang.LazySeq@' + (hasheq(realizeSync(x).length) >>> 0).toString(16) : pr(x, false))).join(''); });
+    def('name', a => (a[0] instanceof Kw ? a[0].name.split('/').pop() : a[0] instanceof Sym ? a[0].name : String(a[0])));
+    def('namespace', a => (a[0] instanceof Kw && a[0].name.includes('/') ? a[0].name.slice(0, a[0].name.lastIndexOf('/')) : a[0] instanceof Sym ? a[0].ns : null));
     def('keyword', a => kw(a.length > 1 ? a[0] + '/' + a[1] : String(a[0]))); def('symbol', a => new Sym(String(a[0])));
     def('subs', a => a[0].slice(Number(a[1]), a.length > 2 ? Number(a[2]) : undefined));
-    def('println', a => { I.emit(a.map(x => pr(x, false)).join(' ') + '\n'); return null; });
-    def('print', a => { I.emit(a.map(x => pr(x, false)).join(' ')); return null; });
-    def('prn', a => { I.emit(a.map(x => pr(x, true)).join(' ') + '\n'); return null; });
-    def('pr', a => { I.emit(a.map(x => pr(x, true)).join(' ')); return null; });
-    def('pr-str', a => a.map(x => pr(x, true)).join(' ')); def('prn-str', a => a.map(x => pr(x, true)).join(' ') + '\n');
+    const printer = (readably, nl) => function* (a) { for (const x of a) yield* this.realizeDeep(x); I.emit(a.map(x => pr(x, readably)).join(' ') + (nl ? '\n' : '')); return null; };
+    gdef('println', printer(false, true)); gdef('print', printer(false, false)); gdef('prn', printer(true, true)); gdef('pr', printer(true, false));
+    gdef('pr-str', function* (a) { for (const x of a) yield* this.realizeDeep(x); return a.map(x => pr(x, true)).join(' '); });
+    gdef('prn-str', function* (a) { for (const x of a) yield* this.realizeDeep(x); return a.map(x => pr(x, true)).join(' ') + '\n'; });
     def('newline', () => { I.emit('\n'); return null; });
     // collections
     def('list', a => new CList(a)); def('vector', a => new CVec(a));
@@ -811,13 +899,13 @@
     def('empty?', a => { const x = a[0]; if (x === null) return true; if (x instanceof CVec || x instanceof CList || x instanceof CSet) return !x.items.length; if (x instanceof CMap) return !x.entries.length; if (typeof x === 'string') return !x.length; if (x instanceof Cons) return false; if (x instanceof Lazy) return !forceSync(x); return false; });
     gdef('not-empty', function* (a) { const c = yield* this.seqCell(a[0]); return c ? a[0] : null; });
     gdef('reverse', function* (a) { return new CList((yield* this.toArray(a[0])).reverse()); });
-    gdef('concat', function* (a) { const out = []; for (const x of a) out.push(...(yield* this.toArray(x))); return lazyFrom(out); });
+    def('concat', a => { const from = (k, s) => new Lazy(function* () { for (;;) { if (k >= a.length) return null; const c = yield* I.seqCell(s); if (c) return [c[0], from(k, c[1])]; k++; s = a[k]; } }); return from(0, a[0]); });
     gdef('sort', function* (a) { const [f, c] = a.length > 1 ? a : [null, a[0]]; const xs = yield* this.toArray(c); const keyed = []; for (const x of xs) keyed.push(x); if (!f) return new CList(stableSort(keyed, compare)); const cmpVals = []; /* comparator fn: call synchronously per comparison */ const self = this; return new CList(stableSort(keyed, (x, y) => { const r = runSync(self, f, [x, y]); return typeof r === 'boolean' ? (r ? -1 : runSync(self, f, [y, x]) ? 1 : 0) : Number(r); })); void cmpVals; });
     gdef('sort-by', function* (a) { const [kf, c] = a; const xs = yield* this.toArray(c); const keys = []; for (const x of xs) keys.push(yield* this.apply(kf, [x])); const idx = xs.map((x, i) => i); return new CList(stableSort(idx, (i, j) => compare(keys[i], keys[j])).map(i => xs[i])); });
-    gdef('distinct', function* (a) { const out = []; for (const x of yield* this.toArray(a[0])) if (!out.some(y => equals(x, y))) out.push(x); return lazyFrom(out); });
+    def('distinct', a => { const from = (s, seen) => new Lazy(function* () { for (;;) { const c = yield* I.seqCell(s); if (!c) return null; if (!seen.some(y => equals(c[0], y))) return [c[0], from(c[1], seen.concat([c[0]]))]; s = c[1]; } }); return from(a[0], []); });
     gdef('frequencies', function* (a) { let m = new CMap([]); for (const x of yield* this.toArray(a[0])) { const c = mapGet(m, x); m = mapWith(m, x, (c ?? 0n) + 1n); } return m; });
     gdef('group-by', function* (a) { let m = new CMap([]); for (const x of yield* this.toArray(a[1])) { const k = yield* this.apply(a[0], [x]); const g = mapGet(m, k); m = mapWith(m, k, new CVec((g ? g.items : []).concat([x]))); } return m; });
-    gdef('zipmap', function* (a) { const ks = yield* this.toArray(a[0]), vs = yield* this.toArray(a[1]); let m = new CMap([]); for (let k = 0; k < Math.min(ks.length, vs.length); k++) m = mapWith(m, ks[k], vs[k]); return m; });
+    gdef('zipmap', function* (a) { let ks = a[0], vs = a[1], m = new CMap([]); for (;;) { const c = yield* this.seqCell(ks), d = c && (yield* this.seqCell(vs)); if (!c || !d) return m; m = mapWith(m, c[0], d[0]); ks = c[1]; vs = d[1]; } });
     def('merge', a => { let m = null; for (const x of a) { if (x === null) continue; if (m === null) { m = x; continue; } for (const [k, v] of x.entries) m = mapWith(m, k, v); } return m; });
     def('select-keys', a => { let m = new CMap([]); for (const k of realizeSync(a[1])) { const v = mapGet(a[0], k); if (v !== undefined) m = mapWith(m, k, v); } return m; });
     // higher order
@@ -884,7 +972,7 @@
       const x = a[0];
       if (x instanceof Atom || x instanceof Agent) return x.v;
       if (x instanceof Ref) { const tx = this.cur.tx; if (tx) { if (tx.writes.has(x)) return tx.writes.get(x); tx.reads.set(x, true); } return x.v; }
-      if (x instanceof Future) { while (!x.done) { this.cur.blockedOn = x; yield* this.step(this.cur, 'block', null); } this.cur.blockedOn = null; return x.v; }
+      if (x instanceof Future) { while (!x.done) { this.cur.blockedOn = x; yield* this.step(this.cur, 'block', null); } this.cur.blockedOn = null; if (x.error) { const e = err('ExecutionException', `java.lang.${x.error.cls}: ${x.error.message}`); throw e; } return x.v; }
       if (x instanceof Var) return x.v;
       throw err('ClassCastException', `class ${className(x)} cannot be cast to class clojure.lang.IDeref`);
     });
@@ -904,10 +992,11 @@
     def('agent', a => new Agent(a[0]));
     const send = function (a) {
       const [ag, f, ...rest] = a;
+      if (ag.error) throw err('RuntimeException', 'Agent is failed, needs restart');
       ag.queue.push({ f, rest });
       if (!ag.thread || ag.thread.done) {
         const self = this;
-        ag.thread = this.spawn('agent', function* () { while (ag.queue.length) { const job = ag.queue.shift(); const act = { name: 'agent action', vars: new Map([['state', ag.v]]), body: [], done: new Map(), cur: null }; self.cur.frames.push(act); try { ag.v = yield* self.apply(job.f, [ag.v, ...job.rest]); } finally { self.cur.frames.pop(); } yield* self.step(self.cur, 'agent', null); } return ag.v; });
+        ag.thread = this.spawn('agent', function* () { while (ag.queue.length) { const job = ag.queue.shift(); const act = { name: 'agent action', vars: new Map([['state', ag.v]]), body: [], done: new Map(), cur: null }; self.cur.frames.push(act); try { ag.v = yield* self.apply(job.f, [ag.v, ...job.rest]); } catch (e) { if (!(e instanceof CljError) || e.cls === 'StepLimit') throw e; ag.error = e; ag.queue.length = 0; } finally { self.cur.frames.pop(); } yield* self.step(self.cur, 'agent', null); } return ag.v; });
       }
       return ag;
     };
@@ -917,9 +1006,10 @@
     def('ref', a => new Ref(a[0]));
     const needTx = (I2) => { const tx = I2.cur.tx; if (!tx) throw err('IllegalStateException', 'No transaction running'); return tx; };
     gdef('alter', function* (a) { const [r, f, ...rest] = a; const tx = needTx(this); const cur = tx.writes.has(r) ? tx.writes.get(r) : r.v; tx.reads.set(r, true); const nv = yield* this.apply(f, [cur, ...rest]); tx.writes.set(r, nv); return nv; });
-    gdef('commute', function* (a) { const [r, f, ...rest] = a; const tx = needTx(this); const cur = tx.writes.has(r) ? tx.writes.get(r) : r.v; const nv = yield* this.apply(f, [cur, ...rest]); tx.writes.set(r, nv); return nv; });
+    gdef('commute', function* (a) { const [r, f, ...rest] = a; const tx = needTx(this); const cur = tx.writes.has(r) ? tx.writes.get(r) : (tx.commuted.has(r) ? tx.commuted.get(r) : r.v); const nv = yield* this.apply(f, [cur, ...rest]); tx.commuted.set(r, nv); tx.commutes.push([r, f, rest]); return nv; });
     def('ref-set', a => { const tx = needTx(I); tx.reads.set(a[0], true); tx.writes.set(a[0], a[1]); return a[1]; });
     def('future-done?', a => a[0].done);
+    def('agent-error', a => a[0].error || null);
     gdef('Thread/sleep', function* (a) { this.cur.sleepUntil = this.clock + Number(a[0]); while (this.clock < this.cur.sleepUntil) yield* this.step(this.cur, 'sleep', null); return null; });
     def('rand-int', a => { I.seed = ((I.seed || 42) * 1103515245 + 12345) % 2147483648; return BigInt(Math.floor(I.seed / 2147483648 * Number(a[0]))); });
     def('type', a => new Sym(className(a[0]))); def('class', a => new Sym(className(a[0])));
@@ -945,7 +1035,7 @@
         let v;
         try { v = yield* I.ev(f, new Env(null), act); }
         finally { I.cur.frames.pop(); }
-        if (v instanceof Lazy || v instanceof Cons) yield* I.toArray(v);
+        yield* I.realizeDeep(v);
         const src = f && f.src ? code.slice(f.src.start, f.src.end) : pr(f);
         I.results.push({ src, value: v instanceof Var ? `#'${v.ns}/${v.name}` : pr(v), line: f && f.src ? f.src.line : null, outAt: I.out.length });
         if (repl) I.transcript = (I.transcript || '') + '';
