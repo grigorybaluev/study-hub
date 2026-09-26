@@ -218,7 +218,7 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
             modes = registry.get(engine, {}).get("modes") or []
             if cfg.get("mode", "run") not in modes:
                 rep.error(doc.path, f"sim {cfg['id']!r}: {engine} mode {cfg.get('mode')!r} not in {modes}")
-            if engine in ("java", "c", "py") and not isinstance(cfg.get("code"), str):
+            if engine in ("java", "c", "py", "clj") and not isinstance(cfg.get("code"), str):
                 rep.error(doc.path, f"sim {cfg['id']!r}: {engine} block needs a `code` string")
             if engine in ("java", "c", "py") and "files" in cfg and not (
                 isinstance(cfg["files"], dict) and all(isinstance(k, str) and isinstance(v, str) for k, v in cfg["files"].items())

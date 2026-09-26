@@ -10,6 +10,7 @@ import "./ds.css";
 import "./db.css";
 import "./c.css";
 import "./py.css";
+import "./clj.css";
 
 declare global {
   interface Window {
@@ -22,13 +23,14 @@ declare global {
     DB?: unknown;
     C?: unknown;
     PY?: unknown;
+    CLJ?: unknown;
   }
 }
 
 const VALUES: Record<string, Record<string, number>> = {};
 window.Plotly = Plotly;
 window.ctrlVal = (simId, ctrlId) => VALUES[simId]?.[ctrlId] ?? null;
-// side-effect imports: define window.runSim, window.FA, window.JAVA, window.DS, window.DB, window.C and window.PY
+// side-effect imports: define window.runSim, window.FA, window.JAVA, window.DS, window.DB, window.C, window.PY and window.CLJ
 import "./simulations.js";
 import "./automata.js";
 import "./java.js";
@@ -36,6 +38,7 @@ import "./ds.js";
 import "./db.js";
 import "./c.js";
 import "./py.js";
+import "./clj.js";
 
 export interface Control {
   id: string;

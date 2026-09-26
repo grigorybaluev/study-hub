@@ -1,0 +1,16 @@
+/* Clojure evaluator (CLJ.mount in clj.js): the C stepper's layout with a reduction view. */
+.sim-plot.sim-custom:has(.clj-wrap) { background: var(--sim-surface); color: var(--fg); }
+.clj-wrap .jv-listing .clj-kw { color: #d2a8ff; }
+.clj-eval { padding: .4rem .5rem .6rem; max-height: 420px; overflow: auto; display: grid; gap: .5rem; }
+.clj-thread { display: grid; gap: .35rem; border-left: 3px solid transparent; padding-left: .4rem; }
+.clj-thread.on { border-left-color: var(--accent); }
+.clj-thread-name { font-size: .72rem; font-weight: 800; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .04em; }
+.clj-binds { font-weight: 600; color: var(--info); text-transform: none; }
+.clj-expr { margin: .15rem 0 0; font-family: var(--mono); font-size: .8rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.clj-cur { background: rgba(250, 204, 21, .35); border-radius: 3px; box-shadow: 0 0 0 1px #facc15; }
+.clj-val { background: rgba(52, 196, 122, .22); border-radius: 3px; padding: 0 .15rem; font-weight: 700; }
+.clj-ids { display: flex; flex-wrap: wrap; gap: .3rem .9rem; font-family: var(--mono); font-size: .78rem; border-top: 1px dashed var(--line); padding-top: .35rem; }
+.clj-repl { padding: .4rem .7rem; font-family: var(--mono); font-size: .78rem; line-height: 1.5; display: grid; gap: .3rem; max-height: 260px; overflow: auto; }
+.clj-prompt { color: var(--fg-faint); }
+.clj-arrow { color: var(--accent-dk); font-weight: 700; }
+.clj-note { color: var(--callout-caution-fg); }

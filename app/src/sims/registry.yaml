@@ -13,6 +13,9 @@
 # py: the Python-subset stepper in py.js; `custom: true`, `engine: py`, the program in `code`, optionally
 #   `stdin` (one line per input() call), `args` (sys.argv[1:]) and `files` — a map of module paths to
 #   source (`geometry.py`, `shapes/__init__.py`) that `import` finds.
+# clj: the Clojure-subset evaluator in clj.js; `custom: true`, `engine: clj`, the forms in `code`; the REPL
+#   panel lists each top-level form and its value (`repl: false` hides it). Futures and agents run as
+#   threads under a deterministic scheduler, so swap! and dosync retries can be seen.
 plotly:
   - euler-demo
   - rk4-comparison
@@ -127,10 +130,12 @@ c:
   modes: [run]
 py:
   modes: [run]
+clj:
+  modes: [run]
 # ds: modes of DS.mount in ds.js (data-structure visualiser); a block carries `mode` plus mode-specific keys
 #   (`data`, `ops`, `capacity`, `kind`, `algo`, `edges`, …) — see the header of ds.js.
 ds:
-  modes: [stack, queue, array-list, linked-list, call-tree, binary-tree, heap, hash-table, bst, avl, sort, graph, mark-sweep]
+  modes: [stack, queue, array-list, linked-list, call-tree, binary-tree, heap, hash-table, bst, avl, sort, graph, mark-sweep, persistent-vector]
 # db: modes of DB.mount in db.js (database engine): sql runs through sql.js over `tables`; the others are own evaluators.
 db:
   modes: [sql, ra, fd-closure, fd-keys, fd-cover, decomposition, normal-form, datalog, er]
