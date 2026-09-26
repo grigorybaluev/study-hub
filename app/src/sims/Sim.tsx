@@ -8,6 +8,7 @@ import "./automata.css";
 import "./java.css";
 import "./ds.css";
 import "./db.css";
+import "./c.css";
 
 declare global {
   interface Window {
@@ -18,18 +19,20 @@ declare global {
     JAVA?: unknown;
     DS?: unknown;
     DB?: unknown;
+    C?: unknown;
   }
 }
 
 const VALUES: Record<string, Record<string, number>> = {};
 window.Plotly = Plotly;
 window.ctrlVal = (simId, ctrlId) => VALUES[simId]?.[ctrlId] ?? null;
-// side-effect imports: define window.runSim, window.FA, window.JAVA, window.DS and window.DB
+// side-effect imports: define window.runSim, window.FA, window.JAVA, window.DS, window.DB and window.C
 import "./simulations.js";
 import "./automata.js";
 import "./java.js";
 import "./ds.js";
 import "./db.js";
+import "./c.js";
 
 export interface Control {
   id: string;
