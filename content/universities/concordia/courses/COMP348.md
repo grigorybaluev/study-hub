@@ -7,6 +7,7 @@ prereqs: []
 coreqs: [COMP249]
 requirements: []
 source: concordia-cs-ds-sequence-v3
+pages: programming
 ---
 
 Survey of programming paradigms — imperative, functional, logic, and scripting — through
