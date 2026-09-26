@@ -1,6 +1,6 @@
 ---
 title: Concurrency with Erlang
-order: 14
+order: 16
 status: outline
 weeks: [12, 13]
 introduces: [concurrency]
