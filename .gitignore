@@ -20,3 +20,4 @@ content/universities/*/programs/local/
 graph.json
 derived.json
 analytics/report.md
+.aider*
