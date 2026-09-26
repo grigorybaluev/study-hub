@@ -293,6 +293,11 @@ const cases = [
   "errLine": 6
  },
  {
+  "name": "returning the address of a local warns",
+  "code": "int *f(void) { int x = 1; return &x; }\nint main(void) { int *p = f(); return 0; }",
+  "warn": "address of stack memory associated with local variable 'x' returned"
+ },
+ {
   "name": "bit operations and unsigned wrap",
   "code": "#include <stdio.h>\nint main(void) {\n    unsigned char c = 250;\n    c += 10;\n    printf(\"%d\\n\", c);\n    int x = 0xF0;\n    printf(\"%d %d %d %d\\n\", x & 0x3C, x | 1, x ^ 0xFF, ~0);\n    printf(\"%d %d\\n\", -16 >> 2, 1 << 31);\n    unsigned int m = 1u << 31;\n    printf(\"%u\\n\", m >> 4);\n    printf(\"%d\\n\", (-1 < 1u));\n    return 0;\n}",
   "expect": "4\n48 241 15 -1\n-4 -2147483648\n134217728\n0\n"

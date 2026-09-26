@@ -1201,7 +1201,15 @@
             }
           } finally { f.scopes.pop(); for (let k = mark; k < f.vars.length; k++) f.vars[k].live = false; f.vars.length = mark; this.sp = savedSp; }
         }
-        case 'return': this.snap(s.line); throw new Return(s.e ? this.eval(s.e) : null);
+        case 'return': {
+          this.snap(s.line);
+          const v = s.e ? this.eval(s.e) : null;
+          if (v && v.t.k === 'ptr') {
+            const f = this.frame(), hit = f.vars.find(x => x.live && v.v >= x.addr && v.v < x.addr + Math.max(1, sizeOf(x.type)));
+            if (hit) this.warn(`address of stack memory associated with local variable '${hit.name}' returned`, s.line);
+          }
+          throw new Return(v);
+        }
         case 'break': this.snap(s.line); throw BREAK;
         case 'continue': this.snap(s.line); throw CONTINUE;
         case 'switch': return this.execSwitch(s);
