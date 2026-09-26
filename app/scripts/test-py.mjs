@@ -128,6 +128,36 @@ const cases = [
   "runtime": "NameError"
  },
  {
+  "name": "review regressions: iterators, hashing, slices, formats, temporaries",
+  "code": "class Node:\n    def __init__(self, v):\n        self.v = v\nnodes = [Node(i) for i in range(3)]\npair = [Node(10), Node(11)]\nprint([n.v for n in nodes], [p.v for p in pair])\nclass C:\n    def __init__(self): self.n = 0\n    def inc(self):\n        self.n += 1\n        return self.n\nm = C().inc\nprint(m(), m())\ndef make():\n    return [1, 2]\nx = make()\nit = iter([1, 2, 3]); next(it)\nprint(list(it), [v for v in iter(range(3))], list(map(str, iter([4, 5]))))\nclass P:\n    def __init__(self, v): self.v = v\n    def __eq__(self, o): return self.v == o.v\n    def __hash__(self): return hash(self.v)\nprint(len({P(1), P(1)}), P(1) in {P(1)})\nclass Q(P):\n    def __eq__(self, o): return True\ntry:\n    {Q(1)}\nexcept TypeError as e:\n    print(e)\na = [1, 2, 3]; a[-1:-1] = [9]; b = [1, 2, 3]; b[5:5] = [7]\nprint(a, b, f\"{2.0:.3}\", f\"{1234.5:.3}\", f\"{0.5:.2}\")\ndef f(): ...\nprint(f())\nfor q in [Node(5), Node(6)]:\n    print(q.v)\n",
+  "expect": "[0, 1, 2] [10, 11]\n1 2\n[2, 3] [0, 1, 2] ['4', '5']\n1 True\nunhashable type: 'Q'\n[1, 2, 9, 3] [1, 2, 3, 7] 2.0 1.23e+03 0.5\nNone\n5\n6\n"
+ },
+ {
+  "name": "package submodules",
+  "files": {
+   "shapes/__init__.py": "# package",
+   "shapes/circle.py": "def area(r):\n    return 3 * r * r\n"
+  },
+  "code": "import shapes.circle\nprint(shapes.circle.area(2))\nfrom shapes import circle\nprint(circle.area(1))",
+  "expect": "12\n3\n"
+ },
+ {
+  "name": "a module-level exception keeps a frame list for the traceback",
+  "code": "x = 1\nprint(1 / 0)",
+  "runtime": "ZeroDivisionError",
+  "errLine": 2,
+  "stackArray": true
+ },
+ {
+  "name": "a syntax error in an imported module names that module",
+  "files": {
+   "bad.py": "def f(:\n    pass"
+  },
+  "code": "import bad",
+  "syntax": "SyntaxError",
+  "errFile": 1
+ },
+ {
   "name": "while/else and walrus",
   "code": "data = [3, 5, 8, 1]\ni = 0\nwhile i < len(data):\n    if data[i] > 6:\n        print(\"found\", data[i])\n        break\n    i += 1\nelse:\n    print(\"none\")\nif (n := len(data)) > 3:\n    print(n)",
   "expect": "found 8\n4\n"
@@ -139,10 +169,11 @@ for (const c of cases) {
   const r = PY.run(c.code, c.stdin || '', { files: c.files, args: c.args, maxSteps: 20000 });
   const problems = [];
   if (c.expect !== undefined && r.out !== c.expect) problems.push('output ' + JSON.stringify(r.out) + '\n   expected ' + JSON.stringify(c.expect));
-  if (c.syntax) { if (!r.error || r.error.name !== c.syntax) problems.push('expected ' + c.syntax + ', got ' + JSON.stringify(r.error)); }
+  if (c.syntax) { if (!r.error || r.error.name !== c.syntax) problems.push('expected ' + c.syntax + ', got ' + JSON.stringify(r.error)); else if (c.errFile !== undefined && r.error.file !== c.errFile) problems.push('error in file ' + r.error.file + ', expected ' + c.errFile); }
   else if (c.runtime) { if (!r.error || r.error.name !== c.runtime) problems.push('expected ' + c.runtime + ', got ' + JSON.stringify(r.error)); else if (c.errLine && r.error.line !== c.errLine) problems.push('error on line ' + r.error.line + ', expected ' + c.errLine); }
   else if (r.error) problems.push('unexpected error ' + JSON.stringify(r.error));
   if (!r.error && !r.trace.length) problems.push('empty trace');
+  if (c.stackArray && !(r.error && Array.isArray(r.error.stack))) problems.push('error.stack is not an array of frames');
   if (problems.length) { failed++; console.log('FAIL ' + c.name + '\n  ' + problems.join('\n  ')); }
 }
 console.log(`${cases.length - failed}/${cases.length} passed`);

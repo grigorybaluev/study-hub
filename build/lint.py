@@ -225,7 +225,7 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
             ):
                 rep.error(doc.path, f"sim {cfg['id']!r}: {engine} `files` must map file names to text")
             if engine in ("c", "py") and "args" in cfg and not (isinstance(cfg["args"], list) and all(isinstance(a, str) for a in cfg["args"])):
-                rep.error(doc.path, f"sim {cfg['id']!r}: c `args` must be a list of strings")
+                rep.error(doc.path, f"sim {cfg['id']!r}: {engine} `args` must be a list of strings")
         elif cfg["id"] not in (registry.get("plotly") or []):
             rep.error(doc.path, f"sim {cfg['id']!r} is not in the registry")
 

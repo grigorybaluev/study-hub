@@ -19,7 +19,7 @@
      ════════════════════════════════════════════════════════════════ */
   const KW = new Set(['False', 'None', 'True', 'and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except',
     'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield']);
-  const OPS = ['**=', '//=', '>>=', '<<=', '->', '**', '//', '<<', '>>', '<=', '>=', '==', '!=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', ':=',
+  const OPS = ['...', '**=', '//=', '>>=', '<<=', '->', '**', '//', '<<', '>>', '<=', '>=', '==', '!=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', ':=',
     '+', '-', '*', '/', '%', '@', '<', '>', '=', '(', ')', '[', ']', '{', '}', ',', ':', '.', ';', '&', '|', '^', '~'];
   class PySyntaxError extends Error { constructor(msg, line) { super(msg); this.line = line; } }
 
@@ -524,6 +524,7 @@
      3. Objects
      ════════════════════════════════════════════════════════════════ */
   let OID = 0;
+  let IT = null; // the running interpreter, for __hash__ calls from hashKey
   class PyObj { constructor(type) { this.type = type; this.oid = ++OID; } }
   function mkType(name, bases, opts = {}) {
     const t = new PyObj(null);
@@ -588,7 +589,15 @@
     if (o.type === T.frozenset) return 'z{' + [...o.map.keys()].sort().join(',') + '}';
     if (o.type === T.list || o.type === T.dict || o.type === T.set) raise('TypeError', `unhashable type: '${o.type.name}'`);
     if (o.isType || o.type === T.function || o.type === T.builtin_function_or_method || o.type === T.module) return 'o' + o.oid;
-    if (lookupType(o.type, '__eq__') && !lookupType(o.type, '__hash__') && o.type.dict.has('__eq__')) raise('TypeError', `unhashable type: '${o.type.name}'`);
+    if (!o.type.builtin) {
+      // the first class in the MRO that defines __eq__ or __hash__ decides, as in CPython
+      for (const c of o.type.mro) {
+        if (c.builtin) break;
+        if (c.dict.has('__hash__')) { const h = c.dict.get('__hash__'); if (h === NONE) break; const r = IT.callObj(h, [o], {}); return 'u' + r.v; }
+        if (c.dict.has('__eq__')) raise('TypeError', `unhashable type: '${o.type.name}'`);
+      }
+      if (o.type.mro.some(c => !c.builtin && c.dict.get('__hash__') === NONE)) raise('TypeError', `unhashable type: '${o.type.name}'`);
+    }
     return 'o' + o.oid;
   }
   function lookupType(t, name) { for (const c of t.mro) if (c.dict && c.dict.has(name)) return c.dict.get(name); return null; }
@@ -691,7 +700,8 @@
       align = align || '<';
     } else if (numeric) {
       let x = o.type === T.float ? o.v : o.v;
-      if (!type) type = o.type === T.float ? (prec != null ? 'g' : '') : 'd';
+      let noType = false;
+      if (!type) { noType = o.type === T.float && prec != null; type = o.type === T.float ? (prec != null ? 'g' : '') : 'd'; }
       if (isInt(o) && 'eEfFgG%'.includes(type)) x = Number(o.v);
       if (o.type === T.float && 'dxXob'.includes(type)) raise('ValueError', `Unknown format code '${type}' for object of type 'float'`);
       if (typeof x === 'bigint') { neg = x < 0n; x = neg ? -x : x; }
@@ -705,7 +715,7 @@
         case 'c': body = String.fromCodePoint(Number(x)); break;
         case 'f': case 'F': body = fmtFixed(x, prec == null ? 6 : prec); break;
         case 'e': case 'E': body = fmtExp(x, prec == null ? 6 : prec); if (type === 'E') body = body.toUpperCase(); break;
-        case 'g': case 'G': body = fmtGeneral(x, prec == null ? 6 : prec, !!alt); break;
+        case 'g': case 'G': body = fmtGeneral(x, prec == null ? 6 : prec, !!alt); if (noType && /^\d+$/.test(body)) body += '.0'; break;
         case '%': body = fmtFixed(x * 100, prec == null ? 6 : prec) + '%'; break;
         case '': body = floatRepr(x); break;
       }
@@ -775,6 +785,9 @@
       this.builtins = this.makeBuiltins();
     }
     track(o) { this.alive.add(o); return o; }
+    // objects made during a statement that is still running may sit in the interpreter's own
+    // temporaries (half-built lists, evaluated arguments), so they are not freed until it ends
+    stmtStart() { const f = this.frames[this.frames.length - 1]; if (f) f.stmtOid = OID; }
     mkList(items) { return this.track(list(items)); }
     mkTuple(items) { return this.track(tuple(items)); }
     mkDict() { return this.track(dict()); }
@@ -791,7 +804,7 @@
     roots() {
       const r = [], seen = new Set();
       const add = m => { if (seen.has(m)) return; seen.add(m); for (const v of m.values()) r.push(v); };
-      for (const f of this.frames) { add(f.locals); if (f.extra) r.push(...f.extra); }
+      for (const f of this.frames) { add(f.locals); if (f.extra) r.push(...f.extra); if (f.temps) r.push(...f.temps); }
       for (const m of this.modules.values()) add(m.dict);
       return r;
     }
@@ -811,14 +824,29 @@
     }
     // reference counting: free every tracked object with no reference from a root or a live object
     collectRefcount() {
+      const oldest = Math.min(...this.frames.map(f => (f.stmtOid == null ? Infinity : f.stmtOid)));
       for (;;) {
         const counts = new Map();
         for (const o of this.alive) counts.set(o, 0);
-        const bump = x => { if (x && counts.has(x)) counts.set(x, counts.get(x) + 1); };
+        // an untracked holder (a bound method, an iterator, a dict view) passes its references on
+        const bump = (x, seen) => {
+          if (!x || typeof x !== 'object') return;
+          if (counts.has(x)) { counts.set(x, counts.get(x) + 1); return; }
+          if (seen && seen.has(x)) return;
+          const through = [];
+          if (x.type === T.method) through.push(x.self, x.func);
+          if (x.src) through.push(x.src);
+          if (x.live) through.push(x.live);
+          if (x.arr) through.push(...x.arr);
+          if (x.superOf) through.push(x.superOf.self);
+          if (x.userIter) through.push(x.userIter);
+          if (x.getitemOf) through.push(x.getitemOf);
+          if (through.length) { const s2 = seen || new Set(); s2.add(x); for (const t of through) bump(t, s2); }
+        };
         for (const v of this.roots()) bump(v);
         for (const o of this.alive) for (const c of this.children(o)) bump(c);
         let freed = 0;
-        for (const [o, n] of counts) if (n === 0) { this.alive.delete(o); this.freed.add(o); freed++; }
+        for (const [o, n] of counts) if (n === 0 && !(o.oid > oldest)) { this.alive.delete(o); this.freed.add(o); freed++; }
         this.refcounts = counts;
         if (!freed) return;
       }
@@ -841,14 +869,19 @@
         return o.oid;
       };
       const val = o => (this.alive.has(o) ? { ref: ref(o) } : { v: this.shortRepr(o) });
-      const frames = this.frames.filter(f => !f.hidden).map(f => ({ name: f.name, vars: [...f.locals].filter(([n, v]) => !(f.isModule && ((v.type === T.module && v.builtinModule) || /^__\w+__$/.test(n)))).map(([n, v]) => ({ name: n, ...val(v) })) }));
+      const frames = this.frames.filter(f => !f.hidden).map(f => {
+        const vars = [...f.locals].filter(([n, v]) => !(f.isModule && ((v.type === T.module && v.builtinModule) || /^__\w+__$/.test(n)))).map(([n, v]) => ({ name: n, ...val(v) }));
+        if (f.extra && f.extra[0]) vars.push({ name: 'return value', ret: true, ...val(f.extra[0]) });
+        return { name: f.name, vars };
+      });
       // breadth-first over the objects so the listing follows the arrows
       const views = [];
       for (let k = 0; k < objs.length; k++) {
         const o = objs[k];
         views.push(this.objView(o, val));
       }
-      const unreachable = [...this.alive].filter(o => !seen.has(o) && !o.hidden);
+      const oldest = Math.min(...this.frames.map(f => (f.stmtOid == null ? Infinity : f.stmtOid)));
+      const unreachable = [...this.alive].filter(o => !seen.has(o) && !o.hidden && !(o.oid > oldest));
       for (const o of unreachable) { seen.set(o, objs.length); objs.push(o); }
       for (let k = views.length; k < objs.length; k++) views.push({ ...this.objView(objs[k], val), unreachable: true });
       return { frames, objs: views };
@@ -951,7 +984,7 @@
       const m = lookupType(o.type, name);
       if (m) {
         if (m.type === T.function || m.type === T.builtin_function_or_method) {
-          const bm = new PyObj(T.method); bm.self = o; bm.func = m; return bm;
+          const bm = new PyObj(T.method); bm.self = o; bm.func = m; return this.track(bm);
         }
         return m;
       }
@@ -1016,7 +1049,7 @@
         if (e instanceof Return) ret = e.v;
         else {
           // record where it happened (innermost first), then leave the frame
-          if ((e instanceof PyExc) && !e.where) { e.where = { line: this.curLine, file: this.frame().file }; e.stack = this.frames.filter(x => !x.hidden).map(x => ({ name: x.isModule ? '<module>' : x.name, file: x.file })); }
+          if ((e instanceof PyExc) && !e.where) { e.where = { line: this.curLine, file: this.frame().file }; e.pyStack = this.frames.filter(x => !x.hidden).map(x => ({ name: x.isModule ? '<module>' : x.name, file: x.file })); }
           while (this.frames.length && this.frames[this.frames.length - 1] !== frame) this.frames.pop();
           this.frames.pop();
           throw e;
@@ -1081,6 +1114,7 @@
     execBlock(stmts) { for (const s of stmts) this.exec(s); }
     exec(s) {
       this.curLine = s.line;
+      if (s.k !== 'if' && s.k !== 'while' && s.k !== 'for' && s.k !== 'try' && s.k !== 'class') this.stmtStart();
       switch (s.k) {
         case 'expr': this.snap(s.line); this.eval(s.e); return;
         case 'assign': { this.snap(s.line); const v = this.eval(s.value); for (const t of s.targets) this.assign(t, v); return; }
@@ -1104,13 +1138,16 @@
         case 'for': {
           this.snap(s.line);
           const it = this.iter(this.eval(s.iter));
-          for (;;) {
-            const x = this.next(it);
-            if (x === undefined) { if (s.orelse) this.execBlock(s.orelse); return; }
-            this.assign(s.target, x);
-            try { this.execBlock(s.body); } catch (e) { if (e === BREAK) return; if (e !== CONTINUE) throw e; }
-            this.snap(s.line, 'loop');
-          }
+          const fr = this.frame(); (fr.temps = fr.temps || []).push(it); // the loop holds its iterable
+          try {
+            for (;;) {
+              const x = this.next(it);
+              if (x === undefined) { if (s.orelse) this.execBlock(s.orelse); return; }
+              this.assign(s.target, x);
+              try { this.execBlock(s.body); } catch (e) { if (e === BREAK) return; if (e !== CONTINUE) throw e; }
+              this.snap(s.line, 'loop');
+            }
+          } finally { fr.temps.pop(); }
         }
         case 'break': this.snap(s.line); throw BREAK;
         case 'continue': this.snap(s.line); throw CONTINUE;
@@ -1139,7 +1176,7 @@
         case 'try': return this.execTry(s);
         case 'import': {
           this.snap(s.line);
-          for (const n of s.names) { const m = this.importModule(n.mod, s.line); this.bind(n.as || n.mod.split('.')[0], n.as ? m : this.importModule(n.mod.split('.')[0], s.line)); }
+          for (const n of s.names) { const m = this.importModule(n.mod, s.line); this.bind(n.as || n.mod.split('.')[0], n.as ? m : this.modules.get(n.mod.split('.')[0])); }
           return;
         }
         case 'fromimport': {
@@ -1147,6 +1184,7 @@
           const m = this.importModule(s.mod, s.line);
           if (s.star) { const all = m.dict.get('__all__'); for (const [k, v] of m.dict) if (all ? all.items.some(x => x.v === k) : !k.startsWith('_')) this.bind(k, v); return; }
           for (const n of s.names) {
+            if (!m.dict.has(n.name)) { try { this.importModule(s.mod + '.' + n.name, s.line); } catch (e) { if (!(e instanceof PyExc && isInst(e.obj, EXC.ImportError))) throw e; } }
             if (!m.dict.has(n.name)) raise('ImportError', `cannot import name '${n.name}' from '${s.mod}'`);
             this.bind(n.as || n.name, m.dict.get(n.name));
           }
@@ -1389,7 +1427,7 @@
     }
     mkIter(items, type) { const it = new PyObj(type || T.list_iterator); it.arr = items; it.i = 0; return it; }
     iter(o) {
-      if (o.arr !== undefined && [T.list_iterator, T.map, T.filter, T.zip, T.enumerate, T.reversed].includes(o.type)) return o;
+      if ([T.list_iterator, T.map, T.filter, T.zip, T.enumerate, T.reversed].includes(o.type)) return o;
       if (o.type === T.list || o.type === T.tuple || o.type === T.deque) { const it = new PyObj(T.list_iterator); it.live = o; it.i = 0; return it; }
       if (isStr(o)) return this.mkIter([...o.v].map(str));
       if (o.type === T.dict) return this.mkIter([...o.map.values()].map(e => e.k));
@@ -1478,7 +1516,11 @@
         if (i.slice) {
           const idx = this.sliceRange(i, o.items.length); const vals = this.toArray(v);
           const step = i.c === NONE ? 1 : Number(i.c.v);
-          if (step === 1) { const a = idx.length ? idx[0] : Math.min(i.a === NONE ? 0 : ((Number(i.a.v) % (o.items.length + 1)) + o.items.length + 1) % (o.items.length + 1), o.items.length); o.items.splice(a, idx.length, ...vals); }
+          if (step === 1) {
+            const n = o.items.length, norm = (x, d) => { if (x === NONE) return d; let k = Number(x.v); if (k < 0) k = Math.max(0, k + n); return Math.min(k, n); };
+            const a = norm(i.a, 0), b = Math.max(a, norm(i.b, n));
+            o.items.splice(a, b - a, ...vals);
+          }
           else { if (vals.length !== idx.length) raise('ValueError', `attempt to assign sequence of size ${vals.length} to extended slice of size ${idx.length}`); idx.forEach((k, j) => { o.items[k] = vals[j]; }); }
           return;
         }
@@ -1650,6 +1692,16 @@
     /* ── modules ── */
     importModule(name, line) {
       if (this.modules.has(name)) return this.modules.get(name);
+      if (name.includes('.')) {
+        const parent = this.importModule(name.slice(0, name.lastIndexOf('.')), line);
+        const child = this.importModule1(name, line);
+        parent.dict.set(name.slice(name.lastIndexOf('.') + 1), child);
+        return child;
+      }
+      return this.importModule1(name, line);
+    }
+    importModule1(name, line) {
+      if (this.modules.has(name)) return this.modules.get(name);
       const builtin = this.builtinModule(name);
       if (builtin) { this.modules.set(name, builtin); return builtin; }
       const path = name.replace(/\./g, '/');
@@ -1658,7 +1710,8 @@
       const m = new PyObj(T.module); m.name = name; m.dict = new Map(); m.dict.set('__name__', str(name));
       this.modules.set(name, m);
       const fileIdx = Object.keys(this.files).indexOf(this.files[path + '.py'] != null ? path + '.py' : path + '/__init__.py') + 1;
-      const body = parseProgram(text);
+      let body;
+      try { body = parseProgram(text); } catch (e) { if (e instanceof PySyntaxError) e.file = fileIdx; throw e; }
       this.track(m); m.hidden = false;
       this.frames.push({ name: name, isModule: true, locals: m.dict, globals: m.dict, file: fileIdx, scope: null });
       try { this.execBlock(body); } finally { this.frames.pop(); }
@@ -2009,6 +2062,7 @@
       return { trace: [], out: '', error: { kind: 'syntax', name: 'SyntaxError', message: String(e.message || e), line: null } };
     }
     const it = new Interp({ ...opts, stdin: stdin || '' });
+    IT = it;
     const main = new PyObj(T.module); main.name = '__main__'; main.dict = new Map([['__name__', str('__main__')]]);
     it.modules.set('__main__', main);
     it.frames.push({ name: '<module>', isModule: true, locals: main.dict, globals: main.dict, file: 0, scope: null });
@@ -2018,13 +2072,13 @@
       const line = it.curLine;
       if (e instanceof PyExc) {
         const o = e.obj;
-        const stack = e.stack || it.frames.filter(f => !f.hidden).map(f => ({ name: f.isModule ? '<module>' : f.name, file: f.file }));
+        const stack = e.pyStack || it.frames.filter(f => !f.hidden).map(f => ({ name: f.isModule ? '<module>' : f.name, file: f.file }));
         const where = e.where || { line, file: it.frames.length ? it.frames[it.frames.length - 1].file : 0 };
         error = { kind: 'runtime', name: o.type.name, message: it.str(o), line: where.line, file: where.file, stack };
         if (isInst(o, EXC.SystemExit)) { error = null; exitCode = 0; }
       } else if (e instanceof Exit) { exitCode = e.code; }
       else if (e instanceof StepLimit) error = { kind: 'runtime', name: 'StepLimit', message: `stopped after ${it.maxSteps} steps (an endless loop?)`, line };
-      else if (e instanceof PySyntaxError) error = { kind: 'syntax', name: 'SyntaxError', message: e.message, line: e.line, file: 0 };
+      else if (e instanceof PySyntaxError) error = { kind: 'syntax', name: e.message.includes('indent') ? 'IndentationError' : 'SyntaxError', message: e.message, line: e.line, file: e.file || 0 };
       else if (e === BREAK || e === CONTINUE) error = { kind: 'syntax', name: 'SyntaxError', message: `'${e.sig}' outside loop`, line };
       else if (e instanceof Return) error = { kind: 'syntax', name: 'SyntaxError', message: "'return' outside function", line };
       else { error = { kind: 'runtime', name: 'InternalError', message: String(e && e.message || e), line }; if (typeof console !== 'undefined') console.warn('py.js internal error', e); }
@@ -2141,7 +2195,7 @@
       const lines = file.text.split('\n');
       const tr = this.result ? this.result.trace : [];
       const cur = tr[this.i] || null;
-      const last = this.i === tr.length - 1;
+      const last = !tr.length || this.i === tr.length - 1;
       const prev = this.i > 0 ? tr[this.i - 1] : null;
       const err = this.result && this.result.error;
       const onTab = t => t && (t.file || 0) === this.tab;
