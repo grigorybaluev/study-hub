@@ -1257,7 +1257,7 @@
       const W = 118, H = 30, colW = 150, rowH = 58, rootW = 104, top = 36;
       const cols = Math.max(1, ...s.order.map(id => s.pos[id][0] + 1));
       const rows = Math.max(s.roots.length, ...s.order.map(id => s.pos[id][1] + 1), 1);
-      const w = 30 + rootW + 50 + cols * colW, h = top + rows * rowH + 40;
+      const w = 30 + rootW + 50 + cols * colW + 40, h = top + rows * rowH + 40; // + room for the curves of same-column references
       const P = id => [30 + rootW + 50 + s.pos[id][0] * colW, top + s.pos[id][1] * rowH];
       let out = svgOpen(w, h) + defs();
       out += text(30, 22, 'roots', 'ds-note') + text(30 + rootW + 50, 22, 'heap', 'ds-note');
