@@ -1336,6 +1336,103 @@
   }
   function reachable(s) { const seen = new Set(); const st = s.roots.map(r => r.to); while (st.length) { const id = st.pop(); if (seen.has(id) || !s.objs[id] || s.objs[id].freed) continue; seen.add(id); st.push(...s.objs[id].refs); } return seen; }
 
+  /* ── persistent-vector: an index tree with path copying (Clojure's vectors, in miniature) ──
+     cfg.data: the elements; cfg.width: children per node and elements per leaf (2 or 4, default 2).
+     ops: assoc <i> <v> (copy the path to leaf i, share the rest), get <i> (follow the path), conj <v>. */
+  MODES['persistent-vector'] = {
+    title: 'Persistent vector',
+    init(cfg) {
+      const B = [2, 4].includes(num(cfg.width, 2)) ? num(cfg.width, 2) : 2;
+      const s = { B, nodes: {}, next: 0, versions: [], hl: {} };
+      const data = parseList(cfg.data, [1, 2, 3, 4, 5, 6, 7, 8]);
+      s.versions.push({ name: 'v0', root: pvBuild(s, data), size: data.length });
+      return s;
+    },
+    controls: [{ kind: 'number', name: 'i', label: 'index', default: 2 }, { kind: 'text', name: 'v', label: 'value', default: '9' },
+      { kind: 'button', label: 'assoc i v', op: 'assoc', args: ['i', 'v'] }, { kind: 'button', label: 'get i', op: 'get', args: ['i'] }, { kind: 'button', label: 'conj v', op: 'conj', args: ['v'] }],
+    ops: {
+      *get(s, args) {
+        const i = asNum(val(args), 0); const cur = s.versions[s.versions.length - 1];
+        if (i < 0 || i >= cur.size) { yield { d: `get ${i}: index out of range (size ${cur.size})`, hl: { err: true } }; return; }
+        const path = pvPath(s, cur.root, i, cur.size);
+        for (let k = 0; k < path.length; k++) { s.hl = { path: path.slice(0, k + 1), leafIdx: k === path.length - 1 ? i % s.B : null }; yield { d: k === path.length - 1 ? `leaf reached: element ${i} is ${s.nodes[path[k]].vals[i % s.B]} (${path.length - 1} steps down: the height grows like the logarithm of the size)` : `at ${k === 0 ? 'the root' : 'a branch'}: element ${i} is in child ${pvChildIndex(s, i, path.length - 1 - k, cur.size)}`, hl: {} }; }
+        s.hl = {};
+      },
+      *assoc(s, args) {
+        const i = asNum(args && args[0], 0), v = args && args[1] !== undefined ? (isNaN(+args[1]) ? args[1] : +args[1]) : 0;
+        const prev = s.versions[s.versions.length - 1];
+        if (i < 0 || i >= prev.size) { yield { d: `assoc ${i}: index out of range (size ${prev.size})`, hl: { err: true } }; return; }
+        const path = pvPath(s, prev.root, i, prev.size);
+        const copies = path.map(id => { const n = s.nodes[id]; const c = pvNode(s, n.leaf, n.leaf ? n.vals.slice() : n.kids.slice()); c.copyOf = id; return c.id; });
+        for (let k = 0; k < copies.length - 1; k++) { const kidPos = s.nodes[path[k]].kids.indexOf(path[k + 1]); s.nodes[copies[k]].kids[kidPos] = copies[k + 1]; }
+        s.nodes[copies[copies.length - 1]].vals[i % s.B] = v;
+        const name = 'v' + s.versions.length;
+        s.versions.push({ name, root: copies[0], size: prev.size });
+        s.hl = { fresh: copies };
+        const shared = pvReach(s, prev.root).filter(id => pvReach(s, copies[0]).includes(id)).length;
+        yield { d: `assoc ${i} ${v}: copy the ${copies.length} nodes on the path from the root to the leaf holding element ${i} and change the copy; ${name} shares the other ${shared} nodes with ${prev.name}, which is unchanged`, hl: {} };
+      },
+      *conj(s, args) {
+        const v = val(args) !== undefined ? (isNaN(+val(args)) ? val(args) : +val(args)) : 0;
+        const prev = s.versions[s.versions.length - 1];
+        const items = pvItems(s, prev.root, prev.size).concat([v]);
+        const name = 'v' + s.versions.length;
+        s.versions.push({ name, root: pvBuild(s, items, prev), size: items.length });
+        s.hl = { fresh: pvReach(s, s.versions[s.versions.length - 1].root).filter(id => !pvReach(s, prev.root).includes(id)) };
+        yield { d: `conj ${v}: add at the end; only the nodes on the rightmost path are new (a new root when the tree was full), the rest is shared with ${prev.name}`, hl: {} };
+      },
+    },
+    render(s) {
+      const vs = s.versions.slice(-2);
+      const cur = vs[vs.length - 1], prev = vs.length > 1 ? vs[0] : null;
+      const depthOf = id => (s.nodes[id].leaf ? 0 : 1 + depthOf(s.nodes[id].kids[0]));
+      const baseRoot = prev ? prev.root : cur.root;
+      const D = depthOf(baseRoot), leafW = s.B * 30 + 14, gap = 14;
+      const pos = {};
+      let leafX = 30;
+      const place = (id, level) => { const n = s.nodes[id]; if (n.leaf) { pos[id] = [leafX, 40 + level * 70]; leafX += leafW + gap; return; } n.kids.forEach(k => place(k, level + 1)); const xs = n.kids.map(k => pos[k][0] + (s.nodes[k].leaf ? leafW / 2 - 16 : 0)); pos[id] = [(Math.min(...xs) + Math.max(...xs)) / 2, 40 + level * 70]; };
+      place(baseRoot, 0);
+      // nodes new in the current version sit next to the node they copy
+      const placeFresh = (id, level) => { if (pos[id]) return; const n = s.nodes[id]; const orig = n.copyOf && pos[n.copyOf]; if (!n.leaf) n.kids.forEach(k => placeFresh(k, level + 1)); if (orig) pos[id] = [orig[0] + (n.leaf ? 0 : 38), orig[1] + (n.leaf ? 48 : 22)]; else { if (n.leaf) { pos[id] = [leafX, 40 + level * 70]; leafX += leafW + gap; } else { const xs = n.kids.map(k => pos[k][0]); pos[id] = [(Math.min(...xs) + Math.max(...xs)) / 2 + 20, 40 + level * 70 - 30]; } } };
+      placeFresh(cur.root, 0);
+      const all = [...new Set([...(prev ? pvReach(s, prev.root) : []), ...pvReach(s, cur.root)])];
+      const W = Math.max(360, ...all.map(id => pos[id][0] + leafW + 30)), H = 40 + (D + 1) * 70 + 60;
+      let out = svgOpen(W, H) + defs();
+      const fresh = new Set(s.hl.fresh || []), path = new Set(s.hl.path || []);
+      const center = id => { const n = s.nodes[id], [x, y] = pos[id]; return n.leaf ? [x + leafW / 2, y] : [x + 16, y + 12]; };
+      for (const id of all) { const n = s.nodes[id]; if (n.leaf) continue; const [x, y] = pos[id]; for (const k of n.kids) { const [cx, cy] = center(k); const hot = path.has(id) && path.has(k); out += arrow(x + 16, y + 24, cx, cy - 2, fresh.has(id) ? C.blue : hot ? C.hi : C.line, hot || fresh.has(id) ? 2 : 1.3, fresh.has(id) ? 'ds-ah-blue' : hot ? 'ds-ah-hi' : 'ds-ah-muted'); } }
+      for (const id of all) {
+        const n = s.nodes[id], [x, y] = pos[id];
+        const tone = fresh.has(id) ? [C.blueBg, C.blue] : path.has(id) ? [C.hiBg, C.hi] : [C.cell, C.line];
+        if (n.leaf) { n.vals.forEach((v, k) => { const on = path.has(id) && s.hl.leafIdx === k; out += rect(x + 7 + k * 30, y, 30, 26, on ? C.warnBg : tone[0], on ? C.warn : tone[1], 3) + text(x + 22 + k * 30, y + 18, v === undefined || v === null ? '' : String(v), 'ds-val'); }); }
+        else out += circle(x + 16, y + 12, 12, tone[0], tone[1], 1.6);
+      }
+      for (const v of vs) { const [x, y] = pos[v.root]; out += text(x + 16, y - 6, v.name, 'ds-mark', `fill="${v === cur && prev ? C.blue : C.ink}"`); }
+      out += text(30, H - 12, prev ? `${prev.name} (grey) and ${cur.name} (blue: the copied path) share every other node` : `${cur.size} elements, ${s.B} per leaf, ${s.B} children per branch`, 'ds-note');
+      return out + '</svg>';
+    },
+  };
+  function pvNode(s, leaf, contents) { const id = 'n' + s.next++; s.nodes[id] = leaf ? { id, leaf: true, vals: contents } : { id, leaf: false, kids: contents }; return s.nodes[id]; }
+  function pvBuild(s, data, prev) {
+    const B = s.B; let level = [];
+    // reuse the previous version's full leaves and branches when appending (structural sharing)
+    const prevLeaves = prev ? pvLeaves(s, prev.root) : [];
+    for (let k = 0; k < Math.max(1, Math.ceil(data.length / B)); k++) {
+      const chunk = data.slice(k * B, k * B + B);
+      const old = prevLeaves[k];
+      level.push(old && old.vals.length === chunk.length && old.vals.every((v, j) => v === chunk[j]) ? old.id : pvNode(s, true, chunk).id);
+    }
+    const reuse = new Map(); if (prev) for (const id of pvReach(s, prev.root)) { const n = s.nodes[id]; if (!n.leaf) reuse.set(n.kids.join(','), id); }
+    while (level.length > 1) { const up = []; for (let k = 0; k < level.length; k += B) { const kids = level.slice(k, k + B); up.push(reuse.get(kids.join(',')) || pvNode(s, false, kids).id); } level = up; }
+    return level[0];
+  }
+  function pvLeaves(s, id) { const n = s.nodes[id]; return n.leaf ? [n] : n.kids.flatMap(k => pvLeaves(s, k)); }
+  function pvItems(s, id, size) { return pvLeaves(s, id).flatMap(l => l.vals).slice(0, size); }
+  function pvReach(s, id) { const n = s.nodes[id]; return n.leaf ? [id] : [id, ...n.kids.flatMap(k => pvReach(s, k))]; }
+  function pvChildIndex(s, i, levelsBelow, size) { const leafNo = Math.floor(i / s.B); return Math.floor(leafNo / Math.pow(s.B, levelsBelow - 1)) % s.B; }
+  function pvPath(s, root, i) { const path = [root]; let id = root; const leafNo = Math.floor(i / s.B); while (!s.nodes[id].leaf) { const n = s.nodes[id]; const span = pvLeaves(s, n.kids[0]).length; let k = 0, acc = 0; const target = leafNo - pvLeafOffset(s, root, id); for (; k < n.kids.length; k++) { const len = pvLeaves(s, n.kids[k]).length; if (target < acc + len) break; acc += len; } void span; id = n.kids[Math.min(k, n.kids.length - 1)]; path.push(id); } return path; }
+  function pvLeafOffset(s, root, target) { let off = 0, found = -1; const walk = id => { if (found >= 0) return; if (id === target) { found = off; return; } const n = s.nodes[id]; if (n.leaf) { off++; return; } n.kids.forEach(walk); }; walk(root); return found; }
+
   /* ═══════════════════════ shell ═══════════════════════ */
   class Viewer {
     constructor(id, cfg) {

@@ -138,5 +138,16 @@ t('mark-sweep: tracing frees unreachable objects and cycles; counting frees at z
   c.run('collect'); ok(c.state.objs.n1.freed && c.state.objs.n2.freed, 'tracing frees the cycle'); renders(c);
 });
 
+t('persistent-vector: assoc copies one path and shares the rest; old versions are unchanged', () => {
+  const m = DS.model({ mode: 'persistent-vector', data: [1, 2, 3, 4, 5, 6, 7, 8] });
+  m.run('assoc', [2, 9]); m.run('conj', [10]);
+  const st = m.state; const items = id => { const n = st.nodes[id]; return n.leaf ? n.vals : n.kids.flatMap(items); };
+  eq(st.versions.map(v => items(v.root)), [[1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 9, 4, 5, 6, 7, 8], [1, 2, 9, 4, 5, 6, 7, 8, 10]]);
+  const reach = id => { const n = st.nodes[id]; return n.leaf ? [id] : [id, ...n.kids.flatMap(reach)]; };
+  const v0 = reach(st.versions[0].root), v1 = reach(st.versions[1].root);
+  eq(v1.filter(id => !v0.includes(id)).length, 3, 'nodes copied by assoc'); eq(v1.filter(id => v0.includes(id)).length, 4, 'nodes shared');
+  const steps = m.run('get', [5]); ok(steps[steps.length - 1].d.includes('element 5 is 6'), 'get follows the path'); renders(m);
+});
+
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
