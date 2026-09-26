@@ -831,6 +831,12 @@
       if (a >= HEAP_BASE && a < HEAP_END) {
         const b = m.blockAt(a);
         if (b && b.alive && a >= b.base && a + n <= b.base + b.size) return;
+        if (b && b.alive && a >= b.base && a < b.base + b.size) {
+          // starts inside the block and runs past its end: report the first byte outside, as valgrind does
+          const end = b.base + b.size;
+          this.errors.push({ kind: write ? 'Invalid write' : 'Invalid read', line, msg: `Invalid ${write ? 'write' : 'read'} of size ${a + n - end} at ${L(line)}: address ${hex(end)} is 0 bytes after a block of size ${b.size} alloc'd at ${L(b.line)}` });
+          return;
+        }
         let where;
         if (b && !b.alive) where = `${a - b.base} bytes inside a block of size ${b.size} free'd at ${L(b.freeLine)}`;
         else if (b && a >= b.base + b.size) where = `${a - b.base - b.size} bytes after a block of size ${b.size} alloc'd at ${L(b.line)}`;
