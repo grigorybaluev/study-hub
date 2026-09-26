@@ -1,0 +1,35 @@
+/* Python stepper (PY.mount in py.js): the C stepper's layout (.c-*, .jv-*) with frames and objects joined by arrows. */
+.sim-plot.sim-custom:has(.py-wrap) { background: var(--sim-surface); color: var(--fg); }
+.py-mem { position: relative; padding: .4rem .5rem .6rem; max-height: 460px; overflow: auto; }
+.py-cols { display: grid; grid-template-columns: minmax(150px, 2fr) minmax(0, 3fr); gap: .6rem 2.2rem; align-items: start; }
+@media (max-width: 520px) { .py-cols { grid-template-columns: minmax(0, 1fr); gap: .6rem; } }
+.py-col { min-width: 0; display: grid; gap: .45rem; align-content: start; }
+.py-arrows { position: absolute; left: 0; top: 0; pointer-events: none; overflow: hidden; }
+.py-arrows path { fill: none; stroke: var(--accent); stroke-width: 1.4; opacity: .85; }
+.py-arrows marker path { fill: var(--accent); stroke: none; }
+.py-tbl, .py-map, .py-seq { border-collapse: collapse; font-family: var(--mono); font-size: .78rem; }
+.py-tbl { width: 100%; }
+.py-tbl td { padding: .12rem .4rem .12rem 0; vertical-align: middle; }
+.py-name { color: var(--info); white-space: nowrap; }
+.py-tbl .py-name { width: 1%; }
+.py-var.changed .py-val { background: rgba(250, 204, 21, .3); border-radius: 3px; }
+.py-var.new .py-val { background: rgba(52, 196, 122, .22); border-radius: 3px; }
+.py-prim { word-break: break-word; }
+.py-ref { display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; height: 1rem; cursor: pointer; }
+.py-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); }
+.py-obj { border: 1px solid var(--line); border-radius: 6px; background: var(--bg); padding: .25rem .4rem .35rem; font-family: var(--mono); font-size: .78rem; max-width: 100%; overflow-x: auto; }
+.py-obj.changed { border-color: #facc15; }
+.py-obj.new { border-color: #34c47a; }
+.py-obj.unreachable { border-style: dashed; opacity: .75; }
+.py-obj-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 .6rem; font-size: .7rem; font-weight: 700; color: var(--fg-muted); margin-bottom: .15rem; }
+.py-rc { font-weight: 600; color: var(--fg-faint); white-space: nowrap; }
+.py-seq td { border: 1px solid var(--line); padding: .1rem .35rem; text-align: center; min-width: 1.4rem; }
+.py-seq .py-idx { border: 0; border-bottom: 1px solid var(--line); font-size: .66rem; color: var(--fg-faint); padding: 0 .35rem; }
+.py-map td { border: 1px solid var(--line); padding: .1rem .4rem; }
+.py-attrs td:first-child { border-right: 0; }
+.py-setv { display: flex; flex-wrap: wrap; gap: .25rem; }
+.py-setv > span { border: 1px solid var(--line); border-radius: 999px; padding: 0 .45rem; }
+.py-empty, .py-label { color: var(--fg-faint); }
+.py-garbage { margin-top: .2rem; font-size: .7rem; color: var(--callout-caution-fg); }
+.py-wrap .jv-ln.ret { background: rgba(52, 196, 122, .18); box-shadow: inset 3px 0 0 #34c47a; }
+.py-wrap .jv-listing u { text-decoration: none; color: #d2a8ff; }
