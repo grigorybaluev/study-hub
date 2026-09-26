@@ -57,32 +57,32 @@ engine: c
 code: |
   #include <stdio.h>
 
-  int scale = 4;                 /* state outside the function */
+  int issued = 0;                /* state outside the function */
 
-  int calc(int x) {
-      scale = scale * 2;         /* side effect: changes the global */
-      return x * scale;
+  int next_ticket(int base) {
+      issued = issued + 1;       /* side effect: changes the global */
+      return base + issued;
   }
 
-  int pure_calc(int x, int s) {  /* depends on its arguments only */
-      return x * s;
+  int ticket(int base, int n) {  /* depends on its arguments only */
+      return base + n;
   }
 
   int main(void) {
-      printf("%d\n", calc(10));
-      printf("%d\n", calc(10));  /* same call, different answer */
-      printf("%d %d\n", pure_calc(10, 8), pure_calc(10, 8));
-      printf("%d\n", calc(1) - calc(1));   /* which call runs first? */
+      printf("%d\n", next_ticket(100));
+      printf("%d\n", next_ticket(100));  /* same call, different answer */
+      printf("%d %d\n", ticket(100, 1), ticket(100, 1));
+      printf("%d\n", next_ticket(0) - next_ticket(0));   /* which call runs first? */
       return 0;
   }
-note: 'calc(10) gives 80 and then 160: the result depends on hidden state, which each call changes. In the last line the answer depends on which of the two calls C evaluates first, and the C standard does not say. pure_calc(10, 8) is 80 every time, anywhere in the program.'
+note: 'next_ticket(100) gives 101 and then 102: the result depends on hidden state, which each call changes. In the last line the sign of the answer depends on which of the two calls C evaluates first, and the C standard does not say. ticket(100, 1) is 101 every time, anywhere in the program.'
 ```
 
 Side effects cause three problems:
 
-1. **Hidden changes.** `scale` changes without its name appearing at the call site, so every other
-   use of `scale` becomes hard to trust.
-2. **No referential transparency.** `calc(10)` cannot be replaced by a value, so you cannot reason
+1. **Hidden changes.** `issued` changes without its name appearing at the call site, so every other
+   use of `issued` becomes hard to trust.
+2. **No referential transparency.** `next_ticket(100)` cannot be replaced by a value, so you cannot reason
    about it the way you reason about an equation.
 3. **Order matters.** When calls change shared state, the order of evaluation changes the result;
    without side effects, independent calls can be evaluated in any order — or at the same time.
@@ -162,7 +162,7 @@ code: |
   (reduce + [1 2 3 4])
   (reduce + (map (fn [x] (* x x)) (filter odd? (range 10))))
   (reduce (fn [acc w] (assoc acc w (count w))) {} ["tea" "coffee"])
-note: 'The fourth form is the whole pipeline: keep the odd numbers below 10, square them, add them up — no loop and no variable changes. Step inside reduce to see each call of + with the running total.'
+note: 'The fourth form is the whole pipeline: keep the odd numbers below 10, square them, add them up — no loop and no variable changes. In the last form reduce calls the anonymous function once per word: step into it to see acc, the map built so far.'
 ```
 
 The same pipeline in Python, once with a generator expression and once with `map` and `filter`:

@@ -126,13 +126,13 @@ id: clj-348-truthy
 custom: true
 engine: clj
 code: |
-  (if (> 5 0) "positive" "negative")
-  (if (< 5 0) "negative")
-  (if (> 5 0) (do (println "looks good") "positive") (do (println "looks bad") "negative"))
-  (when (> 5 0) (println "looks good") "positive")
-  (if (if (println "boo") "woo") "truthy" "falsey")
+  (if (even? 7) "even" "odd")
+  (if (neg? 7) "negative")
+  (if (pos? 7) (do (println "sign checked") :pos) (do (println "sign checked") :neg))
+  (when (pos? 7) (println "seven is positive") :pos)
+  (if (when (println "tested") :yes) "taken" "skipped")
   (if 0 "0 is truthy" "0 is falsey")
-note: 'The fifth form is a puzzle. The inner if tests (println "boo"), which prints boo and returns nil — falsey — so the inner if returns nil, and the outer if takes its else branch: "falsey". The last line shows that 0 is truthy, unlike in C.'
+note: 'The fifth form is a puzzle. The when tests (println "tested"), which prints tested and returns nil — falsey — so the when returns nil, and the if takes its else branch: "skipped". The last line shows that 0 is truthy, unlike in C.'
 ```
 
 ## Data structures
@@ -141,7 +141,7 @@ Clojure has four built-in collection types, each with a literal syntax:
 
 | Type | Literal | Like |
 |---|---|---|
-| map | `{:john "professor" :sue "doctor"}` | Python's dict |
+| map | `{:france "Paris" :japan "Tokyo"}` | Python's dict |
 | vector | `[1 2 3]` | Python's list (indexed) |
 | list | `'(1 2 3)` | a linked list |
 | set | `#{1 2 3}` | Python's set |
@@ -149,7 +149,7 @@ Clojure has four built-in collection types, each with a literal syntax:
 ### Maps and keywords
 
 Keys of a map can be anything, but are usually **keywords**: names that start with a colon,
-`:john`. A keyword is a constant that stands for itself (faster to compare than a string). Maps
+`:france`. A keyword is a constant that stands for itself (faster to compare than a string). Maps
 can hold any values, including functions and other maps.
 
 ```sim
@@ -157,17 +157,17 @@ id: clj-348-maps
 custom: true
 engine: clj
 code: |
-  (def jobs {:john "professor" :sue "doctor" :ahmed "astronaut"})
-  (get jobs :sue)
-  (get jobs :Sue)
-  (get jobs :bill "not found")
-  (:john jobs)
-  (def nested {:a "eh" :b {:dog "fido" :cat "fluffy"}})
-  (get-in nested [:b :cat])
-  (def actions {:greet (fn [] (println "hello")) :part (fn [] (println "bye"))})
-  ((get actions :greet))
-  (keys jobs)
-note: 'get returns nil for a missing key (keywords are case-sensitive) unless you give a default. A keyword is also a function that looks itself up: (:john jobs). The map of functions is a dispatch table: (get actions :greet) returns a function, and the outer parentheses call it.'
+  (def capitals {:france "Paris" :japan "Tokyo" :peru "Lima"})
+  (get capitals :japan)
+  (get capitals :Japan)
+  (get capitals :chile "unknown")
+  (:peru capitals)
+  (def person {:name "Ada" :address {:city "London" :zip "N1"}})
+  (get-in person [:address :city])
+  (def commands {:start (fn [] (println "engine on")) :stop (fn [] (println "engine off"))})
+  ((get commands :start))
+  (keys capitals)
+note: 'get returns nil for a missing key (keywords are case-sensitive) unless you give a default. A keyword is also a function that looks itself up: (:peru capitals). The map of functions is a dispatch table: (get commands :start) returns a function, and the outer parentheses call it.'
 ```
 
 ### Vectors and lists
@@ -199,17 +199,17 @@ id: clj-348-immutable
 custom: true
 engine: clj
 code: |
-  (def foo1 '(1 2 3))
-  (conj foo1 0)
-  foo1
-  (def foo2 (conj foo1 0))
-  foo2
+  (def primes '(3 5 7))
+  (conj primes 2)
+  primes
+  (def more-primes (conj primes 2))
+  more-primes
   (conj [1 2 3] 4)
   (def v [1 2 3])
   (assoc v 1 "dog")
   v
   (assoc {:a 1} :b 2)
-note: 'Every REPL line after conj or assoc shows the original unchanged: foo1 is still (1 2 3), v is still [1 2 3]. To keep a new version you give it a name of its own (foo2).'
+note: 'Every REPL line after conj or assoc shows the original unchanged: primes is still (3 5 7), v is still [1 2 3]. To keep a new version you give it a name of its own (more-primes).'
 ```
 
 ### How new versions stay cheap

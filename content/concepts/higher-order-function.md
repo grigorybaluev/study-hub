@@ -3,7 +3,7 @@ title: Higher-order functions
 domain: programming
 wikipedia: "Higher-order function"
 short: "higher-order functions"
-aliases: ["first-class function", "map", "filter", "reduce", "fold", "function composition", "closure", "lambda", "anonymous function"]
+aliases: ["first-class function", "map (higher-order function)", "filter", "reduce", "fold", "function composition", "closure", "lambda", "anonymous function"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---
 

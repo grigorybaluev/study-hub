@@ -42,8 +42,8 @@ body's value, waiting for it if it is not finished yet. Futures are the simplest
 threads in Clojure (Java's threads work too).
 
 ```clojure
-(def result (future (Thread/sleep 5000) (println "done") 44.5))
-@result   ; waits until the 5 seconds are up, then returns 44.5
+(def slow-sum (future (Thread/sleep 2000) (reduce + (range 1 101))))
+@slow-sum   ; waits until the 2 seconds are up, then returns 5050
 ```
 
 ## Atoms

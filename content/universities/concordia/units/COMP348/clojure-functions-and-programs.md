@@ -152,22 +152,22 @@ id: clj-348-recursion
 custom: true
 engine: clj
 code: |
-  (defn flip [numbers]
-    (if (empty? numbers)
-      []
-      (conj (flip (rest numbers)) (first numbers))))
-  (flip [1 2 3 4])
+  (defn my-count [xs]
+    (if (empty? xs)
+      0
+      (inc (my-count (rest xs)))))
+  (my-count [:a :b :c :d])
   (defn total [items]
     (loop [xs items acc 0]
       (if (empty? xs)
         acc
         (recur (rest xs) (+ acc (first xs))))))
   (total [1 2 3 4 5])
-note: 'flip is ordinary recursion: the frames stack up four deep before the base case returns [] and each conj runs on the way back. total uses loop/recur: recur jumps back to loop with new values, so there is only ever one frame, and the accumulator acc plays the role of C''s running sum.'
+note: 'my-count is ordinary recursion: the frames stack up four deep before the base case returns 0, and each inc runs on the way back. total uses loop/recur: recur jumps back to loop with new values, so there is only ever one frame, and the accumulator acc plays the role of C''s running sum.'
 ```
 
-Each ordinary recursive call takes a stack frame, so deep recursion (hundreds of thousands of calls)
-ends in a `StackOverflowError`. The JVM does not optimise tail calls, so Clojure provides
+Each ordinary recursive call takes a stack frame, so deep recursion ends in a `StackOverflowError`
+— with the JVM's default stack, after a few thousand calls. The JVM does not optimise tail calls, so Clojure provides
 **`recur`**: when the recursive call is the last thing a function (or a `loop`) does — a **tail
 call** — `recur` jumps back to the start with new arguments, like a `while` loop, in constant stack
 space. `recur` must be in tail position; the compiler rejects it anywhere else.
