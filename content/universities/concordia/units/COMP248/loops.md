@@ -15,9 +15,23 @@ to stop, and tracing a loop by hand so off-by-one and infinite loops stop being 
 
 ## while
 
-> **Definition.** A **loop** repeats a block of statements (the **body**) as long as a
-> boolean **condition** holds. `while (cond) { body }` tests the condition *before* each
-> pass; if it is false the first time, the body never runs.
+:::definition
+A **loop** repeats a block of statements (the **body**) as long as a
+boolean **condition** holds. `while (cond) { body }` tests the condition *before* each
+pass; if it is false the first time, the body never runs.
+:::
+
+:::syntax[while loop]
+```java
+while (<condition>) {
+    <body>
+}
+```
+
+- `<condition>` is tested before every pass, including the first; the loop ends the first time
+  it is `false`.
+- `<body>` must change something the condition reads, or the loop never ends.
+:::
 
 ```java
 int n = 1;
@@ -25,6 +39,14 @@ while (n <= 5) {          // condition
     System.out.println(n);
     n++;                  // progress toward making the condition false
 }
+```
+
+```output
+1
+2
+3
+4
+5
 ```
 
 Every loop has three parts that must agree: **initialisation** before the loop, the
@@ -60,6 +82,17 @@ note: 'A sentinel-controlled loop — the "read, test, process, read again" shap
 
 ## do-while
 
+:::syntax[do-while loop]
+```java
+do {
+    <body>
+} while (<condition>);
+```
+
+- `<body>` runs once before the first test, then again for as long as `<condition>` is `true`.
+- The semicolon after `while (<condition>)` is required.
+:::
+
 `do { body } while (cond);` tests *after* the body, so the body runs at least once. That
 is exactly the shape of input validation — ask, then check, then ask again if needed:
 
@@ -78,6 +111,18 @@ description.
 ## for
 
 When a loop counts, `for` gathers its three parts in the header:
+
+:::syntax[for loop]
+```java
+for (<init>; <condition>; <update>) {
+    <body>
+}
+```
+
+- `<init>` runs once, before the first test; a counter declared here exists only in the loop.
+- `<condition>` is tested before every pass; the loop ends the first time it is `false`.
+- `<update>` runs after every pass, before the next test.
+:::
 
 ```java
 for (int i = 0; i < 10; i++) {     // init; condition; update
@@ -118,6 +163,29 @@ catches is the **off-by-one error**: `i < n` versus `i <= n`, starting at 0 vers
 `length()` versus `length() - 1`. Ask two questions of every loop: what is the first
 value of the counter, and what is the last value for which the body runs?
 
+```java
+int k = 1, total = 0;
+while (total < 10) {
+    total += k;
+    k += 2;
+}
+System.out.println(k + " " + total);
+```
+
+:::trace[The loop above]
+| pass | test `total < 10` | `total` after the body | `k` after the body |
+|---|---|---|---|
+| before | — | 0 | 1 |
+| 1 | `0 < 10` true | 1 | 3 |
+| 2 | `1 < 10` true | 4 | 5 |
+| 3 | `4 < 10` true | 9 | 7 |
+| 4 | `9 < 10` true | 16 | 9 |
+| — | `16 < 10` **false**: the loop ends | 16 | 9 |
+
+Printed: `9 16`. The loop stops only when the test fails, so `total` overshoots 10: the sums of
+odd numbers are the squares 1, 4, 9, 16.
+:::
+
 ```sim
 id: java-off-by-one
 custom: true
@@ -139,6 +207,26 @@ code: |
 note: 'The first loop is right. The last one runs one pass too many — step to the end and read the exception. Fix the condition, then change the second loop to count multiples of 3 up to 9 and check by hand first.'
 ```
 
+::::exercise[What does this print?]
+```java
+int count = 0;
+for (int i = 10; i > 0; i -= 3) {
+    count++;
+    System.out.print(i + " ");
+}
+System.out.println("| " + count);
+```
+
+:::solution
+```text
+10 7 4 1 | 4
+```
+
+`i` takes the values 10, 7, 4, 1; the next update makes it −2, the test `i > 0` fails, and the
+loop has run 4 passes.
+:::
+::::
+
 ## Choosing the loop
 
 | you know… | use |
@@ -147,15 +235,17 @@ note: 'The first loop is right. The last one runs one pass too many — step to 
 | a stopping condition that changes in the body | `while` |
 | the body must run once before any test | `do`-`while` |
 
-> **Key insight.** Iteration is deciding *how often* statements run, and a loop is only
-> three things: where the counter starts, when it stops, and how it moves. Trace it by
-> hand before you run it; when the output is wrong, the trace table shows the pass on
-> which it went wrong.
+:::insight
+Iteration is deciding *how often* statements run, and a loop is only
+three things: where the counter starts, when it stops, and how it moves. Trace it by
+hand before you run it; when the output is wrong, the trace table shows the pass on
+which it went wrong.
+:::
 
-**Equations**
-
+:::equations
 - *Passes of a counting loop*: `for (int i = a; i < b; i++)` runs $b - a$ times (when $b > a$); with `<=` it runs $b - a + 1$ times.
 - *Sum the loop above computes*: $\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$ — a check for the trace, and a hint that some loops are formulas.
+:::
 
 ## Further reading
 

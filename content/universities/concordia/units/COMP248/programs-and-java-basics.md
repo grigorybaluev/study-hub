@@ -14,14 +14,16 @@ types and the arithmetic rules that decide what `7 / 2` means.
 
 ## From problem to program
 
-The course objectives put it in order: *develop an algorithm* for a simple problem, then
+Programming comes in three steps: *develop an algorithm* for a simple problem, then
 *write a complete Java program* given the algorithm, then be able to *describe the output*
 of a program someone else wrote. Programming is the middle step; the first and last are
 thinking.
 
-> **Definition.** An **algorithm** is a finite sequence of unambiguous steps that solves a
-> problem for every valid input. A **program** is an algorithm written in a language a
-> computer can execute.
+:::definition
+An **algorithm** is a finite sequence of unambiguous steps that solves a
+problem for every valid input. A **program** is an algorithm written in a language a
+computer can execute.
+:::
 
 Two habits from day one: write the steps in plain words before writing code, and trace a
 program by hand — one line at a time, keeping a table of every variable — before trusting
@@ -47,16 +49,22 @@ public class Hello {
 }
 ```
 
+```output
+Hello, COMP 248
+```
+
 Every program is a **class** with the same name as its file. Execution starts in
 `main`; the `public static void main(String[] args)` line is a header you copy exactly
 for now (each word gets its meaning in the units on methods and classes). Statements end
 with `;`, braces `{ }` group statements into a **block**, and indentation is for the
 reader — the compiler ignores it, so keep it consistent anyway.
 
-> **Note.** `System.out.println(x)` prints `x` and moves to the next line;
-> `System.out.print(x)` prints and stays on the line. Comments are `// to end of line` or
-> `/* between markers */`. The outline lists "internal code documentation" as a graded
-> skill: a comment says *why*, the code already says *what*.
+:::note
+`System.out.println(x)` prints `x` and moves to the next line;
+`System.out.print(x)` prints and stays on the line. Comments are `// to end of line` or
+`/* between markers */`. Good internal documentation is a skill of its own: a comment
+says *why*, the code already says *what*.
+:::
 
 ```sim
 id: java-hello
@@ -76,9 +84,24 @@ note: 'A complete program. Press ▶ Run, then ◀ Back to step through it and w
 
 ## Variables and primitive types
 
-> **Definition.** A **variable** is a named location in memory holding one value of a
-> declared **type**. A **declaration** `int count;` creates it; an **assignment**
-> `count = 3;` stores a value; `int count = 3;` does both (**initialisation**).
+:::definition
+A **variable** is a named location in memory holding one value of a
+declared **type**. A **declaration** `int count;` creates it; an **assignment**
+`count = 3;` stores a value; `int count = 3;` does both (**initialisation**).
+:::
+
+:::syntax[Declaring a variable]
+```java
+<type> <name>;
+<type> <name> = <expression>;
+final <type> <NAME> = <expression>;
+```
+
+- `<type>` is a primitive type (`int`, `double`, …) or a class name (`String`).
+- `<name>` is an identifier: letters, digits, `_` and `$`, not starting with a digit.
+- `= <expression>` initialises the variable; the expression's type must fit `<type>`.
+- `final` makes it a constant: one assignment, then never again.
+:::
 
 Java is **statically typed**: the type is fixed at declaration, and the compiler refuses
 a value of the wrong type. The primitive types you use in this course:
@@ -106,9 +129,11 @@ boolean onSale = false;
 char grade = 'A';
 ```
 
-> **Caution.** A local variable has no value until you assign one — the compiler rejects
-> reading it ("might not have been initialized"). And `=` is *assignment*, not equality:
-> `x = x + 1` is a valid instruction meaning "add one to x", not an equation.
+:::caution
+A local variable has no value until you assign one — the compiler rejects
+reading it ("might not have been initialized"). And `=` is *assignment*, not equality:
+`x = x + 1` is a valid instruction meaning "add one to x", not an equation.
+:::
 
 ## Arithmetic expressions
 
@@ -116,20 +141,35 @@ The operators are `+ - * / %`, with the usual precedence: `*`, `/`, `%` before `
 equal precedence evaluated left to right, parentheses to override. Two rules make Java
 arithmetic different from a calculator:
 
-> **Definition — Integer division.** When *both* operands are integers, `/` discards the
-> fractional part (truncates toward zero) and `%` gives the remainder: `7 / 2` is `3`,
-> `7 % 2` is `1`, `-7 / 2` is `-3`. For every non-zero `b`, `a == (a / b) * b + a % b`.
+:::definition[Integer division]
+When *both* operands are integers, `/` discards the
+fractional part (truncates toward zero) and `%` gives the remainder: `7 / 2` is `3`,
+`7 % 2` is `1`, `-7 / 2` is `-3`. For every non-zero `b`, `a == (a / b) * b + a % b`.
+:::
 
-> **Definition — Promotion.** In a mixed expression the "smaller" operand is converted to
-> the "larger" type before the operation: `int` with `double` gives `double`, so
-> `7 / 2.0` is `3.5`. The conversion happens per operation, not per expression:
-> `1 / 2 * 2.0` is `0.0` because `1 / 2` was computed first, as integers.
+:::definition[Promotion]
+In a mixed expression the "smaller" operand is converted to
+the "larger" type before the operation: `int` with `double` gives `double`, so
+`7 / 2.0` is `3.5`. The conversion happens per operation, not per expression:
+`1 / 2 * 2.0` is `0.0` because `1 / 2` was computed first, as integers.
+:::
 
 A **cast** converts explicitly: `(int) 3.99` is `3` (truncation, not rounding),
 `(double) 7 / 2` is `3.5` because the cast binds tighter than `/`. Assigning a `double`
 to an `int` variable without a cast is a compile error ("possible lossy conversion") —
 Java lets you widen silently but never narrow silently. Integer arithmetic also
 **overflows** silently: `Integer.MAX_VALUE + 1` wraps around to the most negative `int`.
+
+:::syntax[Cast]
+```java
+(<type>) <expression>
+```
+
+- `<type>` is the type to convert to; `<expression>` is the value converted.
+- The cast applies to the operand right after it, before any `*`, `/` or `+`: parenthesise
+  the whole expression to cast a result.
+- Narrowing (`double` to `int`) needs a cast; widening (`int` to `double`) happens on its own.
+:::
 
 ```sim
 id: java-int-division
@@ -173,16 +213,37 @@ code: |
 note: 'Step through and watch the Variables panel — the highlighted value is the one that just changed. The last lines show int overflow: the largest int plus one wraps to the smallest.'
 ```
 
-> **Key insight.** Every expression in Java has a *type* decided at compile time from the
-> types of its operands, and the type decides the operation: `/` on two ints is integer
-> division, `+` on a String is concatenation. Reading a program means reading types as much
-> as values.
+::::exercise[What does this print?]
+```java
+int x = 7;
+double y = x / 2;
+int z = x++ + ++x;
+System.out.println(y + " " + z + " " + x);
+```
 
-**Equations**
+:::solution
+```text
+3.0 16 9
+```
 
+`x / 2` is integer division (3), promoted to `3.0` only when stored in `y`. In
+`x++ + ++x` the left operand yields 7 and leaves `x` at 8; `++x` makes it 9 and yields 9;
+so `z` is 16 and `x` ends at 9.
+:::
+::::
+
+:::insight
+Every expression in Java has a *type* decided at compile time from the
+types of its operands, and the type decides the operation: `/` on two ints is integer
+division, `+` on a String is concatenation. Reading a program means reading types as much
+as values.
+:::
+
+:::equations
 - *Integer division and remainder*: for integers $a$ and $b \neq 0$, $a = (a / b) \cdot b + a \% b$, with $a / b$ truncated toward zero, so $a \% b$ has the sign of $a$.
 - *Promotion order*: $\texttt{int} \to \texttt{long} \to \texttt{float} \to \texttt{double}$ — an operation on two types works in the wider of the two.
 - *Range of `int`*: $-2^{31} \le x \le 2^{31} - 1$, i.e. $-2\,147\,483\,648$ to $2\,147\,483\,647$; overflow wraps modulo $2^{32}$.
+:::
 
 ## Further reading
 

@@ -54,6 +54,8 @@ syntax block: that is an example.
   blank lines between). It renders attached under the code, with an *Output* label, so code and
   output read as one unit. Lint warns about an output fence that does not follow a code block.
   For R, printed values can instead be `##` lines inside the code block, as R Markdown does.
+- The answer to "what does this print?" inside a `solution` is a ```` ```text ```` fence: it is
+  an answer to check against, not output attached to code on display.
 
 ### Interactive examples
 
@@ -218,7 +220,11 @@ while (x > 1) {
 ```
 
 :::solution
-`5 2 1 `: integer division truncates, so 10 → 5 → 2 → 1, and the loop stops when `x > 1` fails
+```text
+5 2 1
+```
+
+Integer division truncates, so 10 → 5 → 2 → 1, and the loop stops when `x > 1` fails
 with `x = 1`. The last value printed is the one that ends the loop.
 :::
 ::::
@@ -250,6 +256,8 @@ last pass by hand, and the off-by-one bugs go away.
 
 ## Change log
 
+- 2026-09-25: answers to "what does this print?" go in a `text` fence inside the solution; COMP 248
+  is the first course on this design (#133).
 - 2026-09-25: first version (#131): `syntax` block for the general form of a construct; `trace`,
   `algorithm` and `exercise` reused from theory with programming meanings; ```` ```output ````
   fences attach under their code; the code block after a sim collapses as *Show … code* in any

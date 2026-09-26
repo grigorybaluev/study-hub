@@ -22,9 +22,11 @@ a **reference** — the address of an object living elsewhere in memory — and 
 itself is created by `new`. Draw it: a box for the variable with an arrow to a separate
 box for the object. Every rule in this unit is a consequence of that picture.
 
-> **Definition.** `null` is the reference that points to no object. A field or array
-> element of class type starts as `null`; a local variable must be assigned before use.
-> Calling a method or reading a field through `null` throws a `NullPointerException`.
+:::definition
+`null` is the reference that points to no object. A field or array
+element of class type starts as `null`; a local variable must be assigned before use.
+Calling a method or reading a field through `null` throws a `NullPointerException`.
+:::
 
 ```java
 Student s = new Student("Ana", 1);   // s → Student#1
@@ -72,6 +74,21 @@ equal means by defining `equals`; `String` did this for you, which is why the
 strings unit told you to use it. A class without its own `equals` inherits one that
 behaves like `==`. When you write `equals`, first check for `null`, then compare the
 fields that define identity.
+
+:::syntax[An equals method]
+```java
+public boolean equals(<ClassName> other) {
+    return other != null
+        && <primitive field> == other.<primitive field>
+        && <object field>.equals(other.<object field>);
+}
+```
+
+- `other != null` comes first: `&&` short-circuits, so the field comparisons never run on
+  `null`.
+- Primitive fields compare with `==`; object fields (a `String` name) compare with their own
+  `equals`.
+:::
 
 ## Objects as parameters and results
 
@@ -125,6 +142,19 @@ object, which makes an alias). Loops over an array of objects look like loops ov
 with method calls instead of arithmetic, plus one extra guard: skip or stop at `null`
 when the array is partially filled.
 
+:::syntax[Array of objects]
+```java
+<ClassName>[] <name> = new <ClassName>[<length>];   // <length> references, all null
+<name>[<index>] = new <ClassName>(<arguments>);     // one object per slot
+<name>[<index>].<method>(<arguments>)
+```
+
+- Creating the array creates no objects; each slot needs its own `new` (or an existing
+  object, which makes an alias).
+- A call through an empty slot throws `NullPointerException`: guard with
+  `<name>[i] != null` when the array is partially filled.
+:::
+
 ```sim
 id: java-array-of-objects
 custom: true
@@ -166,15 +196,43 @@ The Variables panel's `#id` does this for you — two names with the same `#` ar
 object. The classic exam question hands you a program with aliasing and asks for the
 output; the drawing is the whole method.
 
-> **Key insight.** Objects live in one place and are reached through references;
-> assignment, parameters, return values and array slots all copy the reference. So
-> changes through one name show up under every alias, `==` compares arrows while `equals`
-> compares contents, and an array of objects starts as an array of `null`s.
+::::exercise[What does this print?]
+```java
+Point a = new Point(1, 1);
+Point b = a;
+Point[] ps = {a, new Point(1, 1), b};
+ps[2].x = 5;
+ps[1] = ps[0];
+ps[1].y = 7;
+System.out.println(a.x + "," + a.y + " " + (ps[0] == ps[2])
+        + " " + ps[1].equals(new Point(5, 7)));
+```
 
-**Equations**
+Use the `Point` class of the example above, whose `equals` compares `x` and `y`.
 
+:::solution
+```text
+5,7 true true
+```
+
+Draw it. `a`, `b`, `ps[0]` and `ps[2]` all refer to one object; `ps[1]` starts as a second one.
+`ps[2].x = 5` changes the shared object. `ps[1] = ps[0]` repoints `ps[1]` to it too (the second
+point is now unreachable), and `ps[1].y = 7` changes the shared object again. So `a` is (5, 7);
+`ps[0] == ps[2]` is the same object; and `equals` compares contents with a new (5, 7).
+:::
+::::
+
+:::insight
+Objects live in one place and are reached through references;
+assignment, parameters, return values and array slots all copy the reference. So
+changes through one name show up under every alias, `==` compares arrows while `equals`
+compares contents, and an array of objects starts as an array of `null`s.
+:::
+
+:::equations
 - *Identity versus equality*: $p \texttt{ == } q$ iff $p$ and $q$ refer to the same object; $p\texttt{.equals}(q)$ is whatever the class defines, and should satisfy $p\texttt{.equals}(p)$, symmetry, and $p\texttt{.equals(null)} = \texttt{false}$.
 - *An array of objects of length $n$*: $n$ references, initially all `null`; the objects are allocated separately, one per `new`.
+:::
 
 ## Further reading
 

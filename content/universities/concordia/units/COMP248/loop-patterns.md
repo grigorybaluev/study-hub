@@ -31,6 +31,12 @@ for (int row = 1; row <= 3; row++) {
 }
 ```
 
+```output
+1	2	3	4
+2	4	6	8
+3	6	9	12
+```
+
 Anything that depends on the outer counter — the number of stars in a triangle's row,
 the starting column of the inner loop — becomes an inner-loop bound that is an expression
 rather than a constant.
@@ -136,21 +142,49 @@ note: 'Step through the digit loop and watch d, reversed and n — n is consumed
 
 ## Reading a loop you did not write
 
-The outline's third objective — describe the output of someone else's program — is
-mostly loops. The procedure: identify the loop variable and its start, stop and step;
-find the accumulator(s) and their initial values; run a trace table for two or three
-passes; then look for the two things that break the pattern, an `if` inside the body and
-a `break`. Nested loops: trace the inner loop fully for the first outer pass, then ask
-what changes on the second.
+Describing the output of someone else's program is mostly a matter of reading its loops.
 
-> **Key insight.** A loop is a pattern plus a stopping rule. Recognise the pattern —
-> accumulate, count, extreme, search — and the only decisions left are the initial value
-> and the bound; nesting just runs one pattern inside another.
+:::steps[Reading a loop you did not write]
+1. Identify the loop variable and its start, stop and step.
+2. Find the accumulators and their initial values.
+3. Run a trace table for two or three passes.
+4. Look for the two things that break the pattern: an `if` inside the body, and a `break`.
+5. For nested loops, trace the inner loop fully for the first outer pass, then ask what
+   changes on the second.
+:::
 
-**Equations**
+::::exercise[What does this print?]
+```java
+int total = 0;
+for (int i = 1; i <= 3; i++) {
+    for (int j = i; j <= 3; j++) {
+        total += j;
+    }
+    System.out.print(total + " ");
+}
+```
 
+:::solution
+```text
+6 11 14
+```
+
+The inner loop starts at the outer counter. For `i = 1` it adds 1 + 2 + 3 (total 6), for
+`i = 2` it adds 2 + 3 (11), and for `i = 3` just 3 (14). `total` is never reset, so each printed
+value includes the earlier rows.
+:::
+::::
+
+:::insight
+A loop is a pattern plus a stopping rule. Recognise the pattern —
+accumulate, count, extreme, search — and the only decisions left are the initial value
+and the bound; nesting just runs one pattern inside another.
+:::
+
+:::equations
 - *Cost of nesting*: a body inside `for (i < m)` inside `for (j < n)` runs $m \cdot n$ times; a triangular inner bound `j <= i` gives $\sum_{i=1}^{m} i = \frac{m(m+1)}{2}$ passes.
 - *Digit peeling*: for $n \ge 0$, the last decimal digit is $n \bmod 10$ and the rest is $\lfloor n / 10 \rfloor$; the reverse $r$ is built by $r \leftarrow 10r + d$.
+:::
 
 ## Further reading
 
