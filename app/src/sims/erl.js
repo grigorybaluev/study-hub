@@ -1,8 +1,8 @@
 /* ── Erlang-subset interpreter with processes and mailboxes (COMP 348) ─────────
    Pure core (no DOM): ERL.run(cfg) → { trace, out, error, results }.
    UI: ERL.mount(id, cfg) builds the stepper inside #sim-<id>.
-   cfg = { mode: 'shell' | 'processes' | 'shared', code?: module source, shell?: expressions for the
-   shell (each ended by a full stop), maxSteps? }. The language is the subset a first Erlang unit
+   cfg = { mode: 'shell' | 'shared', code?: module source, shell?: expressions for the shell (each
+   ended by a full stop), maxSteps? }. The language is the subset a first Erlang unit
    uses: integers of any size, floats, atoms, strings (lists of character codes), tuples, lists with
    [H|T], maps, records, funs; pattern matching in =, function clauses with guards, case, if,
    receive … after, list comprehensions; the lists, io, maps, erlang and timer functions it needs.
@@ -27,6 +27,14 @@
   class EMap { constructor(entries) { this.entries = entries; } }     // [[k, v]], kept in term order
   class Pid { constructor(n) { this.n = n; } }
   class Fun { constructor(clauses, env, name, arity, mod) { this.clauses = clauses; this.env = env; this.name = name; this.arity = arity; this.mod = mod; } }
+  // the variables a pattern mentions (for shadowing in fun heads and generators)
+  function patVars(p, out = new Set()) {
+    if (!p || typeof p !== 'object') return out;
+    if (p.k === 'var') { if (p.n !== '_') out.add(p.n); return out; }
+    if (p.k === 'map') { p.assoc.forEach(a => patVars(a.v, out)); return out; }
+    for (const [k, v] of Object.entries(p)) if (k !== 'v' && v && typeof v === 'object') { if (Array.isArray(v)) v.forEach(x => patVars(x, out)); else if (v.k) patVars(v, out); else if (k === 'fields') v.forEach(f => patVars(f.e, out)); }
+    return out;
+  }
   class TailCall { constructor(target, args) { this.target = target; this.args = args; } }
   class ErlError extends Error { constructor(kind, reason, msg) { super(msg || ''); this.kind = kind; this.reason = reason; } }
   const isInt = x => typeof x === 'bigint';
@@ -46,7 +54,7 @@
     if (a instanceof Atom) return a.n < b.n ? -1 : a.n > b.n ? 1 : 0;
     if (a instanceof Pid) return a.n - b.n;
     if (a instanceof Tuple) { if (a.items.length !== b.items.length) return a.items.length - b.items.length; for (let k = 0; k < a.items.length; k++) { const c = cmp(a.items[k], b.items[k]); if (c) return c; } return 0; }
-    if (a instanceof EMap) { if (a.entries.length !== b.entries.length) return a.entries.length - b.entries.length; for (let k = 0; k < a.entries.length; k++) { const c = cmp(a.entries[k][0], b.entries[k][0]) || cmp(a.entries[k][1], b.entries[k][1]); if (c) return c; } return 0; }
+    if (a instanceof EMap) { if (a.entries.length !== b.entries.length) return a.entries.length - b.entries.length; const x = a.entries.slice().sort((p, q) => cmp(p[0], q[0])), y = b.entries.slice().sort((p, q) => cmp(p[0], q[0])); for (let k = 0; k < x.length; k++) { const c = cmp(x[k][0], y[k][0]); if (c) return c; } for (let k = 0; k < x.length; k++) { const c = cmp(x[k][1], y[k][1]); if (c) return c; } return 0; }
     if (a instanceof Cons) { let x = a, y = b; while (x instanceof Cons && y instanceof Cons) { const c = cmp(x.h, y.h); if (c) return c; x = x.t; y = y.t; } if (x === NIL && y === NIL) return 0; if (x === NIL) return -1; if (y === NIL) return 1; return cmp(x, y); }
     return 0;
   }
@@ -159,6 +167,7 @@
     // like float_to_list(X, [short]): the shortest digits that read back, written in fixed or
     // scientific notation, whichever is shorter (fixed on a tie): 0.0025, 123456.0, 1.0e4, 3.0e10
     if (x === 0) return Object.is(x, -0) ? '-0.0' : '0.0';
+    if (!Number.isFinite(x)) return String(x);
     const m = /^(-?)(\d)(?:\.(\d+))?e([-+]\d+)$/.exec(x.toExponential());
     const sign = m[1], digits = m[2] + (m[3] || ''), exp = +m[4];
     const sci = sign + digits[0] + '.' + (digits.slice(1) || '0') + 'e' + exp;
@@ -256,15 +265,20 @@
   }
   const chars = l => { if (typeof l === 'string') return l; if (l instanceof Atom) return l.n; if (isNum(l)) return show(l); return toArr(l).map(c => (c instanceof Cons || c === NIL ? chars(c) : String.fromCodePoint(Number(c)))).join(''); };
   // io:format
+  // io:format's controls; a failure carries Eshell's reason (why) for the badarg it becomes
   function format(fmt, args) {
+    const bad = why => Object.assign(new Error(why), { why });
+    if (!(args === NIL || args instanceof Cons)) throw bad('argument 2: not a list');
     const a = toArr(args, 'io:format'); let k = 0, out = '';
-    const next = () => { if (k >= a.length) throw new ErlError('error', atom('format'), 'io:format: too few arguments'); return a[k++]; };
+    const next = () => { if (k >= a.length) throw bad('argument 1: wrong number of arguments'); return a[k++]; };
+    const isStr = x => x === NIL || x instanceof Atom || (x instanceof Cons && toArr(x).every(c => isInt(c) || c instanceof Cons || c === NIL));
     for (let i = 0; i < fmt.length; i++) {
       const c = fmt[i];
       if (c !== '~') { out += c; continue; }
       let j = i + 1, width = '', prec = '';
       while (/[0-9-]/.test(fmt[j])) width += fmt[j++];
       if (fmt[j] === '.') { j++; while (/[0-9]/.test(fmt[j])) prec += fmt[j++]; }
+      while (fmt[j] === 't' || fmt[j] === 'l') j++;          // Unicode and list modifiers: no effect here
       const d = fmt[j]; i = j;
       let s;
       switch (d) {
@@ -272,19 +286,19 @@
         case '~': s = '~'; break;
         case 'p': { const nl = out.lastIndexOf('\n'); s = pretty(next(), { col: out.length - nl }); break; }
         case 'w': s = show(next(), false); break;
-        case 's': s = chars(next()); break;
-        case 'b': s = next().toString(); break;
-        case 'f': { const x = Number(next()); s = x.toFixed(prec === '' ? 6 : +prec); break; }
-        case 'e': { const x = Number(next()); s = x.toExponential(prec === '' ? 5 : +prec - 1).replace(/e([-+])(\d)$/, 'e$10$2'); break; }
-        case 'c': s = String.fromCodePoint(Number(next())); break;
-        default: throw new ErlError('error', atom('format'), `io:format: unknown control ~${d}`);
+        case 's': { const x = next(); if (!isStr(x)) throw bad(`argument 2: element ${k} must be of type string`); s = chars(x); break; }
+        case 'b': { const x = next(); if (!isInt(x)) throw bad(`argument 2: element ${k} must be of type integer`); s = x.toString(); break; }
+        case 'f': case 'e': { const x = next(); if (typeof x !== 'number') throw bad(`argument 2: element ${k} must be of type float`); s = d === 'f' ? x.toFixed(prec === '' ? 6 : +prec) : x.toExponential(prec === '' ? 5 : +prec - 1); break; }
+        case 'c': { const x = next(); if (!isInt(x)) throw bad(`argument 2: element ${k} must be of type integer`); s = String.fromCodePoint(Number(x)); break; }
+        default: throw bad('argument 1: invalid format string');
       }
       if (width) { const w = Math.abs(+width); s = width.startsWith('-') ? s.padEnd(w) : s.padStart(w); }
       out += s;
     }
-    if (k < a.length) throw new ErlError('error', atom('format'), 'io:format: too many arguments');
+    if (k < a.length) throw bad('argument 1: wrong number of arguments');
     return out;
   }
+
 
   /* ════════════════════════════════════════════════════════════════
      2. Lexer and parser
@@ -293,6 +307,19 @@
   const OPS = ['->', '||', '<-', '<=', '=>', ':=', '=:=', '=/=', '==', '/=', '=<', '>=', '++', '--', '::', '!', '#', '.', ',', ';', '(', ')', '[', ']', '{', '}', '|', '+', '-', '*', '/', '<', '>', '=', ':', '?'];
   class SyntaxErr extends Error { constructor(msg, line, col) { super(msg); this.line = line; this.col = col; } }
   const tokText = p => (p.k === 'eof' ? "'.'" : p.k === 'str' ? '"' + p.v + '"' : p.k === 'op' || p.k === 'kw' ? "'" + p.v + "'" : p.k === 'atom' ? atomText(atom(p.v)) : String(p.v));
+  // an escape sequence after a backslash at src[j]: returns [the character, its length]
+  function escapeAt(src, j) {
+    const e = src[j + 1];
+    if (e === undefined) throw new SyntaxErr('unterminated escape sequence', 0);
+    const simple = { n: '\n', t: '\t', r: '\r', b: '\b', f: '\f', v: '\v', e: '\x1b', s: ' ', d: '\x7f' };
+    if (e in simple) return [simple[e], 2];
+    let m;
+    if ((m = /^[0-7]{1,3}/.exec(src.slice(j + 1)))) return [String.fromCodePoint(parseInt(m[0], 8)), 1 + m[0].length];
+    if ((m = /^x\{([0-9a-fA-F]+)\}/.exec(src.slice(j + 1)))) return [String.fromCodePoint(parseInt(m[1], 16)), 1 + m[0].length];
+    if ((m = /^x([0-9a-fA-F]{2})/.exec(src.slice(j + 1)))) return [String.fromCodePoint(parseInt(m[1], 16)), 1 + m[0].length];
+    if (e === '^' && src[j + 2]) return [String.fromCharCode(src[j + 2].charCodeAt(0) & 31), 3];
+    return [e, 2];
+  }
   function lex(src, lineBase = 0) {
     const toks = []; let i = 0, line = 1 + lineBase, lineStart = 0;
     const push = t => { t.col = i - lineStart + 1; toks.push(t); };
@@ -311,10 +338,10 @@
         const t = m[0].replace(/_/g, '');
         push(m[1] ? { k: 'float', v: parseFloat(t), line } : { k: 'int', v: BigInt(t), line }); i += m[0].length; continue;
       }
-      if (c === '$') { let ch = src[i + 1], len = 2; if (ch === '\\') { const e = src[i + 2]; ch = { n: '\n', t: '\t', s: ' ', '\\': '\\' }[e] ?? e; len = 3; } push({ k: 'int', v: BigInt(ch.codePointAt(0)), line }); i += len; continue; }
+      if (c === '$') { if (i + 1 >= n) throw new SyntaxErr("syntax error before: '.'", line); let ch = src[i + 1], len = 2; if (ch === '\\') { const r = escapeAt(src, i + 1); ch = r[0]; len = 1 + r[1]; } push({ k: 'int', v: BigInt(ch.codePointAt(0)), line }); i += len; continue; }
       if (c === '"' || c === "'") {
         let j = i + 1, s = '';
-        while (j < n && src[j] !== c) { if (src[j] === '\\') { const e = src[j + 1]; s += { n: '\n', t: '\t', '"': '"', "'": "'", '\\': '\\', s: ' ' }[e] ?? e; j += 2; continue; } if (src[j] === '\n') line++; s += src[j++]; }
+        while (j < n && src[j] !== c) { if (src[j] === '\\') { const r = escapeAt(src, j); s += r[0]; j += r[1]; continue; } if (src[j] === '\n') line++; s += src[j++]; }
         if (j >= n) throw new SyntaxErr('unterminated ' + (c === '"' ? 'string' : 'atom'), line);
         if (c === "'") noteAtom(s); push({ k: c === '"' ? 'str' : 'atom', v: s, line }); i = j + 1; continue;
       }
@@ -481,15 +508,15 @@
             this.expect('end');
             return { k: 'fun', clauses: cs, fname, line };
           }
-          if (p.v === 'case') { const e = this.expr(); this.expect('of'); return { k: 'case', e, clauses: this.clauses('end'), line }; }
-          if (p.v === 'if') { const cs = []; do { const l2 = this.peek().line; const g = this.guard(); this.expect('->'); cs.push({ guard: g, body: this.body(), line: l2 }); } while (this.eat(';')); this.expect('end'); return { k: 'if', clauses: cs, line }; }
+          if (p.v === 'case') { const e = this.expr(); this.expect('of'); return { k: 'case', e, clauses: this.clauses('end'), line, col: p.col }; }
+          if (p.v === 'if') { const cs = []; do { const l2 = this.peek().line; const g = this.guard(); this.expect('->'); cs.push({ guard: g, body: this.body(), line: l2 }); } while (this.eat(';')); this.expect('end'); return { k: 'if', clauses: cs, line, col: p.col }; }
           if (p.v === 'receive') {
             let cs = [];
             if (!this.is('after')) cs = this.clauses(null);
             let after = null;
             if (this.eat('after')) { const t = this.expr(); this.expect('->'); after = { t, body: this.body() }; }
             this.expect('end');
-            return { k: 'receive', clauses: cs, after, line };
+            return { k: 'receive', clauses: cs, after, line, col: p.col };
           }
           if (p.v === 'begin') { const b = this.body(); this.expect('end'); return { k: 'block', body: b, line }; }
           if (p.v === 'try') {
@@ -498,16 +525,15 @@
             if (this.eat('catch')) {
               do {
                 const l2 = this.peek().line;
-                this.noRemote = true; let cls = null, pat;
-                try { pat = this.expr(); } finally { this.noRemote = false; }
-                if (this.eat(':')) { cls = pat; pat = this.expr(); }
+                this.noRemote = true; let cls = null, pat, stack = null;
+                try { pat = this.expr(); if (this.eat(':')) { cls = pat; pat = this.expr(); if (this.eat(':')) stack = this.expr(); } } finally { this.noRemote = false; }
                 const guard = this.eat('when') ? this.guard() : null; this.expect('->');
-                catches.push({ cls, pat, guard, body: this.body(), line: l2 });
+                catches.push({ cls, pat, stack, guard, body: this.body(), line: l2 });
               } while (this.eat(';'));
             }
             if (this.eat('after')) afterB = this.body();
             this.expect('end');
-            return { k: 'try', body: b, ofc, catches, after: afterB, line };
+            return { k: 'try', body: b, ofc, catches, after: afterB, line, col: p.col };
           }
       }
       throw new SyntaxErr(`syntax error before: ${tokText(p)}`, p.line, p.col);
@@ -516,30 +542,46 @@
 
   /* ── the compiler's check for unbound variables: Erlang rejects a use of a variable that no
      pattern before it binds, before running anything ── */
-  function firstUnbound(body, bound) {
+  function firstUnbound(body, bound, strict = false) {
     let err = null;
+    const cp = B => { const n = new Set(B); n.unsafe = new Map(B.unsafe || []); return n; };
+    const unsafe = (e, B) => (B.unsafe && B.unsafe.get(e.n)) || null;
+    // after clauses that may each bind variables: the ones every clause binds are bound; in a module,
+    // the others are unsafe (the compiler rejects a later use), in the shell they count as bound
+    const join = (B, results, where) => {
+      const added = results.map(A => [...A].filter(n => !B.has(n)));
+      const all = new Set(added.flat());
+      for (const n of all) {
+        if (!strict || added.every(xs => xs.includes(n))) B.add(n);
+        else { B.unsafe = B.unsafe || new Map(); B.unsafe.set(n, where); }
+      }
+    };
     const use = (e, B) => {
       if (err || !e || typeof e !== 'object') return;
       switch (e.k) {
-        case 'var': if (e.n !== '_' && !B.has(e.n)) err = e; return;
+        case 'var': if (e.n !== '_' && !B.has(e.n)) err = { n: e.n, line: e.line, col: e.col, unsafe: unsafe(e, B) }; return;
         case 'lit': case 'funref': case 'recindex': return;
         case 'match': use(e.e, B); pat(e.p, B); return;
-        case 'fun': e.clauses.forEach(c => { const B2 = new Set(B); if (e.fname) B2.add(e.fname); clause(c, B2); }); return;
+        case 'fun': e.clauses.forEach(c => { const B2 = cp(B); if (e.fname) B2.add(e.fname); clause(c, B2, true); }); return;
         case 'case': case 'receive': {
           if (e.e) use(e.e, B);
-          const added = e.clauses.map(c => clause(c, new Set(B)));
-          if (e.after) { use(e.after.t, B); seq(e.after.body, new Set(B)); }
-          added.forEach(A => A.forEach(n => B.add(n)));
+          const results = e.clauses.map(c => clause(c, cp(B)));
+          if (e.after) { use(e.after.t, B); const B2 = cp(B); seq(e.after.body, B2); results.push(B2); }
+          join(B, results, { kind: e.k, line: e.line, col: e.col });
           return;
         }
-        case 'if': e.clauses.map(c => { const B2 = new Set(B); c.guard.forEach(g => g.forEach(x => use(x, B2))); seq(c.body, B2); return B2; }).forEach(A => A.forEach(n => B.add(n))); return;
-        case 'lc': { const B2 = new Set(B); for (const q of e.quals) { if (q.filter) use(q.filter, B2); else { use(q.src, B2); pat(q.gen, B2); } } use(e.e, B2); return; }
+        case 'if': join(B, e.clauses.map(c => { const B2 = cp(B); c.guard.forEach(g => g.forEach(x => use(x, B2))); seq(c.body, B2); return B2; }), { kind: 'if', line: e.line, col: e.col }); return;
+        case 'lc': { const B2 = cp(B); for (const q of e.quals) { if (q.filter) use(q.filter, B2); else { use(q.src, B2); pat(q.gen, B2, true); } } use(e.e, B2); return; }
         case 'block': seq(e.body, B); return;
         case 'try': {
-          seq(e.body, B);
-          if (e.ofc) e.ofc.map(c => clause(c, new Set(B))).forEach(A => A.forEach(n => B.add(n)));
-          e.catches.forEach(c => { const B2 = new Set(B); if (c.cls) pat(c.cls, B2); pat(c.pat, B2); if (c.guard) c.guard.forEach(g => g.forEach(x => use(x, B2))); seq(c.body, B2); });
-          if (e.after) seq(e.after, B);
+          const where = { kind: 'try', line: e.line, col: e.col };
+          const B1 = cp(B); seq(e.body, B1);
+          const results = [B1];
+          if (e.ofc) e.ofc.forEach(c => results.push(clause(c, cp(B1))));
+          e.catches.forEach(c => { const B2 = cp(B); if (c.cls) pat(c.cls, B2); pat(c.pat, B2); if (c.stack) pat(c.stack, B2); if (c.guard) c.guard.forEach(g => g.forEach(x => use(x, B2))); seq(c.body, B2); results.push(B2); });
+          if (strict) { for (const A of results) for (const n of A) if (!B.has(n)) { B.unsafe = B.unsafe || new Map(); B.unsafe.set(n, where); } }
+          else join(B, results, where);
+          if (e.after) seq(e.after, cp(B));
           return;
         }
         case 'call': if (!(e.f.k === 'lit')) use(e.f, B); e.args.forEach(a => use(a, B)); return;
@@ -554,24 +596,29 @@
         case 'unop': case 'catch': use(e.a || e.e, B); return;
       }
     };
-    // a pattern binds its new variables; map keys and bound variables in it are uses
-    const pat = (p, B) => {
+    // a pattern binds its new variables; map keys and bound variables in it are uses. In a fun head or
+    // a generator (fresh) every variable is new; elsewhere an unsafe variable may not be matched
+    const pat = (p, B, fresh = false) => {
       if (err || !p) return;
       switch (p.k) {
-        case 'var': if (p.n !== '_') B.add(p.n); return;
-        case 'tuple': p.items.forEach(x => pat(x, B)); return;
-        case 'list': p.items.forEach(x => pat(x, B)); if (p.tail) pat(p.tail, B); return;
-        case 'map': p.assoc.forEach(a => { use(a.k, B); pat(a.v, B); }); return;
-        case 'record': p.fields.forEach(f => pat(f.e, B)); return;
-        case 'match': pat(p.p, B); pat(p.e, B); return;
-        case 'op': if (p.op === '++') { use(p.a, B); pat(p.b, B); } return;
+        case 'var':
+          if (p.n === '_') return;
+          if (!fresh && !B.has(p.n) && unsafe(p, B)) { err = { n: p.n, line: p.line, col: p.col, unsafe: unsafe(p, B) }; return; }
+          B.add(p.n); if (fresh && B.unsafe) B.unsafe.delete(p.n); return;
+        case 'tuple': p.items.forEach(x => pat(x, B, fresh)); return;
+        case 'list': p.items.forEach(x => pat(x, B, fresh)); if (p.tail) pat(p.tail, B, fresh); return;
+        case 'map': p.assoc.forEach(a => { use(a.k, B); pat(a.v, B, fresh); }); return;
+        case 'record': p.fields.forEach(f => pat(f.e, B, fresh)); return;
+        case 'match': pat(p.p, B, fresh); pat(p.e, B, fresh); return;
+        case 'op': if (p.op === '++') { use(p.a, B); pat(p.b, B, fresh); } return;
       }
     };
-    const clause = (c, B) => { c.pats.forEach(p => pat(p, B)); if (c.guard) c.guard.forEach(g => g.forEach(x => use(x, B))); seq(c.body, B); return B; };
+    const clause = (c, B, fresh = false) => { c.pats.forEach(p => pat(p, B, fresh)); if (c.guard) c.guard.forEach(g => g.forEach(x => use(x, B))); seq(c.body, B); return B; };
     const seq = (es, B) => es.forEach(x => use(x, B));
     seq(body, bound);
     return err;
   }
+
 
   /* ════════════════════════════════════════════════════════════════
      3. Evaluator (generators), processes and the scheduler
@@ -595,6 +642,7 @@
         try { p.value = yield* genFn(p); }
         catch (e) { if (e instanceof ErlError && e.reason !== atom('steplimit')) { p.exit = e; if (p.id !== self.mainPid && e.kind !== 'exit') self.emit(`=ERROR REPORT====\nError in process <0.${p.id}.0> with exit value:\n${fmtExit(e)}\n\n`); } else throw e; }
         p.done = true;
+        if (p.registered) { self.registry.delete(p.registered); p.registered = null; }
       })();
       this.procs.push(p);
       return p;
@@ -615,7 +663,7 @@
     }
     lookupFn(mod, name, arity, line) {
       const m = this.modules.get(mod);
-      if (!m) throw new ErlError('error', new Tuple([atom('undef')]), `undefined function ${mod}:${name}/${arity}`);
+      if (!m) throw new ErlError('error', atom('undef'), `undefined function ${mod}:${name}/${arity}`);
       const f = m.funcs.get(name + '/' + arity);
       if (!f) throw new ErlError('error', atom('undef'), `undefined function ${mod}:${name}/${arity}`);
       return f;
@@ -654,21 +702,32 @@
       let v = null;
       for (let k = 0; k < es.length; k++) {
         const e = es[k];
-        if (frame) frame.cur = e;
+        const fr = frame || proc.frames[proc.frames.length - 1];   // nested bodies (case, receive) belong to the enclosing frame
+        if (fr) fr.cur = e;
         yield* this.step('expr', e.line);
         v = yield* this.ev(e, vars, proc, tail && k === es.length - 1);
       }
       return v;
     }
+    *runBif(key, bif, args, proc, line) {
+      try { return yield* bif.call(this, args, proc, line); }
+      catch (e) {
+        if (e instanceof ErlError || (e instanceof RangeError && /call stack/i.test(e.message))) throw e;
+        const name = key.replace(/^erlang:/, '').replace(/\/\d+$/, '');
+        throw bifErr(badarg(), 'bad argument', name, args, null);
+      }
+    }
     *callFun(f, args, proc, line) {
       for (;;) {
-        if (f.native) return yield* f.native.call(this, args, proc, line);
+        if (f.native) return yield* this.runBif(`${f.mod}:${f.name}/${args.length}`, f.native, args, proc, line);
         if (f.arity !== undefined && f.arity !== args.length) throw new ErlError('error', new Tuple([atom('badarity'), new Tuple([f, list(args)])]), f.name ? `${show(f)} called with ${args.length} argument${args.length === 1 ? '' : 's'}` : `interpreted function with arity ${f.arity} called with ${['no arguments', 'one argument', 'two arguments'][args.length] || args.length + ' arguments'}`);
-        if (proc.frames.length > 250) throw new ErlError('error', atom('steplimit'), 'more than 250 nested calls that are not tail calls: this stepper stops there (Erlang itself would grow the stack)');
+        if (proc.frames.length > 250) throw new ErlError('error', atom('stepper_depth'), 'more than 250 nested calls that are not tail calls: the stepper stops here (Erlang itself would grow the stack)');
         let hit = null;
         for (const c of f.clauses) {
           if (c.pats.length !== args.length) continue;
+          // the head of a fun binds its own variables: they shadow the ones it closes over
           const vars = new Map(f.env || []);
+          if (f.env) c.pats.forEach(p => patVars(p).forEach(n => vars.delete(n)));
           if (c.pats.every((p, k) => this.match(p, args[k], vars)) && this.guardOk(c.guard, vars, proc)) { hit = { c, vars }; break; }
         }
         if (!hit) throw new ErlError('error', atom('function_clause'), `no function clause matching ${f.name ? (f.mod ? f.mod + ':' : '') + f.name : 'fun'}(${args.map(a => show(a)).join(',')})${f.name && f.mod && f.line ? ` (${f.mod}.erl:${f.line})` : ''}`);
@@ -681,7 +740,7 @@
         finally { proc.frames.pop(); }
         if (!(r instanceof TailCall)) return r;
         f = r.target; args = r.args;
-        if (f.mod) proc.mod = f.mod;
+        proc.mod = f.mod || null;
       }
     }
 
@@ -715,13 +774,17 @@
           for (const f of fields) { const given = e.fields.find(x => x.f === f.f); vals.push(given ? yield* this.ev(given.e, vars, proc) : f.def ? yield* this.ev(f.def, new Map(), proc) : UNDEF); }
           return new Tuple([atom(e.r), ...vals]);
         }
-        case 'recfield': { const t = yield* this.ev(e.e, vars, proc); const fields = this.records.get(e.r); const k = fields ? fields.findIndex(x => x.f === e.f) : -1; if (!(t instanceof Tuple) || t.items[0] !== atom(e.r) || k < 0) throw new ErlError('error', new Tuple([atom('badrecord'), t]), `bad record ${e.r}: ${show(t)}`); return t.items[k + 1]; }
-        case 'recupdate': { const t = yield* this.ev(e.e, vars, proc); const fields = this.records.get(e.r); if (!(t instanceof Tuple) || t.items[0] !== atom(e.r)) throw new ErlError('error', new Tuple([atom('badrecord'), t]), `bad record ${e.r}`); const items = t.items.slice(); for (const f of e.fields) items[fields.findIndex(x => x.f === f.f) + 1] = yield* this.ev(f.e, vars, proc); return new Tuple(items); }
-        case 'recindex': { const fields = this.records.get(e.r); return BigInt(fields.findIndex(x => x.f === e.f) + 2); }
+        case 'recfield': { const t = yield* this.ev(e.e, vars, proc); const fields = this.records.get(e.r); if (!fields) throw new ErlError('error', atom('undefined_record'), `record ${e.r} undefined`); const k = fields ? fields.findIndex(x => x.f === e.f) : -1; if (!(t instanceof Tuple) || t.items[0] !== atom(e.r) || k < 0) throw new ErlError('error', new Tuple([atom('badrecord'), t]), `bad record ${e.r}: ${show(t)}`); return t.items[k + 1]; }
+        case 'recupdate': { const t = yield* this.ev(e.e, vars, proc); const fields = this.records.get(e.r); if (!fields) throw new ErlError('error', atom('undefined_record'), `record ${e.r} undefined`); if (!(t instanceof Tuple) || t.items[0] !== atom(e.r)) throw new ErlError('error', new Tuple([atom('badrecord'), t]), `bad record ${e.r}`); const items = t.items.slice(); for (const f of e.fields) items[fields.findIndex(x => x.f === f.f) + 1] = yield* this.ev(f.e, vars, proc); return new Tuple(items); }
+        case 'recindex': { const fields = this.records.get(e.r); if (!fields) throw new ErlError('error', atom('undefined_record'), `record ${e.r} undefined`); return BigInt(fields.findIndex(x => x.f === e.f) + 2); }
         case 'fun': { const env = new Map(vars); const f = new Fun(e.clauses, env, null, e.clauses[0].pats.length, proc.mod); if (e.fname) env.set(e.fname, f); return f; }
-        case 'funref': { const mod = e.mod || proc.mod; const f = this.lookupFn(mod, e.name, e.arity, e.line); return f; }
+        case 'funref': {
+          const mod = e.mod || proc.mod, key = `${e.mod || 'erlang'}:${e.name}/${e.arity}`;
+          if ((e.mod || !(proc.mod && this.modules.get(proc.mod) && this.modules.get(proc.mod).funcs.has(e.name + '/' + e.arity))) && BIFS[key]) { const f = new Fun([], null, e.name, e.arity, e.mod || 'erlang'); f.native = BIFS[key]; return f; }
+          return this.lookupFn(mod, e.name, e.arity, e.line);
+        }
         case 'block': return yield* this.body(e.body, vars, proc, null, tail);
-        case 'catch': { try { return yield* this.ev(e.e, vars, proc); } catch (x) { if (!(x instanceof ErlError) || x.reason === atom('steplimit')) throw x; if (x.kind === 'throw') return x.reason; return new Tuple([atom('EXIT'), new Tuple([x.reason, NIL])]); } }
+        case 'catch': { try { return yield* this.ev(e.e, vars, proc); } catch (x) { if (!(x instanceof ErlError) || x.reason === atom('steplimit')) throw x; if (x.kind === 'throw') return x.reason; if (x.kind === 'exit') return new Tuple([atom('EXIT'), x.reason]); return new Tuple([atom('EXIT'), new Tuple([x.reason, NIL])]); } }
         case 'case': {
           const v = yield* this.ev(e.e, vars, proc);
           for (const c of e.clauses) { const trial = new Map(vars); if (this.match(c.pats[0], v, trial) && this.guardOk(c.guard, trial, proc)) { for (const [k, x] of trial) vars.set(k, x); return yield* this.body(c.body, vars, proc, null, tail); } }
@@ -735,7 +798,7 @@
             const q = e.quals[k];
             if (q.filter) { const v = yield* self.ev(q.filter, env, proc); if (v === TRUE) yield* walk(self, k + 1, env); return; }
             const src = toArr(yield* self.ev(q.src, env, proc), 'list comprehension');
-            for (const x of src) { const env2 = new Map(env); if (self.match(q.gen, x, env2)) yield* walk(self, k + 1, env2); }
+            for (const x of src) { const env2 = new Map(env); patVars(q.gen).forEach(n => env2.delete(n)); if (self.match(q.gen, x, env2)) yield* walk(self, k + 1, env2); }
           };
           yield* walk(this, 0, vars);
           return list(out);
@@ -753,42 +816,44 @@
         }
         case 'receive': return yield* this.receive(e, vars, proc, tail);
         case 'try': {
-          let v;
+          // the catch clauses guard the body only, not the of clauses; after runs in every case
           try {
-            v = yield* this.body(e.body, vars, proc);
-            if (e.ofc) { let hit = null; for (const c of e.ofc) { const trial = new Map(vars); if (this.match(c.pats[0], v, trial) && this.guardOk(c.guard, trial, proc)) { hit = [c, trial]; break; } } if (!hit) throw new ErlError('error', new Tuple([atom('try_clause'), v]), `no try clause matching ${show(v)}`); for (const [k, x] of hit[1]) vars.set(k, x); v = yield* this.body(hit[0].body, vars, proc); }
-            return v;
-          } catch (x) {
-            if (!(x instanceof ErlError) || x.reason === atom('steplimit')) throw x;
-            for (const c of e.catches) {
-              const cls = c.cls ? c.cls.v : atom('throw');
-              const clsName = cls instanceof Atom ? cls.n : '_';
-              if (c.cls && c.cls.k === 'var') { /* Class:Reason with a variable class */ } else if (clsName !== x.kind) continue;
-              const trial = new Map(vars);
-              if (c.cls && c.cls.k === 'var' && !this.match(c.cls, atom(x.kind), trial)) continue;
-              if (this.match(c.pat, x.reason, trial) && this.guardOk(c.guard, trial, proc)) { for (const [k, y] of trial) vars.set(k, y); return yield* this.body(c.body, vars, proc); }
+            let v, caught = null;
+            try { v = yield* this.body(e.body, vars, proc); }
+            catch (x) { if (!(x instanceof ErlError) || x.reason === atom('steplimit')) throw x; caught = x; }
+            if (caught) {
+              for (const c of e.catches) {
+                const trial = new Map(vars);
+                if (c.cls && c.cls.k === 'var') { if (!this.match(c.cls, atom(caught.kind), trial)) continue; }
+                else if ((c.cls ? c.cls.v.n : 'throw') !== caught.kind) continue;
+                if (c.stack && !this.match(c.stack, NIL, trial)) continue;
+                if (this.match(c.pat, caught.reason, trial) && this.guardOk(c.guard, trial, proc)) { for (const [k, y] of trial) vars.set(k, y); return yield* this.body(c.body, vars, proc); }
+              }
+              throw caught;
             }
-            throw x;
+            if (!e.ofc) return v;
+            for (const c of e.ofc) { const trial = new Map(vars); if (this.match(c.pats[0], v, trial) && this.guardOk(c.guard, trial, proc)) { for (const [k, x] of trial) vars.set(k, x); return yield* this.body(c.body, vars, proc); } }
+            throw new ErlError('error', new Tuple([atom('try_clause'), v]), `no try clause matching ${show(v)}`);
           } finally { if (e.after) yield* this.body(e.after, vars, proc); }
         }
         case 'unop': {
           const a = yield* this.ev(e.a, vars, proc);
-          if (e.op === 'not') { if (a !== TRUE && a !== FALSE) throw badarith(); return bool(a === FALSE); }
+          if (e.op === 'not') { if (a !== TRUE && a !== FALSE) throw new ErlError('error', badarg(), `bad argument\n     in operator  not/1\n        called as not ${show(a)}`); return bool(a === FALSE); }
           if (e.op === '-') { if (!isNum(a)) throw badarith(a, '-'); return -a; }
           if (e.op === '+') return a;
-          if (e.op === 'bnot') return ~a;
+          if (e.op === 'bnot') { if (!isInt(a)) throw badarith(a, 'bnot'); return ~a; }
           break;
         }
-        case 'op': return yield* this.binop(e, vars, proc);
+        case 'op': return yield* this.binop(e, vars, proc, tail);
         case 'remote': { const m = yield* this.ev(e.m, vars, proc), f = yield* this.ev(e.f, vars, proc); return { remote: true, m, f }; }
         case 'call': return yield* this.call(e, vars, proc, tail);
       }
       throw new ErlError('error', atom('internal'), 'cannot evaluate ' + e.k);
     }
-    *binop(e, vars, proc) {
+    *binop(e, vars, proc, tail = false) {
       const op = e.op;
-      if (op === 'andalso') { const a = yield* this.ev(e.a, vars, proc); if (a === FALSE) return FALSE; if (a !== TRUE) throw new ErlError('error', new Tuple([atom('badarg'), a]), `bad argument: ${show(a)}`); return yield* this.ev(e.b, vars, proc); }
-      if (op === 'orelse') { const a = yield* this.ev(e.a, vars, proc); if (a === TRUE) return TRUE; if (a !== FALSE) throw new ErlError('error', new Tuple([atom('badarg'), a]), `bad argument: ${show(a)}`); return yield* this.ev(e.b, vars, proc); }
+      if (op === 'andalso') { const a = yield* this.ev(e.a, vars, proc); if (a === FALSE) return FALSE; if (a !== TRUE) throw new ErlError('error', new Tuple([atom('badarg'), a]), `bad argument: ${show(a)}`); return yield* this.ev(e.b, vars, proc, tail); }
+      if (op === 'orelse') { const a = yield* this.ev(e.a, vars, proc); if (a === TRUE) return TRUE; if (a !== FALSE) throw new ErlError('error', new Tuple([atom('badarg'), a]), `bad argument: ${show(a)}`); return yield* this.ev(e.b, vars, proc, tail); }
       const a = yield* this.ev(e.a, vars, proc), b = yield* this.ev(e.b, vars, proc);
       switch (op) {
         case '+': case '-': case '*': {
@@ -798,7 +863,7 @@
         }
         case '/': { if (!isNum(a) || !isNum(b)) throw badarith(a, op, b); const r = Number(a) / Number(b); if (Number(b) === 0 || !Number.isFinite(r)) throw badarith(a, op, b); return r; }
         case 'div': case 'rem': { if (!isInt(a) || !isInt(b) || b === 0n) throw badarith(a, op, b); return op === 'div' ? a / b : a % b; }
-        case 'band': return a & b; case 'bor': return a | b; case 'bxor': return a ^ b; case 'bsl': return a << b; case 'bsr': return a >> b;
+        case 'band': case 'bor': case 'bxor': case 'bsl': case 'bsr': if (!isInt(a) || !isInt(b)) throw badarith(a, op, b); return op === 'band' ? a & b : op === 'bor' ? a | b : op === 'bxor' ? a ^ b : op === 'bsl' ? a << b : a >> b;
         case 'and': case 'or': case 'xor': { if ((a !== TRUE && a !== FALSE) || (b !== TRUE && b !== FALSE)) throw new ErlError('error', badarg(), 'bad argument'); const x = a === TRUE, y = b === TRUE; return bool(op === 'and' ? x && y : op === 'or' ? x || y : x !== y); }
         case '==': return bool(eqv(a, b, false)); case '/=': return bool(!eqv(a, b, false));
         case '=:=': return bool(eqv(a, b, true)); case '=/=': return bool(!eqv(a, b, true));
@@ -816,10 +881,10 @@
         for (const a of e.args) args.push(yield* this.ev(a, vars, proc));
         const key = m.n + ':' + f.n + '/' + args.length;
         const bif = BIFS[key] || BIFS[m.n + ':' + f.n + '/*'];
-        if (bif) return yield* bif.call(this, args, proc, e.line);
+        if (bif) return yield* this.runBif(key, bif, args, proc, e.line);
         target = this.lookupFn(m.n, f.n, args.length, e.line);
         const mod = this.modules.get(m.n);
-        if (mod && !mod.exports.has(f.n + '/' + args.length) && m.n !== proc.mod) throw new ErlError('error', atom('undef'), `undefined function ${m.n}:${f.n}/${args.length}`);
+        if (mod && !mod.exports.has(f.n + '/' + args.length)) throw new ErlError('error', atom('undef'), `undefined function ${m.n}:${f.n}/${args.length}`);
       } else if (e.f.k === 'lit' && e.f.v instanceof Atom) {
         for (const a of e.args) args.push(yield* this.ev(a, vars, proc));
         const name = e.f.v.n;
@@ -827,8 +892,8 @@
         if (!proc.mod && name === 'flush' && !args.length) { for (const m of proc.mailbox.splice(0)) this.emit(`Shell got ${show(m.msg)}\n`); return OK; }
         const local = proc.mod && this.modules.get(proc.mod) && this.modules.get(proc.mod).funcs.get(name + '/' + args.length);
         if (local) target = local;
-        else if (this.imports && this.imports.has(name + '/' + args.length)) { const m = this.imports.get(name + '/' + args.length); const b2 = BIFS[m + ':' + name + '/' + args.length]; if (b2) return yield* b2.call(this, args, proc, e.line); target = this.lookupFn(m, name, args.length, e.line); }
-        else if (bif) return yield* bif.call(this, args, proc, e.line);
+        else if (this.imports && this.imports.has(name + '/' + args.length)) { const m = this.imports.get(name + '/' + args.length); const b2 = BIFS[m + ':' + name + '/' + args.length]; if (b2) return yield* this.runBif(m + ':' + name + '/' + args.length, b2, args, proc, e.line); target = this.lookupFn(m, name, args.length, e.line); }
+        else if (bif) return yield* this.runBif('erlang:' + name + '/' + args.length, bif, args, proc, e.line);
         else throw new ErlError('error', atom('undef'), proc.mod ? `undefined function ${name}/${args.length}` : `undefined shell command ${name}/${args.length}`);
       } else {
         target = yield* this.ev(e.f, vars, proc);
@@ -838,7 +903,7 @@
       yield* this.step('call', e.line);
       if (tail) return new TailCall(target, args);
       const prevMod = proc.mod;
-      if (target.mod) proc.mod = target.mod;
+      proc.mod = target.mod || null;
       try { return yield* this.callFun(target, args, proc, e.line); }
       finally { proc.mod = prevMod; }
     }
@@ -871,54 +936,100 @@
   // Eshell explains a failed operator: the operator and the values it was called with
 const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error occurred when evaluating an arithmetic expression' + (op === undefined ? '' : `\n     in operator  ${op === '/' ? "'/'" : op}/${b === undefined ? 1 : 2}\n        called as ${b === undefined ? op + ' ' + show(a) : show(a) + ' ' + op + ' ' + show(b)}`));
   const short = s => (s.length > 60 ? s.slice(0, 57) + '...' : s);
-  // the exit value of a crashed process: the reason and (the innermost frame of) the stack
+  // the exit value of a crashed process: the reason and (the innermost frame of) the stack, laid
+  // out as the logger lays it out (like ~p: 80 columns)
   function fmtExit(e) {
-    const w = e.where, stack = w ? `[{${atomText(atom(w.mod))},${atomText(atom(w.name))},${w.arity},[{file,"${w.mod}.erl"},{line,${w.line}}]}]` : '[]';
-    return `{${e.kind === 'throw' ? `{nocatch,${show(e.reason)}}` : show(e.reason)},${stack}}`;
+    const w = e.where;
+    const stack = w ? list([new Tuple([atom(w.mod), atom(w.name), BigInt(w.arity), list([new Tuple([atom('file'), str(w.mod + '.erl')]), new Tuple([atom('line'), BigInt(w.line)])])])]) : NIL;
+    return pretty(new Tuple([e.kind === 'throw' ? new Tuple([atom('nocatch'), e.reason]) : e.reason, stack]));
   }
 
   /* ════════════════════════════════════════════════════════════════
      4. Built-in functions (the parts of erlang, io, lists, maps, timer the course uses)
      ════════════════════════════════════════════════════════════════ */
-  function* callF(I, f, args, proc, line) { if (!(f instanceof Fun)) throw new ErlError('error', new Tuple([atom('badfun'), f]), `bad function ${show(f)}`); const prev = proc.mod; if (f.mod) proc.mod = f.mod; try { return yield* I.callFun(f, args, proc, line); } finally { proc.mod = prev; } }
+  function* callF(I, f, args, proc, line) { if (!(f instanceof Fun)) throw new ErlError('error', new Tuple([atom('badfun'), f]), `bad function ${show(f)}`); const prev = proc.mod; if (!f.native) proc.mod = f.mod || null; try { return yield* I.callFun(f, args, proc, line); } finally { proc.mod = prev; } }
   // a failed built-in, explained the way Eshell does: which function, called with what, and why
   const bifErr = (reason, text, mfa, args, why) => new ErlError('error', reason, `${text}\n     in function  ${mfa}/${args.length}\n        called as ${mfa}(${args.map(a => show(a)).join(',')})${why ? '\n        *** ' + why : ''}`);
+  // Eshell's wording for the standard error reasons
+  function reasonMsg(r) {
+    if (r === atom('badarg')) return 'bad argument';
+    if (r === atom('badarith')) return 'an error occurred when evaluating an arithmetic expression';
+    if (r === atom('if_clause')) return 'no true branch found when evaluating an if expression';
+    if (r instanceof Tuple && r.items.length === 2 && r.items[0] instanceof Atom) {
+      const v = show(r.items[1]);
+      switch (r.items[0].n) {
+        case 'badmatch': return 'no match of right hand side value ' + v;
+        case 'case_clause': return 'no case clause matching ' + v;
+        case 'try_clause': return 'no try clause matching ' + v;
+        case 'badkey': return 'bad key: ' + v;
+        case 'badmap': return 'bad map: ' + v;
+        case 'badfun': return 'bad function ' + v;
+      }
+    }
+    return show(r);
+  }
+  // a BIF's argument check, with Eshell's explanation of the failure
+  const noClause = (name, args) => new ErlError('error', atom('function_clause'), `no function clause matching ${name}(${args.map(x => show(x)).join(',')})`);
+  function need(x, ok, name, args, why, k = 1) { if (!ok(x)) throw bifErr(badarg(), 'bad argument', name, args, `argument ${k}: ${why}`); return x; }
+  function fmtOrBad(name, a, shown = a) {
+    try { if (!(a[0] instanceof Atom || a[0] === NIL || a[0] instanceof Cons)) throw Object.assign(new Error(''), { why: 'argument 1: not a valid format string' }); return format(chars(a[0]), a[1]); }
+    catch (e) { if (e.why) throw bifErr(badarg(), 'bad argument', name, shown, e.why); throw e; }
+  }
   const BIFS = {
-    'io:format/1': function* (a) { this.emit(format(chars(a[0]), NIL)); return OK; },
-    'io:format/2': function* (a) { let t; try { t = format(chars(a[0]), a[1]); } catch (e) { throw bifErr(badarg(), 'bad argument', 'io:format', a, 'argument 1: wrong number of arguments'); } this.emit(t); return OK; },
-    'io:fwrite/1': function* (a) { this.emit(format(chars(a[0]), NIL)); return OK; },
-    'io:fwrite/2': function* (a) { this.emit(format(chars(a[0]), a[1])); return OK; },
+    'io:format/1': function* (a) { this.emit(fmtOrBad('io:format', [a[0], NIL], a)); return OK; },
+    'io:format/2': function* (a) { this.emit(fmtOrBad('io:format', a)); return OK; },
+    'io:fwrite/1': function* (a) { this.emit(fmtOrBad('io:fwrite', [a[0], NIL], a)); return OK; },
+    'io:fwrite/2': function* (a) { this.emit(fmtOrBad('io:fwrite', a)); return OK; },
     'io:put_chars/1': function* (a) { this.emit(chars(a[0])); return OK; },
-    'io_lib:format/2': function* (a) { return str(format(chars(a[0]), a[1])); },
+    'io_lib:format/2': function* (a) { return str(fmtOrBad('io_lib:format', a)); },
     'erlang:self/0': function* (a, proc) { return proc.pid; },
     'erlang:spawn/1': function* (a, proc, line) { const f = a[0]; const I = this; const p = this.spawn(function* (pp) { return yield* callF(I, f, [], pp, line); }, 'spawned'); yield* this.step('spawn', line); return p.pid; },
-    'erlang:spawn/3': function* (a, proc, line) { const [m, f, args] = a; const I = this; const argv = toArr(args); const fn = this.lookupFn(m.n, f.n, argv.length, line); const p = this.spawn(function* (pp) { pp.mod = m.n; return yield* I.callFun(fn, argv, pp, line); }, `${m.n}:${f.n}`); yield* this.step('spawn', line); return p.pid; },
-    'erlang:register/2': function* (a) { const [n, pid] = a; if (this.registry.has(n.n)) throw new ErlError('error', badarg(), `bad argument: ${n.n} is already registered`); const p = this.procs.find(x => x.id === pid.n); this.registry.set(n.n, p); p.registered = n.n; return TRUE; },
-    'erlang:unregister/1': function* (a) { const p = this.registry.get(a[0].n); if (p) p.registered = null; this.registry.delete(a[0].n); return TRUE; },
+    'erlang:spawn/3': function* (a, proc, line) {
+      const [m, f, args] = a; const I = this;
+      need(m, x => x instanceof Atom, 'spawn', a, 'not an atom'); need(f, x => x instanceof Atom, 'spawn', a, 'not an atom', 2);
+      const argv = toArr(args);
+      const p = this.spawn(function* (pp) {
+        const mod = I.modules.get(m.n);
+        if (!mod || !mod.exports.has(f.n + '/' + argv.length)) throw new ErlError('error', atom('undef'), `undefined function ${m.n}:${f.n}/${argv.length}`);
+        pp.mod = m.n; return yield* I.callFun(I.lookupFn(m.n, f.n, argv.length, line), argv, pp, line);
+      }, `${m.n}:${f.n}`);
+      yield* this.step('spawn', line); return p.pid;
+    },
+    'erlang:register/2': function* (a) {
+      const [n, pid] = a;
+      need(n, x => x instanceof Atom && x !== UNDEF, 'register', a, 'not an atom');
+      need(pid, x => x instanceof Pid, 'register', a, 'not a pid or port', 2);
+      const p = this.procs.find(x => x.id === pid.n);
+      need(p, x => x && !x.done, 'register', a, 'the pid does not refer to an existing process', 2);
+      need(p, x => !x.registered, 'register', a, 'this process or port already has a name', 2);
+      need(n, x => !this.registry.has(x.n), 'register', a, 'name is in use');
+      this.registry.set(n.n, p); p.registered = n.n; return TRUE;
+    },
+    'erlang:unregister/1': function* (a) { need(a[0], x => x instanceof Atom && this.registry.has(x.n), 'unregister', a, 'not a pid'); const p = this.registry.get(a[0].n); p.registered = null; this.registry.delete(a[0].n); return TRUE; },
     'erlang:whereis/1': function* (a) { const p = this.registry.get(a[0].n); return p && !p.done ? p.pid : UNDEF; },
     'erlang:registered/0': function* () { return list([...this.registry.keys()].map(atom)); },
     'erlang:is_process_alive/1': function* (a) { const p = this.procs.find(x => x.id === a[0].n); return bool(p && !p.done); },
     'timer:sleep/1': function* (a, proc) { proc.sleepUntil = this.clock + Number(a[0]); while (this.clock < proc.sleepUntil) yield { kind: 'block' }; return OK; },
-    'erlang:length/1': function* (a) { return BigInt(toArr(a[0], 'length').length); },
-    'erlang:hd/1': function* (a) { if (!(a[0] instanceof Cons)) throw new ErlError('error', badarg(), 'bad argument: hd([])'); return a[0].h; },
-    'erlang:tl/1': function* (a) { if (!(a[0] instanceof Cons)) throw new ErlError('error', badarg(), 'bad argument: tl([])'); return a[0].t; },
-    'erlang:element/2': function* (a) { const t = a[1], i = Number(a[0]); if (!(t instanceof Tuple) || i < 1 || i > t.items.length) throw new ErlError('error', badarg(), 'bad argument'); return t.items[i - 1]; },
-    'erlang:setelement/3': function* (a) { const items = a[1].items.slice(); items[Number(a[0]) - 1] = a[2]; return new Tuple(items); },
-    'erlang:tuple_size/1': function* (a) { return BigInt(a[0].items.length); }, 'erlang:size/1': function* (a) { return BigInt(a[0].items.length); },
+    'erlang:length/1': function* (a) { need(a[0], x => x === NIL || x instanceof Cons, 'length', a, 'not a list'); return BigInt(toArr(a[0], 'length').length); },
+    'erlang:hd/1': function* (a) { need(a[0], x => x instanceof Cons, 'hd', a, 'not a nonempty list'); return a[0].h; },
+    'erlang:tl/1': function* (a) { need(a[0], x => x instanceof Cons, 'tl', a, 'not a nonempty list'); return a[0].t; },
+    'erlang:element/2': function* (a) { need(a[0], isInt, 'element', a, 'not an integer'); need(a[1], x => x instanceof Tuple, 'element', a, 'not a tuple', 2); const i = Number(a[0]); need(i, x => x >= 1 && x <= a[1].items.length, 'element', a, 'out of range'); return a[1].items[i - 1]; },
+    'erlang:setelement/3': function* (a) { need(a[0], isInt, 'setelement', a, 'not an integer'); need(a[1], x => x instanceof Tuple, 'setelement', a, 'not a tuple', 2); const i = Number(a[0]); need(i, x => x >= 1 && x <= a[1].items.length, 'setelement', a, 'out of range'); const items = a[1].items.slice(); items[i - 1] = a[2]; return new Tuple(items); },
+    'erlang:tuple_size/1': function* (a) { need(a[0], x => x instanceof Tuple, 'tuple_size', a, 'not a tuple'); return BigInt(a[0].items.length); }, 'erlang:size/1': function* (a) { need(a[0], x => x instanceof Tuple, 'size', a, 'not a tuple or binary'); return BigInt(a[0].items.length); },
     'erlang:tuple_to_list/1': function* (a) { return list(a[0].items); }, 'erlang:list_to_tuple/1': function* (a) { return new Tuple(toArr(a[0])); },
-    'erlang:abs/1': function* (a) { return isInt(a[0]) ? (a[0] < 0n ? -a[0] : a[0]) : Math.abs(a[0]); },
+    'erlang:abs/1': function* (a) { need(a[0], isNum, 'abs', a, 'not a number'); return isInt(a[0]) ? (a[0] < 0n ? -a[0] : a[0]) : Math.abs(a[0]); },
     'erlang:max/2': function* (a) { return cmp(a[0], a[1]) >= 0 ? a[0] : a[1]; }, 'erlang:min/2': function* (a) { return cmp(a[0], a[1]) <= 0 ? a[0] : a[1]; },
-    'erlang:round/1': function* (a) { return BigInt(Math.round(Number(a[0]))); }, 'erlang:trunc/1': function* (a) { return BigInt(Math.trunc(Number(a[0]))); },
+    'erlang:round/1': function* (a) { const x = a[0]; if (isInt(x)) return x; need(x, isNum, 'round', a, 'not a number'); return BigInt(x < 0 ? -Math.round(-x) : Math.round(x)); }, 'erlang:trunc/1': function* (a) { const x = a[0]; if (isInt(x)) return x; need(x, isNum, 'trunc', a, 'not a number'); return BigInt(Math.trunc(x)); },
     'erlang:float/1': function* (a) { return Number(a[0]); },
-    'erlang:integer_to_list/1': function* (a) { return str(a[0].toString()); }, 'erlang:list_to_integer/1': function* (a) { const s = chars(a[0]); if (!/^[-+]?\d+$/.test(s)) throw new ErlError('error', badarg(), 'bad argument'); return BigInt(s); },
-    'erlang:atom_to_list/1': function* (a) { return str(a[0].n); }, 'erlang:list_to_atom/1': function* (a) { const n = chars(a[0]); noteAtom(n); return atom(n); },
+    'erlang:integer_to_list/1': function* (a) { need(a[0], isInt, 'integer_to_list', a, 'not an integer'); return str(a[0].toString()); }, 'erlang:list_to_integer/1': function* (a) { const s = chars(a[0]); if (!/^[-+]?\d+$/.test(s)) throw new ErlError('error', badarg(), 'bad argument'); return BigInt(s); },
+    'erlang:atom_to_list/1': function* (a) { need(a[0], x => x instanceof Atom, 'atom_to_list', a, 'not an atom'); return str(a[0].n); }, 'erlang:list_to_atom/1': function* (a) { need(a[0], x => x === NIL || x instanceof Cons, 'list_to_atom', a, 'not a list'); const n = chars(a[0]); noteAtom(n); return atom(n); },
     'erlang:float_to_list/1': function* (a) { return str(Number(a[0]).toExponential(20).replace(/e([-+])(\d)$/, 'e$10$2')); },
     'erlang:is_atom/1': function* (a) { return bool(a[0] instanceof Atom); }, 'erlang:is_integer/1': function* (a) { return bool(isInt(a[0])); }, 'erlang:is_float/1': function* (a) { return bool(typeof a[0] === 'number'); },
     'erlang:is_number/1': function* (a) { return bool(isNum(a[0])); }, 'erlang:is_list/1': function* (a) { return bool(a[0] instanceof Cons || a[0] === NIL); }, 'erlang:is_tuple/1': function* (a) { return bool(a[0] instanceof Tuple); },
     'erlang:is_map/1': function* (a) { return bool(a[0] instanceof EMap); }, 'erlang:is_pid/1': function* (a) { return bool(a[0] instanceof Pid); }, 'erlang:is_function/1': function* (a) { return bool(a[0] instanceof Fun); },
     'erlang:is_boolean/1': function* (a) { return bool(a[0] === TRUE || a[0] === FALSE); },
     'erlang:throw/1': function* (a) { throw new ErlError('throw', a[0], show(a[0])); },
-    'erlang:error/1': function* (a) { throw new ErlError('error', a[0], show(a[0])); },
+    'erlang:error/1': function* (a) { throw new ErlError('error', a[0], reasonMsg(a[0])); },
     'erlang:exit/1': function* (a) { throw new ErlError('exit', a[0], show(a[0])); },
     'erlang:node/0': function* () { return atom('nonode@nohost'); },
     'lists:map/2': function* (a, proc, line) { const out = []; for (const x of toArr(a[1], 'lists:map')) out.push(yield* callF(this, a[0], [x], proc, line)); return list(out); },
@@ -929,17 +1040,17 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
     'lists:reverse/1': function* (a) { return list(toArr(a[0]).reverse()); },
     'lists:sort/1': function* (a) { return list(toArr(a[0]).map((x, i) => [x, i]).sort((p, q) => cmp(p[0], q[0]) || p[1] - q[1]).map(p => p[0])); },
     'lists:sort/2': function* (a, proc, line) { const xs = toArr(a[1]); const out = []; for (const x of xs) { let k = out.length; while (k > 0 && (yield* callF(this, a[0], [out[k - 1], x], proc, line)) === FALSE) k--; out.splice(k, 0, x); } return list(out); },
-    'lists:seq/2': function* (a) { const out = []; for (let k = a[0]; k <= a[1]; k++) out.push(k); return list(out); },
+    'lists:seq/2': function* (a) { if (!isInt(a[0]) || !isInt(a[1]) || a[1] < a[0] - 1n) throw noClause('lists:seq', a); const out = []; for (let k = a[0]; k <= a[1]; k++) out.push(k); return list(out); },
     'lists:seq/3': function* (a) { const out = []; for (let k = a[0]; a[2] > 0n ? k <= a[1] : k >= a[1]; k += a[2]) out.push(k); return list(out); },
-    'lists:sum/1': function* (a) { return toArr(a[0]).reduce((s, x) => (isInt(s) && isInt(x) ? s + x : Number(s) + Number(x)), 0n); },
-    'lists:max/1': function* (a) { return toArr(a[0]).reduce((m, x) => (cmp(x, m) > 0 ? x : m)); }, 'lists:min/1': function* (a) { return toArr(a[0]).reduce((m, x) => (cmp(x, m) < 0 ? x : m)); },
+    'lists:sum/1': function* (a) { return toArr(a[0]).reduce((s, x) => { if (!isNum(x)) throw badarith(s, '+', x); return isInt(s) && isInt(x) ? s + x : Number(s) + Number(x); }, 0n); },
+    'lists:max/1': function* (a) { if (a[0] === NIL) throw noClause('lists:max', a); return toArr(a[0]).reduce((m, x) => (cmp(x, m) > 0 ? x : m)); }, 'lists:min/1': function* (a) { if (a[0] === NIL) throw noClause('lists:min', a); return toArr(a[0]).reduce((m, x) => (cmp(x, m) < 0 ? x : m)); },
     'lists:nth/2': function* (a) { const xs = toArr(a[1]); const i = Number(a[0]); if (i < 1 || i > xs.length) throw new ErlError('error', atom('function_clause'), 'no function clause matching lists:nth'); return xs[i - 1]; },
     'lists:last/1': function* (a) { const xs = toArr(a[0]); return xs[xs.length - 1]; },
     'lists:append/1': function* (a) { return list([].concat(...toArr(a[0]).map(x => toArr(x)))); }, 'lists:append/2': function* (a) { return list(toArr(a[0]).concat(toArr(a[1]))); },
     'lists:member/2': function* (a) { return bool(toArr(a[1]).some(x => eqv(x, a[0], true))); },
     'lists:delete/2': function* (a) { const xs = toArr(a[1]); const k = xs.findIndex(x => eqv(x, a[0], true)); if (k >= 0) xs.splice(k, 1); return list(xs); },
     'lists:split/2': function* (a) { const xs = toArr(a[1]); const n = Number(a[0]); return new Tuple([list(xs.slice(0, n)), list(xs.slice(n))]); },
-    'lists:zip/2': function* (a) { const xs = toArr(a[0]), ys = toArr(a[1]); return list(xs.map((x, k) => new Tuple([x, ys[k]]))); },
+    'lists:zip/2': function* (a) { const xs = toArr(a[0]), ys = toArr(a[1]); if (xs.length !== ys.length) throw noClause('lists:zip', a); return list(xs.map((x, k) => new Tuple([x, ys[k]]))); },
     'lists:flatten/1': function* (a) { const out = []; const walk = l => { for (const x of toArr(l)) { if (x instanceof Cons || x === NIL) walk(x); else out.push(x); } }; walk(a[0]); return list(out); },
     'lists:keyfind/3': function* (a) { const k = Number(a[1]); const hit = toArr(a[2]).find(t => t instanceof Tuple && eqv(t.items[k - 1], a[0], false)); return hit || FALSE; },
     'lists:duplicate/2': function* (a) { return list(Array(Number(a[0])).fill(a[1])); },
@@ -947,7 +1058,7 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
     'lists:any/2': function* (a, proc, line) { for (const x of toArr(a[1])) if ((yield* callF(this, a[0], [x], proc, line)) === TRUE) return TRUE; return FALSE; },
     'maps:get/2': function* (a) { if (!(a[1] instanceof EMap)) throw bifErr(new Tuple([atom('badmap'), a[1]]), `bad map: ${show(a[1])}`, 'maps:get', a, 'argument 2: not a map'); const v = mapGet(a[1], a[0]); if (v === undefined) throw bifErr(new Tuple([atom('badkey'), a[0]]), `bad key: ${show(a[0])}`, 'maps:get', a, 'argument 1: not present in map'); return v; },
     'maps:get/3': function* (a) { const v = mapGet(a[1], a[0]); return v === undefined ? a[2] : v; },
-    'maps:put/3': function* (a) { return mapPut(a[2], a[0], a[1]); },
+    'maps:put/3': function* (a) { if (!(a[2] instanceof EMap)) throw bifErr(new Tuple([atom('badmap'), a[2]]), `bad map: ${show(a[2])}`, 'maps:put', a, 'argument 3: not a map'); return mapPut(a[2], a[0], a[1]); },
     'maps:remove/2': function* (a) { return new EMap(a[1].entries.filter(([k]) => !eqv(k, a[0], true))); },
     'maps:find/2': function* (a) { const v = mapGet(a[1], a[0]); return v === undefined ? atom('error') : new Tuple([OK, v]); },
     'maps:is_key/2': function* (a) { return bool(mapGet(a[1], a[0]) !== undefined); },
@@ -974,8 +1085,8 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
     };
     for (const f of forms) {
       if (f.k === 'func') for (const c of f.clauses) {
-        const u = firstUnbound([{ k: 'fun', clauses: [c] }], new Set());
-        if (u) errs.push({ line: u.line, col: u.col, msg: `variable '${u.n}' is unbound` });
+        const u = firstUnbound([{ k: 'fun', clauses: [c] }], new Set(), true);
+        if (u) errs.push({ line: u.line, col: u.col, msg: u.unsafe ? `variable '${u.n}' unsafe in '${u.unsafe.kind}' (line ${u.unsafe.line}, column ${u.unsafe.col})` : `variable '${u.n}' is unbound` });
         walk(c);
       }
       if (f.k === 'attr' && f.name === 'export') for (const x of f.val.fs) if (!mod.funcs.has(x)) errs.push({ line: f.line, col: 2, msg: `function ${x} undefined` });
@@ -1012,6 +1123,7 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
         I.mainMod = mod.name;
       }
     } catch (e) {
+      if (!(e instanceof SyntaxErr)) e = new SyntaxErr('syntax error', 1, 1);
       if (e instanceof SyntaxErr) { const name = (/-module\((\w+)\)/.exec(code) || [, 'module'])[1]; return { trace: [], out: '', error: { kind: 'compile', message: `${name}.erl:${e.line}:${e.col || 1}: ${e.message}`, line: e.line, where: 'code' }, results: [] }; }
       throw e;
     }
@@ -1022,13 +1134,22 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
         const toks = lex(ch.text, base + ch.line - 1);
         const first = toks[0].line;
         try { const f = new Parser(toks, I.records).shellForms(); return { body: f.length ? f[0].body : [], line: f.length ? f[0].line : first, first, src: ch.text.trim() }; }
-        catch (e) { if (e instanceof SyntaxErr) return { syntax: `* ${e.line - first + 1}:${e.col || 1}: ${e.message}`, line: e.line, src: ch.text.trim() }; throw e; }
-      } catch (e) { if (e instanceof SyntaxErr) return { syntax: `* 1:1: ${e.message}`, line: base + ch.line, src: ch.text.trim() }; throw e; }
+        catch (e) { if (e instanceof SyntaxErr) return { syntax: `* ${e.line - first + 1}:${e.col || 1}: ${e.message}`, line: e.line, src: ch.text.trim() }; return { syntax: '* 1:1: syntax error', line: e.line || base + ch.line, src: ch.text.trim() }; }
+      } catch (e) { return { syntax: `* 1:1: ${e instanceof SyntaxErr ? e.message : 'syntax error'}`, line: base + ch.line, src: ch.text.trim() }; }
     });
     const shellVars = new Map();
     const shell = I.spawn(function* (p) {
       for (let k = 0; k < exprs.length; k++) {
         const x = exprs[k];
+        // f() forgets every binding, f(X) forgets X: shell commands, handled before the variable check
+        const fc = !x.syntax && x.body.length === 1 && x.body[0].k === 'call' && x.body[0].f.k === 'lit' && x.body[0].f.v === atom('f') ? x.body[0] : null;
+        if (fc && (fc.args.length === 0 || (fc.args.length === 1 && fc.args[0].k === 'var'))) {
+          if (fc.args.length) shellVars.delete(fc.args[0].n); else shellVars.clear();
+          p.deferring = true; yield { kind: 'block' }; p.deferring = false;
+          I.results.push({ n: k + 1, src: x.src, value: 'ok', failed: false, outAt: I.out.length, line: x.line });
+          yield { kind: 'result', line: x.line };
+          continue;
+        }
         const unbound = x.syntax ? null : firstUnbound(x.body, new Set(shellVars.keys()));
         if (x.syntax || unbound) {
           I.results.push({ n: k + 1, src: x.src, value: x.syntax || `* ${unbound.line - x.first + 1}:${unbound.col}: variable '${unbound.n}' is unbound`, failed: true, outAt: I.out.length, line: x.line });
@@ -1042,7 +1163,9 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
         p.frames.push(frame);
         let value, failed = false;
         try { value = pretty(yield* I.body(x.body, trial, p, frame), { M: 60, depth: 30 }); for (const [n, v] of trial) shellVars.set(n, v); }
-        catch (e) { if (!(e instanceof ErlError) || e.reason === atom('steplimit')) throw e; value = `** exception ${e.kind}: ${e.message || show(e.reason)}`; failed = true; }
+        catch (e) {
+          if (!(e instanceof ErlError) && !(e instanceof RangeError)) e = new ErlError('error', atom('internal'), `the stepper cannot evaluate this expression (${e && e.message || e})`);
+          if (!(e instanceof ErlError) || e.reason === atom('steplimit')) throw e; value = e.reason === atom('stepper_depth') ? `** ${e.message}` : `** exception ${e.kind}: ${e.message || show(e.reason)}`; failed = true; }
         finally { p.frames.pop(); }
         // printing the value takes the shell a while: processes it woke up get to run first
         p.deferring = true; yield { kind: 'block' }; p.deferring = false;
@@ -1113,7 +1236,7 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
   /* ════════════════════════════════════════════════════════════════
      6. Mode 'shared': threads over shared variables, with locks
      ════════════════════════════════════════════════════════════════ */
-  // cfg.shared: { x: 0 }; cfg.threads: { A: ["t = x", "t = t + 1", "x = t"], … }; cfg.schedule: "AABB…" or
+  // cfg.shared: { x: 0 }; cfg.threads: { A: ["t = x", "t = t + 1", "x = t"], … }; cfg.schedule: "AABB…" (or names separated by spaces, "T1 T2 T1") or
   // "round-robin" (a schedule that runs out continues round-robin); instructions: "<v> = <expr>" (expr over numbers and variables with + - *), "lock m",
   // "unlock m", "print <expr>"
   ERL.runShared = function (cfg) {
@@ -1122,7 +1245,7 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
     const th = names.map(n => ({ name: n, code: cfg.threads[n].map(String), pc: 0, locals: {}, blocked: null, done: false }));
     const locks = {};
     const trace = [{ d: 'start', shared: { ...shared }, threads: th.map(t => ({ name: t.name, pc: t.pc, locals: { ...t.locals }, blocked: null, done: false })), locks: {} }];
-    const sched = typeof cfg.schedule === 'string' && cfg.schedule !== 'round-robin' ? cfg.schedule.replace(/[^A-Za-z]/g, '').split('') : null;
+    const sched = typeof cfg.schedule === 'string' && cfg.schedule !== 'round-robin' ? (/[\s,]/.test(cfg.schedule.trim()) ? cfg.schedule.trim().split(/[\s,]+/) : cfg.schedule.trim().split('')) : null;
     let rr = 0, guard = 0, out = '';
     const val = (e, t) => { const tokens = e.trim().split(/\s*([+\-*])\s*/); let acc = null, op = '+'; for (const tok of tokens) { if (['+', '-', '*'].includes(tok)) { op = tok; continue; } const v = /^-?\d+$/.test(tok) ? Number(tok) : tok in t.locals ? t.locals[tok] : tok in shared ? shared[tok] : NaN; acc = acc === null ? v : op === '+' ? acc + v : op === '-' ? acc - v : acc * v; } return acc; };
     const runnable = () => th.filter(t => !t.done && !(t.blocked && locks[t.blocked] !== undefined && locks[t.blocked] !== t.name));
@@ -1168,7 +1291,9 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
   class Stepper {
     constructor(id, cfg) { this.id = id; this.cfg = cfg; this.el = document.getElementById('sim-' + id); this.reset(false); }
     reset(render = true) { this.code = (this.cfg.code || '').replace(/\s+$/, ''); this.shell = (this.cfg.shell || '').replace(/\s+$/, ''); this.result = null; this.i = 0; this.editing = true; if (render) this.render(); }
-    run() { this.result = ERL.run({ code: this.code, shell: this.shell, maxSteps: this.cfg.maxSteps || 3000 }); this.i = Math.max(0, this.result.trace.length - 1); this.editing = false; this.render(); }
+    run() {
+      try { this.result = ERL.run({ code: this.code, shell: this.shell, maxSteps: this.cfg.maxSteps || 3000 }); }
+      catch (e) { this.result = { trace: [], out: '', results: [], error: { kind: 'runtime', message: 'the stepper could not run this: ' + (e && e.message || e) } }; } this.i = Math.max(0, this.result.trace.length - 1); this.editing = false; this.render(); }
     goto(k) { if (!this.result) return; this.i = Math.max(0, Math.min(this.result.trace.length - 1, k)); this.render(); }
     listing(text, base, cur, errLine) {
       const lines = text.split('\n');
@@ -1246,10 +1371,10 @@ const badarith = (a, op, b) => new ErlError('error', atom('badarith'), 'an error
       const cols = r.names.map(n => {
         const t = st.threads.find(x => x.name === n);
         const code = r.code[n].map((ins, k) => `<div class="erl-ins${k === t.pc && !t.done ? ' next' : ''}${k < t.pc ? ' ran' : ''}">${esc(ins)}</div>`).join('');
-        const locals = Object.entries(t.locals).map(([k, v]) => `${esc(k)} = ${v}`).join(', ');
+        const locals = Object.entries(t.locals).map(([k, v]) => `${esc(k)} = ${esc(v)}`).join(', ');
         return `<div class="erl-thread${st.active === n ? ' on' : ''}${t.blocked ? ' blocked' : ''}"><div class="erl-proc-head"><b>thread ${esc(n)}</b> <span class="erl-status">${t.done ? 'done' : t.blocked ? 'waiting for ' + esc(t.blocked) : ''}</span></div>${code}<div class="erl-locals">${locals || '&nbsp;'}</div></div>`;
       }).join('');
-      const shared = Object.entries(st.shared).map(([k, v]) => `<span><b>${esc(k)}</b> = ${v}</span>`).join('');
+      const shared = Object.entries(st.shared).map(([k, v]) => `<span><b>${esc(k)}</b> = ${esc(v)}</span>`).join('');
       const locks = Object.entries(st.locks).map(([k, v]) => `<span>🔒 ${esc(k)}: ${esc(v)}</span>`).join('') || '<span class="jv-empty">no locks held</span>';
       el.innerHTML = `<div class="jv-wrap c-wrap erl-wrap">
         <div class="jv-toolbar">

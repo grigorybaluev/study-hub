@@ -105,6 +105,33 @@ const cases = [
   "expect": "<PID>\nok\n1500\ndone\n200\n"
  },
  {
+  "name": "review: try-of, shadowing, catch forms, fun refs",
+  "shell": "try 1 of X -> throw(a) catch throw:a -> caught end.\nX = 1, F = fun(X) -> X * 2 end, F(5).\nY = 1, [Y || Y <- [1,2,3]].\ntry error(x) catch error:R:S -> R end.\ncatch exit(x).\ncatch throw(t).\nlists:map(fun erlang:abs/1, [-1, 2]).\nlists:map(fun lists:reverse/1, [[1, 2]]).\ntry nomod:f() catch error:undef -> caught end.\nround(-2.5). round(-0.5). round(2.5). round(7).\n#{age => 1, name => 2} < #{age => 2, name => 1}.\n",
+  "expect": "** exception throw: a\n10\n[1,2,3]\nx\n{'EXIT',x}\nt\n[1,2]\n[[2,1]]\ncaught\n-3\n-1\n3\n7\ntrue\n"
+ },
+ {
+  "name": "review: bad arguments to BIFs",
+  "shell": "tuple_size(3).\nelement(1.0, {a}).\nelement(5, {a}).\nsetelement(5, {a}, b).\n1 band 1.0.\nbnot 1.5.\natom_to_list(5).\ninteger_to_list(a).\nhd([]).\nlength(a).\nlist_to_atom(5).\nabs(a).\nmaps:put(a, 1, x).\nnot 3.\n",
+  "expect": "** exception error: bad argument\n     in function  tuple_size/1\n        called as tuple_size(3)\n        *** argument 1: not a tuple\n** exception error: bad argument\n     in function  element/2\n        called as element(1.0,{a})\n        *** argument 1: not an integer\n** exception error: bad argument\n     in function  element/2\n        called as element(5,{a})\n        *** argument 1: out of range\n** exception error: bad argument\n     in function  setelement/3\n        called as setelement(5,{a},b)\n        *** argument 1: out of range\n** exception error: an error occurred when evaluating an arithmetic expression\n     in operator  band/2\n        called as 1 band 1.0\n** exception error: an error occurred when evaluating an arithmetic expression\n     in operator  bnot/1\n        called as bnot 1.5\n** exception error: bad argument\n     in function  atom_to_list/1\n        called as atom_to_list(5)\n        *** argument 1: not an atom\n** exception error: bad argument\n     in function  integer_to_list/1\n        called as integer_to_list(a)\n        *** argument 1: not an integer\n** exception error: bad argument\n     in function  hd/1\n        called as hd([])\n        *** argument 1: not a nonempty list\n** exception error: bad argument\n     in function  length/1\n        called as length(a)\n        *** argument 1: not a list\n** exception error: bad argument\n     in function  list_to_atom/1\n        called as list_to_atom(5)\n        *** argument 1: not a list\n** exception error: bad argument\n     in function  abs/1\n        called as abs(a)\n        *** argument 1: not a number\n** exception error: bad map: x\n     in function  maps:put/3\n        called as maps:put(a,1,x)\n        *** argument 3: not a map\n** exception error: bad argument\n     in operator  not/1\n        called as not 3\n"
+ },
+ {
+  "name": "review: register, error reasons, format, escapes, f()",
+  "shell": "register(foo, 5).\nregister(foo, self()), register(foo, self()).\nP = spawn(fun() -> ok end), timer:sleep(5), register(bar, P).\nunregister(nobody).\nQ = spawn(fun() -> receive stop -> ok end end), register(baz, Q), baz ! stop, timer:sleep(10), R2 = spawn(fun() -> receive _ -> ok end end), register(baz, R2).\nlists:member(baz, registered()).\nerror(badarg).\nerror({badmatch, 1}).\nerror({case_clause, x}).\nerror(if_clause).\nerror(badarith).\nerror({badkey, k}).\nio:format(\"~f~n\", [1]).\nio:format(\"~s~n\", [5]).\nio:format(\"~e~n\", [1.0]).\nio:format(\"~tp ~ts~n\", [abc, \"h\\x{e9}llo\"]).\n\"\\e[0m \\x41\\x{42} \\101 \\s\\d\".\n$\\n.\nA1 = 1.\nf(A1).\nA1 = 2.\nf().\nA1.\n",
+  "expect": "** exception error: bad argument\n     in function  register/2\n        called as register(foo,5)\n        *** argument 2: not a pid or port\n** exception error: bad argument\n     in function  register/2\n        called as register(foo,<PID>)\n        *** argument 2: this process or port already has a name\n** exception error: bad argument\n     in function  register/2\n        called as register(bar,<PID>)\n        *** argument 2: the pid does not refer to an existing process\n** exception error: bad argument\n     in function  unregister/1\n        called as unregister(nobody)\n        *** argument 1: not a pid\ntrue\ntrue\n** exception error: bad argument\n** exception error: no match of right hand side value 1\n** exception error: no case clause matching x\n** exception error: no true branch found when evaluating an if expression\n** exception error: an error occurred when evaluating an arithmetic expression\n** exception error: bad key: k\n** exception error: bad argument\n     in function  io:format/2\n        called as io:format(\"~f~n\",[1])\n        *** argument 2: element 1 must be of type float\n** exception error: bad argument\n     in function  io:format/2\n        called as io:format(\"~s~n\",[5])\n        *** argument 2: element 1 must be of type string\n1.00000e+0\nok\nabc héllo\nok\n[27,91,48,109,32,65,66,32,65,32,32,127]\n10\n1\nok\n2\nok\n* 1:1: variable 'A1' is unbound\n"
+ },
+ {
+  "name": "review: tail calls in orelse, module scope",
+  "code": "-module(n).\n-export([member/2, app/1, f/0, fac/1]).\nmember(_, []) -> false;\nmember(X, [H | T]) -> X =:= H orelse member(X, T).\napp(F) -> F().\nhelper() -> secret.\nhidden() -> ok.\nf() -> n:hidden().\nfac(0) -> 1;\nfac(N) -> N * fac(N - 1).\n",
+  "shell": "n:member(0, lists:seq(1, 400)).\nn:member(7, lists:seq(1, 400)).\nn:app(fun() -> helper() end).\nn:f().\nn:fac(20).\n",
+  "expect": "false\ntrue\n** exception error: undefined shell command helper/0\n** exception error: undefined function n:hidden/0\n2432902008176640000\n"
+ },
+ {
+  "name": "review: unsafe variable in a module",
+  "code": "-module(u).\n-export([f/1]).\nf(X) ->\n    case X of 1 -> Y = a; 2 -> ok end,\n    Y.\n",
+  "shell": "ok.\n",
+  "expect": "COMPILE: u.erl:5:5: variable 'Y' unsafe in 'case' (line 4, column 5)\n"
+ },
+ {
   "name": "selective receive leaves the unmatched message in the mailbox",
   "shell": "self() ! {other, 1}, self() ! wanted.\nreceive wanted -> ok end.\n",
   "skipped": true
@@ -118,8 +145,8 @@ const cases = [
  {
   "name": "deep non-tail recursion stops with a clear message",
   "code": "-module(d).\n-export([len/1]).\nlen([]) -> 0;\nlen([_ | T]) -> 1 + len(T).\n",
-  "shell": "d:len(lists:seq(1, 1000)).\n",
-  "error": "not tail calls"
+  "shell": "d:len(lists:seq(1, 1000)).\nok.\n",
+  "valueIncludes": "not tail calls"
  },
  {
   "name": "shared: an interleaving loses an update",
@@ -172,6 +199,29 @@ const cases = [
   }
  },
  {
+  "name": "shared: a schedule of multi-letter names",
+  "mode": "shared",
+  "shared": {
+   "balance": 100
+  },
+  "threads": {
+   "T1": [
+    "a = balance",
+    "a = a + 50",
+    "balance = a"
+   ],
+   "T2": [
+    "b = balance",
+    "b = b - 30",
+    "balance = b"
+   ]
+  },
+  "schedule": "T1 T2 T1 T2 T1 T2",
+  "final": {
+   "balance": 70
+  }
+ },
+ {
   "name": "shared: two locks taken in opposite orders deadlock",
   "mode": "shared",
   "shared": {
@@ -216,6 +266,7 @@ for (const c of cases) {
     if (c.expect !== undefined && t !== c.expect) problems.push('transcript\n' + t + '   expected\n' + c.expect);
     if (c.error && !(r.error && r.error.message.includes(c.error))) problems.push('expected an error mentioning ' + c.error + ', got ' + JSON.stringify(r.error));
     if (!c.error && r.error && r.error.kind !== 'compile') problems.push('unexpected error ' + JSON.stringify(r.error));
+    if (c.valueIncludes && !r.results.some(x => x.value.includes(c.valueIncludes))) problems.push('no result mentioning ' + c.valueIncludes);
     if (c.skipped && !r.trace.some(s => s.view.procs.some(p => p.skipped > 0))) problems.push('no step shows a skipped message');
     if (!r.trace.length && !(r.error && r.error.kind === 'compile')) problems.push('empty trace');
   }
