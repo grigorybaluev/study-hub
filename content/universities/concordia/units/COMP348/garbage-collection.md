@@ -25,8 +25,10 @@ leaks; free too early and a dangling pointer corrupts something else.
 
 :::definition[Garbage collection]
 **Garbage collection** is automatic reclamation of heap memory: the language's run-time system
-finds the objects the program can no longer use and frees them. Nearly every language designed
-in the last 30 years (Java, Python, JavaScript, Go, C#, Clojure, Erlang) has it.
+finds the objects the program can no longer use and frees them. Most languages in wide use today
+have it (Java, Python, JavaScript, Go, C#, Clojure, Erlang). Rust and Swift are notable
+exceptions: they manage memory with ownership rules or automatic reference counting instead of a
+tracing collector.
 :::
 
 A collector cannot know what the program *will* use, so it frees what the program *cannot* use:

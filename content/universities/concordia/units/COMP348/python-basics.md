@@ -114,8 +114,9 @@ TypeError: unsupported operand type(s) for +: 'int' and 'str'
 
 Python has `int` and `float` and no type keywords: `n = 26`, `r = 768.56`.
 
-- An **`int` has no size limit.** Small values are stored in a machine word; larger ones become
-  arrays of digits handled in software (slower, but never overflowing). `2 ** 100` is exact.
+- An **`int` has no size limit.** CPython stores every int as an array of 30-bit digits, as long as
+  the number needs, and does its arithmetic in software (slower than C, but never overflowing).
+  `2 ** 100` is exact. The small ints from −5 to 256 are created once and shared.
 - A **`float` is a C `double`**: 64 bits, about 16 significant digits, with the usual rounding
   (`0.1 + 0.2` prints `0.30000000000000004`).
 - `/` always gives a `float` (`7 / 2` is `3.5`); `//` is floor division (`-7 // 2` is `-4`, not
@@ -318,7 +319,7 @@ How does the running time of each grow with `n`?
 :::solution
 (A) is $O(n^2)$: each `insert(0, x)` shifts every pointer already in `out`, so the total is
 $1 + 2 + \dots + n$. (B) is $O(n)$: each append is $O(1)$ amortized. For $n = 100\,000$, (A)
-does about 5 billion pointer moves and (B) about 100 000 (plus a few resizes). `data[::-1]` does
+does about 5 billion pointer moves and (B) about 900 000 (100 000 writes plus the copies at each resize, about 9 per append on average). `data[::-1]` does
 the same as (B) in one step.
 :::
 ::::
