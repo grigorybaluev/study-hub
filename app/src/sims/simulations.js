@@ -2546,6 +2546,34 @@
                 xaxis: ax({ title: 'n' }), yaxis: ax({ title: 'comparisons', range: [0, Math.max(nmax * Math.log2(nmax), 1) * 1.3] }), legend: { orientation: 'h', y: -0.22 } }), cfg());
   }
 
+  // ══ COMP 348 — Principles of programming languages ══════════
+  // ── P1. Building a Python list: append versus insert at the front ──
+  // CPython 3.11 list growth: new capacity = (n + n/8 + 6) & ~3 when a list of size n − 1 is full.
+  function pyListCosts() {
+    const id = 'py-348-list-costs';
+    const n = Math.max(100, Math.round(val(id, 'n', 20000)));
+    let cap = 0, size = 0, total = 0;
+    const per = [], cumA = [], cumI = [];
+    for (let k = 1; k <= n; k++) {
+      let c = 1;
+      if (size === cap) { c += size; const m = size + 1; cap = (m + (m >> 3) + 6) & ~3; }
+      size++; total += c;
+      per.push(c); cumA.push(total); cumI.push(k * (k + 1) / 2);
+    }
+    // plot at most ~600 points per series
+    const stride = Math.max(1, Math.floor(n / 600));
+    const xs = [], pA = [], cA = [], cI = [];
+    for (let k = 0; k < n; k += stride) { let peak = 0; for (let j = k; j < Math.min(n, k + stride); j++) peak = Math.max(peak, per[j]); xs.push(k + 1); pA.push(peak); cA.push(cumA[k]); cI.push(cumI[k]); }
+    const resizes = per.filter(c => c > 1).length;
+    Plotly.newPlot(el(id), [
+      { x: xs, y: pA, mode: 'lines', name: 'pointer copies for append k', line: { color: '#60a5fa', width: 1.5 } },
+      { x: xs, y: cA, mode: 'lines', xaxis: 'x2', yaxis: 'y2', name: 'total, building by append', line: { color: '#60a5fa', width: 2.5 } },
+      { x: xs, y: cI, mode: 'lines', xaxis: 'x2', yaxis: 'y2', name: 'total, building by insert(0, x)', line: { color: '#f87171', width: 2.5 } },
+    ], twoRows({ title: `${n.toLocaleString('en')} appends: ${resizes} resizes, ${total.toLocaleString('en')} pointer moves in all (${(total / n).toFixed(2)} per append).<br>Inserting each at the front instead: ${(n * (n + 1) / 2).toLocaleString('en')} moves.`,
+                 xaxis: { title: 'element number k' }, yaxis: { title: 'moves for this append', type: 'log' },
+                 xaxis2: { title: 'elements added' }, yaxis2: { title: 'total pointer moves', type: 'log' } }), cfg());
+  }
+
   const SIMS = {
     'euler-demo':          eulerDemo,
     'rk4-comparison':      rk4Comparison,
@@ -2656,6 +2684,8 @@
     'ds-growable-array':   dsGrowableArray,
     'ds-load-factor':      dsLoadFactor,
     'ds-sort-lower-bound': dsSortLowerBound,
+    // COMP 348
+    'py-348-list-costs':   pyListCosts,
   };
 
   window.runSim = function (id, cfg) {

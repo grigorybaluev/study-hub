@@ -118,6 +118,7 @@ plotly:
   - ds-growable-array
   - ds-load-factor
   - ds-sort-lower-bound
+  - py-348-list-costs
 automata:
   modes: [run, convert, minimize, derive, tool, graph, proofs]
 java:
