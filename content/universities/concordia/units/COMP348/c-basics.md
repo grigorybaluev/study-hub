@@ -356,15 +356,30 @@ int main(void) {
 :::
 ::::
 
-::::exercise[Sample exam question]
-`sizeof(values) / sizeof(double)` is typically used to find (a) the size of an array, (b) the
-number of elements in an array, (c) the size of one element, (d) the number of bytes in a
-double. Assume `values` is an array of `double`.
+::::exercise[What does this print?]
+```c
+#include <stdio.h>
+
+int main(void) {
+    double readings[12];
+    short flags[5] = {1};
+    printf("%zu %zu %zu\n", sizeof readings, sizeof readings[0],
+           sizeof readings / sizeof readings[0]);
+    printf("%zu %zu\n", sizeof flags, sizeof flags / sizeof *flags);
+    return 0;
+}
+```
 
 :::solution
-(b). `sizeof(values)` is the size of the whole array in bytes and `sizeof(double)` the size of
-one element; their quotient is the number of elements. This only works on the array itself:
-passed to a function, the array becomes a pointer and `sizeof` gives the pointer's size.
+```text
+96 8 12
+10 5
+```
+
+`sizeof` of an array is the whole array in bytes (12 doubles × 8), `sizeof` of one element is 8,
+and their quotient is the number of elements. The same works for any element type: 5 shorts take
+10 bytes. It only works on the array itself; passed to a function, the array becomes a pointer
+and `sizeof` gives the pointer's size.
 :::
 ::::
 

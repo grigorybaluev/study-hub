@@ -77,7 +77,7 @@ Program received signal SIGSEGV, Segmentation fault.
 0x00007ffff7e4a3e2 in __strcat_avx2 () from /lib/x86_64-linux-gnu/libc.so.6
 (gdb) bt
 #0  0x00007ffff7e4a3e2 in __strcat_avx2 () from /lib/x86_64-linux-gnu/libc.so.6
-#1  0x0000555555555189 in join (a=0x555555556004 "left", b=0x0) at join.c:9
+#1  0x0000555555555189 in join (a=0x555555556004 "left ", b=0x0) at join.c:8
 #2  0x00005555555551d4 in main () at join.c:17
 ```
 
@@ -190,7 +190,7 @@ code: |
       free(alias);                 /* double free */
       return 0;
   }
-note: 'alias still holds the address after free, and reading through it gives a value that looks plausible (the allocator has written its own bookkeeping there). The second free aborts the program, as glibc does. Setting score = NULL after free would not help alias: every copy of a pointer dangles.'
+note: 'alias still holds the address after free, and reading through it gives garbage instead of 90: the allocator has already written its own bookkeeping into the freed block. The second free aborts the program, as glibc does. Setting score = NULL after free would not help alias: every copy of a pointer dangles.'
 ```
 
 ### Leaks
@@ -206,7 +206,7 @@ leaked block where it was allocated.
 ==4217== 48 (16 direct, 32 indirect) bytes in 1 blocks are definitely lost in loss record 3 of 3
 ==4217==    at 0x483B7F3: malloc (vg_replace_malloc.c:309)
 ==4217==    by 0x109186: push (list.c:10)
-==4217==    by 0x1091D5: main (list.c:24)
+==4217==    by 0x1091D5: main (list.c:27)
 ```
 
 The allocation site (`push`, line 10) is where the block was made, not where the bug is; the bug

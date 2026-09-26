@@ -380,14 +380,32 @@ of 64 characters or more overflow `buffer`, which the `malloc` version also fixe
 :::
 ::::
 
-::::exercise[Sample exam question]
-Arrays and structures are said to be ______ entities, in that they keep the same size for the
-whole run of a program: (a) dynamic, (b) automatic, (c) register, (d) static.
+::::exercise[Where does each one live?]
+For each marked item, say whether its storage is static, automatic (stack) or dynamic (heap), and
+when it disappears.
+
+```c
+int counter;                          /* (1) */
+
+char *label(int n) {                  /* (2) the parameter n */
+    static int calls = 0;             /* (3) */
+    char tmp[16];                     /* (4) */
+    char *out = malloc(16);           /* (5) the pointer out, and (6) the 16 bytes it points at */
+    calls++;
+    snprintf(tmp, sizeof tmp, "item %d", n);
+    strcpy(out, tmp);
+    return out;
+}
+/* (7) the characters of the literal "item %d" */
+```
 
 :::solution
-(d) static: the compiler knows their size. (Their *storage* may still be automatic, on the
-stack; "static" here is about size, which cannot change once they exist. Memory whose size is
-chosen at run time comes from `malloc`.)
+(1) static, lives for the whole run. (2) automatic: `n` is created when `label` is called and
+disappears when it returns. (3) static, even though its name is local: it lives for the whole
+run and keeps counting between calls. (4) automatic: gone when `label` returns, which is why the
+function copies it before returning. (5) automatic: the pointer variable disappears at return,
+but its value (the address) is handed back to the caller. (6) dynamic: the 16 bytes stay until
+someone calls `free` on that address. (7) static, and read-only.
 :::
 ::::
 

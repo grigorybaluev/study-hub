@@ -111,7 +111,7 @@ description of data (`DATA DIVISION`, with records and decimal fields) from the
        PROCEDURE DIVISION.
            ADD PRICE TO TOTAL.
            MULTIPLY TOTAL BY TAX-RATE GIVING TAX.
-           DISPLAY "TOTAL WITH TAX: " TAX.
+           DISPLAY "TAX: " TAX.
            STOP RUN.
 ```
 
@@ -143,8 +143,8 @@ for C++.
 out of the languages BCPL and B (and ALGOL 68). It has a powerful set of operators and direct
 access to memory through pointers, but weak type checking (early C did not even check the
 arguments of a function call). C was not innovative in itself; it spread with UNIX through the
-universities and with free compilers, and it is used far beyond systems work. C++, Java, C#
-and even Python's syntax descend from it.
+universities and with free compilers, and it is used far beyond systems work. C++, Java and C#
+descend from it, and most later languages borrowed its operators and expression syntax.
 
 ### Prolog (early 1970s): logic programming
 

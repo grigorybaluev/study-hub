@@ -351,23 +351,34 @@ inner block, `extern int x;` refers to the global `x`, which is 1. The last line
 :::
 ::::
 
-::::exercise[Sample exam question]
-What does this preprocessor code do?
-
+::::exercise[What does this print?]
 ```c
-#if !defined(NULL)
-#define NULL 0
+#include <stdio.h>
+#define WIDTH 5
+
+#ifndef WIDTH
+#define WIDTH 80
 #endif
+
+#if !defined(HEIGHT)
+#define HEIGHT (WIDTH * 2)
+#endif
+
+int main(void) {
+    printf("%d %d\n", WIDTH, HEIGHT);
+    return 0;
+}
 ```
 
-(a) It is incorrect and gives a preprocessor error. (b) It makes sure `NULL` is always 0.
-(c) It defines `NULL` as 0 only if `NULL` is not already defined. (d) It makes `NULL` defined
-in every file of the program.
-
 :::solution
-(c). `#if !defined(NULL)` is the long form of `#ifndef NULL`. If a header has already defined
-`NULL` (often as `((void *)0)`), that definition stays; the directive only affects the file it
-is in.
+```text
+5 10
+```
+
+`WIDTH` is already defined when `#ifndef WIDTH` is reached, so the default of 80 is skipped.
+`#if !defined(HEIGHT)` is the long form of `#ifndef HEIGHT`; `HEIGHT` is not defined, so it
+becomes `(WIDTH * 2)`, which expands to `(5 * 2)`. This "define it only if nobody has" pattern
+lets a header provide defaults that a file or a compiler flag (`-DWIDTH=120`) can override.
 :::
 ::::
 

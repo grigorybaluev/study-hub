@@ -88,7 +88,7 @@ unchanged), **generality** (range of applications) and **well-definedness** (a c
 precise, standardised definition of the language).
 
 A compiled language with type checking finds some mistakes before the program ever runs.
-Run the program below, read the compiler's message, then fix the call so that it compiles.
+Run the program below, read the compiler's message, then fix line 7 so that it compiles.
 
 ```sim
 id: c-348-type-check
@@ -220,10 +220,11 @@ BEAM virtual machine. One bytecode file runs on every machine that has the virtu
 
 ### Just-in-time compilation
 
-A **just-in-time (JIT)** system starts like a hybrid, but compiles each function's bytecode to
-real machine code the first time the function is called, and keeps the machine code for later
-calls. A JIT is a delayed compiler: modern JVMs and .NET use one, which is why a long-running
-Java program ends up nearly as fast as C.
+A **just-in-time (JIT)** system starts like a hybrid, interpreting bytecode, but while the program
+runs it compiles the functions that are called often (the "hot" ones) to real machine code, and
+keeps that machine code for later calls. (.NET compiles each method the first time it is called.)
+A JIT is a delayed compiler: modern JVMs, .NET and JavaScript engines use one, which is why a
+long-running Java program ends up nearly as fast as C.
 
 ### Preprocessors
 
@@ -237,7 +238,7 @@ program. The preprocessor is covered in detail with C.
 | Compilation | all at once, to machine code | fastest | recompile per machine | C, C++, Fortran |
 | Pure interpretation | none | slowest (10–100×) | the interpreter is ported once | early JavaScript, shell scripts |
 | Hybrid (bytecode + VM) | once, to bytecode | medium | bytecode runs on any VM | Python, early Java |
-| JIT | bytecode, then machine code per function when first called | close to compiled | as hybrid | Java (HotSpot), C#, JavaScript engines |
+| JIT | bytecode, then machine code for the functions that run often | close to compiled | as hybrid | Java (HotSpot), C#, JavaScript engines |
 
 ## Programming environments
 
@@ -266,13 +267,15 @@ portability, well-definedness) it is mainly about.
 ::::exercise[True or false?]
 1. Static linking loads libraries into the program while it runs.
 2. A preprocessor runs just after the program is compiled.
-3. A JIT compiler translates each function to machine code when it is first called.
+3. A JIT compiler translates functions to machine code while the program is running.
 4. Python programs are purely interpreted, line by line from the source.
 
 :::solution
 1. False: that is dynamic linking; static linking copies the libraries in before the program
-   runs. 2. False: just *before* compilation. 3. True. 4. False: Python compiles modules to
-   bytecode and interprets the bytecode, a hybrid system.
+   runs.
+2. False: just *before* compilation.
+3. True: typically the functions that are called often.
+4. False: Python compiles modules to bytecode and interprets the bytecode, a hybrid system.
 :::
 ::::
 
@@ -286,5 +289,5 @@ of execution and portability.
 ## Further reading
 
 - [Programming language implementation](https://en.wikipedia.org/wiki/Programming_language_implementation) — compilers, interpreters and the hybrids, with more examples.
-- [Compilers: Principles, Techniques, and Tools (the "Dragon Book") — Wikipedia summary](https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools) — where the compilation phases come from.
+- [Compiler](https://en.wikipedia.org/wiki/Compiler) — the phases of a compiler, front end to back end.
 - [Just-in-time compilation](https://en.wikipedia.org/wiki/Just-in-time_compilation) — how JITs decide what to compile.
