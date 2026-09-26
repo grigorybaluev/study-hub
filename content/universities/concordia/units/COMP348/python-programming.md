@@ -1,6 +1,6 @@
 ---
 title: Python programming
-order: 3
+order: 8
 status: outline
 weeks: [4, 5, 6]
 introduces: [python-programming, dynamic-typing, garbage-collection]

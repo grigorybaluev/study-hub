@@ -1,6 +1,6 @@
 ---
 title: Python data structures and classes
-order: 4
+order: 9
 status: outline
 weeks: [5, 8]
 introduces: []

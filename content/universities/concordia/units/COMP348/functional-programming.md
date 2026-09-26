@@ -1,6 +1,6 @@
 ---
 title: Functional programming with Clojure
-order: 5
+order: 10
 status: outline
 weeks: [9, 10, 11]
 introduces: [functional-programming]
