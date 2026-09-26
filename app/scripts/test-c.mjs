@@ -282,6 +282,17 @@ const cases = [
   ]
  },
  {
+  "name": "a block-scope extern names the global",
+  "code": "#include <stdio.h>\nint x = 1;\nint main(void) {\n    int x = 100;\n    { extern int x; printf(\"%d \", x); }\n    printf(\"%d\\n\", x);\n    return 0;\n}",
+  "expect": "1 100\n"
+ },
+ {
+  "name": "an implicit declaration that conflicts with the definition",
+  "code": "#include <stdio.h>\nint main(void) {\n    printf(\"%.1f\\n\", average(3, 4));\n    return 0;\n}\ndouble average(int a, int b) { return (a + b) / 2.0; }",
+  "error": "conflicting types for 'average'",
+  "errLine": 6
+ },
+ {
   "name": "bit operations and unsigned wrap",
   "code": "#include <stdio.h>\nint main(void) {\n    unsigned char c = 250;\n    c += 10;\n    printf(\"%d\\n\", c);\n    int x = 0xF0;\n    printf(\"%d %d %d %d\\n\", x & 0x3C, x | 1, x ^ 0xFF, ~0);\n    printf(\"%d %d\\n\", -16 >> 2, 1 << 31);\n    unsigned int m = 1u << 31;\n    printf(\"%u\\n\", m >> 4);\n    printf(\"%d\\n\", (-1 < 1u));\n    return 0;\n}",
   "expect": "4\n48 241 15 -1\n-4 -2147483648\n134217728\n0\n"

@@ -1224,7 +1224,13 @@
     }
     declareLocal(d) {
       const f = this.frame();
-      if (d.storage === 'extern') { return; }
+      if (d.storage === 'extern') {
+        // a block-scope extern names the global, hiding any outer local of the same name
+        const g = this.globals.get(this.tu() + ':' + d.name) || this.globals.get(d.name);
+        if (!g) throw cerr(`undefined reference to '${d.name}'`, d.line);
+        f.scopes[f.scopes.length - 1].set(d.name, g);
+        return;
+      }
       let type = d.type;
       if (type.k === 'array' && type.n == null && type.nExpr) {
         this.snap(d.line);
@@ -1553,8 +1559,12 @@
             fn = found;
             const here = this.frame() && this.frame().fn.def ? this.frame().fn.def.pos : Infinity;
             const decl = this.declPos.get(tu + ':' + name);
+            const implicit = decl == null || decl > here;
             if (decl == null) this.warn(`implicit declaration of function '${name}' is invalid in C99 — this file has no prototype for it (include its header)`, e.line);
             else if (decl > here) this.warn(`implicit declaration of function '${name}' is invalid in C99 — it is declared further down: put a prototype above the call`, e.line);
+            // the implicit declaration says "returns int"; a later definition that says otherwise conflicts
+            if (implicit && decl != null && fn.def && fn.def.tu === tu && !(fn.type.ret.k === 'int' && fn.type.ret.name === 'int'))
+              throw cerr(`conflicting types for '${name}': the call on ${L(e.line)} implicitly declared it as returning int`, fn.def.line);
           } else if (this.funcs.has(name) || [...this.funcs.keys()].some(k => k.endsWith(':' + name))) {
             throw cerr(`undefined reference to '${name}' — it is static in another file, so it is invisible here`, e.line);
           } else if (BUILTINS[name]) {
