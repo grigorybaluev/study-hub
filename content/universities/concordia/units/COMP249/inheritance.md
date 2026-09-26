@@ -3,7 +3,6 @@ title: Inheritance
 order: 2
 status: detailed
 weeks: [2]
-notes: ["COMP 249 course outline (Winter 2026): week 2, ch. 7, Inheritance"]
 introduces: [inheritance]
 requires:
   - {concept: class-and-object, strength: hard}

@@ -2,7 +2,6 @@
 title: Functions
 order: 6
 status: detailed
-notes: ["Lecture slides main2, pp. 20-54"]
 introduces: [function]
 requires:
   - {concept: set, strength: hard}

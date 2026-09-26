@@ -3,7 +3,6 @@ title: Checked exceptions, finally and your own exception classes
 order: 5
 status: detailed
 weeks: [5]
-notes: ["COMP 249 course outline (Winter 2026): week 5, ch. 9, Exception Handling (second week)"]
 introduces: []
 requires:
   - {concept: exception-handling, strength: hard}

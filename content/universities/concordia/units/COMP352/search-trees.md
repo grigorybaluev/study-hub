@@ -3,8 +3,6 @@ title: Binary search trees and AVL trees
 order: 8
 status: detailed
 weeks: [8]
-notes: ["Deck 13, Binary Search Trees: slides 3–4 the BST property and inorder; 5 search; 6 insertion; 7–8 deletion, the two-children case with the inorder successor; 9 performance, height h. Deck 14, AVL Trees: slides 3–4 the balance problem and the height-balance property; 5–8 height of an AVL tree is O(log n); 9–16 insertion, trinode restructuring, the four cases, worked example; 17–19 removal and rebalancing up the path; 20 running times"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 11.1–11.2"
 introduces: [binary-search-tree]
 requires:
   - {concept: tree, strength: hard}
@@ -111,7 +109,7 @@ engine: ds
 mode: avl
 data: [44, 17, 78, 32, 50, 88, 48, 62]
 ops: ["insert 54"]
-note: "The deck's example. insert(54) unbalances 78 (its left subtree, rooted at 50, is now two taller than its right): z = 78, y = 50, x = 62 zigzag, so the double rotation makes 62 the subtree root with 50 and 78 as children. Every node shows its height; a red h marks an unbalanced node. Reset and insert 1, 2, 3, 4, 5, 6 to see single rotations keep a sorted insertion at height 2."
+note: "An example. insert(54) unbalances 78 (its left subtree, rooted at 50, is now two taller than its right): z = 78, y = 50, x = 62 zigzag, so the double rotation makes 62 the subtree root with 50 and 78 as children. Every node shows its height; a red h marks an unbalanced node. Reset and insert 1, 2, 3, 4, 5, 6 to see single rotations keep a sorted insertion at height 2."
 ```
 
 **Removal** is a BST removal followed by the same walk: the removed node may shorten a
@@ -127,7 +125,7 @@ engine: ds
 mode: avl
 data: [44, 17, 62, 32, 50, 78, 48, 54, 88]
 ops: ["remove 32", "remove 17"]
-note: "The deck's removal example. remove(32) leaves 44 with a left subtree of height 0 and a right subtree of height 2: z = 44, y = 62, and on the tie between 50 and 78 the single rotation is chosen — 62 becomes the root. remove(17) then unbalances 44 again (now a child of 62) and a second single rotation lifts 50. Every node shows its height; a red h marks the unbalanced node before each repair."
+note: "The removal example. remove(32) leaves 44 with a left subtree of height 0 and a right subtree of height 2: z = 44, y = 62, and on the tie between 50 and 78 the single rotation is chosen — 62 becomes the root. remove(17) then unbalances 44 again (now a child of 62) and a second single rotation lifts 50. Every node shows its height; a red h marks the unbalanced node before each repair."
 ```
 
 ## Costs
@@ -156,5 +154,4 @@ same guarantees) — the choice when keys must stay ordered.
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Search Trees (ch. 11 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/SearchTrees.html) — BSTs and AVL trees with the trinode restructuring figures.
 - [Sedgewick & Wayne — Binary Search Trees](https://algs4.cs.princeton.edu/32bst/) — The Hibbard deletion and the average-case argument for random keys.

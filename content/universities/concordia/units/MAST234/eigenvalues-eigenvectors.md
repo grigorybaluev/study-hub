@@ -3,7 +3,6 @@ title: Eigenvalues and eigenvectors
 order: 11
 status: outline
 weeks: [11]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 3.3, 5.5, 9.3"
 introduces:
   - {concept: eigenvalue, perspective: "characteristic polynomial, eigenspaces, eigenvectors of matrices and of linear operators"}
 requires:

@@ -97,8 +97,7 @@ def build(c: Content) -> dict:
                     "id": uid, "type": "unit", "course": cid(code), "title": m["title"],
                     "order": m["order"], "kind": m.get("kind", "teaching"), "status": m["status"],
                     "review": m.get("review") or "draft",
-                    "weeks": m.get("weeks") or [], "textbook": m.get("textbook"),
-                    "notes": m.get("notes"), "sims": lint.sim_counts(doc.body), "body": doc.body,
+                    "weeks": m.get("weeks") or [], "sims": lint.sim_counts(doc.body), "body": doc.body,
                 })
                 for e in edge_entries(m.get("introduces")):
                     edge(uid, e["concept"], "introduces", perspective=e.get("perspective"), provenance="authored")

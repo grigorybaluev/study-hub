@@ -2,7 +2,6 @@
 title: Functions review
 order: 1
 status: outline
-textbook: "Thomas' Calculus"
 introduces: [function, trigonometric-functions]
 requires: []
 reinforces: []

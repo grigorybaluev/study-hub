@@ -48,7 +48,7 @@ REQUIRED = {
 }
 OPTIONAL = {
     "concept": {"aliases", "generalizes", "part_of", "maps_to", "short", "wikipedia", "wikidata"},
-    "unit": {"kind", "review", "weeks", "textbook", "notes", "introduces", "requires", "reinforces"},
+    "unit": {"kind", "review", "weeks", "introduces", "requires", "reinforces"},
     "course": {"prereqs", "coreqs", "requirements", "source", "pages"},
     "program": {"source"},
     "university": {"faculty", "department", "assumed_prior", "sources"},

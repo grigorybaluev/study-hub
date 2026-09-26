@@ -2,7 +2,6 @@
 title: Memory systems
 order: 5
 status: outline
-textbook: "Hamacher et al., Computer Organization and Embedded Systems, 6e, 8"
 introduces: [memory-hierarchy]
 requires:
   - {concept: cpu-organization, strength: hard}

@@ -3,7 +3,6 @@ title: Functions of several variables, limits and continuity
 order: 11
 status: outline
 weeks: [9]
-textbook: "Stewart, Multivariable Calculus, 9e, 14.1-14.2"
 introduces: [multivariable-function]
 requires:
   - {concept: function, strength: hard}

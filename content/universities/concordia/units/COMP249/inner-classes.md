@@ -3,7 +3,6 @@ title: Nested, inner and anonymous classes
 order: 9
 status: detailed
 weeks: [9]
-notes: ["COMP 249 course outline (Winter 2026): week 9, ch. 13, Interfaces & Inner Classes (second week: inner classes)"]
 introduces: []
 requires:
   - {concept: interface, strength: hard}

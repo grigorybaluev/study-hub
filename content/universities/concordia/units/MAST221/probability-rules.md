@@ -2,9 +2,7 @@
 title: Probability of an event and its rules
 order: 2
 status: detailed
-notes: ["Slides 9–11, 15–16 · Notes Lec 1 p.1", "Slides 12–13, 17–19", "Slide 14 · Notes Lec 1 pp.1–2", "Notes Lec 1 pp.1–2", "Notes Lec 1 p.2", "Notes Lec 1 p.3"]
 weeks: [1, 2]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 2.4-2.5"
 introduces: [probability, inclusion-exclusion]
 requires:
   - {concept: sample-space, strength: hard}
@@ -40,7 +38,7 @@ $$
 P(E) = \frac{n(E)}{n(S)}
 $$
 
-(In the notes: $P(A) = \dfrac{n(m)}{n(S)}$, with $n(m)$ the number of favourable outcomes.)
+(Also written $P(A) = \dfrac{n(m)}{n(S)}$, with $n(m)$ the number of favourable outcomes.)
 :::
 
 ### Steps for finding the probability of an event $E$
@@ -96,11 +94,11 @@ id: coin-event-grid
 controls:
   - {id: k, label: Number of coins tossed k, min: 1, max: 5, step: 1, default: 2, decimals: 0}
   - {id: m, label: 'Event E: at least m heads', min: 0, max: 5, step: 1, default: 1, decimals: 0}
-note: 'The 2^k equally likely outcomes of tossing k coins (Step 1), with the outcomes belonging to E highlighted (Step 2). P(E) = n(E)/n(S) (Step 3). The default reproduces the slide: two coins, at least one head → 3/4. m = 0 gives the certain event (P = 1); m > k gives the impossible event (P = 0).'
+note: 'The 2^k equally likely outcomes of tossing k coins (Step 1), with the outcomes belonging to E highlighted (Step 2). P(E) = n(E)/n(S) (Step 3). The default is the classic case: two coins, at least one head → 3/4. m = 0 gives the certain event (P = 1); m > k gives the impossible event (P = 0).'
 ```
 
 ```python
-# Fraction keeps the answers exact (6/36 → 1/6), exactly as the slides present them.
+# Fraction keeps the answers exact (6/36 → 1/6), as fractions.
 from fractions import Fraction
 import itertools
 
@@ -174,7 +172,7 @@ Run the simulation below several times at $n = 100$ and watch the empirical valu
 :::equations
 - *Relative frequency*: $P(E) \approx \frac{f(E)}{n}$ — f(E) = number of trials in which E occurred, out of n trials.
 - *Long-run interpretation*: $\frac{f(E)}{n} \;\longrightarrow\; P(E) \quad \text{as } n \to \infty$ — Relative frequency approaches the theoretical probability for many repetitions.
-- *The 100-roll simulation*: $\hat P(E_1) = \tfrac{20}{100} = 0.20 \quad\text{vs}\quad \tfrac{6}{36} \approx 0.167$ and $\hat P(E_2) = \tfrac{6}{100} = 0.06 \quad\text{vs}\quad \tfrac{2}{36} \approx 0.056$ — One particular run from the slides; yours will differ.
+- *The 100-roll simulation*: $\hat P(E_1) = \tfrac{20}{100} = 0.20 \quad\text{vs}\quad \tfrac{6}{36} \approx 0.167$ and $\hat P(E_2) = \tfrac{6}{100} = 0.06 \quad\text{vs}\quad \tfrac{2}{36} \approx 0.056$ — One particular run; yours will differ.
 :::
 
 ```sim
@@ -220,7 +218,7 @@ $$
 P(E_1) + P(E_2) + P(E_3) + \dots = 1
 $$
 
-In the notes, for an event $A$: $\;P(A) \ge 0$, $\;0 \le P(A) \le 1$, and for the simple events $A_1, \dots, A_n$ of $S$: $P(A_1) + P(A_2) + \dots + P(A_n) = 1$.
+In particular, for an event $A$: $\;P(A) \ge 0$, $\;0 \le P(A) \le 1$, and for the simple events $A_1, \dots, A_n$ of $S$: $P(A_1) + P(A_2) + \dots + P(A_n) = 1$.
 - The **first property** states that the probability of any event will always be a number between 0 and 1 (inclusive). If $P(E) = 0$, we say that $E$ is an **impossible event**. If $P(E) = 1$, we call $E$ a **certain event**. (Some have said that there are two certainties in life: death and taxes.)
 - The **second property** states that the sum of the probabilities of all simple events of the sample space must equal 1.
 :::
@@ -316,7 +314,7 @@ Probabilities live in $[0, 1]$, the whole sample space has probability 1, and pr
 
 ### Four regions
 
-Two events $A$, $B$ in a sample space $S$ split $S$ into **four mutually exclusive regions** (the Venn diagram in the notes):
+Two events $A$, $B$ in a sample space $S$ split $S$ into **four mutually exclusive regions** (draw the Venn diagram):
 
 | Region | Meaning |
 |---|---|
@@ -353,7 +351,7 @@ $$
 n(A \cup B) = n(A) + n(B).
 $$
 
-### Two set identities (exercise 3 in the notes)
+### Two set identities
 
 :::proposition[Two set identities]
 - **3(a)** $\;(A \cap B) \cup (A \cap B') = A$ — the two halves of $A$ (inside $B$ and outside $B$) reassemble $A$.
@@ -519,7 +517,7 @@ $P(A \cup B) = P(A) + P(B)$ is only true when $A$ and $B$ are mutually exclusive
 
 
 :::insight
-$P(A \cup B) = P(A) + P(B) - P(A \cap B)$: "or" means add, but subtract the overlap so it is not counted twice. Both proofs in the lecture are just the Venn-region counts divided by $n(S)$.
+$P(A \cup B) = P(A) + P(B) - P(A \cap B)$: "or" means add, but subtract the overlap so it is not counted twice. Both proofs are just the Venn-region counts divided by $n(S)$.
 :::
 
 ## Inclusion–Exclusion for Three Events
@@ -541,7 +539,7 @@ $$
 Add the singles, subtract the pairs (each pairwise overlap was counted twice), add back the triple (it was added three times, then subtracted three times, so it has to go back in once).
 
 :::proof
-The derivation from the lecture, in four steps.
+The derivation, in four steps.
 
 **Step 1.** Treat $B \cup C$ as a single event and apply the two-event addition rule:
 

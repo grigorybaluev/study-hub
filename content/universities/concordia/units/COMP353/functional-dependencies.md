@@ -3,8 +3,6 @@ title: Functional dependencies
 order: 6
 status: detailed
 weeks: [4, 5]
-notes: ["Deck DB04, Design Theory — Functional Dependencies and Rules: slides 2–9 FDs, keys as FDs, trivial FDs, why FDs matter; 10–14 redundancy and anomalies, the role of FDs in detecting redundancy; 15–19 implication, satisfying a set of FDs, closure F⁺, covering and equivalence; 20–22 Armstrong's axioms and derived rules; 23–31 the implication problem, attribute closure X⁺, the algorithm and the examples on R(A, B, C, D, E, H)"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 3.1–3.2"
 introduces: [functional-dependency]
 requires:
   - {concept: relational-model, strength: hard}
@@ -35,7 +33,7 @@ FDs come from the meaning of the data: on `Movie(title, year, length, filmType,
 studioName, starName)`, `title year → length filmType studioName` holds (a movie has one
 length), but `title year → starName` does not (several stars).
 
-Why they matter (slides 10–14): a schema that packs two facts into one relation —
+Why they matter: a schema that packs two facts into one relation —
 `Star(name, address, phone)` where a star has one address but several phones — repeats
 the address once per phone. **Redundancy** brings the **anomalies**: an *update* must
 change every copy, a *deletion* of the last phone loses the address, an *insertion*
@@ -60,7 +58,7 @@ implied FDs) and complete (derive all of them):
 From these follow the rules used in practice: **union** ($X \to Y$ and $X \to Z$ give
 $X \to YZ$), **decomposition** ($X \to YZ$ gives $X \to Y$ and $X \to Z$ — so every
 set of FDs can be written with single attributes on the right), and
-**pseudotransitivity** ($X \to Y$ and $WY \to Z$ give $WX \to Z$). The deck's hidden-FD
+**pseudotransitivity** ($X \to Y$ and $WY \to Z$ give $WX \to Z$). The hidden-FD
 example: from $F = \{A \to B, A \to C, CG \to H, CG \to I, B \to H\}$ one derives
 $A \to H$ (transitivity), $CG \to HI$ (union) and $AG \to I$ (pseudotransitivity).
 
@@ -84,11 +82,11 @@ attributes: A B C D E H
 fds: ["AB -> C", "BC -> AD", "D -> E", "CH -> B"]
 x: AB
 ops: ["closure AB"]
-note: "The deck's example R(A, B, C, D, E, H). Starting from AB, the FDs fire one after another — AB → C, then BC → AD, then D → E — and stop at ABCDE: H is never reached, so AB is not a superkey. Try D (only DE), CH (everything: a superkey), and use the second box to test whether F implies AB → E or D → A."
+note: "An example R(A, B, C, D, E, H). Starting from AB, the FDs fire one after another — AB → C, then BC → AD, then D → E — and stop at ABCDE: H is never reached, so AB is not a superkey. Try D (only DE), CH (everything: a superkey), and use the second box to test whether F implies AB → E or D → A."
 ```
 
 The closure algorithm runs in time polynomial in $|F|$ and $|R|$ — each pass adds at
-least one attribute — where listing $F^+$ would be exponential (slide 31): a schema
+least one attribute — where listing $F^+$ would be exponential: a schema
 with $n$ attributes has $2^n$ candidate left-hand sides. Every later question is
 reduced to closures: whether an FD is implied, whether a set is a superkey, which sets
 are keys, whether one set of FDs covers another (check each FD of the second against
@@ -102,7 +100,7 @@ mode: fd-keys
 attributes: A B C D E H
 fds: ["AB -> C", "BC -> AD", "D -> E", "CH -> B"]
 ops: ["keys"]
-note: "Candidate keys by closure: H appears on no right-hand side, so every key contains it; the search then tries H with subsets of the other attributes, smallest first, skipping supersets of keys already found. CH and ABH are the candidate keys of the deck's schema. Test ABCH yourself — a superkey, but not minimal."
+note: "Candidate keys by closure: H appears on no right-hand side, so every key contains it; the search then tries H with subsets of the other attributes, smallest first, skipping supersets of keys already found. CH and ABH are the candidate keys of the schema. Test ABCH yourself — a superkey, but not minimal."
 ```
 
 ## Reasoning about instances
@@ -145,5 +143,4 @@ note: "One group per (title, year): lengths is 1 everywhere, so the instance sat
 
 ## Further reading
 
-- [Ullman & Widom — ch. 3.1–3.2](http://infolab.stanford.edu/~ullman/fcdb.html) — FDs, rules and the closure algorithm with the same schema.
 - [Armstrong, "Dependency Structures of Data Base Relationships" (1974)](https://dl.acm.org/doi/10.5555/647503.723890) — The original axioms.

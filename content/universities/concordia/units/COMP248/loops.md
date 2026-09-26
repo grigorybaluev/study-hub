@@ -3,7 +3,6 @@ title: Loops
 order: 4
 status: detailed
 weeks: [4]
-notes: ["COMP 248 course outline (Fall 2016): week 4, Flow of Control (Iteration); lab exercise 2; assignment 1 due"]
 introduces: [iteration]
 requires:
   - {concept: selection, strength: hard}

@@ -3,7 +3,6 @@ title: Partial derivatives, tangent planes and the chain rule
 order: 12
 status: outline
 weeks: [9, 10]
-textbook: "Stewart, Multivariable Calculus, 9e, 14.3-14.5"
 introduces: [partial-derivative, tangent-plane, multivariable-chain-rule]
 requires:
   - {concept: derivative, strength: hard}

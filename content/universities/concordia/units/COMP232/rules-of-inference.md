@@ -2,7 +2,6 @@
 title: Valid arguments, rules of inference and fallacies
 order: 3
 status: detailed
-notes: ["Lecture slides main1, pp. 66-80"]
 introduces: [logical-inference]
 requires:
   - {concept: propositional-logic, strength: hard}

@@ -3,7 +3,6 @@ title: Left and right inverses; invertible matrices
 order: 5
 status: outline
 weeks: [5]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 2.4, 3.2"
 introduces: []
 requires:
   - {concept: matrix, strength: hard}

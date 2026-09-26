@@ -2,9 +2,7 @@
 title: Indefinite integrals and net change
 order: 5
 status: detailed
-notes: ["Lecture 5 handout — learning/Slides/Lecture5.pdf (Stewart 5.4: indefinite integral, table, integrating rules, net change theorem)"]
 weeks: [3]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.4"
 introduces: []
 requires:
   - {concept: antiderivative, strength: hard}
@@ -14,7 +12,7 @@ reinforces:
 ---
 
 Now that antiderivatives evaluate definite integrals, they get integral notation of
-their own. The lecture fixes the notation, restates the table in it, and turns Part II of
+their own. This unit fixes the notation, restates the table in it, and turns Part II of
 the fundamental theorem into a physical statement: the integral of a rate of change is
 the net change.
 
@@ -147,7 +145,7 @@ for T in (2, 4, 2*pi):                                   # the sim's default is 
 :::insight
 "Net" is the whole point. The velocity graph's signed area tells you
 the *displacement*; to get the distance you must split the interval where $v$ changes
-sign. The same split will be needed for the area between curves (lecture 8).
+sign. The same split will be needed for the area between curves.
 :::
 
 :::note

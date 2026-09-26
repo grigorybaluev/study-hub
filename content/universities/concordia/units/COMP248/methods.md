@@ -3,7 +3,6 @@ title: Methods
 order: 7
 status: detailed
 weeks: [8]
-notes: ["COMP 248 course outline (Fall 2016): week 8, Defining Classes (methods, parameters, return values); lab exercise 4; assignment 3 due"]
 introduces: [function-definition]
 requires:
   - {concept: iteration, strength: hard}

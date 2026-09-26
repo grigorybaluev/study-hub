@@ -3,7 +3,6 @@ title: References and arrays of objects
 order: 9
 status: detailed
 weeks: [10]
-notes: ["COMP 248 course outline (Fall 2016): week 10, Arrays of objects; lab exercise 6"]
 introduces: [object-reference]
 requires:
   - {concept: array, strength: hard}

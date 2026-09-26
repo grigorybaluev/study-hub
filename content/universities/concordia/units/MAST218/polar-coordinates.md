@@ -2,9 +2,7 @@
 title: Polar coordinates and polar curves
 order: 3
 status: detailed
-notes: ["Lecture 4 · Fri 18 Sep 2026 · p.1 (pole, polar axis, sign conventions, equivalent pairs)", "Lecture 4 · p.2 (polar ↔ Cartesian, examples)", "Lecture 4 · p.3 (polar curves, Cartesian ↔ polar equations, lines θ = k)", "Lecture 4 · p.4 (circles r = a, tangent slope, arc length)", "Lecture 4 · p.5 (the spiral r = 5^θ: length and slope)"]
 weeks: [3]
-textbook: "Stewart, Multivariable Calculus, 9e, 10.3–10.4"
 introduces: [polar-coordinates]
 requires:
   - {concept: trigonometric-functions, strength: hard}
@@ -222,7 +220,7 @@ controls:
   - {id: b, label: "b (limaçon)", min: 0, max: 4, step: 0.5, default: 2, decimals: 1}
   - {id: n, label: "n (rose)", min: 1, max: 6, step: 1, default: 2, decimals: 0}
   - {id: T, label: "trace (fraction of the θ range)", min: 0, max: 1, step: 0.01, default: 1, decimals: 2}
-note: 'Each point is (r(θ) cos θ, r(θ) sin θ): the curve is drawn as θ increases (the spiral from θ = −4π, the others from 0), and where r(θ) < 0 the point is plotted through the pole. The spiral is r = (1 + |a|)^θ; the default a = 4 is the lecture spiral r = 5^θ. Each of its turns multiplies r by about 24 000, so only the last turn is visible — lower a to 0.2 to see the same shape wind several times into the pole. The title gives the length traced so far, ∫ √(r² + r′²) dθ.'
+note: 'Each point is (r(θ) cos θ, r(θ) sin θ): the curve is drawn as θ increases (the spiral from θ = −4π, the others from 0), and where r(θ) < 0 the point is plotted through the pole. The spiral is r = (1 + |a|)^θ; the default a = 4 is the spiral r = 5^θ. Each of its turns multiplies r by about 24 000, so only the last turn is visible — lower a to 0.2 to see the same shape wind several times into the pole. The title gives the length traced so far, ∫ √(r² + r′²) dθ.'
 ```
 
 ```python

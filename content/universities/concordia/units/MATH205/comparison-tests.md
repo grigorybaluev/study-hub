@@ -2,9 +2,7 @@
 title: The comparison tests
 order: 17
 status: detailed
-notes: ["Lecture 17 handout — learning/Slides/Lecture17.pdf (Stewart 11.4: comparison test, limit comparison test)"]
 weeks: [9]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.4"
 introduces:
   - {concept: convergence-tests, perspective: "the comparison and limit comparison tests against geometric and p-series"}
 requires:

@@ -3,7 +3,6 @@ title: The collections framework
 order: 12
 status: detailed
 weeks: [11]
-notes: ["COMP 249 course outline (Winter 2026): week 11, ch. 15 & 16, Linked Data Structures & Collections (second half: the collections framework)"]
 introduces: [collections]
 requires:
   - {concept: generics, strength: hard}

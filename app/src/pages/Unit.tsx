@@ -31,7 +31,6 @@ export default function Unit() {
           {unit.sims.total > 0 && <span title="interactive examples whose interface and content have been checked">{unit.sims.verified}/{unit.sims.total} examples verified</span>}
           {unit.kind === "review" && <Badge kind="review" />}
           {unit.weeks.length > 0 && <span>week{unit.weeks.length > 1 ? "s" : ""} {unit.weeks.join(", ")}</span>}
-          {unit.textbook && <span>· {unit.textbook}</span>}
         </div>
         {unit.kind === "review" && (
           <p className="muted">Review unit: recaps material introduced elsewhere. See the concepts in the sidebar for where they are taught.</p>
@@ -69,9 +68,6 @@ export default function Unit() {
           <section><h4>Depends on units</h4>
             <ul>{dependsOn.map((e) => <li key={e.to}><UnitLink id={e.to} /> <span className="faint small">via {e.via.join(", ")}</span></li>)}</ul>
           </section>
-        )}
-        {unit.notes && unit.notes.length > 0 && (
-          <section><h4>Sources</h4><ul className="small muted">{unit.notes.map((n) => <li key={n}>{n}</li>)}</ul></section>
         )}
       </aside>
     </div>

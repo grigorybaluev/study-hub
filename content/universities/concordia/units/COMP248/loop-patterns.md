@@ -3,7 +3,6 @@ title: Nested loops and loop patterns
 order: 5
 status: detailed
 weeks: [5]
-notes: ["COMP 248 course outline (Fall 2016): week 5, Flow of Control (Iteration, continued); lab exercise 3"]
 introduces: []
 requires:
   - {concept: iteration, strength: hard}

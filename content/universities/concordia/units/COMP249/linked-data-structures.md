@@ -3,7 +3,6 @@ title: Linked data structures
 order: 11
 status: detailed
 weeks: [11]
-notes: ["COMP 249 course outline (Winter 2026): week 11, ch. 15 & 16, Linked Data Structures & Collections (first half: linked lists)"]
 introduces:
   - {concept: linked-list, perspective: "building a linked list by hand in Java: node class, head reference, insertion, deletion and traversal; the iterator as an inner class"}
 requires:

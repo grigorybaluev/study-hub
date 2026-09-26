@@ -2,9 +2,7 @@
 title: The integral test
 order: 16
 status: detailed
-notes: ["Lecture 16 handout — learning/Slides/Lecture16.pdf (Stewart 11.3: positive series, integral test, p-series)"]
 weeks: [9]
-textbook: "Stewart, Calculus: Early Transcendentals, 11.3"
 introduces:
   - {concept: convergence-tests, perspective: "the integral test and the p-series it settles"}
 requires:
@@ -101,7 +99,7 @@ The $p$-series **converges if $p > 1$ and diverges if $p \le 1$.**
 
 :::proof
 For $p > 0$ this is the integral test applied to $f(x) = x^{-p}$, using the $p$-integral of
-lecture 13: $\int_1^{\infty} x^{-p}\,dx$ converges exactly for $p > 1$. For $p \le 0$ the terms
+unit 13: $\int_1^{\infty} x^{-p}\,dx$ converges exactly for $p > 1$. For $p \le 0$ the terms
 do not even go to $0$.
 :::
 ::::
@@ -133,7 +131,7 @@ integral is $\big[-1/\ln x\big]_2^{\infty} = 1/\ln 2$, and the series converges.
 :::insight
 The boundary between convergence and divergence for positive series
 sits at $1/n$: terms that decay like $1/n^p$ need $p > 1$. Every comparison in the next
-lecture is a question of "which side of $1/n$ is this?"
+unit is a question of "which side of $1/n$ is this?"
 :::
 
 :::equations

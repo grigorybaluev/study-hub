@@ -3,7 +3,6 @@ title: Programs and Java basics
 order: 1
 status: detailed
 weeks: [1]
-notes: ["COMP 248 course outline (Fall 2016): week 1, Introduction & Java Basics; course objectives CO1–CO3"]
 introduces: [variables-and-expressions]
 requires: []
 reinforces: []

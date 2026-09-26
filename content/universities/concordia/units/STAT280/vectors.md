@@ -119,7 +119,7 @@ seq(0, 1, length.out = 11)      # 11 equispaced numbers from 0 to 1
 ##  [1] 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
 ```
 
-If `by` is omitted it is 1; `by` can be negative or non-integer. (Exercise from the slides: which commands produce `3 2 1 3 2 1 3 2 1 3 2 1` and `3 6 9 … 30`? — `rep(3:1, 4)` and `seq(3, 30, by = 3)`.)
+If `by` is omitted it is 1; `by` can be negative or non-integer. (Exercise: which commands produce `3 2 1 3 2 1 3 2 1 3 2 1` and `3 6 9 … 30`? — `rep(3:1, 4)` and `seq(3, 30, by = 3)`.)
 
 ### Random patterns: sample
 
@@ -148,7 +148,7 @@ note: Shows how x + z pairs each element of x with an element of the shorter z, 
 ...
 ```
 
-All the vector examples from Lectures 2–3. set.seed() is not in the slides but makes the sample() output reproducible so you can compare runs.
+All the vector examples of this part. set.seed() makes the sample() output reproducible so you can compare runs.
 
 ```r
 # Creating and combining
@@ -346,7 +346,7 @@ levels(new.grades)[c(1, 2, 5, 2)]
 ## [1] "A" "B" "F" "B"
 ```
 
-The character-vector and factor examples from Lecture 3. table() is not on the slides but is the most common thing to do with a factor.
+The character-vector and factor examples of this part. table() is the most common thing to do with a factor.
 
 ## Logical Vectors & Subsetting
 

@@ -3,8 +3,6 @@ title: SQL queries
 order: 2
 status: detailed
 weeks: [1, 2]
-notes: ["Deck DB01: slides 36–43 SELECT-FROM-WHERE, the WHERE clause; 44–57 products and joins, join in SQL, joining relations; 58–62 aggregation operators; 63–72 grouping, nulls in aggregation, HAVING; 73 ORDER BY. Deck DB08, More on SQL Queries: slides 2–6 the SELECT clause (renaming, expressions, constants); 7–10 string comparison, LIKE and escapes; 11 ordering; 12–13 products and joins; 14–20 union, intersection, difference, duplicate elimination, UNION ALL. Silberschatz ch. 4 deck: basic structure, set operations, aggregate functions, joined relations"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 6.1–6.4"
 introduces: [sql]
 requires:
   - {concept: database-system, strength: hard}
@@ -16,8 +14,7 @@ reinforces: []
 SQL is a language for saying *which* rows and columns you want, not how to find them.
 One statement shape — `SELECT … FROM … WHERE …` — covers projection, selection and
 joins; two clauses more — `GROUP BY` and `HAVING` — cover aggregation. Every block on
-this page runs against a real SQLite database seeded with the movie tables the decks
-use; edit the query and press Run.
+this page runs against a real SQLite database seeded with the movie tables used throughout; edit the query and press Run.
 
 ## SELECT–FROM–WHERE
 
@@ -117,7 +114,7 @@ note: "Without the two equalities the product has 5 × 8 = 40 rows — run SELEC
 > filters *groups* by a condition on aggregates, after grouping — `WHERE` filters
 > tuples before it.
 
-Two rules about `NULL` (deck DB01, slides 66–69): a `NULL` in a grouping attribute
+Two rules about `NULL`: a `NULL` in a grouping attribute
 forms its own group and is counted by `COUNT(*)`, but `NULL` values are **ignored** by
 `SUM`, `AVG`, `MIN`, `MAX` and `COUNT(a)` — so on `R(A, B)` with tuples (null, 1),
 (2, null), (null, null), the query `SELECT A, SUM(B) FROM R GROUP BY A` returns two
@@ -157,7 +154,7 @@ duplicates, even ones inside a single operand — whereas `SELECT` alone keeps a
 `UNION ALL` (and `INTERSECT ALL`, `EXCEPT ALL` where supported) keep the bag
 semantics, in which a tuple appearing $m$ times in one operand and $n$ times in the
 other appears $m + n$ times in the union, $\min(m, n)$ times in the intersection and
-$\max(0, m - n)$ times in the difference (deck DB08, slides 18–20).
+$\max(0, m - n)$ times in the difference.
 
 ```sim
 id: db-353-set-ops
@@ -197,4 +194,3 @@ note: "Titles that are Fox movies or star someone named Roberts, as a set. Repla
 ## Further reading
 
 - [SQLite — SELECT](https://www.sqlite.org/lang_select.html) — The exact grammar the examples on this page run against, with the evaluation order drawn out.
-- [Ullman & Widom — ch. 6](http://infolab.stanford.edu/~ullman/fcdb.html) — The textbook chapter behind decks DB01 and DB08.

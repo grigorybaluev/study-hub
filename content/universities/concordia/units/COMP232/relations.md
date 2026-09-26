@@ -2,7 +2,6 @@
 title: Relations
 order: 10
 status: detailed
-notes: ["Lecture slides main3, pp. 31-73"]
 introduces: [relation]
 requires:
   - {concept: set, strength: hard}

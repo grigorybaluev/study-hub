@@ -3,8 +3,6 @@ title: The sorting lower bound, bucket sort and radix sort
 order: 10
 status: detailed
 weeks: [10]
-notes: ["Deck 17, Sorting Lower Bound: slides 3–4 comparison-based sorting; 5–8 counting comparisons with a decision tree; 9–10 the height of the decision tree and the Ω(n log n) bound. Deck 18, Bucket-Sort and Radix-Sort: slides 3–6 bucket-sort on keys in [0, N−1], the example; 7 properties; 8–9 stable sorting; 10 lexicographic order of d-tuples; 11–17 radix-sort by stable passes, its analysis; 18–19 radix-sort of b-bit integers, the 4-bit example"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 12.4–12.5"
 introduces: []
 requires:
   - {concept: sorting-algorithms, strength: hard}
@@ -143,5 +141,4 @@ note: 'Each pass is a bucket sort on one digit; the buckets are ArrayLists so th
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Sorting Lower Bound, Bucket and Radix Sort (ch. 12 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Sorting.html) — The decision-tree argument and both linear sorts.
 - [Sedgewick & Wayne — String Sorts](https://algs4.cs.princeton.edu/51radix/) — LSD and MSD radix sort with the stability argument and the comparison to the lower bound.

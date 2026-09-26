@@ -3,7 +3,6 @@ title: General vector spaces and subspaces
 order: 7
 status: outline
 weeks: [7]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 6.1, 6.2, 6.3"
 introduces:
   - {concept: vector-space, perspective: "the axioms, with polynomials and functions as vectors; subspaces"}
 requires:

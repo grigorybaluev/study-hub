@@ -2,9 +2,7 @@
 title: Vectors, span, and the rank of a matrix
 order: 2
 status: detailed
-notes: ["Lecture notebook Week02.ipynb"]
 weeks: [2]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 1.2, 2.1-2.3"
 introduces: [linear-combination-span, matrix-rank]
 requires:
   - {concept: vector, strength: hard}
@@ -180,4 +178,5 @@ rank counts how many directions the columns actually contribute — the rest are
 
 ## Further reading
 
-- [Nicholson, *Linear Algebra with Applications*, §1.2, §2.1–2.3](https://lyryx.com/linear-algebra-applications/) — matrix–vector products, span, rank.
+- [Linear span (Wikipedia)](https://en.wikipedia.org/wiki/Linear_span) — spans, spanning sets, and their geometric picture.
+- [Rank (linear algebra) (Wikipedia)](https://en.wikipedia.org/wiki/Rank_(linear_algebra)) — row rank, column rank, and the rank–nullity theorem.

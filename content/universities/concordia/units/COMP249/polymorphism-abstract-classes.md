@@ -3,7 +3,6 @@ title: Polymorphism and abstract classes
 order: 3
 status: detailed
 weeks: [3]
-notes: ["COMP 249 course outline (Winter 2026): week 3, ch. 8, Polymorphism and Abstract Classes"]
 introduces: [polymorphism]
 requires:
   - {concept: inheritance, strength: hard}
@@ -174,7 +173,7 @@ note: 'toString and scaledArea live in the abstract class and call area(), which
 - Override `toString` and `equals` in the classes that hold data; `Object`'s versions are
   rarely what a subclass wants.
 - Clone and copy: copying a polymorphic object needs the *dynamic* type's copy
-  constructor, which is why the textbook's `clone` discussion appears here.
+  constructor, which is why `clone` belongs with polymorphism.
 
 > **Key insight.** Two types, two moments: the static type governs what *compiles*
 > (which methods may be called, which overload is chosen), the dynamic type governs what

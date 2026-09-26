@@ -3,7 +3,6 @@ title: Selection
 order: 3
 status: detailed
 weeks: [3]
-notes: ["COMP 248 course outline (Fall 2016): week 3, Flow of Control 1 (Selection); lab exercise 1"]
 introduces: [selection]
 requires:
   - {concept: variables-and-expressions, strength: hard}

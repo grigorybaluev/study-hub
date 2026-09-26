@@ -4,7 +4,6 @@ order: 11
 kind: review
 status: detailed
 weeks: [13]
-notes: ["COMP 248 course outline (Fall 2016): week 13, Catch Up and/or Review; final exam covers all material, 40%"]
 introduces: []
 requires: []
 reinforces: [variables-and-expressions, string, selection, iteration, array, function-definition, class-and-object, object-reference]

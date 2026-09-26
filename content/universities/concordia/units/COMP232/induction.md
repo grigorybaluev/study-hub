@@ -2,7 +2,6 @@
 title: Proof strategies and mathematical induction
 order: 8
 status: detailed
-notes: ["Lecture slides main3, pp. 1-21"]
 introduces: [mathematical-induction]
 requires:
   - {concept: proof-techniques, strength: hard}

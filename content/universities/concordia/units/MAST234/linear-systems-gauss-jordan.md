@@ -2,9 +2,7 @@
 title: Linear systems and the Gauss–Jordan method
 order: 1
 status: detailed
-notes: ["Lecture notebook Week01.ipynb"]
 weeks: [1]
-textbook: "Nicholson, Linear Algebra with Applications (Lyryx open text), 1.1-1.2"
 introduces:
   - {concept: computer-algebra-system, perspective: "SageMath as the course's calculator: exact matrices over QQ, symbolic entries over SR"}
 requires:
@@ -213,5 +211,4 @@ inconsistent.
 
 ## Further reading
 
-- [Nicholson, *Linear Algebra with Applications*, §1.1–1.2](https://lyryx.com/linear-algebra-applications/) — systems and Gaussian elimination.
 - [SageMath matrix methods](https://doc.sagemath.org/html/en/reference/matrices/sage/matrix/matrix2.html) — `rref`, `augment`, `swap_rows`, `rescale_row`, `add_multiple_of_row`.

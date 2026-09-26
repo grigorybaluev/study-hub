@@ -2,7 +2,6 @@
 title: Predicates and quantifiers
 order: 2
 status: detailed
-notes: ["Lecture slides main1, pp. 32-65"]
 introduces: [predicate-logic]
 requires:
   - {concept: propositional-logic, strength: hard}

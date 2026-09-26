@@ -2,7 +2,6 @@
 title: Methods of proof
 order: 4
 status: detailed
-notes: ["Lecture slides main1, pp. 81-100"]
 introduces: [proof-techniques]
 requires:
   - {concept: logical-inference, strength: hard}
@@ -18,7 +17,7 @@ contradiction, and by cases.
 
 Proofs are how mathematics establishes truth, but software has the same need: "the program
 meets its specification", "the system cannot deadlock", "the output stays in range". The
-slides list the Mars probe, Y2K and the Denver airport baggage system as expensive
+Mars probe, Y2K and the Denver airport baggage system are well-known expensive
 consequences of not checking. Full formal proofs of large systems are impractical; proving
 small critical components, and reasoning in the style of a proof about the rest, is not.
 

@@ -3,8 +3,6 @@ title: Graphs, depth-first and breadth-first search
 order: 11
 status: detailed
 weeks: [11]
-notes: ["Deck 19, Graphs: slides 3–7 graphs, edge types, directed/undirected/mixed, applications; 8–16 terminology (endpoints, incidence, degree, parallel edges, self-loops, paths, cycles, subgraphs, connectivity, forests, spanning trees); 17–19 properties (sum of degrees 2m, m ≤ n(n−1)/2); 20–21 the graph ADT; 22–36 edge list, adjacency list and adjacency matrix with the performance table. Deck 20, DFS: slides 3–6 subgraphs, connectivity, trees, spanning trees; 7–13 the DFS algorithm and example; 14–17 analysis O(n + m), the maze; 18–21 properties, path finding, cycle finding. Deck 21, BFS: slides 3–8 the algorithm by levels; 9–11 example; 12–15 analysis and properties; 16–19 DFS vs. BFS, biconnected components, back edges"]
-textbook: "Goodrich, Tamassia & Goldwasser, Data Structures and Algorithms in Java, 6e, ch. 14.1–14.3"
 introduces:
   - {concept: graph, perspective: "the graph ADT: edge list, adjacency list and adjacency matrix, with the cost of every operation"}
   - graph-traversal
@@ -33,7 +31,7 @@ every graph algorithm afterwards is one of the two walks with extra bookkeeping.
 > graph is directed, undirected or mixed accordingly. Edges and vertices may carry
 > elements (a flight's distance, a city's name).
 
-Terms used throughout (deck 19, slides 8–16): the **endpoints** of an edge; an edge is
+Terms used throughout: the **endpoints** of an edge; an edge is
 **incident** on its endpoints; two vertices are **adjacent** when an edge joins them;
 the **degree** of a vertex is the number of incident edges (in-degree and out-degree
 in a digraph); **parallel edges** share both endpoints, a **self-loop** has one; a
@@ -52,7 +50,7 @@ in the graph" means $O(n + m)$.
 
 ## The graph ADT and three representations
 
-The ADT (slides 20–21) treats vertices and edges as positions: `endVertices(e)`,
+The ADT treats vertices and edges as positions: `endVertices(e)`,
 `opposite(v, e)`, `areAdjacent(v, w)`, `incidentEdges(v)`, `insertVertex(o)`,
 `insertEdge(v, w, o)`, `removeVertex(v)`, `removeEdge(e)`, plus the collections
 `vertices()` and `edges()`. Three structures implement it:
@@ -94,8 +92,7 @@ note: "The same undirected graph as an adjacency list (each vertex with its neig
 > when stuck — and the recursion stack is the thread you unwind along.
 
 DFS from $s$ visits every vertex of $s$'s connected component and labels every edge of
-it, and the discovery edges form a **spanning tree** of that component (deck 20,
-slides 18–19). Its cost is $O(n + m)$ once the representation gives incident edges in
+it, and the discovery edges form a **spanning tree** of that component. Its cost is $O(n + m)$ once the representation gives incident edges in
 $O(\deg(v))$: each vertex is labelled twice, each edge twice, and the time is
 $\sum_v \deg(v) = 2m$ plus $n$. Two specialisations: **path finding** keeps the
 current recursion path on a stack and stops when the target is reached; **cycle
@@ -123,8 +120,8 @@ note: "Discovery edges (thick red) form the DFS spanning tree A–B–C–E–D�
 
 BFS also visits the whole component, also in $O(n + m)$, and its discovery edges also
 form a spanning tree — but a special one: the path in it from $s$ to any $v$ has the
-*fewest edges* of any path, and $v \in L_i$ means $v$ is exactly $i$ edges from $s$
-(deck 21, slides 12–15). Cross edges join vertices of the same level or adjacent
+*fewest edges* of any path, and $v \in L_i$ means $v$ is exactly $i$ edges from $s$.
+Cross edges join vertices of the same level or adjacent
 levels, never two levels apart; in an undirected graph there are no back edges.
 
 ```sim
@@ -198,5 +195,4 @@ note: 'The adjacency list is a map from vertex to neighbours. dfs is the recursi
 
 ## Further reading
 
-- [Goodrich, Tamassia & Goldwasser — Graphs (ch. 14 slides)](https://www.cs.uic.edu/~jbell/CourseNotes/DataStructures/Graphs.html) — Terminology, the three representations, DFS and BFS with the same figures.
 - [Sedgewick & Wayne — Undirected Graphs](https://algs4.cs.princeton.edu/41graph/) — Adjacency lists in Java, DFS and BFS with path reconstruction and connected components.

@@ -2,7 +2,6 @@
 title: Propositional logic
 order: 1
 status: detailed
-notes: ["Lecture slides main1, pp. 5-31"]
 introduces: [propositional-logic]
 requires: []
 reinforces: []

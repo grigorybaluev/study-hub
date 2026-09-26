@@ -4,7 +4,6 @@ order: 1
 kind: review
 status: detailed
 weeks: [1]
-notes: ["COMP 249 course outline (Winter 2026): week 1, ch. 4, 5 & 6, Review of Classes, Objects & Arrays"]
 introduces: []
 requires: []
 reinforces: [class-and-object, object-reference, array]

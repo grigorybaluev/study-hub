@@ -2,7 +2,6 @@
 title: Differentiation
 order: 3
 status: outline
-textbook: "Thomas' Calculus"
 introduces: [derivative, chain-rule]
 requires:
   - {concept: limit, strength: hard}

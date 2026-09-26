@@ -3,8 +3,6 @@ title: Moment-generating functions
 order: 8
 status: detailed
 weeks: [7]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 4.5"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 138–139: the moment-generating function by Taylor expansion of e^(tX) ('method of moments'), and the Poisson mean and variance from it", "Doedel, pp. 208–209: the moment-generating function of a chi-square variable with one degree of freedom"]
 introduces: [moment-generating-function]
 requires:
   - {concept: expected-value, strength: hard}

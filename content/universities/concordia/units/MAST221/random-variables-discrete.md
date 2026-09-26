@@ -3,8 +3,6 @@ title: Random variables and discrete distributions
 order: 4
 status: detailed
 weeks: [3]
-textbook: "Miller & Miller, John E. Freund's Mathematical Statistics with Applications, 8e, 3.1-3.2"
-notes: ["Doedel, Probability and Statistics lecture notes (Concordia), pp. 71–81: discrete random variables, the probability mass function and the distribution function, the three-toss and toss-until-heads examples"]
 introduces: [random-variable, probability-mass-function, cumulative-distribution-function]
 requires:
   - {concept: probability, strength: hard}
@@ -99,8 +97,8 @@ $$
 p(x) = P(X = x)
 $$
 
-for every real $x$. It is zero except at the countably many values $X$ takes. Miller & Miller
-call it the *probability distribution* and write $f(x)$; $p_X(x)$ is used when several random
+for every real $x$. It is zero except at the countably many values $X$ takes. It is also
+called the *probability distribution* and written $f(x)$; $p_X(x)$ is used when several random
 variables are around.
 :::
 

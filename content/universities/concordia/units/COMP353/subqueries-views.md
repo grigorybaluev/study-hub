@@ -3,8 +3,6 @@ title: Nested queries and views
 order: 10
 status: detailed
 weeks: [8]
-notes: ["Deck DB09, More on SQL — Nested Queries and Views: slides 2–3 subqueries that produce a scalar; 4–6 subqueries in the WHERE clause; 7–8 conditions on relations: EXISTS, IN, ALL, ANY; 9–11 conditions on tuples; 12–14 correlated subqueries and scoping; 15–22 views, views in queries, renaming view attributes; 23–29 updating views: insertion, deletion and modification, when a view is updatable"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 6.3, 8.1–8.2"
 introduces: []
 requires:
   - {concept: sql, strength: hard}
@@ -62,14 +60,14 @@ tables:
 query: |
   SELECT name FROM MovieExec
   WHERE cert IN (SELECT producerC FROM Movie WHERE year >= 1980);
-note: "Executives who produced a movie of 1980 or later — the subquery is a set of certificate numbers. Rewrite it with EXISTS (a correlated subquery over Movie), then find the executive richer than every producer with netWorth > (SELECT MAX(netWorth) FROM MovieExec WHERE cert IN (SELECT producerC FROM Movie)) — the deck's > ALL, which SQLite does not have — and the movies without a listed star with (title, year) NOT IN (SELECT title, year FROM StarsIn)."
+note: "Executives who produced a movie of 1980 or later — the subquery is a set of certificate numbers. Rewrite it with EXISTS (a correlated subquery over Movie), then find the executive richer than every producer with netWorth > (SELECT MAX(netWorth) FROM MovieExec WHERE cert IN (SELECT producerC FROM Movie)) — the > ALL, which SQLite does not have — and the movies without a listed star with (title, year) NOT IN (SELECT title, year FROM StarsIn)."
 ```
 
 ## Correlated subqueries
 
 A subquery may mention an attribute of the *outer* query; it is then evaluated once
 per outer tuple, with that tuple's values plugged in — **correlated**. "Titles used
-for more than one movie" (deck DB09, slides 13–14): for each movie `Old`, does a
+for more than one movie": for each movie `Old`, does a
 movie with the same title and a later year exist? Attributes resolve to the nearest
 enclosing query that has them, so tuple variables (`Old`, `New`) are the tool for
 saying which `year` is meant. A simple (uncorrelated) subquery is evaluated once; a
@@ -92,7 +90,7 @@ tables:
 query: |
   SELECT title, year FROM Movie Old
   WHERE EXISTS (SELECT * FROM Movie New WHERE New.title = Old.title AND New.year > Old.year);
-note: "For each outer movie the inner query looks for a later movie with the same title; a movie qualifies if one exists — the two older King Kongs. The references to Old are what make it correlated. The deck writes the same with year < ANY (SELECT year FROM Movie WHERE title = Old.title); SQLite, which runs this page, has no ANY/ALL, so use year < (SELECT MAX(year) ...) instead. The longest movie of each studio: WHERE length >= (SELECT MAX(length) FROM Movie M2 WHERE M2.studioName = Old.studioName)."
+note: "For each outer movie the inner query looks for a later movie with the same title; a movie qualifies if one exists — the two older King Kongs. The references to Old are what make it correlated. Standard SQL writes the same with year < ANY (SELECT year FROM Movie WHERE title = Old.title); SQLite, which runs this page, has no ANY/ALL, so use year < (SELECT MAX(year) ...) instead. The longest movie of each studio: WHERE length >= (SELECT MAX(length) FROM Movie M2 WHERE M2.studioName = Old.studioName)."
 ```
 
 ## Views
@@ -139,7 +137,7 @@ note: "Two views — a selection and a join with renamed attributes — then a q
 
 Inserting into, deleting from or updating a view means changing the base tables so
 that the view shows the change; that is possible only when the change has one
-obvious meaning (deck DB09, slides 23–29). The standard's **updatable** views are
+obvious meaning. The standard's **updatable** views are
 selections and projections of a **single** table, defined without `DISTINCT`,
 aggregation or grouping, whose projection keeps enough attributes that a new tuple can
 be built (attributes left out become `NULL` or their default). An insert into
@@ -161,5 +159,4 @@ Instead-of **triggers** (next unit) let a designer specify one.
 
 ## Further reading
 
-- [Ullman & Widom — ch. 6.3 and 8.1](http://infolab.stanford.edu/~ullman/fcdb.html) — Subqueries and views as in the deck.
 - [SQLite — CREATE VIEW](https://www.sqlite.org/lang_createview.html) — The engine on this page treats views as read-only; INSTEAD OF triggers are how it updates them.

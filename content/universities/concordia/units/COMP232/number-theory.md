@@ -2,7 +2,6 @@
 title: Integers and division
 order: 7
 status: detailed
-notes: ["Lecture slides main2, pp. 55-71", "Euclidean-algorithm handout"]
 introduces: [modular-arithmetic]
 requires:
   - {concept: proof-techniques, strength: hard}

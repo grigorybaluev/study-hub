@@ -3,8 +3,6 @@ title: Datalog and object data models
 order: 12
 status: detailed
 weeks: [11, 12]
-notes: ["Deck DB11, Logical Query Languages — Datalog: slides 2–5 rules, heads, subgoals, local and global variables; 6–9 variable-based and tuple-based interpretations; 10 programs; 11–18 the relational-algebra operations as rules (union, intersection, difference, projection, selection, product, joins); 19 a program on the movie schema; 20–24 expressive power, recursion, fixpoint evaluation, the sequel example; 25–28 dependency, stratification of negation, safe rules. Deck DB12, Object Definition Language: slides 2–5 the object-oriented world, class declarations, properties; 6–9 attributes, keys, single-value constraints; 10–16 types, collection types, examples; 17–34 relationships, inverses, multiplicity; 35–41 inheritance, multiple inheritance"]
-textbook: "Ullman & Widom, A First Course in Database Systems, 3e, ch. 5.3–5.4, 4.9"
 introduces: [datalog]
 requires:
   - {concept: relational-algebra, strength: hard}
@@ -35,12 +33,12 @@ alternative to E/R diagrams.
 `longMovie(T, Y) ← movie(T, Y, L, S), L >= 100` says: for every assignment of the
 variables making every subgoal true, the head is true. Variables that appear only in
 the body are *local* (existentially quantified in effect — "there is some length");
-the head's are *global*. Two equivalent readings (deck DB11, slides 6–9): try every
+the head's are *global*. Two equivalent readings: try every
 assignment of values to variables, or every assignment of tuples to the subgoals.
 
 ## The algebra as rules
 
-Every algebra operator is a rule or two (slides 11–18): projection drops variables
+Every algebra operator is a rule or two: projection drops variables
 from the head, selection adds comparisons, product and join share (or do not share)
 variables between subgoals, union is two rules with the same head, intersection two
 subgoals, difference a positive and a negated subgoal:
@@ -80,7 +78,7 @@ note: "Four rules, three operators: a selection with projection, a join (T and Y
 
 An IDB predicate may appear in its own body. `reach(X, Y) ← train(X, Y)` and
 `reach(X, Y) ← reach(X, Z), train(Z, Y)` define reachability — the transitive
-closure, which no finite algebra expression computes (deck DB11, slides 20–24). The
+closure, which no finite algebra expression computes. The
 meaning is the **least fixpoint**: start with every IDB relation empty, apply all the
 rules to the current relations to derive new tuples, repeat until a round adds
 nothing. The evaluator on this page applies the rules in order within a round, each
@@ -197,5 +195,4 @@ note: "The ODL design above as relations: the Struct address is flattened into S
 
 ## Further reading
 
-- [Ullman & Widom — ch. 5.3–5.4 and 4.9](http://infolab.stanford.edu/~ullman/fcdb.html) — Datalog rules, recursion and stratification; ODL and its translation to relations.
 - [Abiteboul, Hull & Vianu — Foundations of Databases, ch. 12](http://webdam.inria.fr/Alice/) — Datalog semantics (least fixpoint, stratified negation) in full, freely available.

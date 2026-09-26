@@ -2,9 +2,7 @@
 title: The definite integral
 order: 2
 status: detailed
-notes: ["Lecture 2 handout — learning/Slides/Lecture2.pdf (Stewart 5.2: partition, Riemann sum, norm, definition, integrability, properties)"]
 weeks: [1]
-textbook: "Stewart, Calculus: Early Transcendentals, 5.2"
 introduces: [integral]
 requires:
   - {concept: riemann-sum, strength: hard}
@@ -13,7 +11,7 @@ requires:
 reinforces: []
 ---
 
-The area recipe of lecture 1 is turned into a definition that does not need $f \ge 0$,
+The area recipe of unit 1 is turned into a definition that does not need $f \ge 0$,
 equal subintervals, or any particular sample points. The result — the **definite
 integral** — is a number attached to a function and an interval, with a short list of
 algebraic properties that do most of the routine work.
@@ -66,7 +64,7 @@ Compute $\int_0^2 x^2\,dx$ from the definition, with equal subintervals and righ
 Would other sample points change the answer?
 
 :::solution
-This is the limit computed in lecture 1: $R_n \to \frac{8}{3}$. Because $x^2$ is continuous it
+This is the limit computed in unit 1: $R_n \to \frac{8}{3}$. Because $x^2$ is continuous it
 is integrable, so any other sample points give the same limit — that is what "integrable"
 guarantees.
 :::
