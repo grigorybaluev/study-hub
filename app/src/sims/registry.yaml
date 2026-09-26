@@ -129,7 +129,7 @@ py:
 # ds: modes of DS.mount in ds.js (data-structure visualiser); a block carries `mode` plus mode-specific keys
 #   (`data`, `ops`, `capacity`, `kind`, `algo`, `edges`, …) — see the header of ds.js.
 ds:
-  modes: [stack, queue, array-list, linked-list, call-tree, binary-tree, heap, hash-table, bst, avl, sort, graph]
+  modes: [stack, queue, array-list, linked-list, call-tree, binary-tree, heap, hash-table, bst, avl, sort, graph, mark-sweep]
 # db: modes of DB.mount in db.js (database engine): sql runs through sql.js over `tables`; the others are own evaluators.
 db:
   modes: [sql, ra, fd-closure, fd-keys, fd-cover, decomposition, normal-form, datalog, er]

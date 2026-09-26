@@ -124,5 +124,19 @@ t('review regressions: binsum n=0 terminates, heap usable after heap-sort, Dijks
   const g = DS.model({ mode: 'graph', directed: true, edges: ['A-B -2', 'B-C 1'] }); const steps = g.run('dijkstra', ['A']); ok(steps.length === 1 && steps[0].hl.err, 'negative weights refused');
 });
 
+t('mark-sweep: tracing frees unreachable objects and cycles; counting frees at zero but not cycles', () => {
+  const m = DS.model({ mode: 'mark-sweep', roots: { a: 'main.a', b: 'f.b' }, objects: { a: ['c'], c: [], b: ['d'], d: ['b'], x: ['y'], y: ['x'] } });
+  m.run('collect');
+  const freed = () => Object.keys(m.state.objs).filter(k => m.state.objs[k].freed).sort();
+  eq(freed(), ['x', 'y'], 'first collection frees the unreachable cycle');
+  m.run('drop', ['f.b']); m.run('collect'); eq(freed(), ['b', 'd', 'x', 'y'], 'after the frame goes');
+  ok(Object.values(m.state.objs).every(o => o.freed || o.mark === 'white'), 'marks cleared after sweep'); renders(m);
+  const c = DS.model({ mode: 'mark-sweep', counting: true, roots: { h: 'main.h' }, objects: { h: ['n1'], n1: ['n2'], n2: ['n1'], z: [] } });
+  eq(c.state.objs.n1.rc, 2); eq(c.state.objs.z.rc, 0);
+  c.run('drop', ['main.h']);
+  ok(c.state.objs.h.freed && !c.state.objs.n1.freed && c.state.objs.n1.rc === 1, 'h freed at zero; the cycle stays');
+  c.run('collect'); ok(c.state.objs.n1.freed && c.state.objs.n2.freed, 'tracing frees the cycle'); renders(c);
+});
+
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

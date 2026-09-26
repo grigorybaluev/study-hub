@@ -1164,6 +1164,178 @@
   const pick = (s, args) => { const a = val(args); const v = a !== undefined && a !== '' && s.vs.includes(String(a)) ? String(a) : s.start; return v; };
   function reset(s) { s.vlabel = {}; s.vtone = {}; s.etone = {}; s.side = null; s.order = []; s.matrix = null; s.kRound = null; }
 
+  /* ── mark-sweep: a heap graph with a root set; tracing collection and reference counting ──
+     cfg.roots: { objectId: 'label' } (a global or a local that refers to the object);
+     cfg.objects: { objectId: [ids it refers to] }; cfg.counting: true shows reference counts and
+     frees an object as soon as its count reaches zero.
+     ops: collect, mark, sweep, drop <root label or object>, link <a> <b>, unlink <a> <b>, new <id> [<from>] */
+  MODES['mark-sweep'] = {
+    title: 'Garbage collection',
+    init(cfg) {
+      const objs = {}, order = [];
+      const add = id => { id = String(id); if (!objs[id]) { objs[id] = { refs: [], mark: 'white', freed: false }; order.push(id); } return id; };
+      for (const [id, refs] of Object.entries(cfg.objects || {})) { add(id); for (const r of refs || []) add(r); }
+      for (const [id, refs] of Object.entries(cfg.objects || {})) objs[String(id)].refs = (refs || []).map(String);
+      const roots = Object.entries(cfg.roots || {}).map(([to, label]) => ({ to: add(to), label: String(label || to) }));
+      const s = { objs, order, roots, counting: !!cfg.counting, work: [], phase: '', freedNow: [] };
+      layoutHeap(s);
+      recount(s);
+      return s;
+    },
+    controls: [{ kind: 'button', label: 'collect', op: 'collect' }, { kind: 'button', label: 'mark', op: 'mark' }, { kind: 'button', label: 'sweep', op: 'sweep' },
+      { kind: 'text', name: 'a', label: 'object or root', default: '' }, { kind: 'text', name: 'b', label: 'target', default: '' },
+      { kind: 'button', label: 'drop root', op: 'drop', args: ['a'] }, { kind: 'button', label: 'link a → b', op: 'link', args: ['a', 'b'] }, { kind: 'button', label: 'unlink a → b', op: 'unlink', args: ['a', 'b'] }],
+    ops: {
+      *collect(s) { yield* MODES['mark-sweep'].ops.mark(s); yield* MODES['mark-sweep'].ops.sweep(s); },
+      *mark(s) {
+        s.phase = 'mark'; s.freedNow = [];
+        for (const id of s.order) if (!s.objs[id].freed) s.objs[id].mark = 'white';
+        yield { d: 'mark phase: every mark is cleared (white = not yet reached)', hl: {} };
+        s.work = [];
+        for (const r of s.roots) {
+          const o = s.objs[r.to];
+          if (o && !o.freed && o.mark === 'white') { o.mark = 'grey'; s.work.push(r.to); yield { d: `root ${r.label} refers to ${r.to}: mark it and put it on the work list (grey = reached, references not yet followed)`, hl: { v: r.to } }; }
+        }
+        if (!s.roots.length) yield { d: 'the root set is empty: nothing is reachable', hl: {} };
+        while (s.work.length) {
+          const id = s.work.shift(), o = s.objs[id];
+          for (const t of o.refs) {
+            const q = s.objs[t];
+            if (q && !q.freed && q.mark === 'white') { q.mark = 'grey'; s.work.push(t); yield { d: `${id} refers to ${t}: not yet marked, so mark it and add it to the work list`, hl: { v: t, e: [id, t] } }; }
+            else if (q && !q.freed) yield { d: `${id} refers to ${t}: already marked, nothing to do`, hl: { e: [id, t] } };
+          }
+          o.mark = 'black';
+          yield { d: `every reference of ${id} has been followed (black = done)`, hl: { v: id } };
+        }
+        const live = s.order.filter(id => !s.objs[id].freed && s.objs[id].mark === 'black');
+        const dead = s.order.filter(id => !s.objs[id].freed && s.objs[id].mark === 'white');
+        yield { d: `mark phase done: ${live.length} reachable (${live.join(', ') || 'none'}); ${dead.length ? 'still white, so unreachable: ' + dead.join(', ') : 'nothing is unreachable'}`, hl: {} };
+      },
+      *sweep(s) {
+        s.phase = 'sweep'; s.freedNow = [];
+        for (const id of s.order) {
+          const o = s.objs[id]; if (o.freed) continue;
+          if (o.mark === 'black') { o.mark = 'white'; yield { d: `sweep ${id}: marked, so it survives (its mark is cleared for the next collection)`, hl: { v: id } }; }
+          else { o.freed = true; s.freedNow.push(id); yield { d: `sweep ${id}: unmarked, so no root reaches it — free it`, hl: { v: id, free: true } }; }
+        }
+        s.phase = ''; recount(s);
+        yield { d: `sweep done: freed ${s.freedNow.length ? s.freedNow.join(', ') : 'nothing'}; the sweep visited every object in the heap`, hl: {} };
+      },
+      *drop(s, args) {
+        const a = String(val(args) || '');
+        const hit = s.roots.filter(r => r.label === a || r.to === a || r.label.endsWith('.' + a));
+        if (!hit.length) { yield { d: `no root named ${a}`, hl: { err: true } }; return; }
+        s.roots = s.roots.filter(r => !hit.includes(r));
+        s.freedNow = [];
+        yield { d: `${hit.map(r => r.label).join(', ')} is gone (its variable went out of scope or was reassigned): ${hit.map(r => r.to).join(', ')} lost a reference from the root set`, hl: { v: hit[0].to } };
+        if (s.counting) yield* cascade(s);
+      },
+      *link(s, args) {
+        const [a, b] = (args || []).map(String);
+        if (!s.objs[a] || !s.objs[b] || s.objs[a].freed || s.objs[b].freed) { yield { d: `link needs two live objects`, hl: { err: true } }; return; }
+        s.objs[a].refs.push(b); recount(s);
+        yield { d: `${a} now refers to ${b}${s.counting ? ` (count of ${b}: ${s.objs[b].rc})` : ''}`, hl: { e: [a, b] } };
+      },
+      *unlink(s, args) {
+        const [a, b] = (args || []).map(String);
+        const o = s.objs[a]; const k = o ? o.refs.indexOf(b) : -1;
+        if (k < 0) { yield { d: `${a} does not refer to ${b}`, hl: { err: true } }; return; }
+        o.refs.splice(k, 1); s.freedNow = [];
+        yield { d: `${a} no longer refers to ${b}`, hl: { v: b } };
+        if (s.counting) yield* cascade(s);
+      },
+      *new(s, args) {
+        const [id, from] = (args || []).map(String);
+        if (!id || s.objs[id]) { yield { d: 'new needs a fresh name', hl: { err: true } }; return; }
+        s.objs[id] = { refs: [], mark: 'white', freed: false }; s.order.push(id);
+        if (from && s.objs[from]) s.objs[from].refs.push(id); else s.roots.push({ to: id, label: 'new ' + id });
+        layoutHeap(s); recount(s);
+        yield { d: `allocate ${id}${from && s.objs[from] ? ', referred to by ' + from : ', referred to by a new root'}`, hl: { v: id } };
+      },
+    },
+    render(s, step) {
+      const W = 118, H = 30, colW = 150, rowH = 58, rootW = 104, top = 36;
+      const cols = Math.max(1, ...s.order.map(id => s.pos[id][0] + 1));
+      const rows = Math.max(s.roots.length, ...s.order.map(id => s.pos[id][1] + 1), 1);
+      const w = 30 + rootW + 50 + cols * colW, h = top + rows * rowH + 40;
+      const P = id => [30 + rootW + 50 + s.pos[id][0] * colW, top + s.pos[id][1] * rowH];
+      let out = svgOpen(w, h) + defs();
+      out += text(30, 22, 'roots', 'ds-note') + text(30 + rootW + 50, 22, 'heap', 'ds-note');
+      const hl = step.hl || {};
+      // edges first
+      s.order.forEach(id => {
+        const o = s.objs[id]; if (o.freed) return;
+        const [x1, y1] = P(id);
+        o.refs.forEach(t => {
+          if (!s.objs[t]) return;
+          const [x2, y2] = P(t);
+          const hot = hl.e && hl.e[0] === id && hl.e[1] === t;
+          const dead = s.objs[t].freed;
+          if (x2 > x1) out += arrow(x1 + W, y1 + H / 2, x2 - 2, y2 + H / 2, hot ? C.hi : dead ? C.line : C.ink, hot ? 2.4 : 1.4, hot ? 'ds-ah-hi' : dead ? 'ds-ah-muted' : 'ds-ah');
+          else {
+            const same = x2 === x1, bend = same ? 34 + 10 * Math.abs(y2 - y1) / rowH : 24;
+            const sx = x1 + W, sy = y1 + H / 2 + (same ? 6 : 0), ex = same ? x2 + W : x2 + W, ey = y2 + H / 2 - (same ? 6 : 0);
+            out += `<path d="M${sx},${sy} C${sx + bend},${sy} ${ex + bend},${ey} ${ex + 2},${ey}" fill="none" stroke="${hot ? C.hi : C.ink}" stroke-width="${hot ? 2.4 : 1.4}" marker-end="url(#${hot ? 'ds-ah-hi' : 'ds-ah'})"/>`;
+          }
+        });
+      });
+      s.roots.forEach((r, k) => {
+        const y = top + k * rowH;
+        out += rect(30, y, rootW, H, C.purpleBg, C.purple, 4) + text(30 + rootW / 2, y + H / 2 + 5, r.label, 'ds-val');
+        if (s.objs[r.to]) { const [x2, y2] = P(r.to); out += arrow(30 + rootW, y + H / 2, x2 - 2, y2 + H / 2, C.purple, 1.6, 'ds-ah'); }
+      });
+      s.order.forEach(id => {
+        const o = s.objs[id]; const [x, y] = P(id);
+        const hot = hl.v === id;
+        let fill = C.cell, stroke = C.line, dash = '';
+        if (o.freed) { fill = '#f1f5f9'; stroke = '#cbd5e1'; dash = ' stroke-dasharray="4 3"'; }
+        else if (o.mark === 'grey') { fill = C.warnBg; stroke = C.warn; }
+        else if (o.mark === 'black') { fill = C.okBg; stroke = C.ok; }
+        if (hot && !o.freed) stroke = hl.free ? C.hi : C.blue;
+        if (hot && hl.free) { fill = C.hiBg; stroke = C.hi; }
+        out += `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${hot ? 2.6 : 1.4}"${dash}/>`;
+        out += text(x + W / 2, y + H / 2 + 5, o.freed ? id + ' (freed)' : id, 'ds-val' + (o.freed ? ' ds-muted' : ''));
+        if (s.counting && !o.freed) out += text(x + W / 2, y + H + 13, 'count ' + o.rc, 'ds-idx');
+      });
+      const legend = s.counting ? 'reference counting: an object is freed when its count reaches 0' : 'white = unmarked · amber = marked, references still to follow · green = marked and done · dashed = freed';
+      out += text(30, h - 10, legend, 'ds-note');
+      out += '</svg>';
+      const side = s.work.length && s.phase === 'mark' ? `<div class="ds-side-title">work list</div>${s.work.map(x => `<div>${esc(x)}</div>`).join('')}` : '';
+      return side ? { svg: out, side } : out;
+    },
+  };
+  // columns by distance from the roots; objects no root reaches go in a last column
+  function layoutHeap(s) {
+    const depth = {}; let q = [];
+    for (const r of s.roots) if (depth[r.to] === undefined) { depth[r.to] = 0; q.push(r.to); }
+    while (q.length) { const next = []; for (const id of q) for (const t of s.objs[id].refs) if (depth[t] === undefined) { depth[t] = depth[id] + 1; next.push(t); } q = next; }
+    const maxD = Math.max(0, ...Object.values(depth));
+    const rowOf = {}; s.pos = {};
+    for (const id of s.order) {
+      const c = depth[id] !== undefined ? depth[id] : maxD + 1;
+      rowOf[c] = (rowOf[c] || 0); s.pos[id] = [c, rowOf[c]++];
+    }
+  }
+  function recount(s) {
+    for (const id of s.order) s.objs[id].rc = 0;
+    for (const r of s.roots) if (s.objs[r.to]) s.objs[r.to].rc++;
+    for (const id of s.order) if (!s.objs[id].freed) for (const t of s.objs[id].refs) if (s.objs[t]) s.objs[t].rc++;
+  }
+  // reference counting: free every object whose count is 0, and let the frees cascade
+  function* cascade(s) {
+    for (;;) {
+      recount(s);
+      const z = s.order.find(id => !s.objs[id].freed && s.objs[id].rc === 0);
+      if (!z) break;
+      s.objs[z].freed = true; s.freedNow.push(z);
+      yield { d: `${z}'s count is 0: free it at once, and drop the counts of the ${s.objs[z].refs.length} object${s.objs[z].refs.length === 1 ? '' : 's'} it referred to`, hl: { v: z, free: true } };
+    }
+    recount(s);
+    const stuck = s.order.filter(id => !s.objs[id].freed && !reachable(s).has(id));
+    yield { d: stuck.length ? `nothing more reaches count 0, yet ${stuck.join(', ')} ${stuck.length === 1 ? 'is' : 'are'} unreachable: a cycle keeps every count at 1 or more. Counting alone never frees ${stuck.length === 1 ? 'it' : 'them'}.` : 'every remaining object is still referenced', hl: {} };
+  }
+  function reachable(s) { const seen = new Set(); const st = s.roots.map(r => r.to); while (st.length) { const id = st.pop(); if (seen.has(id) || !s.objs[id] || s.objs[id].freed) continue; seen.add(id); st.push(...s.objs[id].refs); } return seen; }
+
   /* ═══════════════════════ shell ═══════════════════════ */
   class Viewer {
     constructor(id, cfg) {
