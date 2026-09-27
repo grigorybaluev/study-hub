@@ -1,12 +1,13 @@
 ---
 title: "Clojure concurrency: futures, atoms, agents and software transactional memory"
-order: 17
+order: 18
 status: detailed
 weeks: [13]
 introduces: []
 requires:
   - {concept: functional-programming, strength: hard}
   - {concept: concurrency, strength: hard}
+  - {concept: message-passing, strength: soft}
 reinforces:
   - {concept: concurrency, perspective: "Clojure: immutable values plus reference types — atoms, agents and refs — instead of locks"}
 ---
