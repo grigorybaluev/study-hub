@@ -172,8 +172,48 @@ class Report:
                              ", ".join(f"`{m}`" for m in sk["missing"]) or ""])
             self.table(["area", "skill", "status", "concepts", "taught in", "missing concepts"], rows)
 
+    def ds_relevance(self):
+        ds = self.d.get("ds_relevance")
+        if not ds:
+            return
+        self.h(2, "DS relevance")
+        tiers = Counter(r["tier"] for r in ds["concepts"].values())
+        self.p("Concepts mapped to a *target* skill of the roadmap are the data-science work itself "
+               f"({len(ds['anchors'])} anchors, taught in {len(ds['ds_units'])} DS units). Every other concept is scored by the DS units "
+               "that rest on it through hard dependencies (weighted by distance), the DS concepts that rest on it, and its betweenness "
+               "in the dependency graph. Tiers: *application* = anchor; *core* = depth-weighted reach ≥ "
+               f"{ds['core_weight']}; *supporting* = reached by a few paths; *peripheral* = no DS unit rests on it.")
+        self.p()
+        self.table(["application", "core", "supporting", "peripheral"],
+                   [[tiers.get("application", 0), tiers.get("core", 0), tiers.get("supporting", 0), tiers.get("peripheral", 0)]])
+        rows = sorted(((cid, r) for cid, r in ds["concepts"].items() if r["tier"] == "core"), key=lambda kv: -kv[1]["score"])
+        self.h(3, "Core foundations")
+        self.p("Not data science themselves, but the DS units rest on them most.")
+        self.p()
+        self.table(["concept", "domain", "score", "DS units", "weighted", "DS concepts", "reached through"],
+                   [[f"`{cid}`", self.nodes[cid]["domain"], f"{r['score']:.2f}", r["ds_units"], f"{r['ds_weight']:.1f}", r["ds_reach"],
+                     ", ".join(f"`{v}`" for v in r["via"][:4])] for cid, r in rows[:25]])
+        self.h(3, "Courses by DS relevance of what they introduce")
+        self.p("How the concepts each course introduces fall into the tiers; courses whose concepts are mostly peripheral to DS first.")
+        self.p()
+        courses = sorted(ds["courses"].items(), key=lambda kv: (-(kv[1]["peripheral"] / kv[1]["concepts"] if kv[1]["concepts"] else 0), kv[0]))
+        self.table(["course", "concepts", "application", "core", "supporting", "peripheral", "peripheral share"],
+                   [[code(cid), c["concepts"], c["application"], c["core"], c["supporting"], c["peripheral"],
+                     f"{round(100 * c['peripheral'] / c['concepts']) if c['concepts'] else 0}%"] for cid, c in courses])
+        self.h(3, "Peripheral concepts by course")
+        self.p("Taught for the degree; no DS unit rests on them. An entry here is a finding to check (a missing edge shrinks the list), not a verdict.")
+        self.p()
+        by_course: dict[str, list[str]] = defaultdict(list)
+        for cid, r in ds["concepts"].items():
+            if r["tier"] == "peripheral":
+                for u in self.d["concepts"][cid]["introduced_by"]:
+                    by_course[self.nodes[u]["course"]].append(cid)
+        self.table(["course", "n", "peripheral concepts"],
+                   [[code(c), len(set(lst)), ", ".join(f"`{x}`" for x in sorted(set(lst)))]
+                    for c, lst in sorted(by_course.items(), key=lambda kv: (-len(set(kv[1])), kv[0]))])
+
     def render(self) -> str:
-        self.summary(); self.coverage(); self.unmet(); self.variants(); self.coupling(); self.concepts(); self.roadmap()
+        self.summary(); self.coverage(); self.unmet(); self.variants(); self.coupling(); self.concepts(); self.roadmap(); self.ds_relevance()
         return "\n".join(self.lines).strip() + "\n"
 
 
