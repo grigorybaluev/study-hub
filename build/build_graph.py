@@ -48,6 +48,8 @@ def build(c: Content) -> dict:
             edge(slug, target, "generalizes", provenance="authored")
         for target in m.get("part_of") or []:
             edge(slug, target, "part_of", provenance="authored")
+        for e in edge_entries(m.get("requires")):   # concept-level dependency (#155)
+            edge(slug, e["concept"], "requires", strength=e.get("strength", "hard"), provenance="authored")
         for target in m.get("maps_to") or []:
             edge(slug, target, "maps_to", provenance="authored")
 
@@ -59,11 +61,13 @@ def build(c: Content) -> dict:
         for ai, area in enumerate(data.get("areas") or []):
             aid = f"{root}/{area['id']}"
             nodes.append({"id": aid, "type": "roadmap_node", "roadmap": root, "level": "area",
-                          "title": area["title"], "parent": None, "order": [ai]})
+                          "title": area["title"], "parent": None, "order": [ai],
+                          "role": area.get("role", "foundation")})
             for si, skill in enumerate(area.get("skills") or []):
                 nodes.append({"id": f"{root}/{skill['id']}", "type": "roadmap_node", "roadmap": root, "level": "skill",
                               "title": skill["title"], "summary": skill.get("summary"), "refs": skill.get("refs") or [],
-                              "parent": aid, "order": [ai, si]})
+                              "parent": aid, "order": [ai, si],
+                              "role": skill.get("role", area.get("role", "foundation"))})
 
     # ---- universities
     for uni in c.universities.values():
