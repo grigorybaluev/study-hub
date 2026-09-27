@@ -44,6 +44,18 @@ export default function Explore() {
   const [focus, setFocus] = useState<{ id: string; n: number } | null>(null);
   const [zoom, setZoom] = useState(1);
   const theme = useTheme();
+  // the panel and legend float over the graph; the graph is fitted below them, whatever rows they wrap into
+  const overlay = useRef<HTMLDivElement>(null);
+  const [overlayH, setOverlayH] = useState(96);
+  useEffect(() => {
+    const el = overlay.current;
+    if (!el) return;
+    const measure = () => setOverlayH(Math.ceil(el.getBoundingClientRect().bottom - el.parentElement!.getBoundingClientRect().top) + 8);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [view, conceptLayout]);
 
   const built = useMemo(() => {
     if (view === "courses") return { elements: courseElements(d, variantId, theme), shown: new Set<string>() };
@@ -76,8 +88,9 @@ export default function Explore() {
       <div className="explore-graph">
         <GraphView elements={built.elements} layout={layout} highlight={selected} onSelect={setSelected} onOpen={open}
           positionsKey={positionsKey} resetToken={resetToken} height="100%" maxZoom={1.3} onZoom={setZoom} focus={focus}
-          inset={{ top: 96, right: 12, bottom: 12, left: 12 }} />
+          inset={{ top: overlayH, right: 12, bottom: 12, left: 12 }} />
       </div>
+      <div className="explore-overlay" ref={overlay}>
       <div className="explore-panel">
         <h1>Explore</h1>
         <div className="tabs">
@@ -121,7 +134,7 @@ export default function Explore() {
         )}
       </div>
       <div className="explore-legend">
-        {view === "concepts" && conceptLayout === "map" && TIERS.map((t) => (
+        {view === "concepts" && conceptLayout === "map" && TIERS.filter((t) => tierFilter === "all" || t === "application" || t === "core" || (tierFilter === "ds+" && t === "supporting")).map((t) => (
           <span key={t} title={TIER_HELP[t]}><i style={{ background: band(TIER_COLOR[t], theme), borderColor: TIER_COLOR[t], borderRadius: "50%" }} />{TIER_LABEL[t]}</span>
         ))}
         {view === "concepts" && conceptLayout === "map" && <span className="explore-legend-sep" />}
@@ -142,6 +155,7 @@ export default function Explore() {
             <span><i style={{ background: tint(NEUTRAL, theme), borderColor: NEUTRAL }} />other courses</span>
           </>
         )}
+      </div>
       </div>
       <div className="explore-zoom" title="Effective label size at the current zoom">text {(FONT * zoom).toFixed(1)} px</div>
       <div className="explore-help" title={help}>?</div>

@@ -57,16 +57,20 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .footer .version { font-family: var(--mono); color: var(--fg-faint); }
 .explore { position: relative; flex: 1; min-height: 0; }
 .explore-graph { position: absolute; inset: 0; }
+/* the panel and its legend stack at the top-left; the graph is fitted below them (Explore measures the stack) */
+.explore-overlay { position: absolute; top: 0.8rem; left: 0.9rem; right: 0.9rem; z-index: 5; display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem; pointer-events: none; }
+.explore-overlay > * { pointer-events: auto; max-width: 100%; }
 .explore-panel {
-  position: absolute; top: 0.8rem; left: 0.9rem; z-index: 5; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
   padding: 0.45rem 0.7rem; background: color-mix(in srgb, var(--bg-elev) 88%, transparent); border: 1.5px solid var(--line);
   border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(6px);
 }
 .explore-panel h1 { font-size: 1.05rem; margin: 0 0.4rem 0 0; }
 .explore-panel .tabs { margin: 0; }
 .explore-panel select, .explore-panel button.plain { font: inherit; font-size: 0.86rem; padding: 0.3em 0.6em; border-radius: 6px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--fg); }
+.explore-panel select { max-width: 100%; }
 .explore-legend {
-  position: absolute; top: 4.1rem; left: 0.9rem; z-index: 5; display: flex; flex-wrap: wrap; gap: 0.25rem 0.8rem; max-width: 60rem;
+  display: flex; flex-wrap: wrap; gap: 0.25rem 0.8rem; max-width: 60rem;
   padding: 0.3rem 0.7rem; font-size: 0.78rem; color: var(--fg-muted);
   background: color-mix(in srgb, var(--bg-elev) 88%, transparent); border: 1.5px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(6px);
 }
@@ -94,6 +98,10 @@ button.linkish:hover { color: var(--accent-dk); }
 .explore-help { position: absolute; left: 0.9rem; bottom: 0.8rem; z-index: 5; width: 1.6rem; height: 1.6rem; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--fg-muted); background: var(--bg-elev); border: 1.5px solid var(--line); border-radius: 50%; cursor: help; }
 .explore-selected { position: absolute; right: 0.9rem; bottom: 0.8rem; z-index: 5; max-width: 34rem; font-size: 0.9rem; padding: 0.5rem 0.8rem; background: var(--bg-elev); border: 1.5px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .explore-zoom { position: absolute; right: 0.9rem; top: 0.8rem; z-index: 5; font-size: 0.78rem; color: var(--fg-muted); padding: 0.25rem 0.55rem; background: color-mix(in srgb, var(--bg-elev) 88%, transparent); border-radius: 6px; }
+@media (max-width: 600px) {
+  .explore-zoom { display: none; }                 /* the panel spans the width; the zoom readout would sit on its buttons */
+  .explore-selected { left: 3.2rem; max-width: none; }   /* clears the help button at the bottom-left */
+}
 .with-sidebar { display: grid; grid-template-columns: minmax(0, 1fr) var(--sidebar); gap: 2rem; align-items: start; }
 .sidebar { position: sticky; top: 4rem; font-size: 0.92rem; }
 .sidebar section { margin-bottom: 1.2rem; }

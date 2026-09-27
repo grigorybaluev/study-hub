@@ -155,6 +155,14 @@ export default function GraphView({ elements, layout, onSelect, onOpen, highligh
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elements, layout, theme, positionsKey, resetToken]);
 
+  // the space reserved for overlays can change after the graph exists (a control panel wrapping into more rows): refit
+  const insetTop = inset?.top;
+  useEffect(() => {
+    const c = cy.current;
+    if (c) fitInto(c, { top: 12, right: 12, bottom: 12, left: 12, ...inset }, maxZoom);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [insetTop]);
+
   useEffect(() => {
     const c = cy.current;
     if (!c) return;
