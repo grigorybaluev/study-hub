@@ -90,7 +90,7 @@ threads:
   A: ["lock m", "a = balance", "a = a + 50", "balance = a", "unlock m"]
   B: ["lock m", "b = balance", "b = b - 30", "balance = b", "unlock m"]
 schedule: ABABABABAB
-note: 'The same schedule as before, but B finds the lock taken and waits until A has written its result and unlocked. B then reads 150, and the balance ends at 120.'
+note: 'The same alternating schedule, but B finds the lock taken and waits until A has written its result and unlocked. B then reads 150, and the balance ends at 120.'
 ```
 
 ### Deadlock and livelock
