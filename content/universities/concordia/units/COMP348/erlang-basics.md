@@ -135,18 +135,22 @@ never changes: an update returns a new map. The `maps` module reads and transfor
 
 :::syntax[Records]
 ```erlang
--record(book, {title, author, available = true}).   % a default for available
+-record(Name, {Field1, Field2 = Default, …}).   % declaration, in a module or .hrl file
 
-B = #book{title = "Dune", author = "Herbert"}        % create; unnamed fields take defaults
-B#book.title                                          % read a field
-B#book{available = false}                             % a copy with one field changed
-#book{title = T} = B                                  % match: bind T to the title
+#Name{Field1 = Expr, …}                          % create a record
+Expr#Name.Field                                  % read a field
+Expr#Name{Field = Expr, …}                       % a copy with some fields changed
+#Name{Field = Pattern, …} = Expr                 % match fields in a pattern
 ```
 
-- A record is compiled into a tuple whose first element is the record name:
-  `{book,"Dune","Herbert",true}`, and that is what the shell prints.
-- A field with no default and no value is the atom `undefined`.
+- A record is compiled into a tuple whose first element is the record name, and that tuple is what
+  the shell prints.
+- Fields left out when creating take their default; a field with no default is the atom `undefined`.
 :::
+
+In the module below, `-record(book, {title, author, available = true})` declares a book whose
+`available` field defaults to `true`, so `#book{title = "Dune", author = "Herbert"}` is the tuple
+`{book,"Dune","Herbert",true}`.
 
 ```sim
 id: erl-348-records-maps
@@ -283,12 +287,15 @@ dash are **attributes**:
 - `-module(shapes).` names the module.
 - `-export([area/1, perimeter/1]).` lists the functions other modules may call, by name and arity.
   Everything else is private to the module.
-- `-import(lists, [map/2]).` lets the module write `map(F, L)` instead of `lists:map(F, L)`. It saves
-  typing and nothing more, so it is rarely used.
+- `-import(lists, [map/2]).` lets the module write `map(F, L)` instead of `lists:map(F, L)`. It does
+  not load or grant anything — any exported function can be called with its module prefix — and most
+  Erlang code prefers the prefix, which shows where each function comes from.
 
 A function in another module is called with the module name and a colon, `shapes:area(S)`. Modules
-are found on the **code path**, which starts with the current directory (and can be extended with
-the `ERL_LIBS` environment variable, like a class path).
+are found on the **code path**, a list of directories holding `.beam` files that includes the current
+directory. `erl -pa Dir` (or `code:add_patha(Dir)` in the shell) adds a directory, much like a Java
+class path entry; the `ERL_LIBS` environment variable names extra library roots, whose applications'
+`ebin` directories are added.
 
 ```bash
 erlc shapes.erl                               # compile: writes shapes.beam

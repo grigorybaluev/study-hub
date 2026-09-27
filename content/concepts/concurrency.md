@@ -2,7 +2,7 @@
 title: Concurrency
 domain: programming
 wikipedia: "Concurrency (computer science)"
-aliases: ["concurrent programming", "thread", "race condition", "critical section", "lock (concurrency)", "mutex", "deadlock", "parallelism"]
+aliases: ["concurrent programming", "thread", "race condition", "critical section", "lock (concurrency)", "mutex", "deadlock"]
 maps_to: [study-hub/ds-core/programming-fundamentals, study-hub/ds-core/computing-systems]
 ---
 

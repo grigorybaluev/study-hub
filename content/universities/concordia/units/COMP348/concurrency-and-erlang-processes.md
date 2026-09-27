@@ -25,17 +25,19 @@ scheduled in any interleaving: their steps can overlap in time. It is **parallel
 execute at the same moment, on several cores.
 :::
 
-The two are often confused. A concurrent program runs fine on one core: the scheduler switches between
-threads, and the threads appear to run at once. Concurrency is a way to *structure* a program — one
-thread for the user interface and one for the database, or one per client of a server. Parallelism is
-a way to make one computation *faster*, for example a sort whose halves are sorted on two cores. Every
-parallel program is concurrent; a concurrent program is not necessarily parallel.
+A web server that handles each client in its own thread is concurrent even on a single core: the
+scheduler hands the core to one thread after another, and each client is served as if it had the
+machine to itself. The point is organisation — each client's logic is written as a simple sequence.
+Summing a billion numbers by giving a quarter to each of four cores is parallel: the point is speed,
+and it needs the hardware. Parallel execution implies overlapping threads, so parallel programs are
+concurrent, but a concurrent program may never run two steps at the same instant.
 
 ## The trouble with shared data
 
-Starting threads is easy; every language has a function for it. Getting them right is hard, and the
-difficulty is always the same: **data that several threads can write**. Threads that only read shared
-data, or that share nothing, cannot interfere with each other.
+What goes wrong in concurrent programs almost always involves **data that more than one thread can
+write**. Two threads that each keep to their own data, or that only read a shared table, can run in any
+interleaving and give the same result. The moment one of them writes what the other reads, the
+interleaving starts to matter.
 
 ### Race conditions
 
@@ -113,9 +115,9 @@ note: 'A takes checking, B takes savings, and each then waits for the lock the o
 
 In a **livelock**, threads are not blocked but make no progress: they keep releasing and retrying locks
 to let each other through, like two people stepping aside in a corridor in the same direction. And
-even a correct program pays for its locks: time spent waiting for locks is time not spent computing,
-which eats up much of what extra cores were supposed to gain. Low-level locking scales badly as the
-number of threads and shared structures grows.
+a correct program still pays for its locks: while a thread waits at a lock its core does nothing, and
+the more threads contend for the same lock, the more of the machine sits idle. Adding cores to a
+program that is mostly waiting for one lock does not make it faster.
 
 ## Message passing
 
@@ -125,17 +127,25 @@ of messages sent to it; a process communicates only by sending a message (a copy
 another process and by taking messages from its own mailbox.
 :::
 
-With nothing shared, there is nothing to race on and nothing to lock. Sending is **asynchronous**: the
-sender appends the message to the receiver's mailbox and goes on; the receiver looks at its mailbox
-when it is ready. A process can still wait forever for a message that never comes (because its sender
-crashed, say), but that is a visible, local problem with a local fix (a timeout), not a deadlock that
-appears at random from the order in which locks happened to be taken.
+Sending is **asynchronous**: the sender appends the message to the receiver's mailbox and goes on;
+the receiver looks at its mailbox when it is ready. With no memory shared, two processes cannot corrupt
+each other's data, so the lost update of the first simulation cannot happen and there are no locks to
+take. Message passing does not remove every concurrency problem, though:
+
+- **Order across senders is not fixed.** Messages from one sender arrive in the order they were sent,
+  but messages from two senders can interleave either way, so a program must not depend on it.
+- **Processes can still deadlock.** If process A sends a request to B and waits for B's reply while B
+  sends a request to A and waits for A's reply, both wait forever. A process can also wait for a
+  message from a process that has crashed.
+
+The usual defences are a timeout on every wait for a reply (below) and designs where requests flow in
+one direction, for example clients calling a server that never calls them back.
 
 ## Erlang processes
 
 Erlang's concurrency is message passing. Its **processes** are not operating-system processes or
-threads: the BEAM creates and schedules them itself, and each costs a few hundred bytes, so a program
-can run hundreds of thousands of them. The operating system sees only the handful of threads the BEAM
+threads: the BEAM creates and schedules them itself, and a new one takes a few kilobytes of memory, so a
+program can run hundreds of thousands of them. The operating system sees only the handful of threads the BEAM
 runs them on. Three primitives do all the work:
 
 :::syntax[spawn, send and receive]
