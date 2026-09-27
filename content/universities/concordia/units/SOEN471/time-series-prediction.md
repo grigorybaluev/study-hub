@@ -6,7 +6,7 @@ weeks: [10]
 introduces:
   - {concept: time-series, perspective: "forecasting, features built from time, and parsing log streams"}
 requires:
-  - {concept: supervised-learning, strength: soft}
+  - {concept: supervised-learning, strength: hard}
   - {concept: data-frame, strength: hard}
 reinforces: []
 ---

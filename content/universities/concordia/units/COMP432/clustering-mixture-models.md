@@ -8,7 +8,6 @@ requires:
   - {concept: normal-distribution, strength: hard}
   - {concept: maximum-likelihood-estimation, strength: hard}
   - {concept: conditional-probability, strength: hard}
-  - {concept: vector-norm, strength: soft}
   - {concept: joint-distribution, strength: soft}
 reinforces: []
 ---

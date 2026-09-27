@@ -8,7 +8,6 @@ requires:
   - {concept: supervised-learning, strength: hard}
   - {concept: overfitting, strength: hard}
   - {concept: tree, strength: soft}
-  - {concept: vector-norm, strength: soft}
 reinforces: []
 ---
 

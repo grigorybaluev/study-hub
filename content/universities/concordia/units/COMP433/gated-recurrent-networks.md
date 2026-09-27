@@ -6,7 +6,6 @@ weeks: [11]
 introduces: []
 requires:
   - {concept: recurrent-neural-network, strength: hard}
-  - {concept: text-vectorization, strength: soft}
 reinforces:
   - {concept: recurrent-neural-network, perspective: "gates for long-term memory: LSTM and GRU"}
   - {concept: text-vectorization, perspective: "text as input to sequence models"}

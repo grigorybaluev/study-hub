@@ -9,7 +9,6 @@ introduces:
   - regularization
   - cross-validation
 requires:
-  - {concept: least-squares, strength: hard}
   - {concept: loss-function, strength: hard}
   - {concept: gradient-descent, strength: hard}
   - {concept: supervised-learning, strength: hard}
