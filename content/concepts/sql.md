@@ -3,6 +3,7 @@ title: SQL
 domain: data
 wikipedia: "SQL"
 aliases: ["query language", "views", "triggers"]
+requires: [relational-model]
 maps_to: [study-hub/ds-core/sql]
 ---
 

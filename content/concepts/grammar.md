@@ -3,6 +3,7 @@ title: Grammars
 domain: theory
 wikipedia: "Formal grammar"
 aliases: ["production", "derivation"]
+requires: [formal-language]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

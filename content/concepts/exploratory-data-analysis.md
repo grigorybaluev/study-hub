@@ -3,6 +3,7 @@ title: Exploratory data analysis
 domain: data
 wikipedia: "Exploratory data analysis"
 aliases: ["EDA"]
+requires: [data-visualization]
 maps_to: [study-hub/ds-core/descriptive-statistics, study-hub/ds-core/data-visualization]
 ---
 

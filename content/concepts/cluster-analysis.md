@@ -3,6 +3,7 @@ title: Cluster analysis
 domain: ml
 wikipedia: "Cluster analysis"
 aliases: ["clustering", "k-means", "hierarchical clustering", "DBSCAN"]
+requires: [vector, {concept: expected-value, strength: soft}]
 maps_to: [study-hub/ds-core/unsupervised-learning]
 ---
 

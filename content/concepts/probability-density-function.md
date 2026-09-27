@@ -4,6 +4,7 @@ domain: probability
 wikipedia: "Probability density function"
 short: "PDF"
 aliases: ["pdf", "density"]
+requires: [{concept: cumulative-distribution-function, strength: soft}, {concept: derivative, strength: soft}]
 maps_to: [study-hub/ds-core/random-variables]
 ---
 

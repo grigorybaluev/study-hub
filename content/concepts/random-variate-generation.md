@@ -4,6 +4,7 @@ domain: statistics
 wikipedia: "Non-uniform random variate generation"
 short: "variate generation"
 aliases: ["inverse transform sampling", "rejection sampling"]
+requires: [pseudorandom-number-generation, {concept: monte-carlo-simulation, strength: soft}]
 maps_to: [study-hub/ds-core/simulation]
 ---
 

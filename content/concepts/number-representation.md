@@ -3,6 +3,7 @@ title: Number representation
 domain: systems
 wikipedia: "Binary number"
 aliases: ["binary", "hexadecimal", "two's complement"]
+requires: [{concept: modular-arithmetic, strength: soft}]
 maps_to: [study-hub/ds-core/computing-systems]
 ---
 

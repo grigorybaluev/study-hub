@@ -3,6 +3,7 @@ title: Central limit theorem
 domain: probability
 wikipedia: "Central limit theorem"
 aliases: ["CLT"]
+requires: [sampling-distribution]
 maps_to: [study-hub/ds-core/estimation, study-hub/ds-core/distributions]
 ---
 

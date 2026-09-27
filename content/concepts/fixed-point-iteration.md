@@ -3,6 +3,7 @@ title: Fixed-point iteration
 domain: math.calculus
 wikipedia: "Fixed-point iteration"
 aliases: ["fixed point", "contraction mapping", "Banach fixed-point theorem", "rate of convergence", "order of convergence"]
+generalizes: [newtons-method]
 maps_to: [study-hub/ds-core/numerical-methods]
 ---
 

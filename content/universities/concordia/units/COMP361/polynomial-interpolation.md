@@ -7,6 +7,7 @@ introduces: [polynomial-interpolation]
 requires:
   - {concept: derivative, strength: hard}
   - {concept: taylor-series, strength: soft}
+  - {concept: linear-system, strength: soft}
 reinforces:
   - {concept: vector-norm, perspective: "norms for functions on an interval"}
 ---

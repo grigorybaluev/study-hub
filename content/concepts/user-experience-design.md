@@ -3,6 +3,7 @@ title: User experience design
 domain: programming
 wikipedia: "User experience design"
 aliases: ["UX design", "user interface design", "usability", "mobile design"]
+requires: [{concept: requirements-engineering, strength: soft}]
 maps_to: [study-hub/ds-core/software-engineering-practice]
 ---
 

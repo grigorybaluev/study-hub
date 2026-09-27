@@ -3,6 +3,7 @@ title: Regular grammars
 domain: theory
 wikipedia: "Regular grammar"
 aliases: ["linear grammar"]
+requires: [regular-language]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

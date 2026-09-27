@@ -3,6 +3,7 @@ title: Matrix inverse
 domain: math.linear-algebra
 wikipedia: "Invertible matrix"
 aliases: ["invertible matrix"]
+requires: [matrix, {concept: linear-system, strength: soft}]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---
 

@@ -3,6 +3,7 @@ title: Generative model
 domain: ml
 wikipedia: "Generative model"
 aliases: ["generative adversarial network", "GAN", "diffusion model"]
+requires: [{concept: autoencoder, strength: soft}, {concept: joint-distribution, strength: soft}]
 maps_to: [study-hub/ds-core/neural-networks, study-hub/ds-core/unsupervised-learning]
 ---
 

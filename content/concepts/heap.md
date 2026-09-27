@@ -3,6 +3,7 @@ title: Heap
 domain: algorithms
 wikipedia: "Heap (data structure)"
 aliases: ["binary heap", "heap sort"]
+requires: [priority-queue]
 maps_to: [study-hub/ds-core/data-structures-algorithms]
 ---
 

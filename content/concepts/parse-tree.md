@@ -4,6 +4,7 @@ domain: theory
 wikipedia: "Parse tree"
 short: "parse tree"
 aliases: ["derivation tree", "ambiguity"]
+requires: [context-free-grammar]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

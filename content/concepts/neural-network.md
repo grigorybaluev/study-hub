@@ -3,6 +3,7 @@ title: Neural network
 domain: ml
 wikipedia: "Neural network (machine learning)"
 aliases: ["artificial neural network", "multilayer perceptron", "MLP", "feedforward network", "activation function", "ReLU", "universal approximation theorem", "deep learning"]
+generalizes: [perceptron]
 maps_to: [study-hub/ds-core/neural-networks]
 ---
 

@@ -3,6 +3,7 @@ title: Markov chains
 domain: probability
 wikipedia: "Markov chain"
 aliases: ["transition matrix"]
+requires: [{concept: eigenvalue, strength: soft}]
 maps_to: [study-hub/ds-core/stochastic-processes]
 ---
 

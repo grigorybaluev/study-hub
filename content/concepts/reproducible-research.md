@@ -3,6 +3,7 @@ title: Reproducible research
 domain: data
 wikipedia: "Reproducibility"
 aliases: ["reproducibility", "environment management"]
+requires: [{concept: pseudorandom-number-generation, strength: soft}, {concept: version-control, strength: soft}]
 maps_to: [study-hub/ds-core/reproducibility]
 ---
 

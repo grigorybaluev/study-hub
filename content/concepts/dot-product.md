@@ -3,6 +3,7 @@ title: Dot product
 domain: math.linear-algebra
 wikipedia: "Dot product"
 aliases: ["inner product", "scalar product", "projection"]
+requires: [vector]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---
 

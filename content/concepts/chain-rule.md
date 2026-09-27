@@ -2,6 +2,7 @@
 title: Chain rule
 domain: math.calculus
 wikipedia: "Chain rule"
+requires: [derivative]
 maps_to: [study-hub/ds-core/calculus]
 ---
 

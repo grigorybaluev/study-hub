@@ -4,6 +4,7 @@ domain: probability
 wikipedia: "Cumulative distribution function"
 short: "CDF"
 aliases: ["cdf", "distribution function"]
+requires: [random-variable]
 maps_to: [study-hub/ds-core/random-variables]
 ---
 

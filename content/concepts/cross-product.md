@@ -2,6 +2,7 @@
 title: Cross product
 domain: math.linear-algebra
 wikipedia: "Cross product"
+requires: [vector]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---
 

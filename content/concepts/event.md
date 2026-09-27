@@ -2,6 +2,7 @@
 title: Event
 domain: probability
 wikipedia: "Event (probability theory)"
+requires: [sample-space]
 maps_to: [study-hub/ds-core/probability-theory]
 ---
 

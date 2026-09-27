@@ -4,6 +4,7 @@ domain: ml
 wikipedia: "Automatic differentiation"
 aliases: ["autograd", "computational graph", "reverse-mode differentiation"]
 generalizes: [backpropagation]
+requires: [gradient]
 maps_to: [study-hub/ds-core/neural-networks, study-hub/ds-core/numerical-methods]
 ---
 

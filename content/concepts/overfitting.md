@@ -3,6 +3,7 @@ title: Overfitting
 domain: ml
 wikipedia: "Overfitting"
 aliases: ["underfitting", "bias–variance trade-off", "generalization error", "model capacity"]
+requires: [{concept: variance, strength: soft}]
 maps_to: [study-hub/ds-core/model-evaluation]
 ---
 
