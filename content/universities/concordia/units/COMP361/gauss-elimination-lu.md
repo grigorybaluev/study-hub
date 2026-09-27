@@ -8,7 +8,6 @@ introduces:
 requires:
   - {concept: linear-system, strength: hard}
   - {concept: matrix, strength: hard}
-  - {concept: algorithm-analysis, strength: soft}
 reinforces:
   - {concept: linear-system, perspective: "solving by elimination and back substitution, counted in floating-point operations"}
 ---
