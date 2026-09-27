@@ -26,8 +26,9 @@ const PAD_X = 9;
 const PAD_Y = 5;
 const CHAR_W = 7.4;
 
-/** Wrap a title to ~maxChars per line and return the label plus a box size that fits it. */
-export function boxLabel(header: string, title: string, maxChars = 24): { label: string; w: number; h: number } {
+/** Wrap a title to ~maxChars per line and return the label plus a box size that fits it.
+ *  `scale` enlarges or shrinks the box and its text together (data(fs) in the stylesheet). */
+export function boxLabel(header: string, title: string, maxChars = 24, scale = 1): { label: string; w: number; h: number; fs: number } {
   const lines: string[] = [];
   let cur = "";
   for (const word of title.split(/\s+/)) {
@@ -38,7 +39,7 @@ export function boxLabel(header: string, title: string, maxChars = 24): { label:
   const all = header ? [header, ...lines] : lines;
   const w = Math.max(...all.map((l) => l.length)) * CHAR_W + PAD_X * 2;
   const h = all.length * LINE + PAD_Y * 2;
-  return { label: all.join("\n"), w: Math.max(w, 60), h };
+  return { label: all.join("\n"), w: Math.round(Math.max(w, 60) * scale), h: Math.round(h * scale), fs: Math.round(FONT * scale * 10) / 10 };
 }
 
 /** Opaque tint of `hex` over the theme background, so edges never show through node text. */
@@ -57,10 +58,20 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
       "text-max-width": "data(w)", "text-valign": "center", "text-halign": "center", "line-height": 1.25,
       color: fg, width: "data(w)", height: "data(h)",
       "background-color": "data(fill)", "border-width": 1.5, "border-color": "data(border)",
+      "z-index-compare": "manual" as never, "z-index": 2,
     } },
+    { selector: "node[fs]", style: { "font-size": "data(fs)" } },
     { selector: "node.header", style: {
       "background-opacity": 0, "border-width": 0, "font-size": 12, "font-weight": "bold", color: fg,
       "text-valign": "center", events: "no",
+    } },
+    // bands: large ellipses behind everything (concentric tiers of the DS map, #155)
+    { selector: "node.band", style: {
+      shape: "ellipse", "border-width": 0, "background-opacity": 1, events: "no", label: "", "z-index": 0,
+    } },
+    { selector: "node.band-label", style: {
+      "background-opacity": 0, "border-width": 0, "font-size": 12, "font-weight": "bold", color: "data(color)",
+      "text-valign": "center", events: "no", "z-index": 1, "text-transform": "uppercase" as never,
     } },
     { selector: "node[?dim]", style: { opacity: 0.5 } },
     { selector: "node.dim", style: { opacity: 0.18 } },
@@ -68,6 +79,7 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
     { selector: "edge", style: {
       width: "data(width)", "line-color": fg, "target-arrow-color": fg, "line-opacity": "data(alpha)" as never,
       "target-arrow-shape": "triangle", "arrow-scale": 0.7, "curve-style": "bezier", "control-point-step-size": 30,
+      "z-index-compare": "manual" as never, "z-index": 1,
     } },
     { selector: "edge[?dashed]", style: { "line-style": "dashed" } },
     // arcs: edges within one column bow out to the side by data(bulge) px so they stay visible
@@ -96,6 +108,8 @@ export interface GraphViewProps {
   onZoom?: (zoom: number) => void;
   /** region of the container to fit into, leaving room for overlays */
   inset?: { top?: number; right?: number; bottom?: number; left?: number };
+  /** pan to this node (and zoom in to read it); `n` changes on every request so the same node can be focused twice */
+  focus?: { id: string; n: number } | null;
 }
 
 function fitInto(c: cytoscape.Core, inset: NonNullable<GraphViewProps["inset"]>, maxZoom: number) {
@@ -112,7 +126,7 @@ const loadSaved = (key: string): Saved => { try { return JSON.parse(localStorage
 const storeSaved = (key: string, v: Saved) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ } };
 export const clearSaved = (key: string) => { try { localStorage.removeItem(key); } catch { /* ignore */ } };
 
-export default function GraphView({ elements, layout, onSelect, onOpen, highlight, maxZoom = 1.15, positionsKey, resetToken = 0, height = "72vh", onZoom, inset }: GraphViewProps) {
+export default function GraphView({ elements, layout, onSelect, onOpen, highlight, maxZoom = 1.15, positionsKey, resetToken = 0, height = "72vh", onZoom, inset, focus }: GraphViewProps) {
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const theme = useTheme();
@@ -123,10 +137,10 @@ export default function GraphView({ elements, layout, onSelect, onOpen, highligh
     // remembered positions override the layout for the nodes that have them
     if (positionsKey) {
       const saved = loadSaved(positionsKey);
-      c.nodes().forEach((n) => { const p = saved[n.id()]; if (p) n.position(p); });
+      c.nodes().not(".band, .band-label, .header").forEach((n) => { const p = saved[n.id()]; if (p) n.position(p); });
       c.on("dragfree", "node", () => {
         const all: Saved = { ...loadSaved(positionsKey) };
-        c.nodes().forEach((n) => { all[n.id()] = n.position(); });
+        c.nodes().not(".band, .band-label, .header").forEach((n) => { all[n.id()] = n.position(); });
         storeSaved(positionsKey, all);
       });
     }
@@ -149,10 +163,18 @@ export default function GraphView({ elements, layout, onSelect, onOpen, highligh
     const n = c.getElementById(highlight);
     if (n.empty()) return;
     const hood = n.closedNeighborhood();
-    c.elements().not(hood).addClass("dim");
+    c.elements().not(hood).not(".band, .band-label, .header").addClass("dim");
     n.addClass("hi");
     n.connectedEdges().addClass("hi");
   }, [highlight, elements]);
+
+  useEffect(() => {
+    const c = cy.current;
+    if (!c || !focus) return;
+    const n = c.getElementById(focus.id);
+    if (n.empty()) return;
+    c.animate({ center: { eles: n }, zoom: Math.max(c.zoom(), 1) }, { duration: 350 });
+  }, [focus]);
 
   return <div ref={host} style={{ width: "100%", height, background: "var(--bg-elev)" }} />;
 }
