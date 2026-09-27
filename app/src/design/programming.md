@@ -77,6 +77,12 @@ syntax block: that is an example.
   bindings, and the REPL panel lists every top-level form with its value. Futures and agents run as
   threads under a deterministic scheduler, so `swap!` and transaction retries can be watched. The
   `persistent-vector` mode of the data-structure visualiser shows path copying.
+- **Erlang stepper** (`engine: erl`) when the point is *processes and messages*: a module in `code`
+  and what is typed at the shell in `shell`. Each process gets a lane with its mailbox and frames;
+  a selective receive marks the messages it scans past and the one it takes, and a tail call reuses
+  its frame, so a server loop runs in constant space. Shell results and errors are printed as
+  Eshell prints them. Mode `shared` is a small model of threads over shared variables, with a
+  schedule, locks and deadlock detection, for the shared-memory problems message passing avoids.
 - **Data-structure visualiser** (`engine: ds`) when the point is the *state* of a structure after
   each operation: stacks, lists, trees, heaps, hash tables, sorting.
 - **Plotly sim** (a registry id) when the point is a *quantity*: growth rates, running times,
@@ -301,6 +307,43 @@ code: |
 note: 'Specimen of the Clojure evaluator. Step through the second form: (square 4) becomes 16, then (+ 3 16) becomes 19, then the whole form 18. Inside square the frame shows n = 4.'
 ```
 
+### Processes and mailboxes (Erlang)
+
+```sim
+id: spec-erl-processes
+custom: true
+engine: erl
+code: |
+  -module(tally).
+  -export([loop/1]).
+
+  loop(Total) ->
+      receive
+          {add, N} -> loop(Total + N);
+          {get, From} -> From ! {total, Total}, loop(Total)
+      end.
+shell: |
+  P = spawn(tally, loop, [0]).
+  P ! {add, 3}, P ! {add, 4}.
+  P ! {get, self()}, receive {total, T} -> T end.
+note: 'Specimen of the Erlang stepper. The server''s lane shows the messages waiting in its mailbox; each receive takes the oldest one that matches, and loop(Total + N) replaces the frame instead of adding one.'
+```
+
+### Shared memory, one schedule (Erlang stepper, mode shared)
+
+```sim
+id: spec-erl-shared
+custom: true
+engine: erl
+mode: shared
+shared: {count: 0}
+threads:
+  A: ["t = count", "t = t + 1", "count = t"]
+  B: ["u = count", "u = u + 1", "count = u"]
+schedule: ABABAB
+note: 'Specimen of the shared mode. Both threads read 0 before either writes, so one increment is lost and count ends at 1.'
+```
+
 ### A data structure, operation by operation
 
 ```sim
@@ -362,6 +405,8 @@ last pass by hand, and the off-by-one bugs go away.
 
 ## Change log
 
+- 2026-09-27: the Erlang stepper (`engine: erl`, #140): process lanes with mailboxes, selective
+  receive, tail calls, Eshell-style results; mode `shared` for races, locks and deadlock.
 - 2026-09-27: the Clojure evaluator (`engine: clj`, #139): a reduction view, frames, a REPL panel
   and threads; ds mode `persistent-vector`.
 - 2026-09-26: the Python stepper (`engine: py`, #138): frames and objects joined by arrows, with

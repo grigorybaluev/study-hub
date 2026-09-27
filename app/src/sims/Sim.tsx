@@ -11,6 +11,7 @@ import "./db.css";
 import "./c.css";
 import "./py.css";
 import "./clj.css";
+import "./erl.css";
 
 declare global {
   interface Window {
@@ -39,6 +40,7 @@ import "./db.js";
 import "./c.js";
 import "./py.js";
 import "./clj.js";
+import "./erl.js";
 
 export interface Control {
   id: string;

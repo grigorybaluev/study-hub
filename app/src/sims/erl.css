@@ -1,0 +1,35 @@
+/* Erlang stepper (ERL.mount in erl.js): the C stepper's layout, a module and a shell, and a lane per
+   process with its mailbox; mode `shared` shows threads over shared variables with locks. */
+.sim-plot.sim-custom:has(.erl-wrap) { background: var(--sim-surface); color: var(--fg); }
+.erl-var { color: var(--info); }
+.erl-wrap .jv-listing .erl-var { color: #79c0ff; }
+.erl-label { font-size: .7rem; font-weight: 800; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .04em; margin: .35rem 0 .15rem; }
+.erl-procs { padding: .4rem .5rem .6rem; max-height: 440px; overflow: auto; display: grid; gap: .5rem; }
+.erl-lanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .5rem; }
+.erl-proc, .erl-thread { border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 6px; padding: .35rem .5rem; display: grid; gap: .3rem; min-width: 0; align-content: start; }
+.erl-proc.on, .erl-thread.on { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.erl-proc.done { opacity: .6; }
+.erl-thread.blocked { border-left-color: #d29922; }
+.erl-proc-head { font-family: var(--mono); font-size: .78rem; display: flex; flex-wrap: wrap; gap: .2rem .5rem; align-items: baseline; }
+.erl-status { font-family: var(--sans, inherit); font-size: .72rem; color: var(--fg-muted); }
+.erl-mailbox { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; font-family: var(--mono); font-size: .76rem; }
+.erl-mb-label { font-family: var(--sans, inherit); font-size: .68rem; font-weight: 700; color: var(--fg-faint); text-transform: uppercase; margin-right: .2rem; }
+.erl-msg { border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; background: color-mix(in srgb, var(--info) 10%, transparent); }
+.erl-msg.skipped { border-style: dashed; opacity: .7; }
+.erl-frame { font-family: var(--mono); font-size: .75rem; line-height: 1.45; word-break: break-word; }
+.erl-fname { font-weight: 700; }
+.erl-msgs { font-family: var(--mono); font-size: .75rem; line-height: 1.5; border-top: 1px dashed var(--line); padding-top: .3rem; color: var(--fg-muted); }
+.erl-msgs .new { color: var(--fg); font-weight: 700; }
+.erl-clock { font-size: .7rem; color: var(--fg-faint); text-align: right; }
+.erl-fail { color: var(--callout-caution-fg); white-space: pre-wrap; }
+.erl-val { white-space: pre-wrap; }
+/* mode shared */
+.erl-shared { display: flex; flex-wrap: wrap; gap: .3rem 1rem; padding: .4rem .6rem; font-family: var(--mono); font-size: .82rem; align-items: center; }
+.erl-sep { width: 1px; align-self: stretch; background: var(--line); }
+.erl-threads { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .5rem; padding: 0 .6rem .6rem; }
+.erl-ins { font-family: var(--mono); font-size: .78rem; padding: .05rem .3rem; border-radius: 3px; }
+.erl-ins.ran { color: var(--fg-faint); }
+.erl-ins.next { background: rgba(250, 204, 21, .3); box-shadow: 0 0 0 1px #facc15; }
+.erl-locals { font-family: var(--mono); font-size: .74rem; color: var(--info); border-top: 1px dashed var(--line); padding-top: .2rem; }
+.ds-desc.err { color: var(--callout-caution-fg); font-weight: 700; }
+.erl-msg.hit { background: rgba(250, 204, 21, .35); border-color: #facc15; }
