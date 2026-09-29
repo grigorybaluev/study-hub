@@ -245,6 +245,12 @@ function Selected({ id, onPick }: { id: string; onPick: (id: string) => void }) 
               </div>
             )}
             {why && why.kind === "taught" && <div className="explore-path"><span className="muted">a DS concept taught in </span><UnitLink id={why.unit} /></div>}
+            {why && why.kind === "concept" && (
+              <div className="explore-path">
+                <span className="muted">no DS unit requires it directly, but these DS concepts rest on it: </span>
+                {why.via.map((cid, i) => <span key={cid}>{i > 0 && ", "}<button className="linkish" onClick={() => onPick(cid)}>{node<ConceptNode>(d, cid)?.title ?? cid}</button></span>)}
+              </div>
+            )}
             {why && why.kind === "none" && <div className="explore-path muted">no DS unit rests on it — taught for the degree, not for data science.</div>}
           </div>
         )}
@@ -254,7 +260,7 @@ function Selected({ id, onPick }: { id: string; onPick: (id: string) => void }) 
   return null;
 }
 
-type Why = { kind: "path"; chain: string[]; unit: string } | { kind: "taught"; unit: string } | { kind: "none" };
+type Why = { kind: "path"; chain: string[]; unit: string } | { kind: "taught"; unit: string } | { kind: "concept"; via: string[] } | { kind: "none" };
 
 /** Shortest chain of hard dependencies from a concept up to something a DS unit requires. */
 function whyItMatters(d: Data, id: string): Why {
@@ -279,7 +285,10 @@ function whyItMatters(d: Data, id: string): Why {
     for (const y of up(x)) if (!prev.has(y)) { prev.set(y, x); queue.push(y); }
   }
   const taught = d.derived.concepts[id]?.introduced_by.find((u) => dsUnits.has(u));
-  return taught ? { kind: "taught", unit: taught } : { kind: "none" };
+  if (taught) return { kind: "taught", unit: taught };
+  // no unit path, but a DS concept rests on it (through concept-level edges only)
+  const via = ds.concepts[id]?.via ?? [];
+  return via.length ? { kind: "concept", via } : { kind: "none" };
 }
 
 // ---------------------------------------------------------------- element builders
