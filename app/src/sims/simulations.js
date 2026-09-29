@@ -722,6 +722,68 @@
     Plotly.newPlot(el(id), traces, layout(square(4.4, { title: `${E.name}: A = ${E.exact}<br>½∫ (r_out² − r_in²) dθ from ${fracPi(E.a / PI)} to ${fracPi(tEnd / PI)} = ${area.toFixed(4)}` })), cfg());
   }
 
+  // ══ MAST 218 — Conic sections (lecture 5) ═════════════════════
+  const n2 = v => (Math.abs(v) < 5e-3 ? 0 : v).toFixed(2);
+  // a point (u, v) in the conic's own axes → the plane: swap for a vertical major/transverse axis, then shift by (h, k)
+  const placeConic = (vert, h, k) => (u, v) => (vert ? [h + v, k + u] : [h + u, k + v]);
+  // frame the curve's half-extents (rx, ry) about the centre; equal scales, so Plotly widens whichever range the plot's shape needs
+  const view = (h, k, rx, ry, extra) => ({ height: 520, xaxis: ax({ title: 'x', range: [h - rx, h + rx] }), yaxis: ax({ title: 'y', range: [k - ry, k + ry], scaleanchor: 'x', scaleratio: 1 }), legend: { orientation: 'h', y: -0.18 }, ...extra });
+  const pts = (P, list) => ({ x: list.map(q => P(q[0], q[1])[0]), y: list.map(q => P(q[0], q[1])[1]) });
+  function focalTraces(P, c, p) {
+    const [f1, f2, pp] = [P(c, 0), P(-c, 0), P(p[0], p[1])];
+    return [
+      { x: [f1[0], pp[0]], y: [f1[1], pp[1]], mode: 'lines', name: `|PF₁| = ${Math.hypot(pp[0] - f1[0], pp[1] - f1[1]).toFixed(3)}`, line: { color: C_TAN, width: 2.5 } },
+      { x: [f2[0], pp[0]], y: [f2[1], pp[1]], mode: 'lines', name: `|PF₂| = ${Math.hypot(pp[0] - f2[0], pp[1] - f2[1]).toFixed(3)}`, line: { color: C_ARROW, width: 2.5 } },
+      { ...pts(P, [[c, 0], [-c, 0]]), mode: 'markers+text', text: ['F₁', 'F₂'], textposition: 'bottom center', textfont: { color: '#e5e7eb' }, name: `foci, c = ${c.toFixed(3)}`, marker: { color: '#c084fc', size: 10, symbol: 'diamond' } },
+      { x: [pp[0]], y: [pp[1]], mode: 'markers', name: `P (${n2(pp[0])}, ${n2(pp[1])})`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } },
+    ];
+  }
+
+  // ── P16. Ellipse: |PF₁| + |PF₂| = 2a, axes, vertical and shifted ─
+  function conicEllipse() {
+    const id = 'conic-ellipse';
+    const a = val(id, 'a', 4), bIn = val(id, 'b', 2), vert = Math.round(val(id, 'vert', 0)) === 1;
+    const h = val(id, 'h', 0), k = val(id, 'k', 0), t = val(id, 't', 0.3) * PI;
+    const b = Math.min(bIn, a), c = Math.sqrt(a * a - b * b), P = placeConic(vert, h, k);
+    const [u, v] = samplePath(s => a * Math.cos(s), s => b * Math.sin(s), 0, 2 * PI, 300);
+    const curve = u.map((_, i) => P(u[i], v[i]));
+    const p = [a * Math.cos(t), b * Math.sin(t)], pp = P(p[0], p[1]);
+    const d = Math.hypot(pp[0] - P(c, 0)[0], pp[1] - P(c, 0)[1]) + Math.hypot(pp[0] - P(-c, 0)[0], pp[1] - P(-c, 0)[1]);
+    const traces = [
+      { ...pts(P, [[-a, 0], [a, 0]]), mode: 'lines', name: `major axis A′A, length 2a = ${(2 * a).toFixed(2)}`, line: { color: C_GHOST, width: 2, dash: 'dash' } },
+      { ...pts(P, [[0, -b], [0, b]]), mode: 'lines', name: `minor axis B′B, length 2b = ${(2 * b).toFixed(2)}`, line: { color: C_GHOST, width: 2, dash: 'dot' } },
+      { x: curve.map(q => q[0]), y: curve.map(q => q[1]), mode: 'lines', name: vert ? `(y − k)²/${n2(a * a)} + (x − h)²/${n2(b * b)} = 1` : `(x − h)²/${n2(a * a)} + (y − k)²/${n2(b * b)} = 1`, line: { color: C_PATH, width: 3 } },
+      { ...pts(P, [[a, 0], [-a, 0], [0, b], [0, -b]]), mode: 'markers+text', text: ['A', 'A′', 'B', 'B′'], textposition: 'top right', textfont: { color: '#e5e7eb' }, name: 'vertices and co-vertices', marker: { color: '#e5e7eb', size: 7 } },
+      { x: [h], y: [k], mode: 'markers', name: `centre (${n2(h)}, ${n2(k)})`, marker: { color: C_GHOST, size: 8, symbol: 'x' } },
+    ].concat(focalTraces(P, c, p));
+    const [ex, ey] = vert ? [b, a] : [a, b];
+    const clamp = bIn > a ? ' (b is held at a: b ≤ a)' : '';
+    Plotly.newPlot(el(id), traces, layout(view(h, k, 1.15 * ex + 0.4, 1.2 * ey + 0.4, { title: `c = √(a² − b²) = ${c.toFixed(3)}${a === b ? ' (a = b: a circle, both foci at the centre)' : ''}${clamp}<br>|PF₁| + |PF₂| = ${d.toFixed(3)} = 2a` })), cfg());
+  }
+
+  // ── P17. Hyperbola: ||PF₁| − |PF₂|| = 2a, the box and the asymptotes ─
+  function conicHyperbola() {
+    const id = 'conic-hyperbola';
+    const a = val(id, 'a', 2), b = val(id, 'b', 1.5), vert = Math.round(val(id, 'vert', 0)) === 1;
+    const h = val(id, 'h', 0), k = val(id, 'k', 0), s = val(id, 's', 0.8), left = Math.round(val(id, 'branch', 0)) === 1;
+    const c = Math.sqrt(a * a + b * b), P = placeConic(vert, h, k), T = 2.4;
+    const branch = sg => { const [u, v] = samplePath(r => sg * a * Math.cosh(r), r => b * Math.sinh(r), -T, T, 200); const q = u.map((_, i) => P(u[i], v[i])); return { x: q.map(z => z[0]), y: q.map(z => z[1]) }; };
+    const eq = vert ? `(y − k)²/${n2(a * a)} − (x − h)²/${n2(b * b)} = 1` : `(x − h)²/${n2(a * a)} − (y − k)²/${n2(b * b)} = 1`;
+    const eu = Math.max(c, a * Math.cosh(1.5)) * 1.15, ev = Math.max(b, b * Math.sinh(1.5)) * 1.25, L = 3 * (eu + ev);
+    const [ex, ey] = vert ? [ev, eu] : [eu, ev];
+    const p = [(left ? -1 : 1) * a * Math.cosh(s), b * Math.sinh(s)], pp = P(p[0], p[1]);
+    const d = Math.abs(Math.hypot(pp[0] - P(c, 0)[0], pp[1] - P(c, 0)[1]) - Math.hypot(pp[0] - P(-c, 0)[0], pp[1] - P(-c, 0)[1]));
+    const traces = [
+      { ...pts(P, [[a, b], [-a, b], [-a, -b], [a, -b], [a, b]]), mode: 'lines', name: 'box through (±a, 0) and (0, ±b)', line: { color: C_GHOST, width: 1.5, dash: 'dot' } },
+      { ...pts(P, [[-L, -L * b / a], [L, L * b / a]]), mode: 'lines', name: `asymptotes, slopes ±${vert ? 'a/b' : 'b/a'} = ±${n2(vert ? a / b : b / a)}`, line: { color: C_GHOST, width: 1.5, dash: 'dash' } },
+      { ...pts(P, [[-L, L * b / a], [L, -L * b / a]]), mode: 'lines', showlegend: false, hoverinfo: 'skip', line: { color: C_GHOST, width: 1.5, dash: 'dash' } },
+      { ...branch(1), mode: 'lines', name: eq, line: { color: C_PATH, width: 3 } },
+      { ...branch(-1), mode: 'lines', showlegend: false, line: { color: C_PATH, width: 3 } },
+      { ...pts(P, [[a, 0], [-a, 0], [0, b], [0, -b]]), mode: 'markers+text', text: ['A', 'A′', 'B', 'B′'], textposition: 'top right', textfont: { color: '#e5e7eb' }, name: `vertices A, A′ (transverse axis 2a = ${(2 * a).toFixed(2)}); B, B′`, marker: { color: '#e5e7eb', size: 7 } },
+    ].concat(focalTraces(P, c, p));
+    Plotly.newPlot(el(id), traces, layout(view(h, k, ex, ey, { title: `c = √(a² + b²) = ${c.toFixed(3)}<br>||PF₁| − |PF₂|| = ${d.toFixed(3)} = 2a` })), cfg());
+  }
+
   // ══════════════════════════════════════════════════════════════
   //  MAST 221 — Probability
   // ══════════════════════════════════════════════════════════════
@@ -2601,6 +2663,8 @@
     'polar-curve':         polarCurve,
     'polar-tangent':       polarTangent,
     'polar-area':          polarArea,
+    'conic-ellipse':       conicEllipse,
+    'conic-hyperbola':     conicHyperbola,
     // MAST 221
     'dice-sum-grid':       diceSumGrid,
     'empirical-dice':      empiricalDice,
