@@ -241,72 +241,6 @@ machine: rl-complement
 :::
 ::::
 
-```sim
-id: rl-closure-run
-custom: true
-mode: run
-machines:
-- rl-union
-- rl-concat
-- rl-star
-- rl-reverse
-- rl-complement
-machine: rl-union
-input: aab
-multi: |-
-  aab
-  ba
-  abba
-  λ
-note: 'The five automata of this part, to run on your own strings. Watch the λ-moves: after every symbol the set of current states is closed under them, so in the union NFA both branches stay alive until one of them hangs.'
-```
-
-```python
-# Output: union [b, aab, ba]; concat [abba]; star [λ, b, aab, abaab]; reverse [b, ba, baa].
-# An NFA is a dict: start state, its single final state, and edges (p, symbol, q), where ''
-# stands for λ. Each builder returns a new NFA, exactly as in the constructions above.
-from itertools import count
-fresh = count()
-
-def nfa(start, final, *edges):
-    return {'start': start, 'final': final, 'edges': list(edges)}
-
-def union(m1, m2):
-    s, f = f"s{next(fresh)}", f"f{next(fresh)}"
-    return nfa(s, f, *m1['edges'], *m2['edges'], (s, '', m1['start']), (s, '', m2['start']),
-               (m1['final'], '', f), (m2['final'], '', f))
-
-def concat(m1, m2):
-    return nfa(m1['start'], m2['final'], *m1['edges'], *m2['edges'], (m1['final'], '', m2['start']))
-
-def star(m1):
-    s, f = f"s{next(fresh)}", f"f{next(fresh)}"
-    return nfa(s, f, *m1['edges'], (s, '', m1['start']), (m1['final'], '', f),
-               (m1['final'], '', m1['start']), (s, '', f))
-
-def reverse(m1):
-    return nfa(m1['final'], m1['start'], *[(q, a, p) for p, a, q in m1['edges']])
-
-def accepts(m, w):
-    def closure(S):
-        S, todo = set(S), list(S)
-        while todo:
-            p = todo.pop()
-            for x, a, q in m['edges']:
-                if x == p and a == '' and q not in S:
-                    S.add(q); todo.append(q)
-        return S
-    cur = closure({m['start']})
-    for c in w:
-        cur = closure({q for p in cur for x, a, q in m['edges'] if x == p and a == c})
-    return m['final'] in cur
-
-M1 = nfa('p0', 'p1', ('p0', 'a', 'p0'), ('p0', 'b', 'p1'))       # {a^n b}
-M2 = nfa('r0', 'r2', ('r0', 'b', 'r1'), ('r1', 'a', 'r2'))       # {ba}
-for name, m in [('union', union(M1, M2)), ('concat', concat(M1, M2)), ('star', star(M1)), ('reverse', reverse(M1))]:
-    print(f"{name:8}", [w or 'λ' for w in ['', 'b', 'aab', 'ba', 'abba', 'abaab', 'baa'] if accepts(m, w)])
-```
-
 ### Intersection
 
 No new construction is needed. By De Morgan's law
@@ -315,64 +249,6 @@ $$L_1 \cap L_2 = \overline{\overline{L_1} \cup \overline{L_2}},$$
 
 and the right-hand side uses only complement and union, under which the regular languages are
 already closed. For example $\{a^n b : n \ge 0\} \cap \{ab, ba\} = \{ab\}$ is regular.
-
-```sim
-id: rl-construct
-custom: true
-mode: construct
-machines:
-- rl-m1
-- rl-m2
-- nfa-abplus
-- dfa-anb
-- nfa-10star-m1
-op: union
-m1: rl-m1
-m2: rl-m2
-multi: |-
-  aab
-  ba
-  abba
-  λ
-note: 'Pick an operation and one or two automata, then step through the construction. At the last step the result is checked against the set operation on every short string, and the table tests strings of your own. Complement and intersection first make complete DFAs by the subset construction.'
-```
-
-```python
-# Output: the complement starts λ, a, aa, ba, bb, aaa, …; L1 ∩ L2 = [ab] with 8 product states.
-# Complement and intersection work on complete DFAs: delta[state][symbol] is always defined.
-from itertools import product
-
-D1 = {'start': 'q0', 'finals': {'q1'},                       # {a^n b}, trap state t
-      'delta': {'q0': {'a': 'q0', 'b': 'q1'}, 'q1': {'a': 't', 'b': 't'}, 't': {'a': 't', 'b': 't'}}}
-D2 = {'start': 'r0', 'finals': {'r2'},                       # {ab, ba}
-      'delta': {'r0': {'a': 'ra', 'b': 'rb'}, 'ra': {'a': 'x', 'b': 'r2'}, 'rb': {'a': 'r2', 'b': 'x'},
-                'r2': {'a': 'x', 'b': 'x'}, 'x': {'a': 'x', 'b': 'x'}}}
-
-def accepts(d, w):
-    q = d['start']
-    for c in w:
-        q = d['delta'][q][c]
-    return q in d['finals']
-
-def complement(d):                    # swap final and non-final states
-    return dict(d, finals=set(d['delta']) - d['finals'])
-
-def intersection(d1, d2):             # run both at once on pairs of states
-    start, delta, todo = (d1['start'], d2['start']), {}, [(d1['start'], d2['start'])]
-    while todo:
-        p, q = pair = todo.pop()
-        if pair in delta:
-            continue
-        delta[pair] = {a: (d1['delta'][p][a], d2['delta'][q][a]) for a in 'ab'}
-        todo += delta[pair].values()
-    finals = {(p, q) for p, q in delta if p in d1['finals'] and q in d2['finals']}
-    return {'start': start, 'finals': finals, 'delta': delta}
-
-words = [''.join(t) for n in range(4) for t in product('ab', repeat=n)]
-print('complement of L1:', [w or 'λ' for w in words if accepts(complement(D1), w)][:10], '…')
-I = intersection(D1, D2)
-print('L1 ∩ L2:', [w for w in words if accepts(I, w)], ' product states:', len(I['delta']))
-```
 
 :::insight
 Every closure proof has the same shape: take automata for the given languages and wire them
@@ -710,63 +586,6 @@ $$r = (bb^*a)^*\, bb^*(a + b)\, b^* .$$
 :::
 ::::
 
-```sim
-id: rl-eliminate
-custom: true
-mode: eliminate
-machines:
-- rl-elim
-- nfa-abplus
-- rl-nfa-grammar
-- nfa-10star
-- dfa-no-001
-machine: rl-elim
-note: 'Step through the elimination: the state about to go is highlighted with its edges, then the new labels appear. A removal order of your own gives a different but equivalent expression; the last step checks it against the NFA on every short string.'
-```
-
-```python
-# Output: after removing q1, q0→q0 is bb*a and q0→q2 is bb*(a+b); r = (bb*a)*bb*(a+b)b*.
-# State elimination. A regular expression is a small tree: ('sym', a), ('eps',),
-# ('alt', x, y), ('cat', x, y), ('star', x); None stands for ∅ (no edge).
-EPS = ('eps',)
-
-def alt(x, y):
-    return y if x is None else x if y is None or x == y else ('alt', x, y)
-
-def cat(x, y):
-    if x is None or y is None: return None
-    return y if x == EPS else x if y == EPS else ('cat', x, y)
-
-def star(x):
-    return EPS if x in (None, EPS) else x if x[0] == 'star' else ('star', x)
-
-PREC = {'alt': 1, 'cat': 2, 'star': 3, 'sym': 4, 'eps': 4}
-def show(x, ctx=0):
-    if x is None: return '∅'
-    k = x[0]
-    s = {'sym': lambda: x[1], 'eps': lambda: 'λ', 'star': lambda: show(x[1], 4) + '*',
-         'alt': lambda: show(x[1], 1) + '+' + show(x[2], 1),
-         'cat': lambda: show(x[1], 2) + show(x[2], 2)}[k]()
-    return f"({s})" if ctx > PREC[k] else s
-
-def eliminate(E, states, q0, qf):
-    for q in [s for s in states if s not in (q0, qf)]:
-        loop = star(E.pop((q, q), None))
-        ins = {p: r for (p, t), r in E.items() if t == q}
-        outs = {t: r for (p, t), r in E.items() if p == q}
-        E = {k: r for k, r in E.items() if q not in k}
-        for p, a in ins.items():
-            for t, b in outs.items():
-                E[p, t] = alt(E.get((p, t)), cat(cat(a, loop), b))
-        print(f"removed {q}:", {f"{p}→{t}": show(r) for (p, t), r in E.items()})
-    r1, r2, r3, r4 = (E.get(k) for k in [(q0, q0), (q0, qf), (qf, q0), (qf, qf)])
-    return cat(cat(star(r1), r2), star(alt(r4, cat(cat(r3, star(r1)), r2))))
-
-a, b = ('sym', 'a'), ('sym', 'b')
-E = {('q0', 'q1'): b, ('q1', 'q1'): b, ('q1', 'q0'): a, ('q1', 'q2'): alt(a, b), ('q2', 'q2'): b}
-print('r =', show(eliminate(E, ['q0', 'q1', 'q2'], 'q0', 'q2')))
-```
-
 :::insight
 The two halves of the theorem are two algorithms. Expression → NFA follows the parse tree and
 uses the closure constructions; NFA → expression eliminates states and accumulates their loops
@@ -881,47 +700,6 @@ walk $S \to A \to x \to B \to B \to V_F$ on $aaaba$. Reading the two routes from
 $$L(G) = L(M) = L(aaab^*a + b^*a).$$
 :::
 ::::
-
-```sim
-id: rl-grammar-run
-custom: true
-mode: run
-machines:
-- rl-grammar-nfa
-- rl-nfa-grammar
-machine: rl-grammar-nfa
-input: aaaba
-multi: |-
-  aaaba
-  aaaa
-  bba
-  aba
-note: 'The NFA built from the right-linear grammar, and the NFA of Part 2 below. A run on aaaba passes S, A, x, B, B, VF: the same variables, in the same order, as the derivation S ⇒ aA ⇒ aaaB ⇒ aaabB ⇒ aaaba.'
-```
-
-```python
-# Output: the six edges S a A, S λ B, A a x0, x0 a B, B b B, B a VF, and the grammar
-# q0 → aq1, q1 → bq1, q1 → aq2, q2 → bq3, q3 → q1, q3 → λ.
-# Right-linear grammar → NFA and NFA → right-linear grammar. A production is
-# (variable, terminals, next variable or None); an NFA edge is (state, symbol, state).
-def grammar_to_nfa(productions):
-    edges, extra = [], 0
-    for A, x, B in productions:
-        target = B or 'VF'
-        path = [A] + [f"x{extra + i}" for i in range(len(x) - 1)] + [target]
-        extra += max(len(x) - 1, 0)
-        edges += [(path[i], c, path[i + 1]) for i, c in enumerate(x)] or [(A, 'λ', target)]
-    return edges
-
-def nfa_to_grammar(edges, finals):
-    rules = [f"{p} → {'' if a == 'λ' else a}{q}" for p, a, q in edges]
-    return rules + [f"{q} → λ" for q in finals]
-
-G = [('S', 'a', 'A'), ('S', '', 'B'), ('A', 'aa', 'B'), ('B', 'b', 'B'), ('B', 'a', None)]
-for e in grammar_to_nfa(G):
-    print(*e)
-print(nfa_to_grammar([('q0', 'a', 'q1'), ('q1', 'b', 'q1'), ('q1', 'a', 'q2'), ('q2', 'b', 'q3'), ('q3', 'λ', 'q1')], ['q3']))
-```
 
 ### Part 1b: a left-linear grammar, by reversal
 
