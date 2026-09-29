@@ -9,6 +9,8 @@ requires:
   - {concept: improper-integral, strength: hard}
   - {concept: integration-by-parts, strength: hard}
   - {concept: substitution-rule, strength: hard}
+  - {concept: expected-value, strength: hard}
+  - {concept: variance, strength: hard}
   - {concept: moment-generating-function, strength: soft}
   - {concept: binomial-distribution, strength: soft}
   - {concept: poisson-distribution, strength: soft}

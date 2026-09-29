@@ -32,6 +32,9 @@ BLOCKS = {"definition", "theorem", "lemma", "proposition", "corollary", "proof",
           "algorithm", "machine", "trace", "exercise",    # theory pages (#111), reused by programming pages
           "syntax"}                                      # programming pages (#131)
 STRENGTH = {"hard", "soft"}
+# roadmap area `role` (#155): `target` areas are the data-science work itself and anchor the DS
+# relevance score; `foundation` areas are what it rests on; `practice` is professional context
+ROADMAP_AREA_ROLES = {"target", "foundation", "practice"}
 METHOD_NODE_KINDS = {"decision", "method", "end"}  # content/methods/<id>.yaml graphs (#91)
 SEASONS = ("fall", "winter", "summer")  # ordered: index within a year
 
@@ -47,7 +50,10 @@ REQUIRED = {
     "university": {"id", "name"},
 }
 OPTIONAL = {
-    "concept": {"aliases", "generalizes", "part_of", "maps_to", "short", "wikipedia", "wikidata"},
+    # `requires` (#155): concept-level dependency on another concept, for what units cannot express
+    # (two concepts introduced by the same unit, or a foundation taught by no prerequisite course);
+    # a knowledge edge only, never counted as concept debt
+    "concept": {"aliases", "generalizes", "part_of", "requires", "maps_to", "short", "wikipedia", "wikidata"},
     "unit": {"kind", "review", "weeks", "introduces", "requires", "reinforces"},
     "course": {"prereqs", "coreqs", "requirements", "source", "pages"},
     "program": {"source"},

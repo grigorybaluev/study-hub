@@ -3,6 +3,7 @@ title: Analysis of variance
 domain: statistics
 wikipedia: "Analysis of variance"
 aliases: ["ANOVA", "F-test", "F distribution", "randomized block design", "factorial experiment"]
+requires: [variance, {concept: chi-square-distribution, strength: soft}]
 maps_to: [study-hub/ds-core/linear-models, study-hub/ds-core/experimentation, study-hub/ds-core/hypothesis-testing]
 ---
 

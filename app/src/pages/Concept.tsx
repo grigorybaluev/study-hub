@@ -4,6 +4,7 @@ import { Badge, ConceptChip, UnitLink } from "../components/Chips";
 import WikipediaSummary from "../components/WikipediaSummary";
 import { edgesIn, edgesOut, href, node, useData } from "../data/load";
 import type { CourseNode, RoadmapSkillNode, UnitNode } from "../data/types";
+import { TIER_LABEL } from "./Explore";
 
 export default function Concept() {
   const { slug } = useParams();
@@ -57,6 +58,7 @@ function ConceptPage({ slug }: { slug: string }) {
   const generalizes = edgesOut(d, c.id, "generalizes").map((e) => e.to);
   const generalizedBy = edgesIn(d, c.id, "generalizes").map((e) => e.from);
   const skills = edgesOut(d, c.id, "maps_to").map((e) => e.to);
+  const ds = d.derived.ds_relevance?.concepts[c.id];
 
   return (
     <div className="with-sidebar">
@@ -100,6 +102,14 @@ function ConceptPage({ slug }: { slug: string }) {
         )}
       </div>
       <aside className="sidebar">
+        {ds && (
+          <section><h4>DS relevance</h4>
+            <p style={{ margin: 0 }}>
+              <Badge kind={`tier-${ds.tier}`}>{TIER_LABEL[ds.tier]}</Badge>{" "}
+              <span className="small muted">score {ds.score.toFixed(2)} · {ds.ds_units} DS unit{ds.ds_units === 1 ? "" : "s"} rest on it</span>
+            </p>
+          </section>
+        )}
         {buildsOn.length > 0 && (
           <section><h4>Builds on</h4>
             <ul>{buildsOn.map((e) => <li key={e.to}><ConceptChip id={e.to} /> <Badge kind={e.strength} /></li>)}</ul>

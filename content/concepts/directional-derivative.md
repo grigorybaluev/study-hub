@@ -2,6 +2,8 @@
 title: Directional derivative
 domain: math.calculus
 wikipedia: "Directional derivative"
+generalizes: [partial-derivative]
+requires: [gradient]
 maps_to: [study-hub/ds-core/calculus]
 ---
 

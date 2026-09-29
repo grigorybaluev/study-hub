@@ -9,7 +9,7 @@ requires:
   - {concept: matrix, strength: hard}
   - {concept: dot-product, strength: hard}
   - {concept: linear-system, strength: hard}
-  - {concept: computer-algebra-system, strength: hard}
+  - {concept: computer-algebra-system, strength: soft}
 reinforces:
   - {concept: vector, perspective: "arithmetic in R^n, component-wise"}
   - {concept: dot-product, perspective: "as the row reading of Ax"}

@@ -4,6 +4,7 @@ domain: programming
 wikipedia: "Message passing"
 short: "message passing"
 aliases: ["actor model", "mailbox", "send and receive", "Erlang processes"]
+requires: [{concept: concurrency, strength: soft}]
 maps_to: [study-hub/ds-core/programming-fundamentals, study-hub/ds-core/computing-systems]
 ---
 

@@ -3,6 +3,7 @@ title: Student's t-distribution
 domain: probability
 wikipedia: "Student's t-distribution"
 aliases: ["Student's t", "t distribution"]
+requires: [normal-distribution]
 maps_to: [study-hub/ds-core/distributions, study-hub/ds-core/hypothesis-testing]
 ---
 

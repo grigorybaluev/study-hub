@@ -3,6 +3,7 @@ title: Software testing
 domain: programming
 wikipedia: "Software testing"
 aliases: ["unit testing", "integration testing", "black-box testing", "white-box testing", "code coverage", "regression testing", "test-driven development", "acceptance testing", "verification and validation"]
+requires: [{concept: debugging, strength: soft}]
 maps_to: [study-hub/ds-core/software-engineering-practice]
 ---
 

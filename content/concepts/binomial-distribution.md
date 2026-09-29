@@ -3,6 +3,7 @@ title: Binomial distribution
 domain: probability
 wikipedia: "Binomial distribution"
 generalizes: [bernoulli-distribution]
+requires: [independence]
 maps_to: [study-hub/ds-core/distributions]
 ---
 

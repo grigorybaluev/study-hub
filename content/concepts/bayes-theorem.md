@@ -3,6 +3,7 @@ title: Bayes' theorem
 domain: probability
 wikipedia: "Bayes' theorem"
 aliases: ["law of total probability"]
+requires: [conditional-probability]
 maps_to: [study-hub/ds-core/probability-theory, study-hub/ds-core/bayesian-inference]
 ---
 

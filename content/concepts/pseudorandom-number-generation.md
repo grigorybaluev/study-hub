@@ -4,6 +4,7 @@ domain: statistics
 wikipedia: "Pseudorandom number generator"
 short: "PRNG"
 aliases: ["PRNG", "seed"]
+requires: [{concept: modular-arithmetic, strength: soft}]
 maps_to: [study-hub/ds-core/simulation]
 ---
 

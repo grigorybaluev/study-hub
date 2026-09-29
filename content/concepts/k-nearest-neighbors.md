@@ -3,6 +3,7 @@ title: k-nearest neighbors
 domain: ml
 wikipedia: "K-nearest neighbors algorithm"
 aliases: ["kNN", "k-NN", "nearest neighbour"]
+requires: [vector]
 maps_to: [study-hub/ds-core/supervised-learning]
 ---
 

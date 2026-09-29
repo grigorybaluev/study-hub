@@ -49,13 +49,17 @@ Authored edges (the only ones humans write, in unit/concept/course frontmatter):
 - `unit requires concept` with `strength: hard | soft`
 - `unit reinforces concept` — slug or `{concept, perspective}`
 - `concept generalizes | part_of concept`; `concept maps_to roadmapNode`
+- `concept requires concept` (`strength: hard | soft`) — only for what units cannot express: two
+  concepts introduced by the same unit (variance on expected-value), or a foundation no
+  prerequisite course teaches. A knowledge edge: it feeds `concept depends_on`, never debt.
 - `course prereq | coreq course` (official calendar)
 
 Derived (rebuilt by `derive.py`): `unit depends_on unit` (every introducer of a required
 concept; same-course edges flagged), `concept depends_on concept` (B on A when a unit
 introducing B requires A), `course uses course` (weighted), `course covers roadmapNode`,
-per-variant concept debt by term, unmet dependencies. Every edge carries
-`provenance: authored | official | derived`.
+per-variant concept debt by term, unmet dependencies, DS relevance per concept (#155: reach
+into the units of `role: target` roadmap areas + betweenness → tier application | core |
+supporting | peripheral). Every edge carries `provenance: authored | official | derived`.
 
 ## Authoring rules
 

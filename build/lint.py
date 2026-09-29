@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH, METHOD_NODE_KINDS,
+from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, ROADMAP_AREA_ROLES, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH, METHOD_NODE_KINDS,
                     UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
                     roadmap_node_ids, roadmap_root, unit_slug, answer_label)
 
@@ -67,6 +67,9 @@ def lint_roadmaps(c: Content, rep: Report) -> set[str]:
         seen = Counter()
         for area in data.get("areas") or []:
             for node in [area] + (area.get("skills") or []):
+                role = node.get("role")
+                if role is not None and role not in ROADMAP_AREA_ROLES:
+                    rep.error(path, f"node {node.get('id')!r}: role {role!r} not in {sorted(ROADMAP_AREA_ROLES)}")
                 nid = node.get("id")
                 if not nid or not SLUG_RE.match(nid):
                     rep.error(path, f"node id {nid!r} is not a slug")
@@ -109,6 +112,20 @@ def lint_concepts(c: Content, rep: Report, roadmap_targets: set[str] = frozenset
                     rep.error(doc.path, f"{key}: unknown concept {target!r}")
                 elif target == slug:
                     rep.error(doc.path, f"{key}: concept refers to itself")
+        seen_req: set[str] = set()
+        for entry in edge_entries(doc.meta.get("requires")):
+            target = entry["concept"]
+            if target is None:
+                rep.error(doc.path, f"requires: malformed entry {entry['raw']!r}")
+            elif target not in c.concepts:
+                rep.error(doc.path, f"requires: unknown concept {target!r}")
+            elif target == slug:
+                rep.error(doc.path, "requires: concept refers to itself")
+            elif target in seen_req:
+                rep.error(doc.path, f"requires: {target!r} listed twice")
+            seen_req.add(target or "")
+            if entry.get("strength", "hard") not in STRENGTH:
+                rep.error(doc.path, f"requires {target}: strength {entry.get('strength')!r} not in {sorted(STRENGTH)}")
         for target in doc.meta.get("maps_to") or []:
             if target not in roadmap_targets:
                 rep.error(doc.path, f"maps_to: unknown roadmap node {target!r}")
@@ -565,9 +582,10 @@ def lint_findings(c: Content, rep: Report):
 
 # --------------------------------------------------------------------------- cycles (11)
 def lint_concept_cycles(c: Content, rep: Report):
-    for key in ("generalizes", "part_of"):
+    for key in ("generalizes", "part_of", "requires"):
         # self-references are already reported by lint_concepts
-        graph = {s: [t for t in (d.meta.get(key) or []) if t in c.concepts and t != s] for s, d in c.concepts.items()}
+        graph = {s: [t for t in (e["concept"] for e in edge_entries(d.meta.get(key))) if t in c.concepts and t != s]
+                 for s, d in c.concepts.items()}
         state: dict[str, int] = {}
 
         def visit(node, stack):

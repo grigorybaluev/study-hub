@@ -7,6 +7,9 @@ description: >
   "Computing Competencies for Undergraduate Data Science Curricula" and by published
   practitioner roadmaps, which are linked as references rather than reproduced.
   Concepts map to skills with `maps_to`; coverage is derived, never authored.
+  An area's `role` (target | foundation | practice) says whether it is the data-science work itself,
+  what that work rests on, or professional context; a skill may override its area's role. Concepts
+  mapped to target skills anchor the DS relevance score (#155).
 references:
   - title: ACM Data Science Task Force — Computing Competencies for Undergraduate Data Science Curricula (2021)
     url: https://dstf.acm.org/DSTF_Final_Report.pdf
@@ -15,6 +18,7 @@ references:
 
 areas:
   - id: mathematics
+    role: foundation
     title: Mathematical foundations
     skills:
       - id: calculus
@@ -34,6 +38,7 @@ areas:
         summary: Floating-point arithmetic and error, numerical integration, and numerical linear algebra.
 
   - id: probability
+    role: foundation
     title: Probability
     skills:
       - id: probability-theory
@@ -53,9 +58,11 @@ areas:
         summary: Markov chains, random walks and other sequences of dependent random variables.
       - id: simulation
         title: Simulation
+        role: target
         summary: Monte Carlo methods, generating random variates, and estimating quantities by simulation.
 
   - id: statistics
+    role: target
     title: Statistics
     skills:
       - id: descriptive-statistics
@@ -83,6 +90,7 @@ areas:
         summary: Autocorrelation, trend and seasonality, and forecasting.
 
   - id: programming
+    role: foundation
     title: Programming and computing
     skills:
       - id: programming-fundamentals
@@ -96,6 +104,7 @@ areas:
         summary: The R language and environment for statistical computing.
       - id: sql
         title: SQL
+        role: target
         summary: "Querying relational data: joins, aggregation, subqueries and views."
       - id: data-structures-algorithms
         title: Data structures and algorithms
@@ -111,6 +120,7 @@ areas:
         summary: Automata, grammars, computability and the limits of algorithms.
 
   - id: data-management
+    role: target
     title: Data management
     skills:
       - id: data-modelling
@@ -127,6 +137,7 @@ areas:
         summary: Provenance, access, privacy, security and the regulation of data use.
 
   - id: machine-learning
+    role: target
     title: Machine learning
     skills:
       - id: supervised-learning
@@ -147,8 +158,12 @@ areas:
       - id: interpretability
         title: Interpretability
         summary: Understanding and explaining what a model has learned.
+      - id: reinforcement-learning
+        title: Reinforcement learning
+        summary: Agents acting in an environment, Markov decision processes, value functions and learning a policy from rewards.
 
   - id: deep-learning
+    role: target
     title: Deep learning
     skills:
       - id: neural-networks
@@ -165,6 +180,7 @@ areas:
         summary: Large language models, prompting, retrieval-augmented generation and fine-tuning.
 
   - id: ml-production
+    role: target
     title: Machine learning in production
     skills:
       - id: deployment
@@ -178,6 +194,7 @@ areas:
         summary: Experiment tracking and versioning of data, code and models.
 
   - id: communication
+    role: practice
     title: Analysis and communication
     skills:
       - id: data-visualization
@@ -191,6 +208,7 @@ areas:
         summary: Turning a domain question into an analysis plan and running the project lifecycle.
 
   - id: professional-practice
+    role: practice
     title: Professional practice
     skills:
       - id: ethics-and-impact

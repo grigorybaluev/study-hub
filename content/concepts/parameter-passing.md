@@ -4,6 +4,7 @@ domain: programming
 wikipedia: "Evaluation strategy"
 short: "parameter passing"
 aliases: ["pass by value", "call by value", "pass by reference", "call by reference", "pass by sharing", "actual and formal parameters"]
+requires: [{concept: pointers, strength: soft}]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---
 

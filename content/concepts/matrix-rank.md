@@ -4,6 +4,7 @@ domain: math.linear-algebra
 wikipedia: "Rank (linear algebra)"
 short: "rank"
 aliases: ["rank", "column space", "row space", "null space", "nullity", "rank-nullity theorem"]
+requires: [{concept: linear-combination-span, strength: soft}]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---
 

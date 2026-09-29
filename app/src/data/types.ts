@@ -98,6 +98,8 @@ export interface RoadmapSkillNode {
   refs?: string[];
   parent: string | null;
   order: number[];
+  /** `target` = the data-science work itself (anchors the DS relevance score, #155); a skill inherits its area's role */
+  role: "target" | "foundation" | "practice";
 }
 
 export type GraphNode =
@@ -170,6 +172,35 @@ export interface ConceptDependsOn {
   weight: number;
   strength: "hard" | "soft";
   via_units: string[];
+  /** authored = the concept's own `requires` says so (#155); derived = through the units that introduce it */
+  provenance: "authored" | "derived";
+}
+
+/** DS relevance of one concept (#155). */
+export type DsTier = "application" | "core" | "supporting" | "peripheral";
+
+export interface DsConcept {
+  anchor: boolean;
+  tier: DsTier;
+  score: number;        // 0..1
+  ds_units: number;     // DS units resting on it (hard dependencies, any distance)
+  ds_weight: number;    // the same, each weighted 1/distance
+  ds_reach: number;     // anchor concepts resting on it
+  betweenness: number;
+  in_degree: number;
+  out_degree: number;
+  /** nearest anchor concepts that rest on it */
+  via: string[];
+}
+
+export interface DsRelevance {
+  targets: string[];    // roadmap skills with role target
+  anchors: string[];    // concepts mapped to a target skill
+  ds_units: string[];   // units introducing an anchor
+  core_weight: number;
+  concepts: Record<string, DsConcept>;
+  /** per course: how many of the concepts it introduces fall in each tier */
+  courses: Record<string, Record<DsTier | "concepts", number>>;
 }
 
 export interface CourseUses {
@@ -231,4 +262,5 @@ export interface Derived {
   unmet: Unmet[];
   variants: Record<string, VariantAnalysis>;
   roadmap_coverage: Record<string, { skills: Record<string, SkillCoverage>; summary: Record<string, number> }>;
+  ds_relevance: DsRelevance;
 }

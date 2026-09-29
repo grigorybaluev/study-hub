@@ -4,6 +4,7 @@ domain: programming
 wikipedia: "Programming language implementation"
 short: "compilers and interpreters"
 aliases: ["compiler", "interpreter", "bytecode", "virtual machine", "just-in-time compilation", "JIT", "linking", "compilation phases"]
+requires: [{concept: assembly-language, strength: soft}]
 maps_to: [study-hub/ds-core/computing-systems, study-hub/ds-core/programming-fundamentals]
 ---
 

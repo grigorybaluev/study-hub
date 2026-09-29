@@ -3,6 +3,7 @@ title: Semaphore
 domain: systems
 wikipedia: "Semaphore (programming)"
 aliases: ["counting semaphore", "binary semaphore", "wait and signal", "P and V"]
+requires: [concurrency]
 maps_to: [study-hub/ds-core/computing-systems, study-hub/ds-core/programming-fundamentals]
 ---
 

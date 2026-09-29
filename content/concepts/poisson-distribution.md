@@ -2,6 +2,7 @@
 title: Poisson distribution
 domain: probability
 wikipedia: "Poisson distribution"
+requires: [{concept: binomial-distribution, strength: soft}]
 maps_to: [study-hub/ds-core/distributions]
 ---
 

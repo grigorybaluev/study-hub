@@ -4,6 +4,7 @@ domain: probability
 wikipedia: "Variance"
 short: "variance"
 aliases: ["standard deviation"]
+requires: [expected-value]
 maps_to: [study-hub/ds-core/random-variables]
 ---
 

@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Badge, ConceptChip, CourseChip, UnitLink } from "../components/Chips";
-import { useData } from "../data/load";
+import { node, useData } from "../data/load";
+import type { ConceptNode, DsTier } from "../data/types";
+import { TIERS, TIER_LABEL } from "./Explore";
 
 const SEASON = { fall: "Fall", winter: "Winter", summer: "Summer" };
 
@@ -69,6 +72,8 @@ export default function Analytics() {
         </>
       )}
 
+      <DsRelevance />
+
       <h2>Course coupling</h2>
       <p className="muted small">How many (unit, concept) requirements of one course point at concepts another course introduces.</p>
       <table>
@@ -79,6 +84,83 @@ export default function Analytics() {
               <td><CourseChip id={e.from} /></td><td><CourseChip id={e.to} /></td>
               <td>{e.weight}</td><td>{e.hard}</td><td>{e.soft}</td>
               <td className="small">{e.via.slice(0, 6).map((c) => <ConceptChip key={c} id={c} />)}{e.via.length > 6 ? "…" : ""}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+}
+
+/** DS relevance (#155): tiers, the load-bearing foundations, and where the periphery is taught. */
+function DsRelevance() {
+  const d = useData();
+  const ds = d.derived.ds_relevance;
+  const rows = Object.entries(ds.concepts);
+  const count = (t: DsTier) => rows.filter(([, r]) => r.tier === t).length;
+  const top = (t: DsTier, n: number) => rows.filter(([, r]) => r.tier === t).sort((a, b) => b[1].score - a[1].score).slice(0, n);
+  const courses = Object.entries(ds.courses).map(([cid, c]) => ({ cid, ...c, share: c.concepts ? c.peripheral / c.concepts : 0 }))
+    .sort((a, b) => b.share - a.share || a.cid.localeCompare(b.cid));
+  const peripheralBy = new Map<string, string[]>();
+  for (const [cid, r] of rows) {
+    if (r.tier !== "peripheral") continue;
+    for (const u of d.derived.concepts[cid]?.introduced_by ?? []) {
+      const course = node(d, u) && (node(d, u) as { course: string }).course;
+      const list = course ? peripheralBy.get(course) ?? peripheralBy.set(course, []).get(course)! : null;
+      if (list && !list.includes(cid)) list.push(cid);
+    }
+  }
+  return (
+    <>
+      <h2>DS relevance</h2>
+      <p className="muted small">
+        Concepts mapped to a <em>target</em> skill of the roadmap are the data-science work itself ({ds.anchors.length} anchors, taught in {ds.ds_units.length} DS units).
+        Every other concept is scored by how many DS units rest on it through hard dependencies, weighted by distance, plus how many DS concepts rest on it and its
+        betweenness in the dependency graph. <Link to="/explore">The DS map</Link> in Explore draws the tiers as concentric bands.
+      </p>
+      <table>
+        <thead><tr>{TIERS.map((t) => <th key={t}>{TIER_LABEL[t]}</th>)}</tr></thead>
+        <tbody><tr>{TIERS.map((t) => <td key={t}>{count(t)}</td>)}</tr></tbody>
+      </table>
+
+      <h3>Core foundations</h3>
+      <p className="muted small">Not data science themselves, but the DS units rest on them most (depth-weighted reach ≥ {ds.core_weight}).</p>
+      <table>
+        <thead><tr><th>concept</th><th>score</th><th>DS units</th><th>weighted</th><th>DS concepts</th><th>reached through</th></tr></thead>
+        <tbody>
+          {top("core", 25).map(([cid, r]) => (
+            <tr key={cid}>
+              <td><ConceptChip id={cid} /></td><td>{r.score.toFixed(2)}</td><td>{r.ds_units}</td><td>{r.ds_weight.toFixed(1)}</td><td>{r.ds_reach}</td>
+              <td className="small">{r.via.slice(0, 4).map((v) => <ConceptChip key={v} id={v} />)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h3>Courses by DS relevance of what they introduce</h3>
+      <p className="muted small">How the concepts each course introduces fall into the tiers; courses whose concepts are mostly peripheral to DS first.</p>
+      <table>
+        <thead><tr><th>course</th><th>concepts</th>{TIERS.map((t) => <th key={t}>{TIER_LABEL[t]}</th>)}<th>peripheral share</th></tr></thead>
+        <tbody>
+          {courses.map((c) => (
+            <tr key={c.cid}>
+              <td><CourseChip id={c.cid} /></td><td>{c.concepts}</td>
+              {TIERS.map((t) => <td key={t}>{c[t]}</td>)}
+              <td>{Math.round(c.share * 100)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h3>Peripheral concepts by course</h3>
+      <p className="muted small">Taught for the degree; no DS unit rests on them. A missing edge is one way this list shrinks: an entry here is a finding to check, not a verdict.</p>
+      <table>
+        <thead><tr><th>course</th><th>peripheral concepts</th></tr></thead>
+        <tbody>
+          {[...peripheralBy.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])).map(([cid, list]) => (
+            <tr key={cid}>
+              <td><CourseChip id={cid} /> <span className="muted small">{list.length}</span></td>
+              <td className="small">{[...list].sort((a, b) => (node<ConceptNode>(d, a)?.domain ?? "").localeCompare(node<ConceptNode>(d, b)?.domain ?? "") || a.localeCompare(b)).map((x) => <ConceptChip key={x} id={x} />)}</td>
             </tr>
           ))}
         </tbody>

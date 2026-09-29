@@ -3,6 +3,7 @@ title: Moments
 domain: probability
 wikipedia: "Moment (mathematics)"
 aliases: ["skewness", "kurtosis"]
+requires: [expected-value]
 maps_to: [study-hub/ds-core/random-variables]
 ---
 

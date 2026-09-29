@@ -2,6 +2,7 @@
 title: Distributed file system
 domain: systems
 aliases: ["HDFS", "Hadoop Distributed File System", "block replication"]
+requires: [{concept: file-system, strength: soft}]
 maps_to: [study-hub/ds-core/data-pipelines, study-hub/ds-core/computing-systems]
 ---
 

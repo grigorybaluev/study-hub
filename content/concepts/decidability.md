@@ -3,6 +3,7 @@ title: Decidability
 domain: theory
 wikipedia: "Decidability (logic)"
 aliases: ["undecidability", "recursive language", "recursively enumerable", "reduction"]
+requires: [{concept: universal-turing-machine, strength: soft}]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

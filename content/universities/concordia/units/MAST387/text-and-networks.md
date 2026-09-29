@@ -3,7 +3,9 @@ title: Text and network data
 order: 10
 status: outline
 weeks: [10]
-introduces: [text-vectorization]
+introduces:
+  - text-vectorization
+  - {concept: graph, perspective: "network data as a graph: nodes, edges, degree and centrality, built and drawn with NetworkX"}
 requires:
   - {concept: regular-expression, strength: hard}
   - {concept: string, strength: hard}

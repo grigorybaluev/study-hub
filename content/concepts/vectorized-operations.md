@@ -3,6 +3,7 @@ title: Vectorized operations
 domain: programming
 wikipedia: "Array programming"
 aliases: ["vectorization", "recycling", "broadcasting"]
+requires: [{concept: iteration, strength: soft}]
 maps_to: [study-hub/ds-core/r, study-hub/ds-core/python]
 ---
 

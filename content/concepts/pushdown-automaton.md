@@ -5,6 +5,7 @@ wikipedia: "Pushdown automaton"
 short: "PDA"
 aliases: ["PDA", "NPDA", "DPDA"]
 generalizes: [nfa]
+requires: [stack]
 maps_to: [study-hub/ds-core/theory-of-computation]
 ---
 

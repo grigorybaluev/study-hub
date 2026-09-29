@@ -4,6 +4,7 @@ domain: math.linear-algebra
 wikipedia: "System of linear equations"
 short: "linear systems"
 aliases: ["Gaussian elimination", "row echelon form"]
+requires: [matrix]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---
 

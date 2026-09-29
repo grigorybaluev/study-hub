@@ -3,7 +3,7 @@ title: Markov decision process
 domain: probability
 wikipedia: "Markov decision process"
 aliases: ["MDP", "policy", "value function", "Bellman equation"]
-maps_to: [study-hub/ds-core/stochastic-processes, study-hub/ds-core/optimization]
+maps_to: [study-hub/ds-core/stochastic-processes, study-hub/ds-core/optimization, study-hub/ds-core/reinforcement-learning]
 ---
 
 A model of sequential decisions in which an action taken in a state earns a reward and moves

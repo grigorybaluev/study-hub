@@ -3,6 +3,7 @@ title: Confidence interval
 domain: statistics
 wikipedia: "Confidence interval"
 aliases: ["confidence level", "margin of error", "interval estimate"]
+requires: [point-estimation]
 maps_to: [study-hub/ds-core/estimation]
 ---
 
