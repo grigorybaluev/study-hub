@@ -52,7 +52,15 @@
   };
   // shrink the canvas to the states, leaving room for the start arrow (left) and self-loops (top)
   function crop(m) {
-    const xs = m.states.map(q => q.x), ys = m.states.map(q => q.y);
+    const pts = m.states.map(q => [q.x, q.y]), at = {};
+    m.states.forEach(q => { at[q.id] = q; });
+    Object.keys(m.curves || {}).forEach(k => {     // a curved edge bulges out by half its bend, plus room for its label
+      const [f, t] = k.split('|'), P = at[f], Q = at[t], bend = m.curves[k];
+      if (!P || !Q || f === t || !bend || !m.trans.some(x => x.from === f && x.to === t)) return;
+      const dx = Q.x - P.x, dy = Q.y - P.y, d = Math.hypot(dx, dy) || 1, off = bend / 2 + Math.sign(bend) * 18;
+      pts.push([(P.x + Q.x) / 2 - dy / d * off, (P.y + Q.y) / 2 + dx / d * off]);
+    });
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     const left = Math.min(...xs) - 70, top = Math.min(...ys) - 90;
     m.states.forEach(q => { q.x -= left; q.y -= top; });
     m.w = Math.max(...xs) - left + 45; m.h = Math.max(...ys) - top + 45;
@@ -126,6 +134,36 @@
   def({ id: 'dfa-min', type: 'dfa', name: 'DFA to minimise (Lec 2 p.154)', source: 'Lec 2 p.154–158', sample: 'abab',
     states: [S('q0', 100, 200), S('q1', 300, 200), S('q2', 500, 200), S('q3', 500, 60)], start: 'q0', finals: ['q1'],
     trans: expand('q0 a q1; q0 b q2; q1 a q1; q1 b q2; q2 a q1; q2 b q0; q3 a q3; q3 b q2'), curves: { 'q0|q2': -80, 'q2|q0': 80 }, w: 620, h: 300 });
+
+  // Regular languages unit (#165): the running machines of the closure constructions, the state-elimination
+  // example, and the two grammar conversions. Laid out tight; `crop` below frames them.
+  def({ id: 'rl-m1', type: 'nfa', name: 'M₁: L₁ = {aⁿb : n ≥ 0}', sample: 'aab',
+    states: [S('p0', 100, 120), S('p1', 260, 120)], start: 'p0', finals: ['p1'], trans: expand('p0 a p0; p0 b p1') });
+  def({ id: 'rl-m2', type: 'nfa', name: 'M₂: L₂ = {ba}', sample: 'ba',
+    states: [S('r0', 100, 120), S('r1', 230, 120), S('r2', 360, 120)], start: 'r0', finals: ['r2'], trans: expand('r0 b r1; r1 a r2') });
+  def({ id: 'rl-union', type: 'nfa', name: 'L₁ ∪ L₂ = {aⁿb} ∪ {ba}', sample: 'aab',
+    states: [S('s', 40, 150), S('p0', 170, 70), S('p1', 320, 70), S('r0', 150, 230), S('r1', 260, 230), S('r2', 370, 230), S('f', 480, 150)], start: 's', finals: ['f'],
+    trans: expand('s λ p0; s λ r0; p0 a p0; p0 b p1; r0 b r1; r1 a r2; p1 λ f; r2 λ f') });
+  def({ id: 'rl-concat', type: 'nfa', name: 'L₁L₂ = {aⁿbba}', sample: 'abba',
+    states: [S('p0', 50, 100), S('p1', 180, 100), S('r0', 310, 100), S('r1', 430, 100), S('r2', 550, 100)], start: 'p0', finals: ['r2'],
+    trans: expand('p0 a p0; p0 b p1; p1 λ r0; r0 b r1; r1 a r2') });
+  def({ id: 'rl-star', type: 'nfa', name: 'L₁* = {aⁿb}*', sample: 'abaab',
+    states: [S('s', 40, 150), S('p0', 170, 150), S('p1', 320, 150), S('f', 450, 150)], start: 's', finals: ['f'],
+    trans: expand('s λ p0; p0 a p0; p0 b p1; p1 λ f; p1 λ p0; s λ f'), curves: { 'p1|p0': 40, 's|f': 80 } });
+  def({ id: 'rl-reverse', type: 'nfa', name: 'L₁ᴿ = {baⁿ}', sample: 'baa',
+    states: [S('p1', 60, 100), S('p0', 220, 100)], start: 'p1', finals: ['p0'], trans: expand('p1 b p0; p0 a p0') });
+  def({ id: 'rl-complement', type: 'dfa', name: 'complement of L₁ = {a,b}* − {aⁿb}', sample: 'aba',
+    states: [S('q0', 60, 120), S('q1', 220, 120), S('t', 380, 120)], start: 'q0', finals: ['q0', 't'], trans: expand('q0 a q0; q0 b q1; q1 a,b t; t a,b t') });
+  def({ id: 'rl-elim', type: 'nfa', name: 'NFA for (bb*a)*bb*(a+b)b*', sample: 'bab',
+    states: [S('q0', 60, 120), S('q1', 220, 120), S('q2', 380, 120)], start: 'q0', finals: ['q2'],
+    trans: expand('q0 b q1; q1 b q1; q1 a q0; q1 a,b q2; q2 b q2'), curves: { 'q0|q1': 30, 'q1|q0': 30 } });
+  def({ id: 'rl-grammar-nfa', type: 'nfa', name: 'From S → aA | B, A → aaB, B → bB | a', sample: 'aaaba',
+    states: [S('S', 60, 80), S('A', 220, 80), S('x', 380, 80), S('B', 380, 220), S('VF', 540, 220)], start: 'S', finals: ['VF'],
+    trans: expand('S a A; S λ B; A a x; x a B; B b B; B a VF') });
+  def({ id: 'rl-nfa-grammar', type: 'nfa', name: 'NFA for ab*ab(b*ab)*', sample: 'abab',
+    states: [S('q0', 60, 120), S('q1', 200, 120), S('q2', 340, 120), S('q3', 480, 120)], start: 'q0', finals: ['q3'],
+    trans: expand('q0 a q1; q1 b q1; q1 a q2; q2 b q3; q3 λ q1'), curves: { 'q3|q1': 60 } });
+  ['rl-m1', 'rl-m2', 'rl-union', 'rl-concat', 'rl-star', 'rl-reverse', 'rl-complement', 'rl-elim', 'rl-grammar-nfa', 'rl-nfa-grammar'].forEach(id => crop(M[id]));
 
   /* ════════════════════════════════════════════════════════════════
      2. Engine
@@ -268,6 +306,14 @@
     rules: [{ lhs: 'sentence', rhs: ['noun_phrase', 'predicate'] }, { lhs: 'noun_phrase', rhs: ['article', 'noun'] }, { lhs: 'predicate', rhs: ['verb'] },
             { lhs: 'article', rhs: ['a'] }, { lhs: 'article', rhs: ['the'] }, { lhs: 'noun', rhs: ['cat'] }, { lhs: 'noun', rhs: ['dog'] }, { lhs: 'verb', rhs: ['runs'] }, { lhs: 'verb', rhs: ['walks'] }],
     examples: ['the dog walks', 'a cat runs', 'the cat walks'] };
+  // Regular languages unit (#165): linear, right-linear and left-linear grammars
+  const P = (lhs, rhs) => ({ lhs, rhs });
+  G['rl-g1'] = { id: 'rl-g1', name: 'G₁: S → abS | a   (right-linear, L = (ab)*a)', vars: ['S'], start: 'S', sep: '', rules: [P('S', ['a', 'b', 'S']), P('S', ['a'])], examples: ['a', 'aba', 'ababa', 'ab'] };
+  G['rl-g2'] = { id: 'rl-g2', name: 'G₂: S → Aa,  A → Aab | λ   (left-linear, L = (ab)*a)', vars: ['S', 'A'], start: 'S', sep: '', rules: [P('S', ['A', 'a']), P('A', ['A', 'a', 'b']), P('A', [])], examples: ['a', 'aba', 'ababa', 'ab'] };
+  G['rl-right'] = { id: 'rl-right', name: 'S → aA | B,  A → aaB,  B → bB | a   (L = aaab*a + b*a)', vars: ['S', 'A', 'B'], start: 'S', sep: '', rules: [P('S', ['a', 'A']), P('S', ['B']), P('A', ['a', 'a', 'B']), P('B', ['b', 'B']), P('B', ['a'])], examples: ['aaaba', 'aaaa', 'bba', 'a', 'aba'] };
+  G['rl-left'] = { id: 'rl-left', name: 'S → Aab,  A → Aab | B,  B → a   (left-linear, L = a(ab)⁺)', vars: ['S', 'A', 'B'], start: 'S', sep: '', rules: [P('S', ['A', 'a', 'b']), P('A', ['A', 'a', 'b']), P('A', ['B']), P('B', ['a'])], examples: ['aab', 'aabab', 'ab'] };
+  G['rl-nfa-g'] = { id: 'rl-nfa-g', name: 'q0 → aq1,  q1 → bq1 | aq2,  q2 → bq3,  q3 → q1 | λ   (from an NFA)', vars: ['q0', 'q1', 'q2', 'q3'], start: 'q0', sep: '', rules: [P('q0', ['a', 'q1']), P('q1', ['b', 'q1']), P('q1', ['a', 'q2']), P('q2', ['b', 'q3']), P('q3', ['q1']), P('q3', [])], examples: ['abab', 'abbab', 'ababab', 'aab'] };
+  G['rl-linear'] = { id: 'rl-linear', name: 'S → A,  A → aB | λ,  B → Ab   (linear, not regular: L = {aⁿbⁿ})', vars: ['S', 'A', 'B'], start: 'S', sep: '', rules: [P('S', ['A']), P('A', ['a', 'B']), P('A', []), P('B', ['A', 'b'])], examples: ['ab', 'aabb', '', 'aab'] };
 
   // Leftmost derivation of w (array of tokens) by breadth-first search with pruning. Returns [{form, rule, at}] or null.
   function derive(g, w, limit) {
@@ -764,9 +810,170 @@
   }
 
   /* ════════════════════════════════════════════════════════════════
+     4h. Regular languages (#165): regular expressions and the expression → NFA construction
+     ════════════════════════════════════════════════════════════════ */
+  // ── Regular expressions: AST {t: sym|eps|empty|alt|cat|star}, parser, printer, simplifying constructors
+  const RX = FA.rx = {};
+  const EPS = { t: 'eps' }, EMPTY = { t: 'empty' };
+  const PREC = { alt: 1, cat: 2, star: 3, sym: 4, eps: 4, empty: 4 };
+  // compact form ("(a+b)a*"); `full` parenthesises every operator and writes concatenation as · (how the parser read it)
+  function show(n, ctx, full) {
+    ctx = ctx || 0;
+    if (n.t === 'sym') return n.a;
+    if (n.t === 'eps') return LAMBDA;
+    if (n.t === 'empty') return '∅';
+    if (n.t === 'star') { const inner = show(n.x, 4, full); return (n.x.t === 'star' ? '(' + inner + ')' : inner) + '*'; }
+    const s = n.t === 'alt' ? show(n.l, 1, full) + '+' + show(n.r, 1, full) : show(n.l, 2, full) + (full ? '·' : '') + show(n.r, 2, full);
+    return (full ? ctx > 0 && ctx !== PREC[n.t] : ctx > PREC[n.t]) ? '(' + s + ')' : s;   // + and concatenation are associative: no brackets inside a chain
+  }
+  RX.show = show;
+  RX.parse = function (src) {
+    const toks = [...String(src)].filter(c => !/\s/.test(c));
+    let i = 0;
+    const err = msg => { throw new Error(msg + (i < toks.length ? ' at “' + toks[i] + '” (character ' + (i + 1) + ')' : ' at the end')); };
+    const atomStart = c => c !== undefined && (c === '(' || c === 'λ' || c === 'ε' || c === '∅' || /^[a-zA-Z0-9]$/.test(c));
+    function expr() { let n = term(); while (toks[i] === '+' || toks[i] === '|') { i++; n = { t: 'alt', l: n, r: term() }; } return n; }
+    function term() { if (!atomStart(toks[i])) err('expected a symbol, λ, ∅ or “(”'); let n = factor(); while (atomStart(toks[i])) n = { t: 'cat', l: n, r: factor() }; return n; }
+    function factor() { let n = atom(); while (toks[i] === '*') { i++; n = { t: 'star', x: n }; } return n; }
+    function atom() {
+      const c = toks[i++];
+      if (c === '(') { const n = expr(); if (toks[i] !== ')') err('expected “)”'); i++; return n; }
+      return c === 'λ' || c === 'ε' ? EPS : c === '∅' ? EMPTY : { t: 'sym', a: c };
+    }
+    if (!toks.length) throw new Error('the expression is empty');
+    const n = expr();
+    if (i < toks.length) err('unexpected character');
+    return n;
+  };
+  const same = (x, y) => show(x) === show(y);
+  RX.alt = (x, y) => x.t === 'empty' ? y : y.t === 'empty' ? x : same(x, y) ? x : { t: 'alt', l: x, r: y };
+  RX.cat = (x, y) => x.t === 'empty' || y.t === 'empty' ? EMPTY : x.t === 'eps' ? y : y.t === 'eps' ? x : { t: 'cat', l: x, r: y };
+  RX.star = x => x.t === 'empty' || x.t === 'eps' ? EPS : x.t === 'star' ? x : { t: 'star', x };
+  RX.symbols = n => n.t === 'sym' ? [n.a] : n.t === 'star' ? RX.symbols(n.x) : n.l ? RX.symbols(n.l).concat(RX.symbols(n.r)) : [];
+
+  // Expression → NFA by the inductive construction of the proof (single final state per piece), laid out
+  // recursively: concatenation side by side, union stacked between a new initial and final state, star wrapped.
+  const COL = 82, ROW = 76;
+  function thompson(root) {
+    let k = 0; const nid = () => 'n' + (k++);
+    const shift = (f, dc, dr) => f.states.forEach(s => { s.c += dc; s.r += dr; });
+    function build(n) {
+      if (n.t === 'eps') { const a = nid(); return { states: [{ id: a, c: 0, r: 0 }], trans: [], start: a, final: a, W: 1, H: 1, curves: {} }; }
+      if (n.t === 'sym' || n.t === 'empty') { const a = nid(), b = nid(); return { states: [{ id: a, c: 0, r: 0 }, { id: b, c: 1, r: 0 }], trans: n.t === 'sym' ? [T(a, n.a, b)] : [], start: a, final: b, W: 2, H: 1, curves: {} }; }
+      if (n.t === 'cat') {
+        const A = build(n.l), B = build(n.r), H = Math.max(A.H, B.H);
+        shift(A, 0, (H - A.H) / 2); shift(B, A.W, (H - B.H) / 2);
+        return { states: A.states.concat(B.states), trans: A.trans.concat([T(A.final, LAMBDA, B.start)], B.trans), start: A.start, final: B.final, W: A.W + B.W, H, curves: Object.assign(A.curves, B.curves) };
+      }
+      if (n.t === 'alt') {
+        const A = build(n.l), B = build(n.r), s = nid(), f = nid(), Wi = Math.max(A.W, B.W), H = A.H + B.H, cy = (H - 1) / 2;
+        shift(A, 1 + (Wi - A.W) / 2, 0); shift(B, 1 + (Wi - B.W) / 2, A.H);
+        return { states: [{ id: s, c: 0, r: cy }].concat(A.states, B.states, [{ id: f, c: Wi + 1, r: cy }]),
+          trans: [T(s, LAMBDA, A.start), T(s, LAMBDA, B.start)].concat(A.trans, B.trans, [T(A.final, LAMBDA, f), T(B.final, LAMBDA, f)]),
+          start: s, final: f, W: Wi + 2, H, curves: Object.assign(A.curves, B.curves) };
+      }
+      const A = build(n.x), s = nid(), f = nid(), H = A.H + 1, cy = (H - 1) / 2;   // star
+      shift(A, 1, 0.5);
+      const curves = Object.assign(A.curves, { [s + '|' + f]: A.H * ROW + 40 });
+      if (A.final !== A.start) curves[A.final + '|' + A.start] = A.H * ROW + 20;
+      return { states: [{ id: s, c: 0, r: cy }].concat(A.states, [{ id: f, c: A.W + 1, r: cy }]),
+        trans: [T(s, LAMBDA, A.start)].concat(A.trans, [T(A.final, LAMBDA, A.start), T(A.final, LAMBDA, f), T(s, LAMBDA, f)]),
+        start: s, final: f, W: A.W + 2, H, curves };
+    }
+    const F = build(root);
+    const named = F.states.slice().sort((x, y) => x.c - y.c || x.r - y.r);   // q0, q1, … left to right
+    const m = { id: 'rx', type: 'nfa', name: show(root), states: F.states.map(s => S(s.id, 70 + s.c * COL, 70 + s.r * ROW, 'q' + named.indexOf(s))),
+      start: F.start, finals: [F.final], trans: F.trans, curves: F.curves };
+    m.alphabet = [...new Set(m.trans.map(t => t.sym).filter(x => x !== LAMBDA))].sort();
+    return crop(m);
+  }
+  RX.nfa = thompson;
+
+  // fast membership test for a machine (the Runner's run() keeps every snapshot; this only answers yes/no)
+  function matcher(m) {
+    const adj = new Map();
+    m.trans.forEach(t => { const k = t.from + '\u0000' + t.sym; if (!adj.has(k)) adj.set(k, []); adj.get(k).push(t.to); });
+    const clo = set => { const out = new Set(set), st = [...set]; while (st.length) { const q = st.pop(); (adj.get(q + '\u0000' + LAMBDA) || []).forEach(p => { if (!out.has(p)) { out.add(p); st.push(p); } }); } return out; };
+    const F = new Set(m.finals);
+    return w => {
+      let cur = clo([m.start]);
+      for (const c of w) { const nx = new Set(); cur.forEach(q => (adj.get(q + '\u0000' + c) || []).forEach(p => nx.add(p))); cur = clo(nx); if (!cur.size) return false; }
+      return [...cur].some(q => F.has(q));
+    };
+  }
+  FA.matcher = matcher;
+  RX.matcher = r => matcher(thompson(r));
+  // every string over `alpha` of length ≤ n, shortest first
+  function allStrings(alpha, n) {
+    const out = ['']; let layer = [''];
+    for (let k = 1; k <= n; k++) { layer = layer.flatMap(u => alpha.map(a => u + a)); out.push(...layer); }
+    return out;
+  }
+  FA.allStrings = allStrings;
+  // the largest length ≤ n whose strings over alpha number at most cap
+  const lengthCap = (alpha, n, cap) => { let len = 0, total = 1, pw = 1; while (len < n) { pw *= Math.max(1, alpha.length); if (total + pw > cap) break; total += pw; len++; } return len; };
+  const fmtW = w => w === '' ? LAMBDA : esc(w);
+
+  /* ── Regular-expression tester ─────────────────────────────────── */
+  class RegexTool extends Tool {
+    constructor(id, cfg) { super(id, cfg); this.v = Object.assign({ r1: '(a+b)a*', r2: '', n: '5', w: '' }, cfg.defaults || {}); this.showNfa = !!cfg.nfa; }
+    toggleNfa() { this.showNfa = !this.showNfa; this.render(); }
+    insert(k, ch) { this.v[k] = (this.v[k] || '') + ch; this.render(); }
+    preset(i) { const p = this.cfg.presets[i]; this.v.r1 = p.r1 || ''; this.v.r2 = p.r2 || ''; this.render(); }
+    html() {
+      const v = this.v, id = this.id, at = "FA.ui('" + id + "')";
+      const parse = s => { try { return { r: RX.parse(s) }; } catch (e) { return { error: e.message }; } };
+      const p1 = parse(v.r1), p2 = (v.r2 || '').trim() ? parse(v.r2) : null;
+      const alpha = uniq([...(p1.r ? RX.symbols(p1.r) : []), ...(p2 && p2.r ? RX.symbols(p2.r) : [])]);
+      const want = Math.max(0, Math.min(10, parseInt(v.n, 10) || 0));
+      const n = lengthCap(alpha.length ? alpha : ['a'], want, 20000);
+      const words = allStrings(alpha, alpha.length ? n : 0);
+      const lang = (r) => { const acc = RX.matcher(r); return words.filter(acc); };
+      const list = L => { const shown = L.slice(0, 60).map(fmtW).join(', '); return (L.length ? '{ ' + shown + (L.length > 60 ? ', …' : '') + ' }' : '∅') + ' <span class="fa-note">(' + L.length + ' string' + (L.length === 1 ? '' : 's') + ')</span>'; };
+      const presets = (this.cfg.presets || []).map((p, i) => '<button class="fa-chip" onclick="' + at + '.preset(' + i + ')">' + esc(p.r1) + (p.r2 ? ' ≡? ' + esc(p.r2) : '') + '</button>').join(' ');
+      const ins = k => '<button class="fa-chip" title="insert λ" onclick="' + at + ".insert('" + k + "','λ')\">+λ</button><button class=\"fa-chip\" title=\"insert ∅\" onclick=\"" + at + ".insert('" + k + "','∅')\">+∅</button>";
+      const rows = [];
+      const note = n < want ? ' <span class="fa-note">(capped at length ' + n + ' to keep the list small)</span>' : '';
+      if (p1.error) rows.push(this.row('r₁', '<span class="fa-verdict reject">not a regular expression</span> ' + esc(p1.error)));
+      else {
+        rows.push(this.row('r₁ is read as', esc(show(p1.r, 0, true))));
+        rows.push(this.row('L(r₁), strings of length ≤ ' + n + note, list(lang(p1.r))));
+      }
+      if (p2 && p2.error) rows.push(this.row('r₂', '<span class="fa-verdict reject">not a regular expression</span> ' + esc(p2.error)));
+      else if (p2) {
+        rows.push(this.row('r₂ is read as', esc(show(p2.r, 0, true))));
+        rows.push(this.row('L(r₂), strings of length ≤ ' + n, list(lang(p2.r))));
+        if (p1.r) {
+          const a1 = RX.matcher(p1.r), a2 = RX.matcher(p2.r);
+          const diff = words.find(w => a1(w) !== a2(w));
+          rows.push(this.row('r₁ ≡ r₂ ?', diff === undefined
+            ? '<span class="fa-verdict accept">agree</span> on all ' + words.length + ' strings of length ≤ ' + n + ' over {' + alpha.join(', ') + '} — evidence, not a proof'
+            : '<span class="fa-verdict reject">not equivalent</span> “' + fmtW(diff) + '” is in L(' + (a1(diff) ? 'r₁' : 'r₂') + ') but not in L(' + (a1(diff) ? 'r₂' : 'r₁') + ')'));
+        }
+      }
+      const w = (v.w || '').replace(/\s+/g, '').replace(/λ/g, '');
+      if ((v.w || '').trim() && p1.r) rows.push(this.row('is “' + fmtW(w) + '” in L(r₁)' + (p2 && p2.r ? ', L(r₂)' : '') + '?',
+        [p1.r, p2 && p2.r].filter(Boolean).map((r, k) => (k ? 'r₂: ' : 'r₁: ') + (RX.matcher(r)(w) ? '<span class="fa-verdict accept">yes</span>' : '<span class="fa-verdict reject">no</span>')).join(' &nbsp; ')));
+      let nfa = '';
+      if (this.showNfa && p1.r) {
+        const m = thompson(p1.r);
+        nfa = m.states.length > 60 ? '<div class="fa-note">The NFA for r₁ has ' + m.states.length + ' states — too many to draw.</div>'
+          : '<div class="fa-caption" style="margin-top:.8rem">NFA for r₁ by the inductive construction</div>' + drawMachine(m, {}) +
+            '<div class="fa-note">' + m.states.length + ' states, ' + m.trans.filter(t => t.sym === LAMBDA).length + ' of the ' + m.trans.length + ' edges are λ-edges.</div>';
+      }
+      return '<div class="fa-wrap"><div class="fa-toolbar">' + this.field('r1', 'r₁ =', 22) + ins('r1') + ' ' + this.field('r2', 'r₂ =', 22) + ins('r2') + '</div>' +
+        '<div class="fa-toolbar">' + this.field('n', 'max length', 3) + this.field('w', 'test string', 10) +
+        '<button class="btn fa-btn fa-secondary" onclick="' + at + '.toggleNfa()">' + (this.showNfa ? 'Hide the NFA' : 'Show the NFA for r₁') + '</button></div>' +
+        (presets ? '<div class="fa-toolbar"><span class="fa-note">try:</span> ' + presets + '</div>' : '') +
+        '<div class="fa-note">+ is union, juxtaposition is concatenation, * is star; star binds tightest, then concatenation, then +. Leave r₂ empty to explore one expression.</div>' +
+        '<table class="fa-table kv">' + rows.join('') + '</table>' + nfa + '</div>';
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════
      5. Mounting
      ════════════════════════════════════════════════════════════════ */
-  const KINDS = { run: Runner, convert: Converter, minimize: Minimizer, derive: Deriver, tool: Tool, graph: GraphTool, proofs: ProofsDemo };
+  const KINDS = { run: Runner, convert: Converter, minimize: Minimizer, derive: Deriver, tool: Tool, graph: GraphTool, proofs: ProofsDemo, regex: RegexTool };
   FA.mount = function (id, cfg) {
     cfg = cfg || {};
     const old = UIS[id]; if (old && old.stop) old.stop();
