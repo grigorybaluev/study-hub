@@ -3,7 +3,7 @@ title: Finite automata
 order: 3
 status: detailed
 weeks: [2]
-introduces: [dfa, nfa, dfa-minimization]
+introduces: [dfa, nfa, regular-language, dfa-minimization]
 requires:
   - {concept: formal-language, strength: hard}
   - {concept: automaton, strength: hard}
