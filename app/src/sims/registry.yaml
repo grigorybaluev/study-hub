@@ -47,6 +47,8 @@ plotly:
   - polar-curve
   - polar-tangent
   - polar-area
+  - conic-ellipse
+  - conic-hyperbola
   - dice-sum-grid
   - empirical-dice
   - venn-counts
