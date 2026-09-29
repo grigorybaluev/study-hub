@@ -106,7 +106,8 @@ function DsRelevance() {
     if (r.tier !== "peripheral") continue;
     for (const u of d.derived.concepts[cid]?.introduced_by ?? []) {
       const course = node(d, u) && (node(d, u) as { course: string }).course;
-      if (course) (peripheralBy.get(course) ?? peripheralBy.set(course, []).get(course)!).push(cid);
+      const list = course ? peripheralBy.get(course) ?? peripheralBy.set(course, []).get(course)! : null;
+      if (list && !list.includes(cid)) list.push(cid);
     }
   }
   return (
@@ -159,7 +160,7 @@ function DsRelevance() {
           {[...peripheralBy.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])).map(([cid, list]) => (
             <tr key={cid}>
               <td><CourseChip id={cid} /> <span className="muted small">{list.length}</span></td>
-              <td className="small">{[...new Set(list)].sort((a, b) => (node<ConceptNode>(d, a)?.domain ?? "").localeCompare(node<ConceptNode>(d, b)?.domain ?? "") || a.localeCompare(b)).map((x) => <ConceptChip key={x} id={x} />)}</td>
+              <td className="small">{[...list].sort((a, b) => (node<ConceptNode>(d, a)?.domain ?? "").localeCompare(node<ConceptNode>(d, b)?.domain ?? "") || a.localeCompare(b)).map((x) => <ConceptChip key={x} id={x} />)}</td>
             </tr>
           ))}
         </tbody>

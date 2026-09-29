@@ -344,8 +344,7 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
 
     courses: dict[str, dict] = {}
     for c in concepts:
-        for u in idx[c]["introduced_by"]:
-            course = g.course_of(u)
+        for course in sorted({g.course_of(u) for u in idx[c]["introduced_by"]}):   # once per course, however many of its units introduce c
             cs = courses.setdefault(course, {"application": 0, "core": 0, "supporting": 0, "peripheral": 0, "concepts": 0})
             cs[rows[c]["tier"]] += 1
             cs["concepts"] += 1
