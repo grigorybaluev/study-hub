@@ -128,7 +128,7 @@ plotly:
   - ds-sort-lower-bound
   - py-348-list-costs
 automata:
-  modes: [run, convert, minimize, derive, tool, graph, proofs]
+  modes: [run, convert, minimize, derive, tool, graph, proofs, regex, eliminate, construct]
 java:
   modes: [run]
 c:
