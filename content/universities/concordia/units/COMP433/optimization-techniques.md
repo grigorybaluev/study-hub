@@ -4,8 +4,9 @@ order: 5
 status: outline
 weeks: [5]
 introduces:
-  - {concept: gradient-descent, perspective: "stochastic and mini-batch variants, momentum, adaptive steps (RMSprop, Adam) and learning-rate schedules"}
+  - {concept: stochastic-gradient-descent, perspective: "mini-batches, momentum, adaptive steps (RMSprop, Adam) and learning-rate schedules"}
 requires:
+  - {concept: gradient-descent, strength: hard}
   - {concept: backpropagation, strength: hard}
   - {concept: loss-function, strength: hard}
 reinforces: []

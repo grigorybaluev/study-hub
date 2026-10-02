@@ -4,7 +4,8 @@ order: 3
 status: outline
 weeks: [3]
 introduces:
-  - {concept: covariance, perspective: "the sample covariance and correlation coefficient of paired data"}
+  - {concept: covariance, perspective: "the sample covariance of paired data"}
+  - {concept: correlation, perspective: "the sample correlation coefficient of paired data"}
 requires:
   - {concept: descriptive-statistics, strength: hard}
 reinforces:

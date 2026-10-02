@@ -3,7 +3,7 @@ title: Product moments, linear combinations and conditional expectation
 order: 9
 status: detailed
 weeks: [8]
-introduces: [covariance, conditional-expectation]
+introduces: [covariance, correlation, conditional-expectation]
 requires:
   - {concept: joint-distribution, strength: hard}
   - {concept: expected-value, strength: hard}

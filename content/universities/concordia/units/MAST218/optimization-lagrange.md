@@ -3,7 +3,10 @@ title: Optimisation and Lagrange multipliers
 order: 14
 status: outline
 weeks: [11, 12]
-introduces: [multivariable-optimization, lagrange-multipliers]
+introduces:
+  - multivariable-optimization
+  - lagrange-multipliers
+  - {concept: hessian-matrix, perspective: "the matrix of second partials behind the second-derivative test"}
 requires:
   - {concept: partial-derivative, strength: hard}
   - {concept: gradient, strength: hard}

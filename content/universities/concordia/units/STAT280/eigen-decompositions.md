@@ -5,12 +5,14 @@ status: detailed
 weeks: [12]
 introduces:
   - {concept: eigenvalue, perspective: "computed numerically with eigen()"}
+  - {concept: singular-value-decomposition, perspective: "computed with svd() in R, and low-rank approximation"}
+  - {concept: positive-definite-matrix, perspective: "the Cholesky factor with chol()"}
 requires:
   - {concept: matrix, strength: hard}
   - {concept: determinant, strength: hard}
   - {concept: linear-system, strength: hard}
 reinforces:
-  - {concept: matrix-decomposition, perspective: "SVD, Cholesky and QR in R"}
+  - {concept: matrix-decomposition, perspective: "Cholesky and QR in R"}
   - {concept: diagonalization, perspective: "a symmetric matrix rebuilt from its eigenvectors"}
   - {concept: matrix-rank, perspective: "low-rank approximation with the SVD"}
 ---
