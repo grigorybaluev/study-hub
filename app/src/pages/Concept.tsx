@@ -59,6 +59,9 @@ function ConceptPage({ slug }: { slug: string }) {
   const generalizedBy = edgesIn(d, c.id, "generalizes").map((e) => e.from);
   const skills = edgesOut(d, c.id, "maps_to").map((e) => e.to);
   const ds = d.derived.ds_relevance?.concepts[c.id];
+  const field = d.derived.ds_field?.concepts[c.id];
+  const partOf = edgesOut(d, c.id, "part_of").map((e) => e.to);
+  const parts = edgesIn(d, c.id, "part_of").map((e) => e.from);
 
   return (
     <div className="with-sidebar">
@@ -110,6 +113,18 @@ function ConceptPage({ slug }: { slug: string }) {
             </p>
           </section>
         )}
+        {field && (
+          <section><h4>In the field</h4>
+            <p style={{ margin: 0 }}>
+              <Badge kind={`tier-${field.tier}`}>{TIER_LABEL[field.tier]}</Badge>{" "}
+              <span className="small muted">score {field.score.toFixed(2)} · {field.reach} DS concept{field.reach === 1 ? "" : "s"} rest on it
+                {field.taught === null ? " · not taught by any unit" : field.taught === "parent" && field.taught_within ? " · taught within " : ""}</span>
+              {field.taught === "parent" && field.taught_within && <ConceptChip id={field.taught_within} />}
+            </p>
+          </section>
+        )}
+        {partOf.length > 0 && <section><h4>Part of</h4><p>{partOf.map((id) => <ConceptChip key={id} id={id} />)}</p></section>}
+        {parts.length > 0 && <section><h4>Parts</h4><p>{parts.map((id) => <ConceptChip key={id} id={id} />)}</p></section>}
         {buildsOn.length > 0 && (
           <section><h4>Builds on</h4>
             <ul>{buildsOn.map((e) => <li key={e.to}><ConceptChip id={e.to} /> <Badge kind={e.strength} /></li>)}</ul>
