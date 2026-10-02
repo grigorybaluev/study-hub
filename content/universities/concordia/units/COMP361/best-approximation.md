@@ -10,7 +10,8 @@ requires:
   - {concept: linear-system, strength: hard}
   - {concept: vector-norm, strength: hard}
   - {concept: linear-independence, strength: soft}
-reinforces: []
+reinforces:
+  - {concept: orthogonality, perspective: "Gram–Schmidt on a space of functions"}
 ---
 
 Best approximation in R^n by least squares, best approximation in general inner-product

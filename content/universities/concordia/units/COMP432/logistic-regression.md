@@ -3,7 +3,13 @@ title: Logistic regression
 order: 3
 status: outline
 weeks: [3]
-introduces: [logistic-regression, loss-function, gradient-descent, maximum-likelihood-estimation, classification-metrics]
+introduces:
+  - logistic-regression
+  - loss-function
+  - gradient-descent
+  - maximum-likelihood-estimation
+  - classification-metrics
+  - {concept: cross-entropy, perspective: "as the loss of logistic regression"}
 requires:
   - {concept: supervised-learning, strength: hard}
   - {concept: gradient, strength: hard}

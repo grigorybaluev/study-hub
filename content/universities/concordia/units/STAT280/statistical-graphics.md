@@ -3,7 +3,9 @@ title: Programming statistical graphics
 order: 5
 status: detailed
 weeks: [4]
-introduces: [data-visualization]
+introduces:
+  - data-visualization
+  - {concept: outlier, perspective: "points beyond the box-plot fences"}
 requires:
   - {concept: r-programming, strength: hard}
   - {concept: data-frame, strength: soft}

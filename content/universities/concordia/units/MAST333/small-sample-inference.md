@@ -3,7 +3,9 @@ title: Inference from small samples
 order: 8
 status: outline
 weeks: [8]
-introduces: [t-distribution]
+introduces:
+  - t-distribution
+  - {concept: t-test, perspective: "one mean, two means and paired differences"}
 requires:
   - {concept: hypothesis-testing, strength: hard}
   - {concept: confidence-interval, strength: hard}
