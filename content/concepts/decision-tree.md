@@ -3,7 +3,7 @@ title: Decision tree
 domain: ml
 wikipedia: "Decision tree learning"
 aliases: ["decision tree learning", "CART", "information gain", "Gini impurity"]
-requires: [tree, {concept: probability, strength: soft}, {concept: information-entropy, strength: soft}]
+requires: [tree, {concept: probability, strength: soft}, {concept: information-entropy, strength: soft}, {concept: greedy-algorithm, strength: soft}]
 maps_to: [study-hub/ds-core/supervised-learning, study-hub/ds-core/interpretability]
 ---
 
