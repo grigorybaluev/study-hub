@@ -34,6 +34,8 @@ export interface ClusterGraphProps {
   /** concepts matching the search; when set, the rest are dimmed */
   matches: Set<string> | null;
   edgeMode: "focus" | "all";
+  /** coverage overlay: dashed and dotted borders for what no unit teaches */
+  mark: boolean;
   /** pan to this concept and zoom in to read it; `n` changes on every request */
   focus: { id: string; n: number } | null;
   /** zoom thresholds between the levels, in model-to-screen scale */
@@ -171,7 +173,7 @@ function placePins(c: cytoscape.Core, order: string[], filtered: Set<string>, di
 }
 
 const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function ClusterGraph(props, ref) {
-  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, pinOrder, filtered, matches, edgeMode, focus, lodAt, inset } = props;
+  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, pinOrder, filtered, matches, edgeMode, mark, focus, lodAt, inset } = props;
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const lod = useRef<Lod>(0);
@@ -200,13 +202,15 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
     sizeSelPin(c);
   };
 
-  const fitAll = (c: cytoscape.Core) => {
+  // the whole map inside the part of the canvas the panels leave free
+  const fitView = (c: cytoscape.Core) => {
     const bb = c.elements().boundingBox({});
     const W = c.width(), H = c.height();
-    const z = Math.min((W - inset.left - inset.right) / bb.w, (H - inset.top - inset.bottom) / bb.h, 1.6);
-    c.zoom(z);
-    c.pan({ x: inset.left + (W - inset.left - inset.right - bb.w * z) / 2 - bb.x1 * z, y: inset.top + (H - inset.top - inset.bottom - bb.h * z) / 2 - bb.y1 * z });
+    const zoom = Math.min((W - inset.left - inset.right) / bb.w, (H - inset.top - inset.bottom) / bb.h, 1.6);
+    return { zoom, pan: { x: inset.left + (W - inset.left - inset.right - bb.w * zoom) / 2 - bb.x1 * zoom, y: inset.top + (H - inset.top - inset.bottom - bb.h * zoom) / 2 - bb.y1 * zoom } };
   };
+  // the view survives a rebuild of the same layout (theme switch), and is fitted for a new one or a reset
+  const view = useRef<{ key: string; reset: number; zoom: number; pan: { x: number; y: number } } | null>(null);
 
   useImperativeHandle(ref, () => ({
     zoomBy: (f) => {
@@ -214,7 +218,7 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
       if (!c) return;
       c.animate({ zoom: { level: Math.max(c.minZoom(), Math.min(c.maxZoom(), c.zoom() * f)), renderedPosition: { x: c.width() / 2, y: c.height() / 2 } } }, { duration: 200 });
     },
-    fit: () => { const c = cy.current; if (c) c.animate({ fit: { eles: c.elements(), padding: 30 } }, { duration: 300 }); },
+    fit: () => { const c = cy.current; if (c) c.animate(fitView(c), { duration: 300 }); },
   }));
 
   // edges shown for the hovered and selected concepts, or all of them in "all" mode once zoomed in
@@ -264,8 +268,12 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
       repin(c, force);
       cb.current.onLod(next, z);
     };
-    fitAll(c);
-    fitZoom.current = c.zoom();
+    const fitted = fitView(c);
+    fitZoom.current = fitted.zoom;
+    const keep = view.current && view.current.key === positionsKey && view.current.reset === resetToken ? view.current : null;
+    c.viewport(keep ? { zoom: keep.zoom, pan: keep.pan } : fitted);
+    view.current = { key: positionsKey, reset: resetToken, zoom: c.zoom(), pan: { ...c.pan() } };
+    c.on("viewport", () => { if (view.current) { view.current.zoom = c.zoom(); view.current.pan = { ...c.pan() }; } });
     lastPins.current = { zoom: 0, x: 0, y: 0 };
     if (import.meta.env.DEV) (window as unknown as { __fieldmap: cytoscape.Core }).__fieldmap = c;   // for headless checks
     setLod(true);
@@ -297,6 +305,7 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
     c.batch(() => {
       const all = c.nodes(".concept");
       const pins = c.nodes(".pin");
+      if (mark) all.addClass("cov"); else all.removeClass("cov");
       all.removeClass("filtered dim match sel nbr");
       pins.removeClass("filtered dim");
       all.filter((n) => filtered.has(n.id())).addClass("filtered");
@@ -332,7 +341,7 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
     repin(c, true);
     refreshEdges(c);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, matches, selected, edgeMode, elements, theme, resetToken]);
+  }, [filtered, matches, selected, edgeMode, mark, elements, theme, resetToken]);
 
   useEffect(() => {
     const c = cy.current;
