@@ -3,7 +3,7 @@ title: Clustering and mixture models
 order: 6
 status: outline
 weeks: [6]
-introduces: [cluster-analysis, mixture-model, expectation-maximization]
+introduces: [unsupervised-learning, cluster-analysis, k-means-clustering, mixture-model, expectation-maximization]
 requires:
   - {concept: normal-distribution, strength: hard}
   - {concept: maximum-likelihood-estimation, strength: hard}

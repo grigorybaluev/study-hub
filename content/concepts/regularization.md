@@ -2,8 +2,8 @@
 title: Regularization
 domain: ml
 wikipedia: "Regularization (mathematics)"
-aliases: ["L1 regularization", "L2 regularization", "ridge regression", "lasso", "weight decay", "dropout", "early stopping", "data augmentation"]
-requires: [{concept: vector-norm, strength: soft}]
+aliases: ["L1 regularization", "L2 regularization", "weight decay", "early stopping", "penalty term"]
+requires: [{concept: vector-norm, strength: soft}, {concept: bias-variance-tradeoff, strength: soft}]
 maps_to: [study-hub/ds-core/model-evaluation, study-hub/ds-core/neural-networks]
 ---
 
