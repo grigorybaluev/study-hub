@@ -10,6 +10,7 @@ import Unit from "./pages/Unit";
 import Concept from "./pages/Concept";
 import Roadmap from "./pages/Roadmap";
 import Explore from "./pages/Explore";
+import FieldMap from "./pages/FieldMap";
 import Design from "./pages/Design";
 import Analytics from "./pages/Analytics";
 
@@ -51,6 +52,8 @@ export default function App() {
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/skill/:slug" element={<Roadmap />} />
             <Route path="/explore" element={<Explore />} />
+            <Route path="/explore/ds-map" element={<Explore mapRoute />} />
+            <Route path="/explore/ds-map-2" element={<FieldMap />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/design/:kind" element={<Design />} />
             <Route path="*" element={<p>Not found.</p>} />
