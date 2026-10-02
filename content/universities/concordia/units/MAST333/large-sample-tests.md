@@ -3,7 +3,7 @@ title: Large-sample tests of hypotheses
 order: 7
 status: outline
 weeks: [7]
-introduces: [hypothesis-testing]
+introduces: [hypothesis-testing, p-value, statistical-power]
 requires:
   - {concept: sampling-distribution, strength: hard}
   - {concept: normal-distribution, strength: hard}

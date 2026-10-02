@@ -56,6 +56,9 @@ areas:
       - id: stochastic-processes
         title: Stochastic processes
         summary: Markov chains, random walks and other sequences of dependent random variables.
+      - id: information-theory
+        title: Information theory
+        summary: Entropy, cross-entropy, divergence and mutual information, measuring uncertainty and how far apart distributions are.
       - id: simulation
         title: Simulation
         role: target
@@ -85,6 +88,9 @@ areas:
         summary: Designing experiments, A/B testing, variance reduction and ratio metrics.
         refs:
           - https://roadmap.sh/ai-data-scientist
+      - id: causal-inference
+        title: Causal inference
+        summary: Estimating the effect of an intervention from experiments or observational data, and the confounding that gets in the way.
       - id: time-series
         title: Time series
         summary: Autocorrelation, trend and seasonality, and forecasting.

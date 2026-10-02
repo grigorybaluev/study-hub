@@ -3,7 +3,7 @@ title: Logistic regression
 domain: ml
 wikipedia: "Logistic regression"
 aliases: ["sigmoid", "logit", "softmax regression", "multinomial logistic regression"]
-requires: [loss-function, gradient-descent, maximum-likelihood-estimation, {concept: linear-regression, strength: soft}]
+requires: [loss-function, gradient-descent, maximum-likelihood-estimation, {concept: linear-regression, strength: soft}, {concept: convex-optimization, strength: soft}]
 maps_to: [study-hub/ds-core/supervised-learning, study-hub/ds-core/linear-models]
 ---
 

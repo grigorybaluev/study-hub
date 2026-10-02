@@ -5,6 +5,7 @@ wikipedia: "Second partial derivative test"
 short: "multivariable extrema"
 aliases: ["saddle point", "second derivative test"]
 generalizes: [extrema]
+requires: [hessian-matrix]
 maps_to: [study-hub/ds-core/calculus, study-hub/ds-core/optimization]
 ---
 

@@ -2,7 +2,7 @@
 title: Loss function
 domain: ml
 wikipedia: "Loss function"
-aliases: ["cost function", "empirical risk", "mean squared error", "cross-entropy loss", "hinge loss"]
+aliases: ["cost function", "objective function", "empirical risk", "mean squared error", "hinge loss"]
 requires: [{concept: expected-value, strength: soft}]
 maps_to: [study-hub/ds-core/supervised-learning, study-hub/ds-core/neural-networks, study-hub/ds-core/optimization]
 ---

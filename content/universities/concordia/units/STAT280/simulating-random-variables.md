@@ -3,7 +3,10 @@ title: Simulating random variables and Markov chains
 order: 9
 status: detailed
 weeks: [9]
-introduces: [random-variate-generation, markov-chain]
+introduces:
+  - random-variate-generation
+  - markov-chain
+  - {concept: poisson-process, perspective: "simulated from exponential gaps between events"}
 requires:
   - {concept: random-variable, strength: hard}
   - {concept: cumulative-distribution-function, strength: hard}

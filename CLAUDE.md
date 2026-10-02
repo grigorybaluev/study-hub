@@ -51,8 +51,9 @@ Authored edges (the only ones humans write, in unit/concept/course frontmatter):
 - `concept generalizes | part_of concept`; `concept maps_to roadmapNode`
 - `concept requires concept` (`strength: hard | soft`) — only for what units cannot express: two
   concepts introduced by the same unit (variance on expected-value), a foundation no
-  prerequisite course teaches, or a field concept no unit introduces yet (#173). A knowledge
-  edge: it feeds `concept depends_on`, never debt.
+  prerequisite course teaches, or a knowledge edge to or from a field concept that no unit
+  expresses (#173: PCA on orthogonality). A knowledge edge: it feeds `concept depends_on`,
+  never debt.
 - `course prereq | coreq course` (official calendar)
 
 Derived (rebuilt by `derive.py`): `unit depends_on unit` (every introducer of a required

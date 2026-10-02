@@ -3,6 +3,7 @@ title: Orthogonal polynomials
 domain: math.linear-algebra
 wikipedia: "Orthogonal polynomials"
 aliases: ["Legendre polynomials", "Chebyshev polynomials"]
+requires: [orthogonality]
 maps_to: [study-hub/ds-core/numerical-methods]
 ---
 
