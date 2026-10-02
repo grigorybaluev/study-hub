@@ -157,9 +157,9 @@ class Report:
             return
         self.p("For each skill: *covered* = every concept mapped to it is introduced by some unit; "
                "*thin* = covered, but only one or two concepts map to it; "
-               "*partial* = some are introduced; *gap* = concepts map to it but none is introduced (a known hole); "
-               "*unmapped* = no concept maps to it yet — either the program has nothing there or the "
-               "vocabulary for it has not been written (Year 2–3 courses have no units yet).")
+               "*partial* = some are introduced; *gap* = concepts map to it but none is introduced (a known hole), "
+               "or only field concepts no unit touches do; *unmapped* = no concept maps to it yet. Statuses count the "
+               "program's concepts; *field* counts the concepts of the field mapped to the skill that no unit touches (#173).")
         for rid, r in cov.items():
             self.h(3, self.nodes[rid]["title"])
             self.p(", ".join(f"{k}: {v}" for k, v in r["summary"].items()))
@@ -167,10 +167,10 @@ class Report:
             rows = []
             for sid, sk in sorted(r["skills"].items(), key=lambda kv: kv[1]["order"]):
                 area = self.nodes[sk["area"]]["title"]
-                rows.append([area, sk["title"], sk["status"], len(sk["concepts"]),
+                rows.append([area, sk["title"], sk["status"], len(sk["concepts"]), len(sk.get("field_concepts", [])),
                              ", ".join(code(c) for c in sk["courses"]) or "—",
                              ", ".join(f"`{m}`" for m in sk["missing"]) or ""])
-            self.table(["area", "skill", "status", "concepts", "taught in", "missing concepts"], rows)
+            self.table(["area", "skill", "status", "concepts", "field", "taught in", "missing concepts"], rows)
 
     def ds_field(self):
         f = self.d.get("ds_field")
