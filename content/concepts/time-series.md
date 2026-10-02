@@ -2,7 +2,7 @@
 title: Time series
 domain: statistics
 wikipedia: "Time series"
-aliases: ["resampling (time series)", "rolling window", "moving average", "forecasting", "datetime index"]
+aliases: ["resampling (time series)", "rolling window", "moving average", "forecasting", "trend", "seasonality", "datetime index"]
 requires: [{concept: covariance, strength: soft}]
 maps_to: [study-hub/ds-core/time-series]
 ---

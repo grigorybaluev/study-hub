@@ -3,6 +3,7 @@ title: Backpropagation
 domain: ml
 wikipedia: "Backpropagation"
 aliases: ["backprop", "vanishing gradient", "exploding gradient"]
+requires: [{concept: jacobian-matrix, strength: soft}]
 maps_to: [study-hub/ds-core/neural-networks]
 ---
 
