@@ -2,10 +2,11 @@
 title: Conic sections
 order: 5
 status: detailed
-weeks: [3]
+weeks: [3, 4]
 introduces:
-  - {concept: conic-section, perspective: "the ellipse and the hyperbola from their foci: standard, parametric and shifted equations"}
+  - {concept: conic-section, perspective: "the ellipse and the hyperbola from their foci, the parabola from focus and directrix; eccentricity and polar equations with a focus at the pole"}
 requires:
+  - {concept: polar-coordinates, strength: hard}
   - {concept: trigonometric-functions, strength: soft}
 reinforces:
   - {concept: parametric-curve, perspective: "the ellipse as x = a cos t, y = b sin t"}
@@ -14,7 +15,9 @@ reinforces:
 An ellipse and a hyperbola are both defined by two fixed points, the **foci**. On an ellipse the
 *sum* of the distances to the foci is constant; on a hyperbola the *difference* is. Squaring the
 distance formula twice turns either condition into a second-degree equation in $x$ and $y$, and
-completing the square turns any such equation back into a picture: centre, axes, foci.
+completing the square turns any such equation back into a picture: centre, axes, foci. The
+parabola is defined by one focus and a line, the **directrix**, and the ratio of the two distances,
+the **eccentricity**, puts all three curves into one family with a single polar equation.
 
 ## The ellipse
 
@@ -401,6 +404,35 @@ horizontal. Then $c = \sqrt{9 + 4} = \sqrt{13}$.
 :::
 ::::
 
+::::example[A hyperbola from its asymptotes]
+A hyperbola has asymptotes $y = \frac54x - \frac{13}{4}$ and $y = -\frac54x - \frac34$, and a
+horizontal transverse axis of length $8$. Find its equation.
+
+:::solution
+The centre is where the asymptotes cross:
+
+$$
+\frac54x - \frac{13}{4} = -\frac54x - \frac34
+\quad\Longrightarrow\quad
+\frac{10}{4}x = \frac{10}{4}
+\quad\Longrightarrow\quad
+x = 1 , \quad y = -2 .
+$$
+
+The transverse axis is horizontal, so the equation is
+$\frac{(x - h)^2}{a^2} - \frac{(y - k)^2}{b^2} = 1$ with $(h, k) = (1, -2)$, and its length is
+$2a = 8$, so $a = 4$. The asymptotes of this form have slopes $\pm\frac{b}{a}$; here they are
+$\pm\frac54$, so $b = \frac54 \cdot 4 = 5$:
+
+$$
+\frac{(x - 1)^2}{16} - \frac{(y + 2)^2}{25} = 1 .
+$$
+
+The minus sign is what makes it a hyperbola: with $+$ the same numbers describe an ellipse,
+which has no asymptotes at all.
+:::
+::::
+
 ```sim
 id: conic-hyperbola
 controls:
@@ -464,8 +496,368 @@ carries the whole sketch: its diagonals are the asymptotes and its half-diagonal
 - *Shifted*: $\dfrac{(x - h)^2}{a^2} - \dfrac{(y - k)^2}{b^2} = 1$ or $\dfrac{(y - k)^2}{a^2} - \dfrac{(x - h)^2}{b^2} = 1$, centre $(h, k)$.
 :::
 
+## The parabola
+
+### A focus and a directrix
+
+An ellipse and a hyperbola use two foci. A parabola uses one focus and a line.
+
+:::definition[Parabola]
+Let $F$ be a fixed point, the **focus**, and $\ell$ a fixed line not through $F$, the
+**directrix**. The **parabola** with focus $F$ and directrix $\ell$ is the set of points as far
+from $F$ as from $\ell$:
+
+$$
+\{\, P(x, y) : |PF| = \operatorname{dist}(P, \ell) \,\}.
+$$
+
+The line through $F$ perpendicular to $\ell$ is the **axis**; the point of the axis halfway
+between $F$ and $\ell$ lies on the curve and is the **vertex**.
+:::
+
+### The standard equation
+
+Put the vertex at the origin and the focus on the $y$-axis: $F(0, p)$ and $\ell : y = -p$, with
+$p \ne 0$. Then $p$ is the *signed* distance from the vertex to the focus.
+
+::::theorem[Standard equation of a parabola]
+The parabola with focus $(0, p)$ and directrix $y = -p$ is
+
+$$
+x^2 = 4py \qquad\text{that is}\qquad y = \frac{1}{4p}\,x^2 .
+$$
+
+It opens upward if $p > 0$ and downward if $p < 0$.
+
+:::proof
+The distance from $P(x, y)$ to the horizontal line $y = -p$ is measured along the vertical through
+$P$, to the foot $(x, -p)$:
+
+$$
+\sqrt{(x - 0)^2 + (y - p)^2} = \sqrt{(x - x)^2 + (y + p)^2} .
+$$
+
+Squaring, $x^2 + y^2 - 2py + p^2 = y^2 + 2py + p^2$, and everything cancels except
+$x^2 = 4py$. Both sides were non-negative, so squaring added no points.
+:::
+::::
+
+So the graphs $y = cx^2$ of school algebra are exactly the parabolas with a vertical axis and
+vertex at the origin, with focus at height $p = \frac{1}{4c}$.
+
+### Horizontal and shifted parabolas
+
+Exchanging $x$ and $y$ turns the axis horizontal.
+
+:::proposition[Horizontal parabola]
+The parabola with focus $(p, 0)$ and directrix $x = -p$ is
+
+$$
+y^2 = 4px .
+$$
+
+It opens to the right ($x \ge 0$) if $p > 0$ and to the left ($x \le 0$) if $p < 0$.
+:::
+
+Moving the vertex from the origin to $(h, k)$ moves the focus and the directrix with it.
+
+:::proposition[Shifted parabolas]
+With vertex $(h, k)$:
+
+| Equation | Opens | Focus | Directrix |
+|---|---|---|---|
+| $(x - h)^2 = 4p(y - k)$ | up if $p > 0$, down if $p < 0$ | $(h,\ k + p)$ | $y = k - p$ |
+| $(y - k)^2 = 4p(x - h)$ | right if $p > 0$, left if $p < 0$ | $(h + p,\ k)$ | $x = h - p$ |
+:::
+
+The squared variable names the direction the axis does *not* point in: $(x - h)^2$ means the
+axis is vertical.
+
+::::example[Vertex, focus and directrix]
+Find the vertex, focus and directrix of $y^2 = 2x$ and of $y^2 - 2y = 2x$.
+
+:::solution
+For $y^2 = 2x$: comparing with $y^2 = 4px$, $4p = 2$ and $p = \frac12$. The vertex is the origin,
+the focus $\left(\frac12, 0\right)$, the directrix $x = -\frac12$; it opens to the right.
+
+For $y^2 - 2y = 2x$, complete the square in $y$:
+
+$$
+y^2 - 2y + 1 = 2x + 1
+\quad\Longrightarrow\quad
+(y - 1)^2 = 2\left(x + \frac12\right).
+$$
+
+This is the first parabola moved so that its vertex is $\left(-\frac12, 1\right)$, with the same
+$p = \frac12$. The focus is $\left(-\frac12 + \frac12,\ 1\right) = (0, 1)$ and the directrix is
+$x = -\frac12 - \frac12 = -1$.
+:::
+::::
+
+::::example[A parabola from its vertex and focus]
+Find the equation of the parabola with vertex $(2, 3)$ and focus $(2, -1)$.
+
+:::solution
+The vertex and the focus are on the vertical line $x = 2$, so the axis is vertical and the
+equation is $(x - 2)^2 = 4p(y - 3)$. The focus is $(h, k + p) = (2, 3 + p)$, so
+
+$$
+3 + p = -1 \quad\Longrightarrow\quad p = -4 ,
+$$
+
+and the parabola opens downward, away from the vertex towards the focus:
+
+$$
+(x - 2)^2 = -16(y - 3) .
+$$
+
+As a check, the directrix $y = k - p = 3 + 4 = 7$ is as far above the vertex as the focus is
+below it. The point $(10, -1)$ is on the curve, since $64 = -16 \cdot (-4)$; it is $8$ from the
+focus and $8$ from the directrix.
+:::
+::::
+
+:::caution
+$p$ is a signed distance, from the vertex *to* the focus. If the focus is below or to the left of
+the vertex, $p$ is negative; writing $p = 4$ in the last example gives the parabola that opens
+upward, with its focus at $(2, 7)$. A sketch with the vertex, the focus and the directrix catches
+the sign at once: the curve always bends around the focus, away from the directrix.
+:::
+
+:::equations
+- *Definition*: $|PF| = \operatorname{dist}(P, \ell)$, focus $F$, directrix $\ell$.
+- *Vertical axis*: $x^2 = 4py$, focus $(0, p)$, directrix $y = -p$.
+- *Horizontal axis*: $y^2 = 4px$, focus $(p, 0)$, directrix $x = -p$.
+- *Shifted*: $(x - h)^2 = 4p(y - k)$ or $(y - k)^2 = 4p(x - h)$, vertex $(h, k)$.
+:::
+
+## Eccentricity and polar equations
+
+### One definition for all three curves
+
+The parabola compares two distances and asks for their ratio to be $1$. Allowing any positive
+ratio gives the whole family.
+
+:::definition[Eccentricity]
+Let $F$ be a point, $\ell$ a line not through $F$, and $e > 0$ a constant. The set
+
+$$
+\left\{\, P : \frac{|PF|}{\operatorname{dist}(P, \ell)} = e \,\right\}
+$$
+
+is a **conic section** with focus $F$, directrix $\ell$ and **eccentricity** $e$. It is
+
+- an **ellipse** if $e < 1$,
+- a **parabola** if $e = 1$,
+- a **hyperbola** if $e > 1$.
+:::
+
+For the ellipse and the hyperbola, the eccentricity is read off the standard equation.
+
+::::proposition[Eccentricity from the axes]
+For $\frac{x^2}{a^2} + \frac{y^2}{b^2} = 1$ (with $c^2 = a^2 - b^2$) and for
+$\frac{x^2}{a^2} - \frac{y^2}{b^2} = 1$ (with $c^2 = a^2 + b^2$), the focus $(c, 0)$ and the line
+$x = \frac{a^2}{c}$ are a focus and a directrix, with
+
+$$
+e = \frac{c}{a} .
+$$
+
+So $e < 1$ for an ellipse, since $c < a$, and $e > 1$ for a hyperbola, since $c > a$.
+
+:::proof
+On the ellipse $y^2 = b^2\left(1 - \frac{x^2}{a^2}\right)$, so
+
+$$
+|PF|^2 = (x - c)^2 + b^2 - \frac{b^2}{a^2}x^2 = \frac{c^2}{a^2}x^2 - 2cx + a^2 = \left(a - \frac{c}{a}x\right)^2 .
+$$
+
+For $|x| \le a$ the bracket is positive, and $a - \frac{c}{a}x = \frac{c}{a}\left(\frac{a^2}{c} - x\right) = \frac{c}{a}\operatorname{dist}(P, \ell)$.
+For the hyperbola, $y^2 = b^2\left(\frac{x^2}{a^2} - 1\right)$ gives the same square, and taking
+absolute values gives the same ratio $\frac{c}{a}$.
+:::
+::::
+
+A circle would be $e = 0$: both foci at the centre and the directrix infinitely far away. The
+definition above leaves it out, since it needs a line.
+
+### Polar equations with a focus at the pole
+
+The definition becomes simplest in polar coordinates when the focus is the pole. Then $|PF| = r$,
+and the distance to the directrix is a linear expression in $r\cos\theta$ or $r\sin\theta$.
+
+::::theorem[Polar equations of conics]
+Let a conic have eccentricity $e$, a focus at the pole, and a directrix at distance $d > 0$ from
+it. Its polar equation is
+
+| Directrix | Equation |
+|---|---|
+| $x = d$ | $r = \dfrac{ed}{1 + e\cos\theta}$ |
+| $x = -d$ | $r = \dfrac{ed}{1 - e\cos\theta}$ |
+| $y = d$ | $r = \dfrac{ed}{1 + e\sin\theta}$ |
+| $y = -d$ | $r = \dfrac{ed}{1 - e\sin\theta}$ |
+
+:::proof
+Take the directrix $x = d$ and a point $P$ of the curve on the same side of it as the pole. Its
+$x$-coordinate is $r\cos\theta$, so $\operatorname{dist}(P, \ell) = d - r\cos\theta$, and the
+condition $|PF| = e \operatorname{dist}(P, \ell)$ is
+
+$$
+r = e(d - r\cos\theta)
+\quad\Longrightarrow\quad
+r(1 + e\cos\theta) = ed .
+$$
+
+For $x = -d$ the distance is $d + r\cos\theta$, which changes the sign; for $y = \pm d$ the
+coordinate is $r\sin\theta$ instead. For a hyperbola, the branch on the far side of the directrix
+comes out of the same equation with $r < 0$.
+:::
+::::
+
+To read an equation, divide numerator and denominator so that the denominator starts with $1$:
+the coefficient of $\cos\theta$ or $\sin\theta$ is then $e$, and the numerator is $ed$.
+
+::::example[A conic from its directrix]
+Find the polar equation of the conic with focus at the pole, directrix $y = -5$ and eccentricity
+$2$.
+
+:::solution
+The directrix is $y = -d$ with $d = 5$, so the form is $r = \frac{ed}{1 - e\sin\theta}$:
+
+$$
+r = \frac{2 \cdot 5}{1 - 2\sin\theta} = \frac{10}{1 - 2\sin\theta} .
+$$
+
+Since $e = 2 > 1$, it is a hyperbola.
+:::
+::::
+
+::::example[An ellipse in polar form]
+Identify $r = \dfrac{3}{2 + \cos\theta}$: its type, eccentricity and directrix, its Cartesian
+equation, and a sketch.
+
+:::solution
+Divide numerator and denominator by $2$ to make the denominator start with $1$:
+
+$$
+r = \frac{\frac32}{1 + \frac12\cos\theta} .
+$$
+
+So $e = \frac12 < 1$, an ellipse. From $ed = \frac32$, $d = 3$, and the $+\cos\theta$ form puts the
+directrix at $x = 3$.
+
+For the Cartesian equation, clear the fraction and use $r = \sqrt{x^2 + y^2}$, $r\cos\theta = x$:
+
+$$
+2r + r\cos\theta = 3
+\quad\Longrightarrow\quad
+2\sqrt{x^2 + y^2} = 3 - x
+\quad\Longrightarrow\quad
+4(x^2 + y^2) = 9 - 6x + x^2 .
+$$
+
+Collect and complete the square in $x$:
+
+$$
+3x^2 + 6x + 4y^2 = 9
+\quad\Longrightarrow\quad
+3(x + 1)^2 + 4y^2 = 12
+\quad\Longrightarrow\quad
+\frac{(x + 1)^2}{4} + \frac{y^2}{3} = 1 .
+$$
+
+The centre is $(-1, 0)$, $a = 2$, $b = \sqrt3$ and $c = \sqrt{4 - 3} = 1$, so the foci are
+$(0, 0)$, the pole as promised, and $(-2, 0)$; and $\frac{c}{a} = \frac12 = e$.
+
+To sketch straight from the polar equation, take the four quarter-turn angles:
+
+| $\theta$ | $0$ | $\frac{\pi}{2}$ | $\pi$ | $\frac{3\pi}{2}$ |
+|---|---|---|---|---|
+| $r$ | $1$ | $\frac32$ | $3$ | $\frac32$ |
+| point | $(1, 0)$ | $\left(0, \frac32\right)$ | $(-3, 0)$ | $\left(0, -\frac32\right)$ |
+
+$(1, 0)$ and $(-3, 0)$ are the vertices; the curve is closest to the focus at $\theta = 0$, on
+the side facing the directrix.
+:::
+::::
+
+::::example[A hyperbola in polar form]
+Identify $r = \dfrac{1}{2 + 4\sin\theta}$ and find its Cartesian equation and asymptotes.
+
+:::solution
+Dividing by $2$,
+
+$$
+r = \frac{\frac12}{1 + 2\sin\theta} ,
+$$
+
+so $e = 2 > 1$, a hyperbola. From $ed = \frac12$, $d = \frac14$: the directrix is $y = \frac14$.
+
+The vertices lie on the axis, the $y$-axis here:
+
+- $\theta = \frac{\pi}{2}$: $r = \frac16$, the point $\left(0, \frac16\right)$;
+- $\theta = \frac{3\pi}{2}$: $r = \frac{1}{2 - 4} = -\frac12$. A negative $r$ goes the other way, so this is the point $\left(0, \frac12\right)$.
+
+The centre is their midpoint $\left(0, \frac13\right)$, so $a = \frac16$, and the pole is a focus
+at distance $c = \frac13$ from the centre ($\frac{c}{a} = 2 = e$). Also $\theta = 0$ and
+$\theta = \pi$ give $r = \frac12$: the points $\left(\pm\frac12, 0\right)$.
+
+For the Cartesian equation, $2r + 4r\sin\theta = 1$ becomes $2\sqrt{x^2 + y^2} = 1 - 4y$, and
+squaring,
+
+$$
+4(x^2 + y^2) = 1 - 8y + 16y^2
+\quad\Longrightarrow\quad
+4x^2 - 12\left(y - \frac13\right)^2 = -\frac13
+\quad\Longrightarrow\quad
+\frac{\left(y - \frac13\right)^2}{\frac{1}{36}} - \frac{x^2}{\frac{1}{12}} = 1 ,
+$$
+
+with $a^2 = \frac{1}{36}$ and $b^2 = \frac{1}{12}$, as expected from $b^2 = c^2 - a^2 = \frac19 - \frac{1}{36}$.
+
+The curve runs off to infinity where the denominator vanishes:
+
+$$
+2 + 4\sin\theta = 0
+\quad\Longrightarrow\quad
+\sin\theta = -\frac12
+\quad\Longrightarrow\quad
+\theta = \frac{7\pi}{6} \quad\text{or}\quad \theta = \frac{11\pi}{6} .
+$$
+
+The asymptotes are parallel to these two directions, with slopes $\tan\frac{7\pi}{6} = \frac{1}{\sqrt3}$
+and $\tan\frac{11\pi}{6} = -\frac{1}{\sqrt3}$, but they pass through the centre, not the pole:
+
+$$
+y - \frac13 = \pm\frac{1}{\sqrt3}\,x ,
+$$
+
+which agrees with the slopes $\pm\frac{a}{b} = \pm\frac{1/6}{1/(2\sqrt3)}$ of the vertical form.
+:::
+::::
+
+:::caution
+The angles where $r \to \infty$ come from solving $\sin\theta = -\frac12$, which has its solutions
+in the third and fourth quadrants, $\frac{7\pi}{6}$ and $\frac{11\pi}{6}$, not at $\frac{\pi}{6}$.
+They give the *directions* of the asymptotes; the asymptotes themselves go through the centre of
+the hyperbola, which is not the pole.
+:::
+
+:::insight
+One focus, one line and one number describe every conic. In polar coordinates centred at that
+focus the whole family is $r = \frac{ed}{1 \pm e\cos\theta}$ or $\frac{ed}{1 \pm e\sin\theta}$, and
+the type is read off the coefficient once the denominator starts with $1$.
+:::
+
+:::equations
+- *Eccentricity*: $\dfrac{|PF|}{\operatorname{dist}(P, \ell)} = e$; ellipse $e < 1$, parabola $e = 1$, hyperbola $e > 1$.
+- *From the axes*: $e = \dfrac{c}{a}$ for the ellipse and the hyperbola.
+- *Polar, focus at the pole*: $r = \dfrac{ed}{1 \pm e\cos\theta}$ (directrix $x = \pm d$), $r = \dfrac{ed}{1 \pm e\sin\theta}$ (directrix $y = \pm d$).
+:::
+
 ## Further reading
 
 - [Paul's Online Notes — Ellipses](https://tutorial.math.lamar.edu/Classes/Alg/Ellipses.aspx) — standard and shifted forms, with completing the square worked out.
 - [Paul's Online Notes — Hyperbolas](https://tutorial.math.lamar.edu/Classes/Alg/Hyperbolas.aspx) — the box-and-asymptotes sketch for both orientations.
-- [Wikipedia — Conic section](https://en.wikipedia.org/wiki/Conic_section) — why these curves are slices of a cone, and the parabola that completes the family.
+- [Paul's Online Notes — Parabolas](https://tutorial.math.lamar.edu/Classes/Alg/Parabolas.aspx) — vertex form and sketching, without the focus.
+- [Wikipedia — Conic section](https://en.wikipedia.org/wiki/Conic_section) — why these curves are slices of a cone, and the eccentricity and directrix view of all three.
