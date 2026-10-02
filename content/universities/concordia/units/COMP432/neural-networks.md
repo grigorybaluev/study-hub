@@ -3,7 +3,7 @@ title: Introduction to neural networks
 order: 7
 status: outline
 weeks: [8]
-introduces: [neural-network, backpropagation]
+introduces: [neural-network, activation-function, backpropagation]
 requires:
   - {concept: perceptron, strength: hard}
   - {concept: multivariable-chain-rule, strength: hard}

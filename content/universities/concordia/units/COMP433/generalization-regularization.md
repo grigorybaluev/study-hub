@@ -4,7 +4,10 @@ order: 6
 status: outline
 weeks: [6]
 introduces:
-  - {concept: regularization, perspective: "for deep networks: weight decay, dropout, data augmentation, and batch and layer normalization"}
+  - {concept: regularization, perspective: "for deep networks: L1 and L2 penalties and weight decay"}
+  - dropout
+  - data-augmentation
+  - batch-normalization
 requires:
   - {concept: overfitting, strength: hard}
   - {concept: neural-network, strength: hard}

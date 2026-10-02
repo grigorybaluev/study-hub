@@ -3,7 +3,7 @@ title: Dimensionality reduction
 order: 9
 status: outline
 weeks: [9]
-introduces: [principal-component-analysis]
+introduces: [dimensionality-reduction, curse-of-dimensionality, principal-component-analysis]
 requires:
   - {concept: eigenvalue, strength: hard}
   - {concept: covariance, strength: hard}

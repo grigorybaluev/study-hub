@@ -3,7 +3,7 @@ title: Reinforcement learning
 order: 11
 status: outline
 weeks: [12]
-introduces: [reinforcement-learning]
+introduces: [reinforcement-learning, q-learning]
 requires:
   - {concept: markov-decision-process, strength: hard}
   - {concept: expected-value, strength: hard}

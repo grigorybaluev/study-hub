@@ -3,7 +3,7 @@ title: Decision trees, random forests and nearest neighbors
 order: 5
 status: outline
 weeks: [5]
-introduces: [decision-tree, ensemble-learning, k-nearest-neighbors]
+introduces: [decision-tree, ensemble-learning, random-forest, k-nearest-neighbors]
 requires:
   - {concept: supervised-learning, strength: hard}
   - {concept: overfitting, strength: hard}

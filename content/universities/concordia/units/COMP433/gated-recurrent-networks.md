@@ -3,7 +3,9 @@ title: Gated recurrent networks and text
 order: 10
 status: outline
 weeks: [11]
-introduces: []
+introduces:
+  - long-short-term-memory
+  - {concept: natural-language-processing, perspective: "text classification, sentiment analysis and character-level generation with recurrent networks"}
 requires:
   - {concept: recurrent-neural-network, strength: hard}
 reinforces:
