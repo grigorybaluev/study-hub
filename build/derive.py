@@ -379,7 +379,8 @@ def ds_field(g: Graph, idx: dict, deps: list[dict]) -> dict:
     Every concept takes part. Anchors are the concepts mapped to a target skill, as in ds_relevance.
     A concept rests on another along hard concept_depends_on edges (authored or derived from units:
     both are knowledge edges), along generalizes (the general rests on the special case) and along
-    part_of (a whole rests on its parts). field_weight sums 1/d over the anchors resting on a concept
+    part_of (a named method rests on its topic, so a topic gains weight from its methods but a method
+    does not inherit everything resting on the topic). field_weight sums 1/d over the anchors resting on a concept
     at distance d, so it counts concepts, never units; reach counts those anchors. Betweenness is
     taken on the whole concept graph, soft edges included. Tiers as in ds_relevance, with
     FIELD_CORE_WEIGHT. taught: introduced by some unit ("unit"), covered inside a taught whole it is
@@ -400,8 +401,8 @@ def ds_field(g: Graph, idx: dict, deps: list[dict]) -> dict:
             up[e["to"]].add(e["from"])
             down_all[e["from"]].add(e["to"])
         elif e["type"] == "part_of":
-            up[e["from"]].add(e["to"])
-            down_all[e["to"]].add(e["from"])
+            up[e["to"]].add(e["from"])
+            down_all[e["from"]].add(e["to"])
 
     bet = _betweenness(concepts, {c: sorted(v) for c, v in down_all.items()})
     rows = {}

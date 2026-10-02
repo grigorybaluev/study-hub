@@ -61,7 +61,8 @@ introducing B requires A), `course uses course` (weighted), `course covers roadm
 per-variant concept debt by term, unmet dependencies, DS relevance per program concept (#155:
 reach into the units of `role: target` roadmap areas + betweenness → tier application | core |
 supporting | peripheral), and field relevance per concept (`ds_field`, #173: the same tiers from
-concept edges alone — hard depends_on, generalizes, part_of — counting concepts, never units).
+concept edges alone — hard depends_on, generalizes, part_of (a method rests on its topic) —
+counting concepts, never units).
 Program concepts are those some unit introduces, requires or reinforces. Every edge carries
 `provenance: authored | official | derived`.
 
