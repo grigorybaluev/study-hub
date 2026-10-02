@@ -3,7 +3,12 @@ title: Deep CNN architectures and transfer learning
 order: 8
 status: outline
 weeks: [9]
-introduces: [transfer-learning]
+introduces:
+  - transfer-learning
+  - residual-neural-network
+  - fine-tuning
+  - {concept: object-detection, perspective: "an overview"}
+  - {concept: image-segmentation, perspective: "an overview"}
 requires:
   - {concept: convolutional-neural-network, strength: hard}
 reinforces:
