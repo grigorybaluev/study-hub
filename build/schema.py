@@ -17,8 +17,8 @@ CONTENT = ROOT / "content"
 
 # --------------------------------------------------------------------------- vocabulary
 DOMAINS = {
-    "math.calculus", "math.linear-algebra", "math.discrete", "theory", "probability",
-    "statistics", "programming", "algorithms", "systems", "data", "ml",
+    "math.calculus", "math.linear-algebra", "math.discrete", "math.optimization", "theory", "probability",
+    "statistics", "programming", "algorithms", "systems", "data", "ml", "ml.deep", "ml.production",
 }
 UNIT_STATUS = {"detailed", "outline", "planned"}
 UNIT_KIND = {"teaching", "review"}
