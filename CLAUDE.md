@@ -50,16 +50,20 @@ Authored edges (the only ones humans write, in unit/concept/course frontmatter):
 - `unit reinforces concept` — slug or `{concept, perspective}`
 - `concept generalizes | part_of concept`; `concept maps_to roadmapNode`
 - `concept requires concept` (`strength: hard | soft`) — only for what units cannot express: two
-  concepts introduced by the same unit (variance on expected-value), or a foundation no
-  prerequisite course teaches. A knowledge edge: it feeds `concept depends_on`, never debt.
+  concepts introduced by the same unit (variance on expected-value), a foundation no
+  prerequisite course teaches, or a field concept no unit introduces yet (#173). A knowledge
+  edge: it feeds `concept depends_on`, never debt.
 - `course prereq | coreq course` (official calendar)
 
 Derived (rebuilt by `derive.py`): `unit depends_on unit` (every introducer of a required
 concept; same-course edges flagged), `concept depends_on concept` (B on A when a unit
 introducing B requires A), `course uses course` (weighted), `course covers roadmapNode`,
-per-variant concept debt by term, unmet dependencies, DS relevance per concept (#155: reach
-into the units of `role: target` roadmap areas + betweenness → tier application | core |
-supporting | peripheral). Every edge carries `provenance: authored | official | derived`.
+per-variant concept debt by term, unmet dependencies, DS relevance per program concept (#155:
+reach into the units of `role: target` roadmap areas + betweenness → tier application | core |
+supporting | peripheral), and field relevance per concept (`ds_field`, #173: the same tiers from
+concept edges alone — hard depends_on, generalizes, part_of — counting concepts, never units).
+Program concepts are those some unit introduces, requires or reinforces. Every edge carries
+`provenance: authored | official | derived`.
 
 ## Authoring rules
 
@@ -69,8 +73,13 @@ Concepts
 - A concept exists only if another unit could plausibly `require` it on its own.
   Applying a known concept to a new object is a heading, not a concept. Keep coarse;
   split only when a unit needs the part separately.
-- A concept nobody introduces is a finding (unmet dependency), reported by derive and
-  warned by lint — never author around it.
+- A concept a unit requires but nobody introduces is a finding (unmet dependency), reported
+  by derive and warned by lint — never author around it.
+- A concept no unit touches is field vocabulary (#173): it belongs when a data-science
+  professional is expected to know it, whatever the program teaches. Link it into the graph
+  with `maps_to` and concept edges (`requires`, `part_of` its topic, `generalizes`); lint
+  counts field concepts and warns only about a concept with no link at all. A named method
+  gets its own concept `part_of` the topic, and its alias moves off the topic.
 - The vocabulary serves the whole roadmap and its postgrad reach, not one program: when
   judging whether a part is "required on its own", count units that could plausibly be
   written later (optimization, numerical methods, ML, spatial), not only the ones filed.
