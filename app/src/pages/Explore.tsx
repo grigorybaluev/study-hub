@@ -385,7 +385,8 @@ function conceptElements(d: Data, theme: Theme, scope: string, layout: ConceptLa
     focus = new Set(program.map((c) => c.id));
   }
   focus = new Set([...focus].filter(passes));
-  const deps = d.derived.concept_depends_on.filter((e) => focus.has(e.from) && passes(e.to));
+  // context stays inside the program too: a field concept a program concept rests on is DS map 2's business
+  const deps = d.derived.concept_depends_on.filter((e) => focus.has(e.from) && passes(e.to) && !!ds[e.to]);
   const shown = new Set([...focus, ...deps.map((e) => e.to)]);
   const gens = d.graph.edges.filter((e) => e.type === "generalizes" && shown.has(e.from) && shown.has(e.to));
   const dense = scope === "all";
