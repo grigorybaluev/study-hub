@@ -38,7 +38,8 @@ export default function FieldMap() {
   const theme = useTheme();
   const [params, setParams] = useSearchParams();
   const layoutName = (LAYOUTS.find((l) => l.id === params.get("layout"))?.id ?? "rings") as LayoutName;
-  const selected = params.get("sel");
+  // a selection is a concept; anything else in the link is ignored
+  const selected = (() => { const v = params.get("sel"); return v && d.derived.ds_field.concepts[v] ? v : null; })();
   const hidden = useMemo(() => new Set((params.get("hide") ?? "").split(",").filter(Boolean)), [params]);
   const tiersOff = useMemo(() => new Set((params.get("off") ?? "").split(",").filter(Boolean)), [params]);
   const coverage = (params.get("cov") ?? "all") as Coverage;
@@ -78,7 +79,7 @@ export default function FieldMap() {
   const graph = useRef<ClusterGraphHandle>(null);
   const positionsKey = `fieldmap:${layoutName}:${version}`;
 
-  const { elements, lodAt } = useMemo(() => build(d, layout, edges, theme, mark), [d, layout, edges, theme, mark]);
+  const { elements, lodAt } = useMemo(() => build(d, layout, edges, theme), [d, layout, edges, theme]);
 
   const filtered = useMemo(() => {
     const out = new Set<string>();
@@ -127,7 +128,7 @@ export default function FieldMap() {
         {layout ? (
           <ClusterGraph ref={graph} elements={elements} positionsKey={positionsKey} resetToken={resetToken} selected={selected}
             onSelect={select} onOpen={(id) => nav(href.concept(id))} onHover={setHover} onLod={(l, z) => { setLod(l); setZoom(z); }}
-            pinOrder={pinOrder} filtered={filtered} matches={matches} edgeMode={edgeMode} focus={focus} lodAt={lodAt} inset={INSET} />
+            pinOrder={pinOrder} filtered={filtered} matches={matches} edgeMode={edgeMode} mark={mark} focus={focus} lodAt={lodAt} inset={INSET} />
         ) : <div className="fieldmap-busy">Laying out the network…</div>}
       </div>
 
@@ -218,7 +219,7 @@ export default function FieldMap() {
       )}
 
       {hover && hover.id !== selected && <HoverCard id={hover.id} x={hover.x} y={hover.y} />}
-      {selected && node(d, selected) && <DetailPanel id={selected} onPick={choose} onClose={() => select(null)} />}
+      {selected && <DetailPanel id={selected} onPick={choose} onClose={() => select(null)} />}
     </div>
   );
 }
@@ -251,7 +252,7 @@ function fieldEdges(d: Data): FieldEdgeRow[] {
   return out;
 }
 
-function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme: "light" | "dark", mark: boolean): { elements: ElementDefinition[]; lodAt: [number, number] } {
+function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme: "light" | "dark"): { elements: ElementDefinition[]; lodAt: [number, number] } {
   if (!layout) return { elements: [], lodAt: [0.45, 0.85] };
   const field = d.derived.ds_field.concepts;
   const xs = [...layout.nodes.values()];
@@ -280,7 +281,7 @@ function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme
     minFs = Math.min(minFs, p.fs); maxFs = Math.max(maxFs, p.fs);
     const color = fieldColor(c.domain, theme);
     els.push({
-      classes: "concept" + (mark ? " cov" : ""),
+      classes: "concept",
       data: { id: c.id, label: p.label, name: c.short ?? c.title, w: p.w, h: p.h, fs: p.fs, fill: tint(color, theme), border: color, taught: field[c.id]?.taught ?? "none" },
       position: { x: p.x, y: p.y },
     });
