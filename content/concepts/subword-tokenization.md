@@ -1,7 +1,7 @@
 ---
 title: Subword tokenization
 domain: ml.deep
-wikipedia: "Byte pair encoding"
+wikipedia: "Byte-pair encoding"
 aliases: ["byte pair encoding", "BPE", "WordPiece", "SentencePiece", "token (language model)", "vocabulary (tokenizer)"]
 requires: [string, {concept: text-vectorization, strength: soft}]
 maps_to: [study-hub/ds-core/natural-language-processing, study-hub/ds-core/foundation-models]

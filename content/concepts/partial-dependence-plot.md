@@ -1,7 +1,6 @@
 ---
 title: Partial dependence plot
 domain: ml
-wikipedia: "Partial dependence plot"
 short: "PDP"
 aliases: ["PDP", "individual conditional expectation", "ICE plot", "accumulated local effects"]
 part_of: [explainable-ai]
