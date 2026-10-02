@@ -4,6 +4,7 @@ order: 3
 status: outline
 weeks: [3]
 introduces:
+  - {concept: gpu-computing, perspective: "training networks on GPUs in a framework"}
   - {concept: neural-network, perspective: "activation functions, universal approximation, and building networks in a framework with tensors, autograd and GPUs"}
 requires:
   - {concept: perceptron, strength: hard}

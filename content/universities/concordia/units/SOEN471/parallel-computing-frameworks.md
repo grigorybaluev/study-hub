@@ -3,7 +3,9 @@ title: Parallel computing frameworks
 order: 4
 status: outline
 weeks: [4]
-introduces: [distributed-data-processing]
+introduces:
+  - distributed-data-processing
+  - {concept: parallel-computing, perspective: "frameworks that partition data and process the parts in parallel"}
 requires:
   - {concept: big-data, strength: hard}
   - {concept: higher-order-function, strength: hard}
