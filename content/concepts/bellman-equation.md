@@ -3,7 +3,7 @@ title: Bellman equation
 domain: ml
 wikipedia: "Bellman equation"
 aliases: ["value function", "Q-function", "value iteration", "policy iteration", "dynamic programming (reinforcement learning)"]
-requires: [markov-decision-process, expected-value]
+requires: [markov-decision-process, expected-value, {concept: dynamic-programming, strength: soft}]
 maps_to: [study-hub/ds-core/reinforcement-learning]
 ---
 
