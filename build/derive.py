@@ -194,20 +194,24 @@ def variant_analysis(g: Graph, idx: dict, program: dict, variant: dict) -> dict:
 
 # --------------------------------------------------------------------------- roadmap coverage
 def roadmap_coverage(g: Graph, idx: dict, variants: dict) -> dict:
-    """Per roadmap skill: which concepts map to it, which courses introduce them, and the first term
-    per variant. status: covered (all mapped concepts introduced, more than two of them), thin (all
-    introduced but only one or two concepts map), partial (some introduced), gap (mapped, none
-    introduced), unmapped (no concept maps to it)."""
+    """Per roadmap skill: which program concepts map to it, which courses introduce them, and the
+    first term per variant. status: covered (all mapped program concepts introduced, more than two
+    of them), thin (all introduced but only one or two map), partial (some introduced), gap (none
+    introduced, or only field concepts map to it), unmapped (no concept maps to it). field_concepts:
+    the concepts mapped to it that no unit touches (#173), the field the program does not reach."""
+    program = program_concepts(idx)
     out = {}
     for rm in g.by_type["roadmap"]:
         skills = {}
         for node in g.by_type["roadmap_node"]:
             if node["roadmap"] != rm["id"] or node["level"] != "skill":
                 continue
-            concepts = sorted(e["from"] for e in g.inc[(node["id"], "maps_to")])
+            mapped = sorted(e["from"] for e in g.inc[(node["id"], "maps_to")])
+            concepts = [c for c in mapped if c in program]
+            field = [c for c in mapped if c not in program]
             introduced = [c for c in concepts if idx[c]["introduced_by"]]
             courses = sorted({g.course_of(u) for c in introduced for u in idx[c]["introduced_by"]})
-            status = ("unmapped" if not concepts else "gap" if not introduced
+            status = ("unmapped" if not mapped else "gap" if not introduced
                       else "partial" if len(introduced) < len(concepts)
                       else "thin" if len(concepts) <= 2 else "covered")
             first_term = {}
@@ -216,7 +220,7 @@ def roadmap_coverage(g: Graph, idx: dict, variants: dict) -> dict:
                 first_term[vid] = min(terms) if terms else None
             skills[node["id"]] = {"area": node["parent"], "title": node["title"], "order": node["order"], "status": status,
                                   "concepts": concepts, "missing": sorted(set(concepts) - set(introduced)),
-                                  "courses": courses, "first_term": first_term}
+                                  "field_concepts": field, "courses": courses, "first_term": first_term}
         out[rm["id"]] = {"skills": skills, "summary": dict(sorted(
             __import__("collections").Counter(s["status"] for s in skills.values()).items()))}
     return out
@@ -291,10 +295,11 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
     peripheral = none. Only program concepts take part: field vocabulary no unit touches is scored
     by ds_field instead."""
     target_nodes, targets = _targets(g)
-    concepts = sorted(program_concepts(idx))
-    in_program = set(concepts)
-    deps = [e for e in deps if e["from"] in in_program and e["to"] in in_program]
-    anchors = {c for c in concepts if any(e["to"] in target_nodes for e in g.out[(c, "maps_to")])}
+    # dependency is followed through every concept, so a chain that passes a field concept still
+    # counts, but only program concepts are scored, anchored and reported
+    concepts = [c["id"] for c in g.by_type["concept"]]
+    in_program = program_concepts(idx)
+    anchors = {c for c in concepts if c in in_program and any(e["to"] in target_nodes for e in g.out[(c, "maps_to")])}
     ds_units = sorted({u for a in anchors for u in idx[a]["introduced_by"]})
 
     # up[a] = concepts that rest on a (hard dependency or generalization); down = the reverse
@@ -307,7 +312,7 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
             up[e["to"]].append(e["from"])
             down[e["from"]].append(e["to"])
     for e in g.edges:
-        if e["type"] == "generalizes" and e["from"] in in_program and e["to"] in in_program and e["to"] not in down[e["from"]]:
+        if e["type"] == "generalizes" and e["to"] not in down[e["from"]]:
             up[e["to"]].append(e["from"])
             down[e["from"]].append(e["to"])
     required_by_ds: dict[str, set[str]] = {c: set() for c in concepts}
@@ -333,7 +338,7 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
 
     bet = _betweenness(concepts, down_all)
     rows = {}
-    for c in concepts:
+    for c in sorted(in_program):
         dist = dependants(c)
         unit_dist: dict[str, int] = {}
         for x, dx in dist.items():
@@ -361,7 +366,7 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
             r["tier"] = "supporting"
 
     courses: dict[str, dict] = {}
-    for c in concepts:
+    for c in sorted(in_program):
         for course in sorted({g.course_of(u) for u in idx[c]["introduced_by"]}):   # once per course, however many of its units introduce c
             cs = courses.setdefault(course, {"application": 0, "core": 0, "supporting": 0, "peripheral": 0, "concepts": 0})
             cs[rows[c]["tier"]] += 1

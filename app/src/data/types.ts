@@ -271,8 +271,11 @@ export interface SkillCoverage {
   title: string;
   order: number[];
   status: SkillStatus;
+  /** program concepts mapped to the skill: some unit introduces, requires or reinforces them */
   concepts: string[];
   missing: string[];
+  /** concepts mapped to the skill that no unit touches (#173): the field the program does not reach */
+  field_concepts: string[];
   courses: string[];
   first_term: Record<string, number | null>;
 }
