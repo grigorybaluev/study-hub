@@ -1,6 +1,6 @@
 ---
 title: Transformer
-domain: ml
+domain: ml.deep
 wikipedia: "Transformer (deep learning architecture)"
 aliases: ["transformer architecture", "encoder–decoder transformer", "positional encoding"]
 requires: [attention-mechanism]

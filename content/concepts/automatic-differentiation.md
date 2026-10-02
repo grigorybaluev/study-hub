@@ -1,6 +1,6 @@
 ---
 title: Automatic differentiation
-domain: ml
+domain: ml.deep
 wikipedia: "Automatic differentiation"
 aliases: ["autograd", "computational graph", "reverse-mode differentiation"]
 generalizes: [backpropagation]

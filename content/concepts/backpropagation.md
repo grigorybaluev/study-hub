@@ -1,6 +1,6 @@
 ---
 title: Backpropagation
-domain: ml
+domain: ml.deep
 wikipedia: "Backpropagation"
 aliases: ["backprop", "vanishing gradient", "exploding gradient"]
 requires: [{concept: jacobian-matrix, strength: soft}]

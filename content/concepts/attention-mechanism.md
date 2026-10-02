@@ -1,9 +1,9 @@
 ---
 title: Attention mechanism
-domain: ml
+domain: ml.deep
 wikipedia: "Attention (machine learning)"
 aliases: ["attention", "scaled dot-product attention", "self-attention"]
-requires: [{concept: matrix, strength: soft}]
+requires: [{concept: matrix, strength: soft}, softmax-function]
 maps_to: [study-hub/ds-core/sequence-models, study-hub/ds-core/foundation-models]
 ---
 

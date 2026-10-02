@@ -1,8 +1,8 @@
 ---
 title: Autoencoder
-domain: ml
+domain: ml.deep
 wikipedia: "Autoencoder"
-aliases: ["variational autoencoder", "VAE", "latent representation", "encoder–decoder"]
+aliases: ["latent representation", "encoder–decoder (autoencoder)", "denoising autoencoder", "bottleneck"]
 requires: [{concept: principal-component-analysis, strength: soft}]
 maps_to: [study-hub/ds-core/neural-networks, study-hub/ds-core/unsupervised-learning]
 ---

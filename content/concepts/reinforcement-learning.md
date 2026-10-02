@@ -2,7 +2,7 @@
 title: Reinforcement learning
 domain: ml
 wikipedia: "Reinforcement learning"
-aliases: ["Q-learning", "reward", "exploration–exploitation", "temporal-difference learning"]
+aliases: ["reward", "agent and environment", "model-free learning"]
 maps_to: [study-hub/ds-core/reinforcement-learning]
 ---
 
