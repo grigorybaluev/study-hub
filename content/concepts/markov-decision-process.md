@@ -2,7 +2,7 @@
 title: Markov decision process
 domain: probability
 wikipedia: "Markov decision process"
-aliases: ["MDP", "policy", "value function", "Bellman equation"]
+aliases: ["MDP", "policy", "discount factor", "reward function"]
 maps_to: [study-hub/ds-core/stochastic-processes, study-hub/ds-core/optimization, study-hub/ds-core/reinforcement-learning]
 ---
 

@@ -2,8 +2,8 @@
 title: Ensemble learning
 domain: ml
 wikipedia: "Ensemble learning"
-aliases: ["bagging", "boosting", "random forest", "gradient boosting", "stacking"]
-requires: [decision-tree, {concept: variance, strength: soft}]
+aliases: ["ensemble methods", "stacking", "model averaging", "voting classifier"]
+requires: [decision-tree, {concept: variance, strength: soft}, {concept: bias-variance-tradeoff, strength: soft}]
 maps_to: [study-hub/ds-core/ensembles]
 ---
 
