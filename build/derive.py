@@ -444,7 +444,8 @@ def ds_field(g: Graph, idx: dict, deps: list[dict]) -> dict:
     return {"targets": targets, "anchors": sorted(anchors), "core_weight": FIELD_CORE_WEIGHT, "concepts": rows}
 
 
-FIELD_CORE_WEIGHT = 3.0   # a non-anchor concept is core to the field when the anchors resting on it weigh at least this
+FIELD_CORE_WEIGHT = 8.0   # a non-anchor concept is core to the field when the anchors resting on it weigh at least this:
+#                           there are far more anchors than DS units, so the bar sits higher than CORE_WEIGHT
 
 
 # --------------------------------------------------------------------------- main
