@@ -24,14 +24,17 @@ const TIER_INDEX: Record<DsTier, number> = { application: 0, core: 1, supporting
 
 const PRESET: LayoutOptions = { name: "preset", padding: 24, fit: true } as LayoutOptions;
 
-export default function Explore() {
+/** `/explore` opens the layered concept graph, `/explore/ds-map` the DS map (#155); DS map 2 is its own page (#173). */
+export default function Explore({ mapRoute = false }: { mapRoute?: boolean }) {
   const d = useData();
   const nav = useNavigate();
   const [view, setView] = useState<View>("concepts");
   const [variantId, setVariantId] = useState(d.programs[0].variants.find((v) => v.coop)?.id ?? d.programs[0].variants[0].id);
   const [courseId, setCourseId] = useState<string>(d.courses.find((c) => c.code === "MAST221")?.id ?? d.courses[0].id);
   const [scope, setScope] = useState<string>("all");
-  const [conceptLayout, setConceptLayout] = useState<ConceptLayout>("layers");
+  // the layout lives in the route, so a reload returns to the same map
+  const conceptLayout: ConceptLayout = mapRoute ? "map" : "layers";
+  const setConceptLayout = (l: ConceptLayout) => nav(l === "map" ? "/explore/ds-map" : "/explore");
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const [resetToken, setResetToken] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -54,7 +57,7 @@ export default function Explore() {
     else if (n.type === "unit") nav(href.unit(id));
     else if (n.type === "concept") nav(href.concept(id));
   };
-  const pick = (v: View) => { setView(v); setSelected(null); };
+  const pick = (v: View) => { setView(v); setSelected(null); if (v !== "concepts" && mapRoute) nav("/explore"); };
   const find = (id: string) => { setSelected(id); setFocus((f) => ({ id, n: (f?.n ?? 0) + 1 })); };
 
   const help = view === "courses"
@@ -98,6 +101,7 @@ export default function Explore() {
             <div className="tabs" title="Layout">
               <button className={conceptLayout === "layers" ? "active" : ""} onClick={() => setConceptLayout("layers")}>layers</button>
               <button className={conceptLayout === "map" ? "active" : ""} onClick={() => setConceptLayout("map")}>DS map</button>
+              <button onClick={() => nav("/explore/ds-map-2")} title="The field picture: every concept a DS professional should know, whatever the program teaches (#173)">DS map 2</button>
             </div>
             <select value={tierFilter} onChange={(e) => { setTierFilter(e.target.value as TierFilter); setSelected(null); }} title="Which DS relevance tiers to show">
               <option value="all">all tiers</option>
