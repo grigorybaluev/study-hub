@@ -1,7 +1,7 @@
 ---
 title: Instrumental variables
 domain: statistics
-wikipedia: "Instrumental variables estimation"
+wikipedia: "Instrumental variables"
 aliases: ["instrumental variable", "IV estimation", "two-stage least squares"]
 part_of: [causal-inference]
 requires: [linear-regression]
