@@ -157,9 +157,9 @@ class Report:
             return
         self.p("For each skill: *covered* = every concept mapped to it is introduced by some unit; "
                "*thin* = covered, but only one or two concepts map to it; "
-               "*partial* = some are introduced; *gap* = concepts map to it but none is introduced (a known hole); "
-               "*unmapped* = no concept maps to it yet — either the program has nothing there or the "
-               "vocabulary for it has not been written (Year 2–3 courses have no units yet).")
+               "*partial* = some are introduced; *gap* = concepts map to it but none is introduced (a known hole), "
+               "or only field concepts no unit touches do; *unmapped* = no concept maps to it yet. Statuses count the "
+               "program's concepts; *field* counts the concepts of the field mapped to the skill that no unit touches (#173).")
         for rid, r in cov.items():
             self.h(3, self.nodes[rid]["title"])
             self.p(", ".join(f"{k}: {v}" for k, v in r["summary"].items()))
@@ -167,10 +167,35 @@ class Report:
             rows = []
             for sid, sk in sorted(r["skills"].items(), key=lambda kv: kv[1]["order"]):
                 area = self.nodes[sk["area"]]["title"]
-                rows.append([area, sk["title"], sk["status"], len(sk["concepts"]),
+                rows.append([area, sk["title"], sk["status"], len(sk["concepts"]), len(sk.get("field_concepts", [])),
                              ", ".join(code(c) for c in sk["courses"]) or "—",
                              ", ".join(f"`{m}`" for m in sk["missing"]) or ""])
-            self.table(["area", "skill", "status", "concepts", "taught in", "missing concepts"], rows)
+            self.table(["area", "skill", "status", "concepts", "field", "taught in", "missing concepts"], rows)
+
+    def ds_field(self):
+        f = self.d.get("ds_field")
+        if not f:
+            return
+        self.h(2, "DS relevance of the field")
+        self.p("Every concept, whatever the program teaches (#173): the same tiers, scored by the DS concepts that rest on a "
+               "concept through hard concept edges (never by units). *Taught*: introduced by some unit, or covered inside a taught "
+               "topic it is part of.")
+        self.p()
+        tiers = ["application", "core", "supporting", "peripheral"]
+        rows = []
+        for t in tiers:
+            cs = [r for r in f["concepts"].values() if r["tier"] == t]
+            rows.append([t, len(cs), sum(r["taught"] == "unit" for r in cs), sum(r["taught"] == "parent" for r in cs),
+                         sum(r["taught"] is None for r in cs)])
+        self.table(["tier", "concepts", "taught", "within a taught topic", "not taught"], rows)
+        gaps = sorted(((cid, r) for cid, r in f["concepts"].items() if r["taught"] is None and r["tier"] in ("application", "core")),
+                      key=lambda kv: (tiers.index(kv[1]["tier"]), -kv[1]["score"], kv[0]))
+        if gaps:
+            self.h(3, "DS concepts no unit teaches")
+            self.p("Application and core concepts of the field that no unit introduces, most load-bearing first.")
+            self.p()
+            self.table(["concept", "domain", "tier", "score", "DS concepts resting on it"],
+                       [[f"`{cid}`", self.nodes[cid]["domain"], r["tier"], f"{r['score']:.2f}", r["reach"]] for cid, r in gaps[:40]])
 
     def ds_relevance(self):
         ds = self.d.get("ds_relevance")
@@ -214,6 +239,7 @@ class Report:
 
     def render(self) -> str:
         self.summary(); self.coverage(); self.unmet(); self.variants(); self.coupling(); self.concepts(); self.roadmap(); self.ds_relevance()
+        self.ds_field()
         return "\n".join(self.lines).strip() + "\n"
 
 

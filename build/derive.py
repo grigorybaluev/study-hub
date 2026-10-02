@@ -194,20 +194,24 @@ def variant_analysis(g: Graph, idx: dict, program: dict, variant: dict) -> dict:
 
 # --------------------------------------------------------------------------- roadmap coverage
 def roadmap_coverage(g: Graph, idx: dict, variants: dict) -> dict:
-    """Per roadmap skill: which concepts map to it, which courses introduce them, and the first term
-    per variant. status: covered (all mapped concepts introduced, more than two of them), thin (all
-    introduced but only one or two concepts map), partial (some introduced), gap (mapped, none
-    introduced), unmapped (no concept maps to it)."""
+    """Per roadmap skill: which program concepts map to it, which courses introduce them, and the
+    first term per variant. status: covered (all mapped program concepts introduced, more than two
+    of them), thin (all introduced but only one or two map), partial (some introduced), gap (none
+    introduced, or only field concepts map to it), unmapped (no concept maps to it). field_concepts:
+    the concepts mapped to it that no unit touches (#173), the field the program does not reach."""
+    program = program_concepts(idx)
     out = {}
     for rm in g.by_type["roadmap"]:
         skills = {}
         for node in g.by_type["roadmap_node"]:
             if node["roadmap"] != rm["id"] or node["level"] != "skill":
                 continue
-            concepts = sorted(e["from"] for e in g.inc[(node["id"], "maps_to")])
+            mapped = sorted(e["from"] for e in g.inc[(node["id"], "maps_to")])
+            concepts = [c for c in mapped if c in program]
+            field = [c for c in mapped if c not in program]
             introduced = [c for c in concepts if idx[c]["introduced_by"]]
             courses = sorted({g.course_of(u) for c in introduced for u in idx[c]["introduced_by"]})
-            status = ("unmapped" if not concepts else "gap" if not introduced
+            status = ("unmapped" if not mapped else "gap" if not introduced
                       else "partial" if len(introduced) < len(concepts)
                       else "thin" if len(concepts) <= 2 else "covered")
             first_term = {}
@@ -216,7 +220,7 @@ def roadmap_coverage(g: Graph, idx: dict, variants: dict) -> dict:
                 first_term[vid] = min(terms) if terms else None
             skills[node["id"]] = {"area": node["parent"], "title": node["title"], "order": node["order"], "status": status,
                                   "concepts": concepts, "missing": sorted(set(concepts) - set(introduced)),
-                                  "courses": courses, "first_term": first_term}
+                                  "field_concepts": field, "courses": courses, "first_term": first_term}
         out[rm["id"]] = {"skills": skills, "summary": dict(sorted(
             __import__("collections").Counter(s["status"] for s in skills.values()).items()))}
     return out
@@ -253,8 +257,30 @@ def _betweenness(nodes: list[str], succ: dict[str, list[str]]) -> dict[str, floa
     return {v: cb[v] / scale for v in nodes}
 
 
+def program_concepts(idx: dict) -> set[str]:
+    """Concepts some unit introduces, requires or reinforces; the rest are field vocabulary (#173)."""
+    return {c for c, d in idx.items() if d["introduced_by"] or d["reinforced_by"] or d["required_by"]}
+
+
+def _targets(g: Graph) -> tuple[set[str], list[str]]:
+    """Roadmap nodes with role target (a skill inherits its area's role), and the target skills."""
+    target_nodes = {n["id"] for n in g.by_type["roadmap_node"] if n.get("role") == "target"}
+    return target_nodes, sorted(n["id"] for n in g.by_type["roadmap_node"] if n["level"] == "skill" and n["id"] in target_nodes)
+
+
+def _score(rows: dict[str, dict], weight: str, reach: str) -> None:
+    """score in [0, 1]: weight, reach and betweenness blended on a log scale (0.5 / 0.3 / 0.2)."""
+    import math
+    mx_w = max((r[weight] for r in rows.values()), default=1) or 1
+    mx_r = max((r[reach] for r in rows.values()), default=1) or 1
+    mx_b = max((r["betweenness"] for r in rows.values()), default=1) or 1
+    for r in rows.values():
+        r["score"] = round(0.5 * math.log1p(r[weight]) / math.log1p(mx_w) + 0.3 * math.log1p(r[reach]) / math.log1p(mx_r)
+                           + 0.2 * math.log1p(r["betweenness"] * 100) / math.log1p(mx_b * 100), 3)
+
+
 def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
-    """How much each concept matters for data science.
+    """How much each concept the program touches matters for data science.
 
     Anchors: concepts that map to a roadmap skill with `role: target` (a skill inherits its area's
     role). DS units: the units introducing an anchor. Dependency is followed upward along hard
@@ -266,11 +292,14 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
     resting on it. Betweenness on the whole dependency graph says how load-bearing it is. score
     in [0, 1] blends ds_weight, ds_reach and betweenness on a log scale.
     Tiers: application = anchor; core = ds_weight >= CORE_WEIGHT; supporting = some path into DS;
-    peripheral = none."""
-    target_nodes = {n["id"] for n in g.by_type["roadmap_node"] if n.get("role") == "target"}
-    targets = sorted(n["id"] for n in g.by_type["roadmap_node"] if n["level"] == "skill" and n["id"] in target_nodes)
+    peripheral = none. Only program concepts take part: field vocabulary no unit touches is scored
+    by ds_field instead."""
+    target_nodes, targets = _targets(g)
+    # dependency is followed through every concept, so a chain that passes a field concept still
+    # counts, but only program concepts are scored, anchored and reported
     concepts = [c["id"] for c in g.by_type["concept"]]
-    anchors = {c for c in concepts if any(e["to"] in target_nodes for e in g.out[(c, "maps_to")])}
+    in_program = program_concepts(idx)
+    anchors = {c for c in concepts if c in in_program and any(e["to"] in target_nodes for e in g.out[(c, "maps_to")])}
     ds_units = sorted({u for a in anchors for u in idx[a]["introduced_by"]})
 
     # up[a] = concepts that rest on a (hard dependency or generalization); down = the reverse
@@ -309,7 +338,7 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
 
     bet = _betweenness(concepts, down_all)
     rows = {}
-    for c in concepts:
+    for c in sorted(in_program):
         dist = dependants(c)
         unit_dist: dict[str, int] = {}
         for x, dx in dist.items():
@@ -325,14 +354,8 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
         rows[c] = {"anchor": c in anchors, "ds_units": len(unit_dist), "ds_weight": round(sum(1 / d for d in unit_dist.values()), 2),
                    "ds_reach": len(reach), "betweenness": round(bet[c], 4),
                    "in_degree": len(up[c]), "out_degree": len(down[c]), "via": reach[:6]}
-    import math
-    mx_w = max((r["ds_weight"] for r in rows.values()), default=1) or 1
-    mx_r = max((r["ds_reach"] for r in rows.values()), default=1) or 1
-    mx_b = max((r["betweenness"] for r in rows.values()), default=1) or 1
+    _score(rows, "ds_weight", "ds_reach")
     for c, r in rows.items():
-        score = (0.5 * math.log1p(r["ds_weight"]) / math.log1p(mx_w) + 0.3 * math.log1p(r["ds_reach"]) / math.log1p(mx_r)
-                 + 0.2 * math.log1p(r["betweenness"] * 100) / math.log1p(mx_b * 100))
-        r["score"] = round(score, 3)
         if r["anchor"]:
             r["tier"] = "application"
         elif r["ds_units"] == 0 and r["ds_reach"] == 0:
@@ -343,7 +366,7 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
             r["tier"] = "supporting"
 
     courses: dict[str, dict] = {}
-    for c in concepts:
+    for c in sorted(in_program):
         for course in sorted({g.course_of(u) for u in idx[c]["introduced_by"]}):   # once per course, however many of its units introduce c
             cs = courses.setdefault(course, {"application": 0, "core": 0, "supporting": 0, "peripheral": 0, "concepts": 0})
             cs[rows[c]["tier"]] += 1
@@ -353,6 +376,81 @@ def ds_relevance(g: Graph, idx: dict, deps: list[dict]) -> dict:
 
 
 CORE_WEIGHT = 3.0   # a non-anchor concept is core DS when its depth-weighted DS reach is at least this
+
+
+def ds_field(g: Graph, idx: dict, deps: list[dict]) -> dict:
+    """How much each concept matters for data science as a field, whatever any program teaches (#173).
+
+    Every concept takes part. Anchors are the concepts mapped to a target skill, as in ds_relevance.
+    A concept rests on another along hard concept_depends_on edges (authored or derived from units:
+    both are knowledge edges), along generalizes (the general rests on the special case) and along
+    part_of (a named method rests on its topic, so a topic gains weight from its methods but a method
+    does not inherit everything resting on the topic). field_weight sums 1/d over the anchors resting on a concept
+    at distance d, so it counts concepts, never units; reach counts those anchors. Betweenness is
+    taken on the whole concept graph, soft edges included. Tiers as in ds_relevance, with
+    FIELD_CORE_WEIGHT. taught: introduced by some unit ("unit"), covered inside a taught whole it is
+    part_of ("parent"), or not taught (null)."""
+    from collections import deque
+    target_nodes, targets = _targets(g)
+    concepts = [c["id"] for c in g.by_type["concept"]]
+    anchors = {c for c in concepts if any(e["to"] in target_nodes for e in g.out[(c, "maps_to")])}
+
+    up: dict[str, set[str]] = {c: set() for c in concepts}        # up[a] = concepts resting on a (hard)
+    down_all: dict[str, set[str]] = {c: set() for c in concepts}  # what each concept rests on, soft included
+    for e in deps:
+        down_all[e["from"]].add(e["to"])
+        if e["strength"] == "hard":
+            up[e["to"]].add(e["from"])
+    for e in g.edges:
+        if e["type"] == "generalizes":
+            up[e["to"]].add(e["from"])
+            down_all[e["from"]].add(e["to"])
+        elif e["type"] == "part_of":
+            up[e["to"]].add(e["from"])
+            down_all[e["from"]].add(e["to"])
+
+    bet = _betweenness(concepts, {c: sorted(v) for c, v in down_all.items()})
+    rows = {}
+    for c in concepts:
+        dist = {c: 0}
+        q = deque([c])
+        while q:
+            x = q.popleft()
+            for y in up[x]:
+                if y not in dist:
+                    dist[y] = dist[x] + 1
+                    q.append(y)
+        reach = sorted((a for a in dist if a in anchors and a != c), key=lambda a: (dist[a], a))
+        rows[c] = {"anchor": c in anchors, "field_weight": round(sum(1 / dist[a] for a in reach), 2), "reach": len(reach),
+                   "betweenness": round(bet[c], 4), "in_degree": len(up[c]), "out_degree": len(down_all[c]), "via": reach[:6]}
+    _score(rows, "field_weight", "reach")
+
+    wholes = {c: [e["to"] for e in g.out[(c, "part_of")]] for c in concepts}
+
+    def taught_within(c: str) -> str | None:
+        seen, todo = {c}, list(wholes[c])
+        while todo:
+            w = todo.pop(0)
+            if w in seen:
+                continue
+            seen.add(w)
+            if idx[w]["introduced_by"]:
+                return w
+            todo += wholes[w]
+        return None
+
+    for c, r in rows.items():
+        r["tier"] = ("application" if r["anchor"] else "peripheral" if r["reach"] == 0
+                     else "core" if r["field_weight"] >= FIELD_CORE_WEIGHT else "supporting")
+        within = None if idx[c]["introduced_by"] else taught_within(c)
+        r["taught"] = "unit" if idx[c]["introduced_by"] else "parent" if within else None
+        if within:
+            r["taught_within"] = within
+    return {"targets": targets, "anchors": sorted(anchors), "core_weight": FIELD_CORE_WEIGHT, "concepts": rows}
+
+
+FIELD_CORE_WEIGHT = 8.0   # a non-anchor concept is core to the field when the anchors resting on it weigh at least this:
+#                           there are far more anchors than DS units, so the bar sits higher than CORE_WEIGHT
 
 
 # --------------------------------------------------------------------------- main
@@ -374,6 +472,7 @@ def derive(data: dict) -> dict:
         "variants": variants,
         "roadmap_coverage": roadmap_coverage(g, idx, variants),
         "ds_relevance": ds_relevance(g, idx, deps),
+        "ds_field": ds_field(g, idx, deps),
     }
 
 
@@ -396,6 +495,10 @@ def main(graph: Path = GRAPH, out: Path = OUT) -> int:
     ds = d["ds_relevance"]
     tiers = __import__("collections").Counter(r["tier"] for r in ds["concepts"].values())
     print(f"ds relevance: {len(ds['anchors'])} anchors, {len(ds['ds_units'])} DS units; tiers {dict(sorted(tiers.items()))}")
+    f = d["ds_field"]
+    tiers = __import__("collections").Counter(r["tier"] for r in f["concepts"].values())
+    taught = __import__("collections").Counter(str(r["taught"]) for r in f["concepts"].values())
+    print(f"ds field: {len(f['anchors'])} anchors; tiers {dict(sorted(tiers.items()))}; taught {dict(sorted(taught.items()))}")
     return 0
 
 

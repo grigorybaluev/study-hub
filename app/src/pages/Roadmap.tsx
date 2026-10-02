@@ -37,6 +37,11 @@ export default function Roadmap() {
                   <div className="small" style={{ marginTop: "0.4em" }}>
                     {c.courses.length > 0 ? c.courses.map((cid) => <CourseChip key={cid} id={cid} />) : <span className="faint">not taught</span>}
                   </div>
+                  {c.field_concepts.length > 0 && (
+                    <div className="small muted" style={{ marginTop: "0.3em" }} title={`Concepts of the field mapped to this skill that no unit teaches (#173)`}>
+                      + {c.field_concepts.length} field concept{c.field_concepts.length === 1 ? "" : "s"} the program does not teach
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -66,7 +71,8 @@ function SkillPage({ skill, cov }: { skill: RoadmapSkillNode; cov: SkillCoverage
       {mapped.length === 0 ? <p className="muted">No concept maps to this skill yet.</p> : (
         <ul>
           {mapped.map((cid) => (
-            <li key={cid}><ConceptChip id={cid} /> {cov.missing.includes(cid) ? <Badge kind="gap">not taught</Badge> : null}</li>
+            <li key={cid}><ConceptChip id={cid} /> {cov.missing.includes(cid) ? <Badge kind="gap">not taught</Badge>
+              : cov.field_concepts.includes(cid) ? <FieldBadge id={cid} /> : null}</li>
           ))}
         </ul>
       )}
@@ -76,4 +82,12 @@ function SkillPage({ skill, cov }: { skill: RoadmapSkillNode; cov: SkillCoverage
       )}
     </>
   );
+}
+
+/** A field concept (#173): taught inside a topic it is part of, or not taught at all. */
+function FieldBadge({ id }: { id: string }) {
+  const d = useData();
+  const f = d.derived.ds_field?.concepts[id];
+  if (f?.taught === "parent" && f.taught_within) return <span className="small muted">taught within <ConceptChip id={f.taught_within} /></span>;
+  return <Badge kind="outline">field · not taught</Badge>;
 }

@@ -203,6 +203,30 @@ export interface DsRelevance {
   courses: Record<string, Record<DsTier | "concepts", number>>;
 }
 
+/** Field relevance of one concept (#173): every concept takes part, whatever a program teaches. */
+export interface DsFieldConcept {
+  anchor: boolean;
+  tier: DsTier;
+  score: number;          // 0..1
+  field_weight: number;   // sum of 1/distance over the anchor concepts resting on it
+  reach: number;          // anchor concepts resting on it
+  betweenness: number;
+  in_degree: number;
+  out_degree: number;
+  /** nearest anchor concepts that rest on it */
+  via: string[];
+  /** "unit" = some unit introduces it; "parent" = covered inside a taught whole it is part_of; null = not taught */
+  taught: "unit" | "parent" | null;
+  taught_within?: string;
+}
+
+export interface DsField {
+  targets: string[];
+  anchors: string[];
+  core_weight: number;
+  concepts: Record<string, DsFieldConcept>;
+}
+
 export interface CourseUses {
   from: string;
   to: string;
@@ -247,8 +271,11 @@ export interface SkillCoverage {
   title: string;
   order: number[];
   status: SkillStatus;
+  /** program concepts mapped to the skill: some unit introduces, requires or reinforces them */
   concepts: string[];
   missing: string[];
+  /** concepts mapped to the skill that no unit touches (#173): the field the program does not reach */
+  field_concepts: string[];
   courses: string[];
   first_term: Record<string, number | null>;
 }
@@ -262,5 +289,7 @@ export interface Derived {
   unmet: Unmet[];
   variants: Record<string, VariantAnalysis>;
   roadmap_coverage: Record<string, { skills: Record<string, SkillCoverage>; summary: Record<string, number> }>;
+  /** over program concepts only: those some unit introduces, requires or reinforces */
   ds_relevance: DsRelevance;
+  ds_field: DsField;
 }

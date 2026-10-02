@@ -21,6 +21,10 @@ class Report:
     def __init__(self):
         self.errors: list[str] = []
         self.warnings: list[str] = []
+        self.notes: list[str] = []      # informational summaries, never a failure
+
+    def note(self, msg):
+        self.notes.append(msg)
 
     def error(self, where, msg):
         self.errors.append(f"{_rel(where)}: {msg}")
@@ -576,8 +580,21 @@ def lint_findings(c: Content, rep: Report):
         if concept not in introduced:
             rep.warn(f"concept {concept}", f"required (hard) by {len(units)} unit(s) but introduced nowhere: "
                                             + ", ".join(units[:3]) + (" …" if len(units) > 3 else ""))
-    for slug in sorted(c.concepts.keys() - referenced):
-        rep.warn(c.concepts[slug].path, "concept is not referenced by any unit")
+    # a concept no unit references is field vocabulary (#173) when it is linked into the graph:
+    # mapped to the roadmap, or joined to another concept by requires / part_of / generalizes
+    linked: set[str] = set()
+    for slug, doc in c.concepts.items():
+        targets = [e["concept"] for key in ("requires", "part_of", "generalizes") for e in edge_entries(doc.meta.get(key))
+                   if e["concept"] in c.concepts]
+        if targets or doc.meta.get("maps_to"):
+            linked.add(slug)
+        linked.update(targets)
+    field = sorted(c.concepts.keys() - referenced)
+    for slug in field:
+        if slug not in linked:
+            rep.warn(c.concepts[slug].path, "concept is not referenced by any unit and not linked to any concept or skill")
+    if field:
+        rep.note(f"{len(field)} concept(s) are not referenced by any unit: field vocabulary for the DS map (#173)")
 
 
 # --------------------------------------------------------------------------- cycles (11)
@@ -632,6 +649,8 @@ def main() -> int:
         print(f"warning: {w}")
     for e in rep.errors:
         print(f"error: {e}")
+    for n in rep.notes:
+        print(f"note: {n}")
     print(f"\n{len(rep.errors)} error(s), {len(rep.warnings)} warning(s)")
     return 1 if rep.errors else 0
 
