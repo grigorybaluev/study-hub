@@ -4,7 +4,7 @@ domain: statistics
 wikipedia: "Monte Carlo integration"
 short: "MC integration"
 aliases: ["importance sampling"]
-requires: [{concept: variance, strength: soft}]
+requires: [{concept: variance, strength: soft}, law-of-large-numbers]
 maps_to: [study-hub/ds-core/simulation]
 ---
 

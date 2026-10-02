@@ -2,8 +2,8 @@
 title: Mixture model
 domain: ml
 wikipedia: "Mixture model"
-aliases: ["Gaussian mixture model", "GMM", "expectation–maximization", "EM algorithm"]
-requires: [{concept: cluster-analysis, strength: soft}, {concept: conditional-expectation, strength: soft}, {concept: bayes-theorem, strength: soft}]
+aliases: ["Gaussian mixture model", "GMM", "mixture component", "soft clustering"]
+requires: [{concept: cluster-analysis, strength: soft}, {concept: expectation-maximization, strength: soft}, {concept: bayes-theorem, strength: soft}, {concept: multivariate-normal-distribution, strength: soft}]
 maps_to: [study-hub/ds-core/unsupervised-learning]
 ---
 
