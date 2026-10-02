@@ -1,7 +1,6 @@
 ---
 title: Feature importance
 domain: ml
-wikipedia: "Permutation feature importance"
 aliases: ["permutation importance", "impurity importance", "variable importance"]
 part_of: [explainable-ai]
 requires: [{concept: random-forest, strength: soft}]

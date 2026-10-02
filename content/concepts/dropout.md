@@ -1,8 +1,8 @@
 ---
 title: Dropout
 domain: ml.deep
-wikipedia: "Dilution (neural networks)"
-aliases: ["dropout regularization", "dilution (neural networks)"]
+wikipedia: "Dropout (neural networks)"
+aliases: ["dropout regularization", "dilution (neural networks)", "dropout (neural networks)"]
 part_of: [regularization]
 requires: [neural-network]
 maps_to: [study-hub/ds-core/neural-networks]
