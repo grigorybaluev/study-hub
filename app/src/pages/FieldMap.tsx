@@ -313,9 +313,10 @@ function build(d: Data, layout: FieldLayout | null, name: LayoutName, edges: Fie
 }
 
 /** Domain links (#179): the hard dependencies from one domain's concepts to another's, one curved line per
- *  pair with at least LINK_MIN of them, from an anchor at each cluster — its centre on the radial map, its
- *  title on the network, and below its column on the grid, where the lines arc under the table. Width is
- *  set in screen pixels at the fitted zoom (half a pixel plus the square root of the count). */
+ *  pair with at least LINK_MIN of them, between the anchors the layout gives each domain — its cluster
+ *  centre on the radial map (its title placed against it), its title on the network, and below its column
+ *  on the grid, where the lines arc under the table. Width is set in screen pixels at the fitted zoom
+ *  (half a pixel plus the square root of the count). */
 function domainLinks(d: Data, layout: FieldLayout, name: LayoutName, edges: FieldEdgeRow[], theme: "light" | "dark", fitZoom: number): ElementDefinition[] {
   const dom = new Map(d.concepts.map((c) => [c.id, c.domain]));
   const counts = new Map<string, number>();
@@ -327,16 +328,7 @@ function domainLinks(d: Data, layout: FieldLayout, name: LayoutName, edges: Fiel
   }
   const strong = [...counts].filter(([, n]) => n >= LINK_MIN);
   const domains = [...new Set(strong.flatMap(([k]) => k.split(">")))];
-  const rowsBottom = Math.max(0, ...layout.decorations.filter((x) => x.kind === "rowband").map((x) => x.y + x.h / 2));
-  const anchor = new Map<string, { x: number; y: number }>();
-  for (const dm of domains) {
-    const members = d.concepts.filter((c) => c.domain === dm).map((c) => layout.nodes.get(c.id)).filter((p): p is NonNullable<typeof p> => !!p);
-    const centre = { x: members.reduce((a, p) => a + p.x, 0) / members.length, y: members.reduce((a, p) => a + p.y, 0) / members.length };
-    const title = layout.decorations.find((x) => x.id === `region:${dm}`);
-    const head = layout.decorations.find((x) => x.id === `head:${dm}`);
-    anchor.set(dm, name === "network" && title ? { x: title.x, y: title.y }
-      : name === "grid" && head ? { x: head.x, y: rowsBottom + 50 } : centre);
-  }
+  const anchor = layout.anchors;
   const els: ElementDefinition[] = domains.map((dm) => ({ classes: "anchor", data: { id: `anchor:${dm}` }, position: anchor.get(dm)! }));
   const scale = 1 / fitZoom;
   for (const [k, n] of strong) {

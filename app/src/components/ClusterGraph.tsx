@@ -14,7 +14,7 @@ import { useTheme } from "./GraphView";
 import { TITLE_FONT } from "./domains";
 
 /** a pair of domains gets a link from this many dependencies between their visible concepts */
-export const LINK_MIN = 5;
+export const LINK_MIN = 3;
 
 export type Lod = 0 | 1 | 2;
 export const LOD_LABEL: Record<Lod, string> = { 0: "overview", 1: "regions", 2: "detail" };

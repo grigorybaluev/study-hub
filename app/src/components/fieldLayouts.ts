@@ -51,6 +51,8 @@ export interface Decoration {
 export interface FieldLayout {
   nodes: Map<string, PlacedNode>;
   decorations: Decoration[];
+  /** where a domain's links attach: its cluster centre (radial), its title (network), under its column (grid) */
+  anchors: Map<string, { x: number; y: number }>;
 }
 
 export interface FieldEdge { from: string; to: string }
@@ -144,7 +146,9 @@ function gridLayout(items: FieldItem[]): FieldLayout {
       fStart = i + 1;
     }
   });
-  return { nodes, decorations };
+  const below = rowY[3] + rowH[3] + ROW_GAP * 0.35 + 50;
+  const anchors = new Map(domains.map((dm) => [dm, { x: colX.get(dm)! + (k.get(dm)! * (CELL_W + CELL_GAP) - CELL_GAP) / 2, y: below }]));
+  return { nodes, decorations, anchors };
 }
 
 // ---------------------------------------------------------------- radial
@@ -234,12 +238,28 @@ function radialLayout(items: FieldItem[]): FieldLayout {
     const outer = (rOut[t] + rIn[t + 1]) / 2;
     decorations.push({ id: `guide:${t}`, kind: "guide", label: "", x: 0, y: 0, w: 2 * outer, h: 2 * outer * 0.82, shape: "ellipse", tier: t });
   });
-  // each domain's title sits just outside its own cluster, on the wedge's middle line, pushed further
-  // out only if it would touch another title; where it crosses a neighbouring wedge, its halo keeps it legible
+  // each domain's links attach at its cluster's centre. Its title starts just outside the cluster on the
+  // wedge's middle line, then slides to that centre until the nearest point of its box is a small gap away:
+  // on each axis where the centre lies outside the box, the box moves until that side meets it, so a title
+  // below and to the right ends with its top-left corner at the point, and one straight below keeps its x
+  // and brings its top edge up. A title that would touch another title or cover another domain's anchor
+  // stops part of the way, on the same path.
   const fs = Math.max(32, maxR * 0.036);
+  const anchors = new Map<string, { x: number; y: number }>();
+  for (const dm of domains) {
+    const members = items.filter((n) => n.domain === dm).map((n) => nodes.get(n.id)!);
+    anchors.set(dm, { x: members.reduce((a, q) => a + q.x, 0) / members.length, y: members.reduce((a, q) => a + q.y, 0) / members.length });
+  }
+  const gap = fs * 0.3;
   const taken: { x: number; y: number; w: number; h: number }[] = [];
-  const clear = (x: number, y: number, w: number, h: number) =>
-    taken.every((q) => Math.abs(q.x - x) >= (q.w + w) / 2 + fs * 0.3 || Math.abs(q.y - y) >= (q.h + h) / 2 + fs * 0.15);
+  const boxGap = (cx: number, cy: number, w: number, h: number, px: number, py: number) =>
+    Math.hypot(Math.max(Math.abs(px - cx) - w / 2, 0), Math.max(Math.abs(py - cy) - h / 2, 0));
+  const clear = (x: number, y: number, w: number, h: number, own: string) =>
+    taken.every((q) => Math.abs(q.x - x) >= (q.w + w) / 2 + fs * 0.3 || Math.abs(q.y - y) >= (q.h + h) / 2 + fs * 0.15)
+    && [...anchors].every(([dm, a]) => dm === own || boxGap(x, y, w, h, a.x, a.y) >= gap);
+  /** move the box (centre c, half sizes hw, hh) until its nearest side or corner meets the point, axis by axis */
+  const snap = (c: number, half: number, point: number) =>
+    point < c - half ? point + gap + half : point > c + half ? point - gap - half : c;
   for (const dm of domains) {
     const [w0, w1] = wedge.get(dm)!;
     const mid = (w0 + w1) / 2;
@@ -247,16 +267,20 @@ function radialLayout(items: FieldItem[]): FieldLayout {
     const edge = Math.max(...members.map((q) => Math.hypot(q.x, q.y / 0.82)));
     const label = DOMAIN_LABEL[dm] ?? dm;
     const w = label.length * fs * TITLE_CHAR, h = fs * 1.25;
-    for (let rr = edge + fs * 0.6; rr < edge + 30 * fs; rr += fs * 0.25) {
-      const x = rr * Math.cos(mid) + (Math.cos(mid) * w) / 2, y = rr * Math.sin(mid) * 0.82 + (Math.sin(mid) * h) / 2;
-      if (clear(x, y, w, h)) {
+    const a = anchors.get(dm)!;
+    // the start, just outside the cluster, and the end, against the anchor
+    const x0 = (edge + fs) * Math.cos(mid) + (Math.cos(mid) * w) / 2, y0 = (edge + fs) * Math.sin(mid) * 0.82 + (Math.sin(mid) * h) / 2;
+    const x1 = snap(x0, w / 2, a.x), y1 = snap(y0, h / 2, a.y);
+    for (let f = 1; f >= -0.001; f -= 0.05) {
+      const x = x0 + (x1 - x0) * f, y = y0 + (y1 - y0) * f;
+      if (clear(x, y, w, h, dm)) {
         taken.push({ x, y, w, h });
         decorations.push({ id: `region:${dm}`, kind: "region", label, x, y, w, h: fs, fs, family: FAMILY_OF[dm], domain: dm });
         break;
       }
     }
   }
-  return { nodes, decorations };
+  return { nodes, decorations, anchors };
 }
 
 // ---------------------------------------------------------------- network
@@ -322,6 +346,7 @@ function networkLayout(items: FieldItem[], edges: FieldEdge[]): FieldLayout {
   const extent = Math.max(...xs.map((p) => Math.abs(p.x))) + Math.max(...xs.map((p) => Math.abs(p.y)));
   const fs = Math.max(28, extent * 0.021);
   const decorations: Decoration[] = [];
+  const anchors = new Map<string, { x: number; y: number }>();
   const taken: { x: number; y: number; w: number; h: number }[] = [];
   for (const dm of domains) {
     const members = items.filter((n) => n.domain === dm).map((n) => nodes.get(n.id)!);
@@ -335,11 +360,13 @@ function networkLayout(items: FieldItem[], edges: FieldEdge[]): FieldLayout {
       if (taken.every((q) => Math.abs(q.x - cx) >= (q.w + w) / 2 || Math.abs(q.y - y) >= (q.h + h) / 2)) {
         taken.push({ x: cx, y, w, h });
         decorations.push({ id: `region:${dm}`, kind: "region", label, x: cx, y, w, h: fs, fs, family: FAMILY_OF[dm], domain: dm });
+        anchors.set(dm, { x: cx, y });
         break;
       }
     }
+    if (!anchors.has(dm)) anchors.set(dm, { x: cx, y: cy });
   }
-  return { nodes, decorations };
+  return { nodes, decorations, anchors };
 }
 
 // ---------------------------------------------------------------- entry
