@@ -117,7 +117,8 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
     { selector: "edge[kind = 'gen']", style: { "line-style": "dashed", "line-color": "#8a63d2", "target-arrow-color": "#8a63d2" } },
     // every edge at once: straight lines without arrowheads, Cytoscape's fastest edges
     { selector: "edge.show", style: { display: "element", "curve-style": "haystack", "haystack-radius": 0, "target-arrow-shape": "none" } },
-    { selector: "edge.hi", style: { display: "element", opacity: 0.95, width: 2.2, "z-index": 42, "curve-style": "bezier", "target-arrow-shape": "triangle" } },
+    // highlighted edges stay behind the boxes like the others (concepts sit at z 10 and above)
+    { selector: "edge.hi", style: { display: "element", opacity: 0.95, width: 2.2, "z-index": 9, "curve-style": "bezier", "target-arrow-shape": "triangle" } },
     { selector: "edge.hi[kind = 'soft']", style: { opacity: 0.6 } },
     // the concept edges behind an open domain link wear the colour of the domain they come from
     { selector: "edge.hi.linkhi", style: { "line-color": "data(lc)", "target-arrow-color": "data(lc)", opacity: 0.8, width: 2 } },
@@ -126,11 +127,11 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
     { selector: "edge.meta", style: {
       display: "element", width: "data(width)", "line-color": "data(color)", "target-arrow-color": "data(color)", "target-arrow-shape": "triangle",
       "arrow-scale": 1.15, opacity: 0.5, "curve-style": "unbundled-bezier", "control-point-distances": "data(cpd)" as never,
-      "control-point-weights": 0.5 as never, "line-cap": "round" as never, "z-index": 20,
+      "control-point-weights": 0.5 as never, "line-cap": "round" as never, "z-index": 9,
     } },
     { selector: "edge.meta.hover", style: { opacity: 0.92 } },
     { selector: "edge.meta.dim", style: { opacity: 0.1 } },
-    { selector: "edge.meta.sel", style: { opacity: 0.95, "z-index": 25 } },
+    { selector: "edge.meta.sel", style: { opacity: 0.95 } },
     // last, so they win over the rules above: zoomed in, below the threshold, switched off, or a hidden concept's edge
     { selector: "edge.meta.zoomed, edge.meta.weak, edge.meta.off", style: { display: "none" } },
     { selector: "edge.filtered", style: { display: "none" } },
