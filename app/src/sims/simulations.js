@@ -723,19 +723,20 @@
   }
 
   // ══ MAST 218 — Conic sections (lecture 5) ═════════════════════
-  const n2 = v => (Math.abs(v) < 5e-3 ? 0 : v).toFixed(2);
+  const n2 = v => (Math.abs(v) < 5e-3 ? 0 : v).toFixed(2).replace('-', '−');
   // a point (u, v) in the conic's own axes → the plane: swap for a vertical major/transverse axis, then shift by (h, k)
   const placeConic = (vert, h, k) => (u, v) => (vert ? [h + v, k + u] : [h + u, k + v]);
   // frame the curve's half-extents (rx, ry) about the centre; equal scales, so Plotly widens whichever range the plot's shape needs
   const view = (h, k, rx, ry, extra) => ({ height: 520, xaxis: ax({ title: 'x', range: [h - rx, h + rx] }), yaxis: ax({ title: 'y', range: [k - ry, k + ry], scaleanchor: 'x', scaleratio: 1 }), legend: { orientation: 'h', y: -0.18 }, ...extra });
   const pts = (P, list) => ({ x: list.map(q => P(q[0], q[1])[0]), y: list.map(q => P(q[0], q[1])[1]) });
+  const markP = pp => ({ x: [pp[0]], y: [pp[1]], mode: 'markers', name: `P (${n2(pp[0])}, ${n2(pp[1])})`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } });
   function focalTraces(P, c, p) {
     const [f1, f2, pp] = [P(c, 0), P(-c, 0), P(p[0], p[1])];
     return [
       { x: [f1[0], pp[0]], y: [f1[1], pp[1]], mode: 'lines', name: `|PF₁| = ${Math.hypot(pp[0] - f1[0], pp[1] - f1[1]).toFixed(3)}`, line: { color: C_TAN, width: 2.5 } },
       { x: [f2[0], pp[0]], y: [f2[1], pp[1]], mode: 'lines', name: `|PF₂| = ${Math.hypot(pp[0] - f2[0], pp[1] - f2[1]).toFixed(3)}`, line: { color: C_ARROW, width: 2.5 } },
       { ...pts(P, [[c, 0], [-c, 0]]), mode: 'markers+text', text: ['F₁', 'F₂'], textposition: 'bottom center', textfont: { color: '#e5e7eb' }, name: `foci, c = ${c.toFixed(3)}`, marker: { color: '#c084fc', size: 10, symbol: 'diamond' } },
-      { x: [pp[0]], y: [pp[1]], mode: 'markers', name: `P (${n2(pp[0])}, ${n2(pp[1])})`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } },
+      markP(pp),
     ];
   }
 
@@ -788,14 +789,15 @@
   function conicParabola() {
     const id = 'conic-parabola';
     const pIn = val(id, 'p', 1), horiz = Math.round(val(id, 'horiz', 0)) === 1;
-    const h = val(id, 'h', 0), k = val(id, 'k', 0), t = val(id, 't', 1.5);
-    const p = Math.abs(pIn) < 0.05 ? (pIn < 0 ? -0.05 : 0.05) : pIn;        // p = 0 would put the focus on the directrix
+    const h = val(id, 'h', 0), k = val(id, 'k', 0), t = val(id, 't', 1.2);
+    const p = Math.abs(pIn) < 0.05 ? 0.05 : pIn;                        // p = 0 would put the focus on the directrix
     // the parabola's own axes: u across the axis, v along it, so (2pt, pt²) lies on u² = 4pv; a horizontal axis swaps them
     const P = placeConic(horiz, h, k), U = Math.sqrt(160 * Math.abs(p)), L = 60;
     const [u, v] = samplePath(s => s, s => s * s / (4 * p), -U, U, 400);
     const q = u.map((_, i) => P(u[i], v[i]));
     const pp = P(2 * p * t, p * t * t), F = P(0, p), foot = P(2 * p * t, -p);
     const dF = Math.hypot(pp[0] - F[0], pp[1] - F[1]), dL = Math.hypot(pp[0] - foot[0], pp[1] - foot[1]);
+    const f3 = x => (Math.round(x * 1e9) / 1e9).toFixed(3);              // both lengths are measured: equal ones print equal
     const opens = horiz ? (p > 0 ? 'right' : 'left') : (p > 0 ? 'up' : 'down');
     const directrix = horiz ? `x = ${n2(h - p)}` : `y = ${n2(k - p)}`;
     const vLabel = horiz ? (p > 0 ? 'middle left' : 'middle right') : (p > 0 ? 'bottom center' : 'top center');  // V's label on the directrix side
@@ -805,38 +807,40 @@
       { ...pts(P, [[-2 * p, p], [2 * p, p]]), mode: 'lines', name: `chord through F, length 4|p| = ${(4 * Math.abs(p)).toFixed(2)}`, line: { color: '#c084fc', width: 1.5, dash: 'dot' } },
       { x: q.map(z => z[0]), y: q.map(z => z[1]), mode: 'lines', name: horiz ? `(y − k)² = ${n2(4 * p)}(x − h)` : `(x − h)² = ${n2(4 * p)}(y − k)`, line: { color: C_PATH, width: 3 } },
       { x: [h], y: [k], mode: 'markers+text', text: ['V'], textposition: vLabel, textfont: { color: '#e5e7eb' }, name: `vertex (${n2(h)}, ${n2(k)})`, marker: { color: '#e5e7eb', size: 8 } },
-      { x: [F[0]], y: [F[1]], mode: 'markers+text', text: ['F'], textposition: 'top right', textfont: { color: '#e5e7eb' }, name: `focus (${n2(F[0])}, ${n2(F[1])})`, marker: { color: '#c084fc', size: 11, symbol: 'diamond' } },
-      { x: [pp[0], F[0]], y: [pp[1], F[1]], mode: 'lines', name: `|PF| = ${dF.toFixed(3)}`, line: { color: C_TAN, width: 2.5 } },
-      { x: [pp[0], foot[0]], y: [pp[1], foot[1]], mode: 'lines', name: `dist(P, directrix) = ${dL.toFixed(3)}`, line: { color: C_ARROW, width: 2.5 } },
-      { x: [foot[0]], y: [foot[1]], mode: 'markers', showlegend: false, hoverinfo: 'skip', marker: { color: C_ARROW, size: 7, symbol: 'square' } },
-      { x: [pp[0]], y: [pp[1]], mode: 'markers', name: `P (${n2(pp[0])}, ${n2(pp[1])})`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } },
+      { x: [F[0]], y: [F[1]], mode: 'markers+text', text: ['F'], textposition: 'top right', textfont: { color: '#e5e7eb' }, name: `focus (${n2(F[0])}, ${n2(F[1])})`, marker: { color: '#c084fc', size: 10, symbol: 'diamond' } },
+      { x: [pp[0], F[0]], y: [pp[1], F[1]], mode: 'lines', name: `|PF| = ${f3(dF)}`, line: { color: C_TAN, width: 2.5 } },
+      { x: [pp[0], foot[0]], y: [pp[1], foot[1]], mode: 'lines', legendgroup: 'dist', name: `dist(P, directrix) = ${f3(dL)}`, line: { color: C_ARROW, width: 2.5 } },
+      { x: [foot[0]], y: [foot[1]], mode: 'markers', legendgroup: 'dist', showlegend: false, hoverinfo: 'skip', marker: { color: C_ARROW, size: 7, symbol: 'square' } },
+      markP(pp),
     ];
-    const clamp = Math.abs(pIn) < 0.05 ? ` (p = 0 would put F on the directrix: held at ${n2(p)})` : '';
+    const held = p !== pIn ? ' (held: p ≠ 0)' : '';
     // a fixed frame, so a larger |p| shows as a wider curve and a shift as a moving vertex
-    Plotly.newPlot(el(id), traces, layout(view(0, 0, 10, 7.5, { title: `p = ${n2(p)}, opens ${opens}: focus (${n2(F[0])}, ${n2(F[1])}), directrix ${directrix}${clamp}<br>|PF| = ${dF.toFixed(3)} = dist(P, directrix) = ${dL.toFixed(3)}` })), cfg());
+    Plotly.newPlot(el(id), traces, layout(view(0, 0, 11, 7.5, { title: `p = ${n2(p)}${held}, opens ${opens}: focus (${n2(F[0])}, ${n2(F[1])}), directrix ${directrix}<br>|PF| = ${f3(dF)} = dist(P, directrix) = ${f3(dL)}` })), cfg());
   }
 
   // ── P19. One focus, one directrix, one ratio: r = ed / (1 ± e cos θ) or ed / (1 ± e sin θ) ─
   const conicKind = e => (e < 0.005 ? 'circle' : Math.abs(e - 1) < 0.005 ? 'parabola' : e < 1 ? 'ellipse' : 'hyperbola');
+  // directrix x = d, x = −d, y = d, y = −d: the rotation (cos, sin) onto it from the frame where it is x = d,
+  // the coordinate it fixes and the sign in the denominator
+  const DIRECTRIX = [[1, 0, 'x', '+'], [-1, 0, 'x', '−'], [0, 1, 'y', '+'], [0, -1, 'y', '−']];
   function conicPolar() {
     const id = 'conic-polar';
     const e = Math.max(0, val(id, 'e', 0.5)), s = val(id, 'd', 3), dir = Math.max(0, Math.min(3, Math.round(val(id, 'dir', 0))));
-    const th = val(id, 'theta', 0.5) * PI, keepEd = Math.round(val(id, 'keep', 0)) === 1, family = Math.round(val(id, 'family', 1)) === 1;
+    const tq = val(id, 'theta', 0.5), th = tq * PI, keepEd = Math.round(val(id, 'keep', 0)) === 1, family = Math.round(val(id, 'family', 1)) === 1;
     // keep = 0 holds the directrix, so the curve shrinks into the focus as e → 0; keep = 1 holds the numerator ed
     // (the curve's half-width at the focus), so the directrix recedes as e → 0 and e = 0 is the circle r = ed
-    const ell = keepEd ? s : e * s, d = keepEd ? (e > 1e-9 ? s / e : Infinity) : s;
-    const rot = [0, PI, PI / 2, -PI / 2][dir];                    // directrix x = d, x = −d, y = d, y = −d
-    const R = (x, y) => [x * Math.cos(rot) - y * Math.sin(rot), x * Math.sin(rot) + y * Math.cos(rot)];
-    const W = 2.6 * s, far = 40 * W, vertical = dir >= 2;
-    const sign = dir === 0 || dir === 2 ? '+' : '−', trig = vertical ? 'sin' : 'cos';
+    const ell = keepEd ? s : e * s, d = keepEd ? s / e : s, kind = conicKind(e);
+    const [cr, sr, axis, sign] = DIRECTRIX[dir], vertical = axis === 'y', trig = vertical ? 'sin' : 'cos';
+    const R = (x, y) => [x * cr - y * sr, x * sr + y * cr];
+    // the frame is fixed while ed ≤ d and grows with ed beyond, so the vertex near F and P at θ = π/2 stay in view
+    const W = 2.6 * Math.max(s, ell), far = 40 * W;
     // the curve where the directrix is x = d: r = ed / (1 + e cos φ), cut where the denominator changes sign;
     // the points with r < 0 are the far branch of a hyperbola
     const conic = (ee, ll) => {
       const X = [], Y = [];
       let prev = null;
-      for (let i = 0; i <= 1440; i++) {
-        const ph = 2 * PI * i / 1440, den = 1 + ee * Math.cos(ph), r = ll / den;
-        const ok = Math.abs(den) > 1e-4 && Math.abs(r) <= far;
+      for (let i = 0; i <= 720; i++) {
+        const ph = 2 * PI * i / 720, den = 1 + ee * Math.cos(ph), r = ll / den, ok = Math.abs(r) <= far;
         if (!ok || (prev !== null && Math.sign(den) !== Math.sign(prev))) { X.push(null); Y.push(null); }
         prev = den;
         if (!ok) continue;
@@ -847,51 +851,46 @@
     };
     const traces = [];
     if (family) {
-      const ghosts = (keepEd ? [0, 0.5, 1, 1.5] : [0.5, 1, 1.5]).filter(g => Math.abs(g - e) > 0.04);
+      const ghosts = (keepEd ? [0, 0.5, 1, 1.5] : [0.5, 1, 1.5]).filter(g => Math.abs(g - e) > 0.005);
       ghosts.forEach((g, i) => traces.push({ ...conic(g, keepEd ? s : g * s), mode: 'lines', legendgroup: 'family', showlegend: i === 0,
         name: `dotted: e = ${ghosts.join(', ')}, same focus and ${keepEd ? 'ed' : 'directrix'}`, hovertemplate: `e = ${g}: ${conicKind(g)}<extra></extra>`,
         line: { color: C_GHOST, width: 1.5, dash: 'dot' } }));
     }
-    if (isFinite(d)) {
-      const [a0, a1] = [R(d, -far), R(d, far)];
-      traces.push({ x: [a0[0], a1[0]], y: [a0[1], a1[1]], mode: 'lines', name: `directrix ${vertical ? 'y' : 'x'} = ${n2(dir % 2 ? -d : d)}`, line: { color: C_ARROW, width: 2, dash: 'dash' } });
-    }
+    if (isFinite(d)) traces.push({ ...pts(R, [[d, -far], [d, far]]), mode: 'lines', name: `directrix ${axis} = ${n2(sign === '+' ? d : -d)}`, line: { color: C_ARROW, width: 2, dash: 'dash' } });
     if (ell > 0) traces.push({ ...conic(e, ell), mode: 'lines', name: `r = ${n2(ell)} / (1 ${sign} ${n2(e)} ${trig} θ)`, line: { color: C_PATH, width: 3 } });
     // the vertices on the axis; for the ellipse and the hyperbola also the centre, a, b, c and (hyperbola) the asymptotes
-    if (ell > 0 && e >= 0.005) {
-      const vs = [[ell / (1 + e), 0]].concat(Math.abs(e - 1) >= 0.005 ? [[-ell / (1 - e), 0]] : []);
-      traces.push({ x: vs.map(z => R(z[0], z[1])[0]), y: vs.map(z => R(z[0], z[1])[1]), mode: 'markers', name: vs.length > 1 ? 'vertices' : 'vertex', marker: { color: '#e5e7eb', size: 7 } });
+    if (kind !== 'circle') {
+      const vs = [[ell / (1 + e), 0]].concat(kind === 'parabola' ? [] : [[-ell / (1 - e), 0]]);
+      traces.push({ ...pts(R, vs), mode: 'markers', name: vs.length > 1 ? 'vertices' : 'vertex', marker: { color: '#e5e7eb', size: 7 } });
     }
-    if (ell > 0 && e >= 0.005 && Math.abs(e - 1) >= 0.005) {
-      const a = ell / Math.abs(1 - e * e), c = e * a, b = ell / Math.sqrt(Math.abs(1 - e * e)), xc = -e * ell / (1 - e * e), C = R(xc, 0);
-      traces.push({ x: [C[0]], y: [C[1]], mode: 'markers', name: `centre: a = ${a.toFixed(2)}, b = ${b.toFixed(2)}, c = ${c.toFixed(2)}, c/a = ${(c / a).toFixed(2)}`, marker: { color: C_GHOST, size: 9, symbol: 'x' } });
-      if (e > 1) {
-        const m = Math.sqrt(e * e - 1);
-        [1, -1].forEach((sg, i) => {
-          const [p0, p1] = [R(xc - far, -sg * m * far), R(xc + far, sg * m * far)];
-          traces.push({ x: [p0[0], p1[0]], y: [p0[1], p1[1]], mode: 'lines', name: `asymptotes through the centre, slopes ±${(vertical ? 1 / m : m).toFixed(2)}`, showlegend: i === 0, line: { color: C_GHOST, width: 1.2, dash: 'dash' } });
-        });
+    if (kind === 'ellipse' || kind === 'hyperbola') {
+      const xc = -e * ell / (1 - e * e), a = ell / Math.abs(1 - e * e), b = ell / Math.sqrt(Math.abs(1 - e * e)), c = Math.abs(xc);
+      traces.push({ ...pts(R, [[xc, 0]]), mode: 'markers', name: `centre: a = ${a.toFixed(2)}, b = ${b.toFixed(2)}, c = ${c.toFixed(2)}, c/a = ${(c / a).toFixed(2)}`, marker: { color: C_GHOST, size: 9, symbol: 'x' } });
+      if (kind === 'hyperbola') {
+        const m = Math.sqrt(e * e - 1), A = pts(R, [[xc - far, -m * far], [xc + far, m * far], [xc - far, m * far], [xc + far, -m * far]]);
+        traces.push({ x: [A.x[0], A.x[1], null, A.x[2], A.x[3]], y: [A.y[0], A.y[1], null, A.y[2], A.y[3]], mode: 'lines', name: `asymptotes through the centre, slopes ±${(vertical ? 1 / m : m).toFixed(2)}`, line: { color: C_GHOST, width: 1.2, dash: 'dash' } });
       }
     }
-    traces.push({ x: [0], y: [0], mode: 'markers+text', text: ['F'], textposition: 'bottom right', textfont: { color: '#e5e7eb' }, name: 'focus at the pole', marker: { color: '#c084fc', size: 11, symbol: 'diamond' } });
+    traces.push({ x: [0], y: [0], mode: 'markers+text', text: ['F'], textposition: 'bottom right', textfont: { color: '#e5e7eb' }, name: 'focus at the pole', marker: { color: '#c084fc', size: 10, symbol: 'diamond' } });
     // P at polar angle θ: |PF| = |r|; a negative r puts P on the opposite ray, the far branch
-    traces.push({ x: [0, 1.5 * W * Math.cos(th)], y: [0, 1.5 * W * Math.sin(th)], mode: 'lines', name: `ray θ = ${(th / PI).toFixed(2)}π`, line: { color: '#94a3b8', width: 1, dash: 'dash' } });
-    const ph = th - rot, den = 1 + e * Math.cos(ph);
+    traces.push({ x: [0, 1.5 * W * Math.cos(th)], y: [0, 1.5 * W * Math.sin(th)], mode: 'lines', name: `ray θ = ${fracPi(tq)}`, line: { color: '#94a3b8', width: 1, dash: 'dash' } });
+    const cph = Math.cos(th) * cr + Math.sin(th) * sr, sph = Math.sin(th) * cr - Math.cos(th) * sr;   // θ seen from the frame of x = d
+    const den = 1 + e * cph;
     let second;
-    if (ell === 0) second = 'e = 0 with d kept: the curve has shrunk into the focus (keep ed instead to see the circle)';
-    else if (Math.abs(den) <= 1e-3) second = `1 ${sign} e ${trig} θ = 0 at θ = ${(th / PI).toFixed(2)}π: r is infinite, the curve runs off in this direction`;
+    if (ell === 0) second = 'e = 0 with d kept: the curve shrinks to the focus (keep = 1: the circle)';
+    else if (Math.abs(den) < 1e-9) second = `1 ${sign} e ${trig} θ = 0 at θ = ${fracPi(tq)}: r is infinite in this direction`;
     else {
-      const r = ell / den, P0 = [r * Math.cos(ph), r * Math.sin(ph)], PP = R(P0[0], P0[1]);
+      const r = ell / den, P0 = [r * cph, r * sph], PP = R(P0[0], P0[1]);
       traces.push({ x: [0, PP[0]], y: [0, PP[1]], mode: 'lines', name: `|PF| = |r| = ${Math.abs(r).toFixed(3)}${r < 0 ? ' (r < 0: the far branch)' : ''}`, line: { color: C_TAN, width: 2.5 } });
       if (isFinite(d)) {
-        const ft = R(d, P0[1]), dist = Math.abs(d - P0[0]);
-        traces.push({ x: [PP[0], ft[0]], y: [PP[1], ft[1]], mode: 'lines', name: `dist(P, directrix) = ${dist.toFixed(3)}`, line: { color: C_ARROW, width: 2.5 } });
+        const dist = Math.abs(d - P0[0]);
+        traces.push({ ...pts(R, [P0, [d, P0[1]]]), mode: 'lines', name: `dist(P, directrix) = ${dist.toFixed(3)}`, line: { color: C_ARROW, width: 2.5 } });
         second = `|PF| = ${Math.abs(r).toFixed(3)}, dist(P, directrix) = ${dist.toFixed(3)}, ratio = ${(Math.abs(r) / dist).toFixed(3)} = e`;
       } else second = `|PF| = ${Math.abs(r).toFixed(3)} = ed at every θ: a circle, its directrix at infinity`;
-      traces.push({ x: [PP[0]], y: [PP[1]], mode: 'markers', name: `P (${n2(PP[0])}, ${n2(PP[1])})`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } });
+      traces.push(markP(PP));
     }
-    const rule = e < 0.005 ? 'e = 0' : Math.abs(e - 1) < 0.005 ? 'e = 1' : `e = ${e.toFixed(2)} ${e < 1 ? '<' : '>'} 1`;
-    const head = `${ell === 0 ? 'a single point' : conicKind(e)}, ${rule}: d = ${isFinite(d) ? d.toFixed(2) : '∞'}, ed = ${ell.toFixed(2)}`;
+    const rule = kind === 'circle' ? 'e = 0' : kind === 'parabola' ? 'e = 1' : `e = ${e.toFixed(2)} ${e < 1 ? '<' : '>'} 1`;
+    const head = `${ell === 0 ? 'a single point' : kind}, ${rule}: d = ${isFinite(d) ? d.toFixed(2) : '∞'}, ed = ${ell.toFixed(2)}`;
     const [rx, ry] = vertical ? [0.62 * W, W] : [W, 0.62 * W];
     Plotly.newPlot(el(id), traces, layout(view(0, 0, rx, ry, { height: 560, title: `${head}<br>${second}` })), cfg());
   }

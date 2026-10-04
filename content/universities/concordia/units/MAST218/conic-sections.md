@@ -624,7 +624,7 @@ controls:
   - {id: horiz, label: "axis (0 vertical, 1 horizontal)", min: 0, max: 1, step: 1, default: 0, decimals: 0}
   - {id: h, label: "h (vertex x)", min: -3, max: 3, step: 0.5, default: 0, decimals: 1}
   - {id: k, label: "k (vertex y)", min: -3, max: 3, step: 0.5, default: 0, decimals: 1}
-  - {id: t, label: "P at t (2pt across the axis, pt² along it)", min: -2.5, max: 2.5, step: 0.01, default: 1.5, decimals: 2}
+  - {id: t, label: "P at t (2pt across the axis, pt² along it)", min: -2.5, max: 2.5, step: 0.01, default: 1.2, decimals: 2}
 note: 'Move P along the curve: its distances to the focus and to the directrix change together and stay equal. Raise |p| and the focus and the directrix move apart as the curve widens; the dotted chord through F is 4|p| long, the 4p of the equation. Take p below 0 and the curve turns to open the other way, still round the focus. The defaults are x² = 4y; for y² − 2y = 2x set the axis horizontal, p = 0.5, h = −0.5, k = 1, and for the vertex (2, 3) with focus (2, −1) set p = −4, h = 2, k = 3, t = −1, which puts P at (10, −1).'
 ```
 
@@ -644,7 +644,7 @@ def check(P, F, directrix):
     return hypot(P[0] - F[0], P[1] - F[1]), abs((P[0] if letter == "x" else P[1]) - c)
 
 F, ell, point = parabola(0, 0, 1)
-for t in (0, 0.5, 1.5, -2.5):
+for t in (0, 0.5, 1.2, -2.5):
     P = point(t)
     pf, dl = check(P, F, ell)
     print(f"t = {t:4}: P = ({P[0]:5.2f}, {P[1]:5.2f})  |PF| = {pf:.4f}  dist(P, directrix) = {dl:.4f}")
@@ -662,7 +662,7 @@ print(f"(x − 2)² = {4 * p}(y − 3), directrix {letter} = {c}: {P} on it: {(P
 # Output:
 #   t =    0: P = ( 0.00,  0.00)  |PF| = 1.0000  dist(P, directrix) = 1.0000
 #   t =  0.5: P = ( 1.00,  0.25)  |PF| = 1.2500  dist(P, directrix) = 1.2500
-#   t =  1.5: P = ( 3.00,  2.25)  |PF| = 3.2500  dist(P, directrix) = 3.2500
+#   t =  1.2: P = ( 2.40,  1.44)  |PF| = 2.4400  dist(P, directrix) = 2.4400
 #   t = -2.5: P = (-5.00,  6.25)  |PF| = 7.2500  dist(P, directrix) = 7.2500
 #   (y − 1)² = 2(x + 1/2): focus (0, 1), directrix x = -1
 #   (x − 2)² = -16(y − 3), directrix y = 7: (10, -1) on it: True, |PF| = 8, dist = 8
@@ -896,7 +896,7 @@ controls:
   - {id: theta, label: "P at θ (× π)", min: 0, max: 2, step: 0.01, default: 0.5, decimals: 2}
   - {id: keep, label: "as e moves, keep (0 d, 1 ed)", min: 0, max: 1, step: 1, default: 0, decimals: 0}
   - {id: family, label: "dotted family (0 off, 1 on)", min: 0, max: 1, step: 1, default: 1, decimals: 0}
-note: 'The focus F is at the pole and the yellow dashed line is the directrix. Slide e: below 1 the curve is an ellipse, at 1 a parabola, above 1 a hyperbola whose second branch, the points with r < 0, appears beyond the directrix. Slide θ: P moves along the curve and |PF| ÷ dist(P, directrix) stays e. The dotted curves keep everything but e. With keep = 0 the focus and the directrix stay put, so as e falls to 0 the curve shrinks into the focus. With keep = 1 the slider sets ed instead: every curve passes through the same two points beside the focus, the directrix comes in from infinity as e grows, and e = 0 is the circle r = ed. The defaults are the ellipse r = 3/(2 + cos θ); for the other two examples set e = 2, d = 5, directrix 3, and e = 2, d = 0.25, directrix 2.'
+note: 'The focus F is at the pole and the yellow dashed line is the directrix. Slide e: below 1 the curve is an ellipse, at 1 a parabola, above 1 a hyperbola, whose second branch (the points with r < 0) comes in from far beyond the directrix as e grows; with keep = 0 the frame widens with ed past e = 1. Slide θ: P moves along the curve and |PF| ÷ dist(P, directrix) stays e. The dotted curves keep everything but e. With keep = 0 the focus and the directrix stay put, so as e falls to 0 the curve shrinks into the focus. With keep = 1 the slider sets ed instead: every curve passes through the same two points beside the focus, the directrix comes in from infinity as e grows, and e = 0 is the circle r = ed. The defaults are the ellipse r = 3/(2 + cos θ); for the other two examples set e = 2, d = 5, directrix 3, and e = 2, d = 0.25, directrix 2.'
 ```
 
 ```python
