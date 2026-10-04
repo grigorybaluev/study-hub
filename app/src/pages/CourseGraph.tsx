@@ -1,6 +1,6 @@
 // The course graph: one column per term of a program variant, official prerequisites and co-requisites,
 // and the reliance derived from the units. Part of Explore, beside the DS Concept Map.
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { ElementDefinition, LayoutOptions } from "cytoscape";
 import GraphView, { FONT, boxLabel, tint, useTheme } from "../components/GraphView";
@@ -23,7 +23,8 @@ export default function CourseGraph() {
   const [selected, setSelected] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const theme = useTheme();
-  const elements = courseElements(d, variantId, theme);
+  // memoized: a new element list makes the graph rebuild and re-fit, which would undo every zoom
+  const elements = useMemo(() => courseElements(d, variantId, theme), [d, variantId, theme]);
   const open = (id: string) => { if (node(d, id)?.type === "course") nav(href.course(id)); };
   const help = "One column per term of the selected variant (assumed-prior and external courses on the left). Solid arrows: official prerequisites; dashed: co-requisites; faint: derived reliance. Click to highlight, double-click to open.";
   const variant = d.programs[0].variants.find((v) => v.id === variantId)!;

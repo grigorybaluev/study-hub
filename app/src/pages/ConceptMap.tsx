@@ -46,7 +46,8 @@ export default function ConceptMap() {
   const tiersOff = useMemo(() => new Set((params.get("off") ?? "").split(",").filter(Boolean)), [params]);
   const coverage = (params.get("cov") ?? "all") as Coverage;
   const mark = params.get("mark") === "1";
-  const edgeMode = params.get("edges") === "all" ? "all" : "focus";
+  // every edge shows once zoomed in, unless switched off (edges=focus: only the hovered or selected concept's)
+  const edgeMode = params.get("edges") === "focus" ? "focus" : "all";
   const links = params.get("links") !== "0";
   const set = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
@@ -150,7 +151,7 @@ export default function ConceptMap() {
           <input type="checkbox" checked={links} onChange={(e) => set({ links: e.target.checked ? null : "0" })} /> domain links
         </label>
         <label className="fieldmap-check" title="Show the dependency arrows of every visible concept once zoomed in (otherwise only for the hovered or selected one)">
-          <input type="checkbox" checked={edgeMode === "all"} onChange={(e) => set({ edges: e.target.checked ? "all" : null })} /> all edges
+          <input type="checkbox" checked={edgeMode === "all"} onChange={(e) => set({ edges: e.target.checked ? null : "focus" })} /> all edges
         </label>
         <button className="plain" onClick={() => { clearSavedPositions(positionsKey); setResetToken((t) => t + 1); }} title="Forget dragged positions for this layout">reset layout</button>
         <Link className="small" to="/explore/courses" title="The program's courses by term, with their prerequisites">Courses →</Link>
