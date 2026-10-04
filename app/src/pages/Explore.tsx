@@ -8,6 +8,7 @@ import { FONT } from "../components/GraphView";
 import { Badge, ConceptChip, CourseChip, UnitLink } from "../components/Chips";
 import { edgesIn, edgesOut, href, node, useData, type Data } from "../data/load";
 import type { ConceptNode, CourseNode, DsTier, UnitNode } from "../data/types";
+import { DOMAIN_COLOR, DOMAIN_ORDER, NEUTRAL } from "../components/domains";
 
 type View = "courses" | "concepts" | "units";
 /** concept view: layered rows (foundations at the bottom) or the concentric DS map (#155) */
@@ -15,14 +16,7 @@ type ConceptLayout = "layers" | "map";
 /** which tiers to show: everything, the DS cluster (application + core), or that plus supporting */
 type TierFilter = "all" | "ds" | "ds+";
 
-const DOMAIN_COLOR: Record<string, string> = {
-  "math.calculus": "#3b6fd6", "math.linear-algebra": "#5b8def", "math.discrete": "#7c5cd6", theory: "#a04fb5",
-  probability: "#d65c8c", statistics: "#d67f3b", programming: "#2f9e7a", algorithms: "#3f8f4f", systems: "#7a8a3b",
-  data: "#2f8fa3", ml: "#c9a227",
-};
-const DOMAIN_ORDER = ["math.discrete", "math.calculus", "math.linear-algebra", "probability", "statistics", "theory", "algorithms", "programming", "systems", "data", "ml"];
 const TERM_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4", "#f97316", "#84cc16", "#a855f7"];
-const NEUTRAL = "#94a3b8";
 export const TIERS: DsTier[] = ["application", "core", "supporting", "peripheral"];
 export const TIER_COLOR: Record<DsTier, string> = { application: "#d4a017", core: "#3f9e6e", supporting: "#6f8fc0", peripheral: "#9a9a9a" };
 export const TIER_LABEL: Record<DsTier, string> = { application: "DS application", core: "core foundation", supporting: "supporting", peripheral: "peripheral" };
@@ -98,7 +92,7 @@ export default function Explore() {
                 {d.courses.filter((c) => (d.unitsOf.get(c.id)?.length ?? 0) > 0).map((c) => <option key={c.id} value={"course:" + c.id}>{c.code} — {c.title}</option>)}
               </optgroup>
               <optgroup label="domain">
-                {[...new Set(d.concepts.map((c) => c.domain))].sort().map((dm) => <option key={dm} value={"domain:" + dm}>{dm}</option>)}
+                {[...new Set(d.concepts.filter((c) => d.derived.ds_relevance.concepts[c.id]).map((c) => c.domain))].sort().map((dm) => <option key={dm} value={"domain:" + dm}>{dm}</option>)}
               </optgroup>
             </select>
             <div className="tabs" title="Layout">
@@ -125,7 +119,7 @@ export default function Explore() {
           <span key={t} title={TIER_HELP[t]}><i style={{ background: band(TIER_COLOR[t], theme), borderColor: TIER_COLOR[t], borderRadius: "50%" }} />{TIER_LABEL[t]}</span>
         ))}
         {view === "concepts" && conceptLayout === "map" && <span className="explore-legend-sep" />}
-        {view === "concepts" && DOMAIN_ORDER.filter((dm) => d.concepts.some((c) => c.domain === dm)).map((dm) => (
+        {view === "concepts" && DOMAIN_ORDER.filter((dm) => d.concepts.some((c) => c.domain === dm && d.derived.ds_relevance.concepts[c.id])).map((dm) => (
           <span key={dm}><i style={{ background: tint(DOMAIN_COLOR[dm], theme), borderColor: DOMAIN_COLOR[dm] }} />{dm}</span>
         ))}
         {view === "courses" && (
@@ -375,14 +369,16 @@ function conceptElements(d: Data, theme: Theme, scope: string, layout: ConceptLa
   const tierOf = (id: string): DsTier => ds[id]?.tier ?? "peripheral";
   const passes = (id: string) => tierFilter === "all" || tierOf(id) === "application" || tierOf(id) === "core" || (tierFilter === "ds+" && tierOf(id) === "supporting");
   // focus set: the concepts in scope; context set: what they directly build on
+  // the program's concepts only: field vocabulary no unit touches has no row here (it lives on DS map 2, #173)
+  const program = d.concepts.filter((c) => ds[c.id]);
   let focus: Set<string>;
   if (scope.startsWith("course:")) {
     const cid = scope.slice(7);
     focus = new Set((d.unitsOf.get(cid) ?? []).flatMap((u) => edgesOut(d, u.id, "introduces").map((e) => e.to)));
   } else if (scope.startsWith("domain:")) {
-    focus = new Set(d.concepts.filter((c) => c.domain === scope.slice(7)).map((c) => c.id));
+    focus = new Set(program.filter((c) => c.domain === scope.slice(7)).map((c) => c.id));
   } else {
-    focus = new Set(d.concepts.map((c) => c.id));
+    focus = new Set(program.map((c) => c.id));
   }
   focus = new Set([...focus].filter(passes));
   const deps = d.derived.concept_depends_on.filter((e) => focus.has(e.from) && passes(e.to));
