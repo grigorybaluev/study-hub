@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, ConceptChip } from "../components/Chips";
-import { href, node, useData } from "../data/load";
+import { defaultVariantId, href, node, useData } from "../data/load";
 import type { CourseNode, UnitNode, VariantTerm } from "../data/types";
 
 const SEASON = { fall: "Fall", winter: "Winter", summer: "Summer" };
@@ -11,7 +11,7 @@ const SHOW_DEBT = false;
 export default function Home() {
   const d = useData();
   const program = d.programs[0];
-  const [vid, setVid] = useState(program.variants.find((v) => v.coop)?.id ?? program.variants[0].id);
+  const [vid, setVid] = useState(() => defaultVariantId(program));
   const variant = program.variants.find((v) => v.id === vid)!;
   const analysis = d.derived.variants[`${program.id}/${vid}`];
   const uni = d.universities.find((u) => u.id === program.university);

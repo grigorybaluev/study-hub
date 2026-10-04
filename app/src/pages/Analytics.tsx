@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Badge, ConceptChip, CourseChip, UnitLink } from "../components/Chips";
 import { node, useData } from "../data/load";
 import type { ConceptNode, DsTier } from "../data/types";
-import { TIERS, TIER_LABEL } from "./Explore";
+import { TIERS, TIER_LABEL } from "../components/tiers";
 
 const SEASON = { fall: "Fall", winter: "Winter", summer: "Summer" };
 
@@ -116,7 +116,7 @@ function DsRelevance() {
       <p className="muted small">
         Concepts mapped to a <em>target</em> skill of the roadmap are the data-science work itself ({ds.anchors.length} anchors, taught in {ds.ds_units.length} DS units).
         Every other concept is scored by how many DS units rest on it through hard dependencies, weighted by distance, plus how many DS concepts rest on it and its
-        betweenness in the dependency graph. <Link to="/explore">The DS map</Link> in Explore draws the tiers as concentric bands.
+        betweenness in the dependency graph. <Link to="/explore">The DS Concept Map</Link> in Explore places every concept of the field by these tiers, whatever the program teaches.
       </p>
       <table>
         <thead><tr>{TIERS.map((t) => <th key={t}>{TIER_LABEL[t]}</th>)}</tr></thead>

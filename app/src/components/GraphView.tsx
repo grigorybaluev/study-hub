@@ -65,14 +65,6 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
       "background-opacity": 0, "border-width": 0, "font-size": 12, "font-weight": "bold", color: fg,
       "text-valign": "center", events: "no",
     } },
-    // bands: large ellipses behind everything (concentric tiers of the DS map, #155)
-    { selector: "node.band", style: {
-      shape: "ellipse", "border-width": 0, "background-opacity": 1, events: "no", label: "", "z-index": 0,
-    } },
-    { selector: "node.band-label", style: {
-      "background-opacity": 0, "border-width": 0, "font-size": 12, "font-weight": "bold", color: "data(color)",
-      "text-valign": "center", events: "no", "z-index": 1, "text-transform": "uppercase" as never,
-    } },
     { selector: "node[?dim]", style: { opacity: 0.5 } },
     { selector: "node.dim", style: { opacity: 0.18 } },
     { selector: "node.hi", style: { "border-width": 3 } },
@@ -137,10 +129,10 @@ export default function GraphView({ elements, layout, onSelect, onOpen, highligh
     // remembered positions override the layout for the nodes that have them
     if (positionsKey) {
       const saved = loadSaved(positionsKey);
-      c.nodes().not(".band, .band-label, .header").forEach((n) => { const p = saved[n.id()]; if (p) n.position(p); });
+      c.nodes().not(".header").forEach((n) => { const p = saved[n.id()]; if (p) n.position(p); });
       c.on("dragfree", "node", () => {
         const all: Saved = { ...loadSaved(positionsKey) };
-        c.nodes().not(".band, .band-label, .header").forEach((n) => { all[n.id()] = n.position(); });
+        c.nodes().not(".header").forEach((n) => { all[n.id()] = n.position(); });
         storeSaved(positionsKey, all);
       });
     }
@@ -163,7 +155,7 @@ export default function GraphView({ elements, layout, onSelect, onOpen, highligh
     const n = c.getElementById(highlight);
     if (n.empty()) return;
     const hood = n.closedNeighborhood();
-    c.elements().not(hood).not(".band, .band-label, .header").addClass("dim");
+    c.elements().not(hood).not(".header").addClass("dim");
     n.addClass("hi");
     n.connectedEdges().addClass("hi");
   }, [highlight, elements]);
