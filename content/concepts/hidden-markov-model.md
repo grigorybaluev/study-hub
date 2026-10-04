@@ -4,7 +4,7 @@ domain: probability
 wikipedia: "Hidden Markov model"
 short: "HMM"
 aliases: ["HMM", "Viterbi algorithm", "forward–backward algorithm", "Baum–Welch algorithm"]
-requires: [markov-chain, conditional-probability, {concept: conditional-independence, strength: soft}]
+requires: [markov-chain, conditional-probability, {concept: conditional-independence, strength: soft}, {concept: dynamic-programming, strength: soft}]
 maps_to: [study-hub/ds-core/stochastic-processes, study-hub/ds-core/time-series]
 ---
 
