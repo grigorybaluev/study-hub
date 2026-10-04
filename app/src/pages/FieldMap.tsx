@@ -8,7 +8,7 @@ import type { ElementDefinition } from "cytoscape";
 import ClusterGraph, { LOD_LABEL, clearSavedPositions, type ClusterGraphHandle, type Lod } from "../components/ClusterGraph";
 import { tint, useTheme } from "../components/GraphView";
 import { LAYOUTS, TIER_NAMES, layoutField, type FieldEdge, type FieldItem, type FieldLayout, type LayoutName } from "../components/fieldLayouts";
-import { DOMAIN_LABEL, DOMAIN_ORDER, FAMILY_COLOR, FAMILY_LABEL, FAMILY_OF, fieldColor, type Family } from "../components/domains";
+import { DOMAIN_LABEL, DOMAIN_ORDER, FAMILY_COLOR, FAMILY_LABEL, FAMILY_OF, familyTitleColor, fieldColor, titleColor, type Family } from "../components/domains";
 import { Badge, UnitLink } from "../components/Chips";
 import { edgesOut, href, node, useData, type Data } from "../data/load";
 import type { ConceptNode, DsFieldConcept, DsTier, RoadmapSkillNode } from "../data/types";
@@ -37,7 +37,7 @@ export default function FieldMap() {
   const nav = useNavigate();
   const theme = useTheme();
   const [params, setParams] = useSearchParams();
-  const layoutName = (LAYOUTS.find((l) => l.id === params.get("layout"))?.id ?? "rings") as LayoutName;
+  const layoutName = (LAYOUTS.find((l) => l.id === params.get("layout"))?.id ?? "radial") as LayoutName;
   // a selection is a concept; anything else in the link is ignored
   const selected = (() => { const v = params.get("sel"); return v && d.derived.ds_field.concepts[v] ? v : null; })();
   const hidden = useMemo(() => new Set((params.get("hide") ?? "").split(",").filter(Boolean)), [params]);
@@ -91,7 +91,6 @@ export default function FieldMap() {
     return out;
   }, [d, field, hidden, tiersOff, coverage]);
   const matches = useMemo(() => (query.trim().length >= 2 ? new Set(searchConcepts(d, query).map((c) => c.id)) : null), [d, query]);
-  const pinOrder = useMemo(() => landmarkCandidates(d), [d]);
 
   const choose = (id: string) => { set({ sel: id }); setFocus((f) => ({ id, n: (f?.n ?? 0) + 1 })); setQuery(""); };
   // a link (or a reload) that carries a selection opens on it
@@ -128,7 +127,7 @@ export default function FieldMap() {
         {layout ? (
           <ClusterGraph ref={graph} elements={elements} positionsKey={positionsKey} resetToken={resetToken} selected={selected}
             onSelect={select} onOpen={(id) => nav(href.concept(id))} onHover={setHover} onLod={(l, z) => { setLod(l); setZoom(z); }}
-            pinOrder={pinOrder} filtered={filtered} matches={matches} edgeMode={edgeMode} mark={mark} focus={focus} lodAt={lodAt} inset={INSET} />
+            filtered={filtered} matches={matches} edgeMode={edgeMode} mark={mark} focus={focus} lodAt={lodAt} inset={INSET} />
         ) : <div className="fieldmap-busy">Laying out the network…</div>}
       </div>
 
@@ -137,7 +136,7 @@ export default function FieldMap() {
         <div className="seg" role="tablist" aria-label="Layout">
           {LAYOUTS.map((l) => (
             <button key={l.id} role="tab" aria-selected={layoutName === l.id} className={layoutName === l.id ? "active" : ""} title={l.help}
-              onClick={() => set({ layout: l.id === "rings" ? null : l.id })}>{l.label}</button>
+              onClick={() => set({ layout: l.id === "radial" ? null : l.id })}>{l.label}</button>
           ))}
         </div>
         <FieldSearch query={query} setQuery={setQuery} onPick={choose} inputRef={searchBox} filtered={filtered} />
@@ -207,13 +206,13 @@ export default function FieldMap() {
         <button onClick={() => graph.current?.zoomBy(1 / 1.4)} aria-label="Zoom out" title="Zoom out (-)">−</button>
         <button onClick={() => graph.current?.zoomBy(1.4)} aria-label="Zoom in" title="Zoom in (+)">+</button>
         <button onClick={() => graph.current?.fit()} aria-label="Fit the map" title="Fit (f)">fit</button>
-        <span className="muted small" title="Zoomed out you see regions and the landmark concepts; names appear by relevance as you zoom in">{LOD_LABEL[lod]} · {Math.round(zoom * 100)}%</span>
+        <span className="muted small" title="Zoomed out you see the domains; names appear by relevance as you zoom in">{LOD_LABEL[lod]} · {Math.round(zoom * 100)}%</span>
         <button className={"help" + (showHelp ? " active" : "")} onClick={() => setShowHelp((s) => !s)} aria-label="How to read the map">?</button>
       </div>
       {showHelp && (
         <div className="fieldmap-help">
           <p><b>{LAYOUTS.find((l) => l.id === layoutName)!.label}.</b> {help}</p>
-          <p>Colour is the domain, grouped in five families; size grows with the field relevance score. Zoom in to read more names: the most load-bearing concepts are labelled first. Hover for a definition, click to see why a concept matters and what it rests on, double-click to open its page. Arrows lead from a foundation to what rests on it.</p>
+          <p>Colour is the domain, grouped in five families; size grows with the field relevance score. Zoomed out you see the domains; zoom in to read the concepts, the most load-bearing named first. Hover for a definition, click to see why a concept matters and what it rests on, double-click to open its page. Arrows lead from a foundation to what rests on it; hiding a domain or a tier hides its arrows too.</p>
           <p className="muted small">Keys: / search · Esc clear · + and − zoom · f fit. Drag boxes to tidy; positions are kept per layout.</p>
         </div>
       )}
@@ -266,11 +265,13 @@ function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme
   for (const dec of layout.decorations) {
     const fam = dec.family;
     const data: Record<string, unknown> = { id: dec.id, label: dec.label, w: dec.w, h: dec.h };
-    if (dec.kind === "band" || dec.kind === "rowband") { data.fill = BAND_FILL[theme][dec.tier ?? 3]; data.border = BAND_LINE[theme]; }
-    if (dec.kind === "island" && fam) { data.fill = paler(FAMILY_COLOR[theme][fam], theme); data.border = FAMILY_COLOR[theme][fam]; }
+    if (dec.kind === "rowband") data.fill = BAND_FILL[theme][dec.tier ?? 3];
     if (dec.kind === "region") data.fs = layoutSizedRegion(dec) ? dec.fs : k(18);
+    // titles wear their domain's colour (a family title its family's), kept readable on the canvas
+    if (dec.kind === "region" || dec.kind === "header") data.color = dec.domain ? titleColor(dec.domain, theme) : fam ? familyTitleColor(fam, theme) : undefined;
     if (dec.kind === "band-label") data.fs = Math.max(dec.fs ?? 14, k(12));
-    if (dec.kind === "header") data.fs = Math.max(dec.fs ?? 14, k(10));
+    // a column header must fit its column: no word wider than the column it names
+    if (dec.kind === "header") data.fs = Math.min(Math.max(dec.fs ?? 14, k(10)), dec.w / (Math.max(...dec.label.split(" ").map((x) => x.length)) * 0.7));
     if (dec.align) data.align = dec.align;
     els.push({ classes: dec.kind, data, position: { x: dec.x, y: dec.y } });
   }
@@ -295,33 +296,8 @@ function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme
   return { elements: els, lodAt: [Math.max(fitZoom * 1.05, 9 / maxFs), Math.max(fitZoom * 1.6, 9 / minFs)] };
 }
 
-/** island and rim names are sized by their layout, which left room for them */
+/** radial and network titles are sized by their layout; the grid's family titles by the fitted zoom */
 const layoutSizedRegion = (dec: { id: string; fs?: number }) => dec.fs !== undefined && !dec.id.startsWith("fam:");
-
-/** candidates for overview names, round-robin over the domains in score order, so every region is named
- *  and no single domain fills the overview with its foundations */
-function landmarkCandidates(d: Data): string[] {
-  const field = d.derived.ds_field.concepts;
-  const tier = (id: string) => TIER_INDEX[field[id]?.tier ?? "peripheral"];
-  // within a domain: the DS work first, then the foundations it rests on most
-  const ranked = [...d.concepts].sort((a, b) => tier(a.id) - tier(b.id) || (field[b.id]?.score ?? 0) - (field[a.id]?.score ?? 0));
-  const queues = DOMAIN_ORDER.map((dm) => ranked.filter((c) => c.domain === dm));
-  const out: string[] = [];
-  // every domain's best concept first; then the DS and core concepts of all domains in turn; then the rest
-  for (const q of queues) if (q[0]) out.push(q[0].id);
-  const longest = Math.max(...queues.map((q) => q.length));
-  for (let round = 1; round < longest; round++) for (const q of queues) if (q[round] && tier(q[round].id) <= 1) out.push(q[round].id);
-  for (const c of ranked) if (!out.includes(c.id)) out.push(c.id);
-  return out;
-}
-
-/** a very pale tint of a family hue, for island and cluster backgrounds */
-function paler(hex: string, theme: "light" | "dark"): string {
-  const bg = theme === "dark" ? [0x1a, 0x1d, 0x22] : [0xff, 0xff, 0xff];
-  const a = theme === "dark" ? 0.14 : 0.07;
-  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  return "#" + c.map((v, i) => Math.round(v * a + bg[i] * (1 - a)).toString(16).padStart(2, "0")).join("");
-}
 
 function searchConcepts(d: Data, q: string): ConceptNode[] {
   const t = q.trim().toLowerCase();

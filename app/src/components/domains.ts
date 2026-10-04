@@ -71,3 +71,58 @@ export function domainIndex(domain: string): number {
   const i = DOMAIN_ORDER.indexOf(domain);
   return i < 0 ? DOMAIN_ORDER.length : i;
 }
+
+// ---------------------------------------------------------------- titles
+/** Typeface for domain titles: a DIN-style face, stricter than the UI sans (system fonts, no download). */
+export const TITLE_FONT = '"DIN Alternate", "DIN Condensed", Bahnschrift, "D-DIN", "Barlow Semi Condensed", "Roboto Condensed", "Arial Narrow", sans-serif';
+
+const CANVAS_BG = { light: "#ffffff", dark: "#1a1d22" };
+
+const toLin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const fromLin = (c: number) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+const rgbOf = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+const luminance = (hex: string) => { const [r, g, b] = rgbOf(hex).map(toLin); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const contrast = (a: string, b: string) => { const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+
+function toOklch(hex: string): [number, number, number] {
+  const [r, g, b] = rgbOf(hex).map(toLin);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const q = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * q;
+  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * q;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * q;
+  return [L, Math.hypot(A, B), Math.atan2(B, A)];
+}
+
+function fromOklch(L: number, C: number, H: number): string {
+  const A = C * Math.cos(H), B = C * Math.sin(H);
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
+  const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
+  const q = (L - 0.0894841775 * A - 1.291485548 * B) ** 3;
+  const rgb = [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * q, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * q, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * q];
+  return "#" + rgb.map((v) => Math.round(Math.max(0, Math.min(1, fromLin(v))) * 255).toString(16).padStart(2, "0")).join("");
+}
+
+/** The colour itself when it reads as large text on the canvas (3:1); otherwise the nearest shade of the
+ *  same hue that does — darker in light mode, lighter in dark mode. */
+function readable(hex: string, theme: "light" | "dark"): string {
+  const bg = CANVAS_BG[theme];
+  if (contrast(hex, bg) >= 3) return hex;
+  const [L, C, H] = toOklch(hex);
+  for (let k = 1; k <= 60; k++) {
+    const next = fromOklch(Math.max(0, Math.min(1, L + (theme === "light" ? -0.01 : 0.01) * k)), C, H);
+    if (contrast(next, bg) >= 3) return next;
+  }
+  return theme === "light" ? "#1a1a2e" : "#e6e6e3";
+}
+
+/** Colour of a domain's title: the domain's own colour, kept readable. */
+export function titleColor(domain: string, theme: "light" | "dark"): string {
+  return readable(fieldColor(domain, theme), theme);
+}
+
+/** Colour of a family's title: the family hue, kept readable. */
+export function familyTitleColor(family: Family, theme: "light" | "dark"): string {
+  return readable(FAMILY_COLOR[theme][family], theme);
+}

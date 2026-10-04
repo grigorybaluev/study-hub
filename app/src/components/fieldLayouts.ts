@@ -1,26 +1,24 @@
 // Layouts for DS map 2 (#173): where each concept goes, and the decorations that explain the space
-// (bands, headers, region labels). Every layout is deterministic, so the map is the same on every
+// (guides, headers, domain titles). Every layout is deterministic, so the map is the same on every
 // load; the network layout runs a force simulation with a seeded random generator for the same reason.
 //
 // Space encodes DS relevance and colour encodes the domain (the page colours the nodes):
-//   rings   — concentric tier bands, domains in wedges (the original DS map's picture)
+//   radial  — angle = domain, distance from the centre = tier and score; each title just outside its cluster
+//   network — force-directed: dependencies pull concepts together; each title in the middle of its cluster
 //   grid    — tiers as rows, domains as columns: a table of the field
-//   islands — one island per domain, each a small rings map; DS-heavy islands sit in the middle
-//   radial  — angle = domain, distance from the centre = tier and score, continuous
-//   network — force-directed: dependencies pull concepts together, each domain named at its centre
 import cytoscape from "cytoscape";
 import { boxLabel } from "./GraphView";
-import { rings } from "./rings";
 import { DOMAIN_LABEL, DOMAIN_ORDER, FAMILY_LABEL, FAMILY_OF, domainIndex, type Family } from "./domains";
 
-export type LayoutName = "rings" | "grid" | "islands" | "radial" | "network";
+export type LayoutName = "radial" | "network" | "grid";
 export const LAYOUTS: { id: LayoutName; label: string; help: string }[] = [
-  { id: "rings", label: "Rings", help: "Concentric bands from the centre out: the DS work itself, the core foundations it rests on, supporting material, and the periphery. Domains sit in wedges." },
-  { id: "grid", label: "Grid", help: "A table of the field: one row per tier, one column per domain, grouped by family. The most relevant concepts of each cell come first." },
-  { id: "islands", label: "Islands", help: "One island per domain, each with its DS work at the centre and its periphery outside. Islands whose concepts matter most for DS sit in the middle." },
   { id: "radial", label: "Radial", help: "Angle is the domain, distance from the centre is relevance: the tier, then the score inside it, so the most load-bearing concepts are nearest the middle." },
-  { id: "network", label: "Network", help: "Force-directed: concepts that depend on each other are pulled together, and each domain is drawn as a cluster around its concepts." },
+  { id: "network", label: "Network", help: "Force-directed: concepts that depend on each other are pulled together, so each domain forms a cluster, named in its middle." },
+  { id: "grid", label: "Grid", help: "A table of the field: one row per tier, one column per domain, grouped by family. The most relevant concepts of each cell come first." },
 ];
+
+/** domain titles are set in capitals; their width per character, in units of the font size */
+const TITLE_CHAR = 0.68;
 
 export interface FieldItem {
   id: string;
@@ -36,7 +34,7 @@ export interface PlacedNode { x: number; y: number; w: number; h: number; label:
 
 export interface Decoration {
   id: string;
-  kind: "band" | "band-label" | "region" | "header" | "guide" | "rowband" | "island";
+  kind: "band-label" | "region" | "header" | "guide" | "rowband";
   label: string;
   x: number; y: number; w: number; h: number;
   /** font size in model units; region labels are big so they read when zoomed out */
@@ -44,7 +42,7 @@ export interface Decoration {
   shape?: "ellipse" | "rectangle" | "round-rectangle";
   /** "left": the label ends at (x, y) instead of being centred on it (row labels of the grid) */
   align?: "left";
-  /** tier index for bands, family for islands */
+  /** tier index for guides and row bands; family and domain for titles */
   tier?: number;
   family?: Family;
   domain?: string;
@@ -68,24 +66,6 @@ const byDomain = (a: FieldItem, b: FieldItem) => domainIndex(a.domain) - domainI
 function box(n: FieldItem, maxChars: number, scale = scaleOf(n.score)) {
   const b = boxLabel("", n.name, maxChars, scale);
   return { label: b.label, w: b.w, h: b.h, fs: b.fs };
-}
-
-// ---------------------------------------------------------------- rings
-function ringsLayout(items: FieldItem[]): FieldLayout {
-  const sized = items.map((n) => ({ n, b: box(n, 40) }));
-  const labelFs = 34;
-  const { pos, bands } = rings(sized.map(({ n, b }) => ({ id: n.id, tier: n.tier, group: n.domain, w: b.w, h: b.h, title: n.title, order: -n.score })),
-    { groupOrder: DOMAIN_ORDER, aspect: 0.58, gap: 10, labelSpace: labelFs + 14 });
-  const nodes = new Map<string, PlacedNode>();
-  for (const { n, b } of sized) nodes.set(n.id, { ...pos.get(n.id)!, ...b });
-  const decorations: Decoration[] = [];
-  for (const band of [...bands].sort((x, y) => y.tier - x.tier)) {
-    decorations.push({ id: `band:${band.tier}`, kind: "band", label: "", x: 0, y: 0, w: 2 * band.a, h: 2 * band.b, shape: "ellipse", tier: band.tier });
-  }
-  for (const band of bands) {
-    decorations.push({ id: `bandlabel:${band.tier}`, kind: "band-label", label: `${TIER_NAMES[band.tier]} · ${band.nodes}`, x: 0, y: band.b - labelFs / 2 - 6, w: 600, h: labelFs, fs: labelFs, tier: band.tier });
-  }
-  return { nodes, decorations };
 }
 
 // ---------------------------------------------------------------- grid
@@ -164,84 +144,6 @@ function gridLayout(items: FieldItem[]): FieldLayout {
       fStart = i + 1;
     }
   });
-  return { nodes, decorations };
-}
-
-// ---------------------------------------------------------------- islands
-function islandsLayout(items: FieldItem[]): FieldLayout {
-  const domains = DOMAIN_ORDER.filter((dm) => items.some((n) => n.domain === dm));
-  const tierWeight = [3, 2, 1, 0];
-  interface Island { dm: string; r: number; pos: Map<string, { x: number; y: number }>; bands: { tier: number; a: number; b: number }[]; weight: number; members: FieldItem[] }
-  const islands: Island[] = domains.map((dm) => {
-    const members = items.filter((n) => n.domain === dm);
-    const sized = members.map((n) => ({ n, b: box(n, 26) }));
-    const { pos, bands } = rings(sized.map(({ n, b }) => ({ id: n.id, tier: n.tier, group: dm, w: b.w, h: b.h, title: n.title, order: -n.score })),
-      { groupOrder: [dm], aspect: 0.86, gap: 8, labelSpace: 0 });
-    const outer = bands[bands.length - 1];
-    const weight = members.reduce((acc, n) => acc + tierWeight[n.tier] + n.score, 0) / members.length;
-    return { dm, r: Math.max(outer.a, outer.b) + 30, pos, bands, weight, members };
-  });
-  // the islands that matter most for DS first, packed outwards from the centre. Each island is a
-  // disc of radius r with its name in a strip above it; the name is sized to read when the whole
-  // map is fitted, so the packing runs twice: once to learn the map's extent, once with the strips.
-  islands.sort((p, q) => q.weight - p.weight || domainIndex(p.dm) - domainIndex(q.dm));
-  const GAP = 70;
-  const pack = (labelFs: number) => {
-    const placed: { x: number; y: number; r: number; top: number; half: number }[] = [];
-    const centres = new Map<string, { x: number; y: number }>();
-    const clear = (c: { x: number; y: number }, isl: Island, top: number, half: number) => placed.every((q) => {
-      if (Math.hypot(c.x - q.x, c.y - q.y) < q.r + isl.r + GAP - 1e-6) return false;
-      // the name strips (rectangles above each disc) must not touch the other island's disc or strip
-      const strips = [{ x: c.x, y: c.y - isl.r - top / 2, w: 2 * half, h: top }, { x: q.x, y: q.y - q.r - q.top / 2, w: 2 * q.half, h: q.top }];
-      const discs = [{ x: q.x, y: q.y, r: q.r }, { x: c.x, y: c.y, r: isl.r }];
-      for (let i = 0; i < 2; i++) {
-        const s = strips[i], o = discs[i];
-        const dx = Math.max(Math.abs(o.x - s.x) - s.w / 2, 0), dy = Math.max(Math.abs(o.y - s.y) - s.h / 2, 0);
-        if (Math.hypot(dx, dy) < o.r + GAP / 2) return false;
-      }
-      return Math.abs(strips[0].x - strips[1].x) >= (strips[0].w + strips[1].w) / 2 + GAP / 2 || Math.abs(strips[0].y - strips[1].y) >= (strips[0].h + strips[1].h) / 2 + GAP / 2;
-    });
-    for (const isl of islands) {
-      const top = labelFs * 1.5, half = Math.max(isl.r * 0.6, ((DOMAIN_LABEL[isl.dm] ?? isl.dm).length * labelFs * 0.62) / 2 + 20);
-      let best: { x: number; y: number } | null = placed.length === 0 ? { x: 0, y: 0 } : null;
-      let bestD = Infinity;
-      for (const p of placed) {
-        for (let a = 0; a < 360; a += 3) {
-          const t = (a * Math.PI) / 180;
-          for (const extra of [0, labelFs, 2 * labelFs]) {
-            const dd = p.r + isl.r + GAP + extra;
-            const c = { x: p.x + dd * Math.cos(t), y: p.y + dd * Math.sin(t) };
-            if (!clear(c, isl, top, half)) continue;
-            const dist = Math.hypot(c.x, c.y * 1.4);
-            if (dist < bestD) { bestD = dist; best = c; }
-            break;
-          }
-        }
-      }
-      placed.push({ ...best!, r: isl.r, top, half });
-      centres.set(isl.dm, best!);
-    }
-    const extent = Math.max(...placed.map((q) => Math.max(Math.abs(q.x) + q.r, (Math.abs(q.y) + q.r) * 1.6)));
-    return { centres, extent };
-  };
-  const first = pack(0);
-  const labelFs = Math.max(30, first.extent * 0.028);
-  const { centres } = pack(labelFs);
-  const nodes = new Map<string, PlacedNode>();
-  const decorations: Decoration[] = [];
-  for (const isl of islands) {
-    const c = centres.get(isl.dm)!;
-    const outer = isl.bands[isl.bands.length - 1];
-    decorations.push({ id: `island:${isl.dm}`, kind: "island", label: "", x: c.x, y: c.y, w: 2 * outer.a + 40, h: 2 * outer.b + 40, shape: "ellipse", family: FAMILY_OF[isl.dm], domain: isl.dm });
-    for (const band of isl.bands.slice(0, -1)) {
-      decorations.push({ id: `guide:${isl.dm}:${band.tier}`, kind: "guide", label: "", x: c.x, y: c.y, w: 2 * band.a, h: 2 * band.b, shape: "ellipse", tier: band.tier });
-    }
-    decorations.push({ id: `region:${isl.dm}`, kind: "region", label: DOMAIN_LABEL[isl.dm] ?? isl.dm, x: c.x, y: c.y - isl.r - labelFs * 0.55, w: 2 * isl.r, h: labelFs, fs: labelFs, family: FAMILY_OF[isl.dm], domain: isl.dm });
-    for (const n of isl.members) {
-      const p = isl.pos.get(n.id)!;
-      nodes.set(n.id, { x: c.x + p.x, y: c.y + p.y, ...box(n, 26) });
-    }
-  }
   return { nodes, decorations };
 }
 
@@ -332,17 +234,22 @@ function radialLayout(items: FieldItem[]): FieldLayout {
     const outer = (rOut[t] + rIn[t + 1]) / 2;
     decorations.push({ id: `guide:${t}`, kind: "guide", label: "", x: 0, y: 0, w: 2 * outer, h: 2 * outer * 0.82, shape: "ellipse", tier: t });
   });
-  // domain names on the rim, sized to read when fitted; a name that would touch another moves outwards
-  const fs = Math.max(40, maxR * 0.045);
+  // each domain's title sits just outside its own cluster, on the wedge's middle line, pushed further
+  // out only if it would touch another title; where it crosses a neighbouring wedge, its halo keeps it legible
+  const fs = Math.max(32, maxR * 0.036);
   const taken: { x: number; y: number; w: number; h: number }[] = [];
+  const clear = (x: number, y: number, w: number, h: number) =>
+    taken.every((q) => Math.abs(q.x - x) >= (q.w + w) / 2 + fs * 0.3 || Math.abs(q.y - y) >= (q.h + h) / 2 + fs * 0.15);
   for (const dm of domains) {
     const [w0, w1] = wedge.get(dm)!;
     const mid = (w0 + w1) / 2;
+    const members = items.filter((n) => n.domain === dm).map((n) => nodes.get(n.id)!);
+    const edge = Math.max(...members.map((q) => Math.hypot(q.x, q.y / 0.82)));
     const label = DOMAIN_LABEL[dm] ?? dm;
-    const w = label.length * fs * 0.62, h = fs * 1.3;
-    for (let rr = maxR + fs; rr < maxR + 12 * fs; rr += fs * 0.6) {
-      const x = rr * Math.cos(mid) + (Math.cos(mid) * w) / 2, y = rr * Math.sin(mid) * 0.82;
-      if (taken.every((q) => Math.abs(q.x - x) >= (q.w + w) / 2 + 10 || Math.abs(q.y - y) >= (q.h + h) / 2 + 6)) {
+    const w = label.length * fs * TITLE_CHAR, h = fs * 1.25;
+    for (let rr = edge + fs * 0.6; rr < edge + 30 * fs; rr += fs * 0.25) {
+      const x = rr * Math.cos(mid) + (Math.cos(mid) * w) / 2, y = rr * Math.sin(mid) * 0.82 + (Math.sin(mid) * h) / 2;
+      if (clear(x, y, w, h)) {
         taken.push({ x, y, w, h });
         decorations.push({ id: `region:${dm}`, kind: "region", label, x, y, w, h: fs, fs, family: FAMILY_OF[dm], domain: dm });
         break;
@@ -413,17 +320,19 @@ function networkLayout(items: FieldItem[], edges: FieldEdge[]): FieldLayout {
   separate(nodes);
   const xs = [...nodes.values()];
   const extent = Math.max(...xs.map((p) => Math.abs(p.x))) + Math.max(...xs.map((p) => Math.abs(p.y)));
-  const fs = Math.max(40, extent * 0.03);
+  const fs = Math.max(28, extent * 0.021);
   const decorations: Decoration[] = [];
   const taken: { x: number; y: number; w: number; h: number }[] = [];
   for (const dm of domains) {
     const members = items.filter((n) => n.domain === dm).map((n) => nodes.get(n.id)!);
     const cx = members.reduce((a, p) => a + p.x, 0) / members.length;
-    const top = Math.min(...members.map((p) => p.y - p.h / 2));
+    const cy = members.reduce((a, p) => a + p.y, 0) / members.length;
     const label = DOMAIN_LABEL[dm] ?? dm;
-    const w = label.length * fs * 0.62, h = fs * 1.3;
-    for (let y = top - h / 2 - 10; y > top - 30 * h; y -= h * 0.5) {
-      if (taken.every((q) => Math.abs(q.x - cx) >= (q.w + w) / 2 + 10 || Math.abs(q.y - y) >= (q.h + h) / 2 + 6)) {
+    const w = label.length * fs * TITLE_CHAR, h = fs * 1.25;
+    // in the middle of the cluster; two clusters with nearly the same centre stack their titles
+    for (let k = 0; k < 12; k++) {
+      const y = cy + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * h;
+      if (taken.every((q) => Math.abs(q.x - cx) >= (q.w + w) / 2 || Math.abs(q.y - y) >= (q.h + h) / 2)) {
         taken.push({ x: cx, y, w, h });
         decorations.push({ id: `region:${dm}`, kind: "region", label, x: cx, y, w, h: fs, fs, family: FAMILY_OF[dm], domain: dm });
         break;
@@ -436,10 +345,8 @@ function networkLayout(items: FieldItem[], edges: FieldEdge[]): FieldLayout {
 // ---------------------------------------------------------------- entry
 export function layoutField(name: LayoutName, items: FieldItem[], edges: FieldEdge[]): FieldLayout {
   if (name === "grid") return gridLayout(items);
-  if (name === "islands") return islandsLayout(items);
-  if (name === "radial") return radialLayout(items);
   if (name === "network") return networkLayout(items, edges);
-  return ringsLayout(items);
+  return radialLayout(items);
 }
 
 /** Pairwise check used by the overlap test: boxes that intrude on each other's gap. */
