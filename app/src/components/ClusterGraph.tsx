@@ -43,6 +43,8 @@ export interface ClusterGraphProps {
   mark: boolean;
   /** draw the domain links while zoomed out */
   links: boolean;
+  /** the domain link whose summary is open ("from>to"): its concept edges are highlighted, the rest dimmed */
+  selectedLink: string | null;
   onLinkHover: (h: { from: string; to: string; count: number; x: number; y: number } | null) => void;
   onLinkClick: (from: string, to: string) => void;
   /** pan to this concept and zoom in to read it; `n` changes on every request */
@@ -117,6 +119,8 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
     { selector: "edge.show", style: { display: "element", "curve-style": "haystack", "haystack-radius": 0, "target-arrow-shape": "none" } },
     { selector: "edge.hi", style: { display: "element", opacity: 0.95, width: 2.2, "z-index": 42, "curve-style": "bezier", "target-arrow-shape": "triangle" } },
     { selector: "edge.hi[kind = 'soft']", style: { opacity: 0.6 } },
+    // the concept edges behind an open domain link wear the colour of the domain they come from
+    { selector: "edge.hi.linkhi", style: { "line-color": "data(lc)", "target-arrow-color": "data(lc)", opacity: 0.8, width: 2 } },
     // domain links: invisible anchors at the clusters, a curved line per strong pair of domains
     { selector: "node.anchor", style: { width: 1, height: 1, "background-opacity": 0, "border-width": 0, label: "", events: "no", "z-index": 0 } },
     { selector: "edge.meta", style: {
@@ -126,14 +130,23 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
     } },
     { selector: "edge.meta.hover", style: { opacity: 0.92 } },
     { selector: "edge.meta.dim", style: { opacity: 0.1 } },
+    { selector: "edge.meta.sel", style: { opacity: 0.95, "z-index": 25 } },
     // last, so they win over the rules above: zoomed in, below the threshold, switched off, or a hidden concept's edge
     { selector: "edge.meta.zoomed, edge.meta.weak, edge.meta.off", style: { display: "none" } },
     { selector: "edge.filtered", style: { display: "none" } },
   ];
 }
 
+/** The concept edges a domain link stands for: hard, part-of and generalizes edges from a visible concept of
+ *  one domain to a visible concept of the other. */
+function linkEdges(c: cytoscape.Core, key: string) {
+  const [from, to] = key.split(">");
+  return c.edges(":not(.meta)").filter((e) => e.data("kind") !== "soft" && e.source().data("domain") === from && e.target().data("domain") === to
+    && !e.source().hasClass("filtered") && !e.target().hasClass("filtered"));
+}
+
 const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function ClusterGraph(props, ref) {
-  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, filtered, matches, edgeMode, mark, links, onLinkHover, onLinkClick, focus, lodAt, inset } = props;
+  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, filtered, matches, edgeMode, mark, links, selectedLink, onLinkHover, onLinkClick, focus, lodAt, inset } = props;
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const lod = useRef<Lod>(0);
@@ -146,6 +159,8 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
   edgeModeRef.current = edgeMode;
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
+  const linkRef = useRef(selectedLink);
+  linkRef.current = selectedLink;
 
   // the whole map inside the part of the canvas the panels leave free
   const fitView = (c: cytoscape.Core) => {
@@ -177,6 +192,8 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
         const n = c.getElementById(id);
         if (!n.empty()) n.connectedEdges().addClass("hi");
       }
+      plain.removeClass("linkhi");
+      if (linkRef.current) linkEdges(c, linkRef.current).addClass("hi linkhi");
     });
   };
 
@@ -229,11 +246,15 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
       cb.current.onLinkHover({ from: e.target.data("from"), to: e.target.data("to"), count: e.target.data("count"), x: p.x, y: p.y });
     });
     c.on("mouseout", "edge.meta", (e) => { e.target.removeClass("hover"); cb.current.onLinkHover(null); });
-    c.on("tap", "edge.meta", (e) => cb.current.onLinkClick(e.target.data("from"), e.target.data("to")));
+    c.on("tap", "edge.meta", (e) => { cb.current.onLinkHover(null); cb.current.onLinkClick(e.target.data("from"), e.target.data("to")); });
     c.on("pan zoom", () => cb.current.onLinkHover(null));
     c.on("pan zoom drag", () => { if (hovered.current) { hovered.current = null; cb.current.onHover(null); } });
+    // the pointer can leave over a panel without Cytoscape seeing it go: drop the hover cards then too
+    const leave = () => { hovered.current = null; cb.current.onHover(null); cb.current.onLinkHover(null); c.elements().removeClass("hover"); refreshEdges(c); };
+    const el = host.current;
+    el.addEventListener("mouseleave", leave);
     cy.current = c;
-    return () => { cancelAnimationFrame(raf); c.destroy(); cy.current = null; };
+    return () => { el.removeEventListener("mouseleave", leave); cancelAnimationFrame(raf); c.destroy(); cy.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elements, theme, positionsKey, resetToken]);
 
@@ -252,6 +273,10 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
       if (matches) {
         all.filter((n) => !matches.has(n.id())).addClass("dim");
         all.filter((n) => matches.has(n.id())).addClass("match");
+      } else if (selectedLink) {
+        const ends = linkEdges(c, selectedLink).connectedNodes();
+        all.not(ends).addClass("dim");
+        ends.addClass("nbr");
       } else if (selected) {
         const n = c.getElementById(selected);
         if (!n.empty()) {
@@ -287,12 +312,16 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
           m.toggleClass("weak", n < LINK_MIN);
         });
         metas.toggleClass("off", !links);
-        metas.toggleClass("dim", !!matches || !!selected);
+        metas.forEach((m) => {
+          const key = `${m.data("from")}>${m.data("to")}`;
+          m.toggleClass("sel", key === selectedLink);
+          m.toggleClass("dim", !!matches || !!selected || (!!selectedLink && key !== selectedLink));
+        });
       }
     });
     refreshEdges(c);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, matches, selected, edgeMode, mark, links, elements, theme, resetToken]);
+  }, [filtered, matches, selected, selectedLink, edgeMode, mark, links, elements, theme, resetToken]);
 
   useEffect(() => {
     const c = cy.current;

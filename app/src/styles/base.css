@@ -400,3 +400,16 @@ blockquote.wiki p { margin: 0.4em 0; }
 .fieldmap-detail .detail-actions .button:hover { text-decoration: none; filter: brightness(0.97); }
 .fieldmap-detail .detail-alias { margin-top: 0.6rem; }
 button.chip.linkchip { font: inherit; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35em; }
+/* domain-link summary (#179) */
+.fieldmap-detail .link-title { font-family: "DIN Alternate", "DIN Condensed", Bahnschrift, "D-DIN", "Barlow Semi Condensed", "Roboto Condensed", "Arial Narrow", sans-serif; text-transform: uppercase; font-size: 1.1rem; line-height: 1.3; }
+.fieldmap-detail .link-title .link-verb { font-family: var(--font); text-transform: none; font-weight: 400; color: var(--fg-muted); font-size: 0.95rem; }
+button.chip.linkchip.untaught { border-style: dashed; }
+.chip .chip-count { margin-left: 0.35em; padding: 0 0.4em; border-radius: 999px; background: var(--bg-sunken); color: var(--fg-muted); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+.fieldmap-detail .link-all summary { cursor: pointer; list-style: none; }
+.fieldmap-detail .link-all summary::-webkit-details-marker { display: none; }
+.fieldmap-detail .link-all summary h4 { display: inline; }
+.fieldmap-detail .link-all summary::before { content: "▸ "; color: var(--fg-muted); font-size: 0.75rem; }
+.fieldmap-detail .link-all[open] summary::before { content: "▾ "; }
+.fieldmap-detail .link-all ul { list-style: none; padding: 0; margin: 0.4rem 0 0; }
+.fieldmap-detail .link-all li { margin: 0.15rem 0; line-height: 1.9; }
+.fieldmap-detail .detail-actions button.button { font: inherit; display: inline-block; padding: 0.35em 0.8em; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent-dk); background: var(--accent-soft); font-size: 0.86rem; cursor: pointer; }

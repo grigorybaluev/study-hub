@@ -40,6 +40,8 @@ export default function FieldMap() {
   const layoutName = (LAYOUTS.find((l) => l.id === params.get("layout"))?.id ?? "radial") as LayoutName;
   // a selection is a concept; anything else in the link is ignored
   const selected = (() => { const v = params.get("sel"); return v && d.derived.ds_field.concepts[v] ? v : null; })();
+  // an open domain-link summary, "from>to"; it and a selected concept exclude each other
+  const selectedLink = (() => { const v = params.get("link"); const [a, b] = (v ?? "").split(">"); return a && b && DOMAIN_ORDER.includes(a) && DOMAIN_ORDER.includes(b) && !selected ? `${a}>${b}` : null; })();
   const hidden = useMemo(() => new Set((params.get("hide") ?? "").split(",").filter(Boolean)), [params]);
   const tiersOff = useMemo(() => new Set((params.get("off") ?? "").split(",").filter(Boolean)), [params]);
   const coverage = (params.get("cov") ?? "all") as Coverage;
@@ -94,10 +96,11 @@ export default function FieldMap() {
   }, [d, field, hidden, tiersOff, coverage]);
   const matches = useMemo(() => (query.trim().length >= 2 ? new Set(searchConcepts(d, query).map((c) => c.id)) : null), [d, query]);
 
-  const choose = (id: string) => { set({ sel: id }); setFocus((f) => ({ id, n: (f?.n ?? 0) + 1 })); setQuery(""); };
+  const choose = (id: string) => { set({ sel: id, link: null }); setFocus((f) => ({ id, n: (f?.n ?? 0) + 1 })); setQuery(""); };
   // a link (or a reload) that carries a selection opens on it
   useEffect(() => { if (selected) setFocus({ id: selected, n: 1 }); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [layout]);
-  const select = (id: string | null) => set({ sel: id });
+  const select = (id: string | null) => set({ sel: id, link: null });
+  const openLink = (from: string, to: string) => set({ link: `${from}>${to}`, sel: null });
 
   // keyboard: "/" search, Escape clears, + and - zoom, f fits
   const searchBox = useRef<HTMLInputElement>(null);
@@ -105,7 +108,7 @@ export default function FieldMap() {
     const onKey = (e: KeyboardEvent) => {
       const typing = (e.target as HTMLElement)?.tagName === "INPUT" || (e.target as HTMLElement)?.tagName === "SELECT";
       if (e.key === "/" && !typing) { e.preventDefault(); searchBox.current?.focus(); }
-      else if (e.key === "Escape") { setQuery(""); if (!typing) set({ sel: null }); (e.target as HTMLElement)?.blur?.(); }
+      else if (e.key === "Escape") { setQuery(""); if (!typing) set({ sel: null, link: null }); (e.target as HTMLElement)?.blur?.(); }
       else if (!typing && (e.key === "+" || e.key === "=")) graph.current?.zoomBy(1.4);
       else if (!typing && e.key === "-") graph.current?.zoomBy(1 / 1.4);
       else if (!typing && e.key === "f") graph.current?.fit();
@@ -130,7 +133,7 @@ export default function FieldMap() {
           <ClusterGraph ref={graph} elements={elements} positionsKey={positionsKey} resetToken={resetToken} selected={selected}
             onSelect={select} onOpen={(id) => nav(href.concept(id))} onHover={setHover} onLod={(l, z) => { setLod(l); setZoom(z); }}
             filtered={filtered} matches={matches} edgeMode={edgeMode} mark={mark} focus={focus} lodAt={lodAt} inset={INSET}
-            links={links} onLinkHover={setLinkHover} onLinkClick={(a, b) => set({ hide: DOMAIN_ORDER.filter((dm) => dm !== a && dm !== b).join(",") })} />
+            links={links} selectedLink={selectedLink} onLinkHover={setLinkHover} onLinkClick={openLink} />
         ) : <div className="fieldmap-busy">Laying out the network…</div>}
       </div>
 
@@ -228,10 +231,14 @@ export default function FieldMap() {
         <div className="fieldmap-hover link" style={{ left: Math.min(Math.max(12, linkHover.x - 150), window.innerWidth - 330), top: Math.max(12, linkHover.y - 14), transform: "translateY(-100%)" }}>
           <div className="hover-title">{DOMAIN_LABEL[linkHover.to] ?? linkHover.to} rests on {DOMAIN_LABEL[linkHover.from] ?? linkHover.from}</div>
           <div className="small">{linkHover.count} dependenc{linkHover.count === 1 ? "y" : "ies"} between their visible concepts</div>
-          <div className="small muted">Click to show only these two domains</div>
+          <div className="small muted">Click for a summary of this link</div>
         </div>
       )}
       {selected && <DetailPanel id={selected} onPick={choose} onClose={() => select(null)} />}
+      {selectedLink && (
+        <LinkPanel link={selectedLink} filtered={filtered} onPick={choose} onSwitch={openLink} onClose={() => set({ link: null })}
+          onIsolate={(a, b) => set({ hide: DOMAIN_ORDER.filter((dm) => dm !== a && dm !== b).join(",") })} />
+      )}
     </div>
   );
 }
@@ -304,7 +311,7 @@ function build(d: Data, layout: FieldLayout | null, name: LayoutName, edges: Fie
   }
   for (const e of edges) {
     if (!layout.nodes.has(e.source) || !layout.nodes.has(e.target)) continue;
-    els.push({ data: { id: `${e.source}>${e.target}`, source: e.source, target: e.target, kind: e.kind } });
+    els.push({ data: { id: `${e.source}>${e.target}`, source: e.source, target: e.target, kind: e.kind, lc: fieldColor(node<ConceptNode>(d, e.source)?.domain ?? "", theme) } });
   }
   els.push(...domainLinks(d, layout, name, edges, theme, fitZoom));
   // levels follow readability (labels hide below 9 px on screen): the overview lasts until the
@@ -477,6 +484,92 @@ function DetailPanel({ id, onPick, onClose }: { id: string; onPick: (id: string)
         {c.wikipedia && <a className="small" href={`https://en.wikipedia.org/wiki/${encodeURIComponent(c.wikipedia.replace(/ /g, "_"))}`} target="_blank" rel="noreferrer">Wikipedia ↗</a>}
       </div>
       <div className="muted small detail-alias">{c.aliases.length > 0 && <>Also: {c.aliases.slice(0, 8).join(", ")}</>}</div>
+    </aside>
+  );
+}
+
+const KIND_TEXT: Record<FieldEdgeRow["kind"], string> = { hard: "rests on", soft: "draws on", part: "is part of", gen: "generalizes" };
+
+/** Summary of a domain link (#179): which concepts of one domain rest on which of the other, counted over the
+ *  visible concepts like the line itself. */
+function LinkPanel({ link, filtered, onPick, onSwitch, onIsolate, onClose }: {
+  link: string; filtered: Set<string>; onPick: (id: string) => void; onSwitch: (from: string, to: string) => void;
+  onIsolate: (from: string, to: string) => void; onClose: () => void;
+}) {
+  const d = useData();
+  const theme = useTheme();
+  const [from, to] = link.split(">");
+  const field = d.derived.ds_field.concepts;
+  const domOf = useMemo(() => new Map(d.concepts.map((c) => [c.id, c.domain])), [d]);
+  const visible = (e: FieldEdgeRow) => e.kind !== "soft" && !filtered.has(e.source) && !filtered.has(e.target);
+  const rows = useMemo(() => fieldEdges(d).filter((e) => visible(e) && domOf.get(e.source) === from && domOf.get(e.target) === to),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [d, from, to, filtered, domOf]);
+  const reverse = useMemo(() => fieldEdges(d).filter((e) => visible(e) && domOf.get(e.source) === to && domOf.get(e.target) === from).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [d, from, to, filtered, domOf]);
+  const tally = (ids: string[]) => {
+    const m = new Map<string, number>();
+    for (const id of ids) m.set(id, (m.get(id) ?? 0) + 1);
+    return [...m].sort((a, b) => b[1] - a[1] || (field[b[0]]?.score ?? 0) - (field[a[0]]?.score ?? 0));
+  };
+  const foundations = tally(rows.map((r) => r.source));
+  const dependents = tally(rows.map((r) => r.target));
+  const name = (id: string) => node<ConceptNode>(d, id)?.short ?? node<ConceptNode>(d, id)?.title ?? id;
+  const taught = (ids: [string, number][]) => ids.filter(([id]) => field[id]?.taught != null).length;
+  const F = DOMAIN_LABEL[from] ?? from, T = DOMAIN_LABEL[to] ?? to;
+  const chip = (id: string, n?: number) => (
+    <button key={id} className={"chip linkchip" + (field[id]?.taught == null ? " untaught" : "")} onClick={() => onPick(id)}
+      title={(node<ConceptNode>(d, id)?.body ?? "") + (field[id]?.taught == null ? " (not taught at Concordia)" : "")}>
+      <i style={{ background: fieldColor(domOf.get(id) ?? "", theme) }} />{name(id)}{n !== undefined && n > 1 && <span className="chip-count">{n}</span>}
+    </button>
+  );
+  return (
+    <aside className="fieldmap-detail" aria-label={`${T} rests on ${F}`}>
+      <div className="detail-head">
+        <h2 className="link-title">
+          <span className="link-dom" style={{ color: titleColor(to, theme) }}>{T}</span>
+          <span className="link-verb"> rests on </span>
+          <span className="link-dom" style={{ color: titleColor(from, theme) }}>{F}</span>
+        </h2>
+        <button className="plain close" onClick={onClose} aria-label="Close" title="Close (Esc)">×</button>
+      </div>
+      {rows.length === 0 ? <p className="small muted">No dependency between the visible concepts of these two domains.</p> : (
+        <>
+          <p className="detail-body">
+            <b>{rows.length}</b> dependenc{rows.length === 1 ? "y" : "ies"}: {dependents.length} {T.toLowerCase()} concept{dependents.length === 1 ? "" : "s"} rest
+            {dependents.length === 1 ? "s" : ""} on {foundations.length} {F.toLowerCase()} concept{foundations.length === 1 ? "" : "s"}.
+            {foundations.length > 0 && <> The most used {foundations.length === 1 ? "is" : "are"} {foundations.slice(0, 3).map(([id, n], i) => <span key={id}>{i > 0 && (i === Math.min(3, foundations.length) - 1 ? " and " : ", ")}<b>{name(id)}</b>{n > 1 ? ` (${n})` : ""}</span>)}.</>}
+          </p>
+          <p className="small muted">
+            Concordia teaches {taught(dependents)} of the {dependents.length} {T.toLowerCase()} concepts and {taught(foundations)} of the {foundations.length} foundations
+            {taught(dependents) < dependents.length || taught(foundations) < foundations.length ? "; the dashed ones are not taught." : "."}
+          </p>
+          <section>
+            <h4>Foundations in {F}</h4>
+            <div>{foundations.slice(0, 16).map(([id, n]) => chip(id, n))}{foundations.length > 16 && <span className="muted small"> +{foundations.length - 16} more</span>}</div>
+          </section>
+          <section>
+            <h4>{T} concepts resting on them</h4>
+            <div>{dependents.slice(0, 16).map(([id, n]) => chip(id, n))}{dependents.length > 16 && <span className="muted small"> +{dependents.length - 16} more</span>}</div>
+          </section>
+          <section>
+            <details className="link-all">
+              <summary><h4>All {rows.length} dependencies</h4></summary>
+              <ul>
+                {[...rows].sort((a, b) => name(a.target).localeCompare(name(b.target)) || name(a.source).localeCompare(name(b.source))).map((r) => (
+                  <li key={r.source + ">" + r.target}>{chip(r.target)} <span className="muted small">{KIND_TEXT[r.kind]}</span> {chip(r.source)}</li>
+                ))}
+              </ul>
+            </details>
+          </section>
+        </>
+      )}
+      <div className="detail-actions">
+        <button className="button" onClick={() => onIsolate(from, to)}>Show only these two domains</button>
+        {reverse > 0 && <button className="linkish small" onClick={() => onSwitch(to, from)}>{F} rests on {T}: {reverse} →</button>}
+      </div>
+      <p className="muted small detail-alias">Zoom in to read the concepts: the edges behind this link stay highlighted.</p>
     </aside>
   );
 }
