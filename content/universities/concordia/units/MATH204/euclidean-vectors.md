@@ -3,7 +3,7 @@ title: Euclidean vector spaces
 order: 3
 status: outline
 weeks: [5, 6, 7]
-introduces: [vector, dot-product, cross-product, line-and-plane-equations]
+introduces: [vector, dot-product, orthogonality, cross-product, line-and-plane-equations]
 requires:
   - {concept: linear-system, strength: soft}
 reinforces: []

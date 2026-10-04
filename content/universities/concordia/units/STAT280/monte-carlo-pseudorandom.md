@@ -3,7 +3,10 @@ title: Monte Carlo simulation and pseudorandom numbers
 order: 8
 status: detailed
 weeks: [8]
-introduces: [monte-carlo-simulation, pseudorandom-number-generation]
+introduces:
+  - monte-carlo-simulation
+  - pseudorandom-number-generation
+  - {concept: law-of-large-numbers, perspective: "watched in the running mean of simulated draws"}
 requires:
   - {concept: probability, strength: hard}
   - {concept: iteration, strength: hard}
