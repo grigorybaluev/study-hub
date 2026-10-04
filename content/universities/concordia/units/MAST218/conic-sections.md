@@ -887,6 +887,59 @@ which agrees with the slopes $\pm\frac{a}{b} = \pm\frac{1/6}{1/(2\sqrt3)}$ of th
 :::
 ::::
 
+```sim
+id: conic-polar
+controls:
+  - {id: e, label: "e (eccentricity)", min: 0, max: 2.5, step: 0.01, default: 0.5, decimals: 2}
+  - {id: d, label: "d (ed when keep = 1)", min: 0.25, max: 5, step: 0.05, default: 3, decimals: 2}
+  - {id: dir, label: "directrix (0 x = d, 1 x = −d, 2 y = d, 3 y = −d)", min: 0, max: 3, step: 1, default: 0, decimals: 0}
+  - {id: theta, label: "P at θ (× π)", min: 0, max: 2, step: 0.01, default: 0.5, decimals: 2}
+  - {id: keep, label: "as e moves, keep (0 d, 1 ed)", min: 0, max: 1, step: 1, default: 0, decimals: 0}
+  - {id: family, label: "dotted family (0 off, 1 on)", min: 0, max: 1, step: 1, default: 1, decimals: 0}
+note: 'The focus F is at the pole and the yellow dashed line is the directrix. Slide e: below 1 the curve is an ellipse, at 1 a parabola, above 1 a hyperbola whose second branch, the points with r < 0, appears beyond the directrix. Slide θ: P moves along the curve and |PF| ÷ dist(P, directrix) stays e. The dotted curves keep everything but e. With keep = 0 the focus and the directrix stay put, so as e falls to 0 the curve shrinks into the focus. With keep = 1 the slider sets ed instead: every curve passes through the same two points beside the focus, the directrix comes in from infinity as e grows, and e = 0 is the circle r = ed. The defaults are the ellipse r = 3/(2 + cos θ); for the other two examples set e = 2, d = 5, directrix 3, and e = 2, d = 0.25, directrix 2.'
+```
+
+```python
+# r = ed / (1 + e cos θ), focus at the pole and directrix x = d: |PF| / dist(P, ℓ) = e at every θ.
+# Defaults: e = 1/2 and d = 3, the ellipse r = 3/(2 + cos θ).
+from math import cos, sin, sqrt, pi
+
+def kind(e):
+    return "circle" if e == 0 else "parabola" if e == 1 else "ellipse" if e < 1 else "hyperbola"
+
+e, d = 0.5, 3
+for th in (0, pi / 2, pi, 4.0):
+    r = e * d / (1 + e * cos(th))
+    x, y = r * cos(th), r * sin(th)
+    print(f"θ = {th:.3f}: r = {r:.4f}, P = ({x:7.4f}, {y:7.4f}), |PF| / dist(P, ℓ) = {abs(r) / abs(d - x):.4f}")
+
+def axes(e, ed):
+    """Centre (along the axis, from the focus), a, b and c, from the vertices at θ = 0 and θ = π."""
+    r0, r1 = ed / (1 + e), ed / (1 - e)         # r1 < 0 for a hyperbola: that vertex is on the far branch
+    centre = (r0 - r1) / 2                       # the vertices are r0 and −r1 along the axis
+    a, c = abs(r0 + r1) / 2, abs(centre)         # the focus is c from the centre
+    return centre, a, sqrt(abs(a**2 - c**2)), c
+
+for name, e, ed in (("r = 3/(2 + cos θ)", 0.5, 1.5), ("r = 1/(2 + 4 sin θ)", 2, 0.5)):
+    centre, a, b, c = axes(e, ed)
+    print(f"{name}: e = {e}, {kind(e)}, d = {ed / e:g}; centre {centre:+.4f} along the axis, a = {a:.4f}, b = {b:.4f}, c = {c:.4f}, c/a = {c / a:g}")
+
+# hold ed = 3/2 and let e shrink: r is squeezed between its values at θ = 0 and θ = π towards the circle r = 3/2
+for e in (0.5, 0.1, 0.01, 0):
+    print(f"e = {e:<4}: {1.5 / (1 + e):.4f} ≤ r ≤ {1.5 / (1 - e):.4f}  ({kind(e)})")
+# Output:
+#   θ = 0.000: r = 1.0000, P = ( 1.0000,  0.0000), |PF| / dist(P, ℓ) = 0.5000
+#   θ = 1.571: r = 1.5000, P = ( 0.0000,  1.5000), |PF| / dist(P, ℓ) = 0.5000
+#   θ = 3.142: r = 3.0000, P = (-3.0000,  0.0000), |PF| / dist(P, ℓ) = 0.5000
+#   θ = 4.000: r = 2.2282, P = (-1.4565, -1.6863), |PF| / dist(P, ℓ) = 0.5000
+#   r = 3/(2 + cos θ): e = 0.5, ellipse, d = 3; centre -1.0000 along the axis, a = 2.0000, b = 1.7321, c = 1.0000, c/a = 0.5
+#   r = 1/(2 + 4 sin θ): e = 2, hyperbola, d = 0.25; centre +0.3333 along the axis, a = 0.1667, b = 0.2887, c = 0.3333, c/a = 2
+#   e = 0.5 : 1.0000 ≤ r ≤ 3.0000  (ellipse)
+#   e = 0.1 : 1.3636 ≤ r ≤ 1.6667  (ellipse)
+#   e = 0.01: 1.4851 ≤ r ≤ 1.5152  (ellipse)
+#   e = 0   : 1.5000 ≤ r ≤ 1.5000  (circle)
+```
+
 :::caution
 The angles where $r \to \infty$ come from solving $\sin\theta = -\frac12$, which has its solutions
 in the third and fourth quadrants, $\frac{7\pi}{6}$ and $\frac{11\pi}{6}$, not at $\frac{\pi}{6}$.

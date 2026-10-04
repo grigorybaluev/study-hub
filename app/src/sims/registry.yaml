@@ -50,6 +50,7 @@ plotly:
   - conic-ellipse
   - conic-hyperbola
   - conic-parabola
+  - conic-polar
   - dice-sum-grid
   - empirical-dice
   - venn-counts

@@ -816,6 +816,86 @@
     Plotly.newPlot(el(id), traces, layout(view(0, 0, 10, 7.5, { title: `p = ${n2(p)}, opens ${opens}: focus (${n2(F[0])}, ${n2(F[1])}), directrix ${directrix}${clamp}<br>|PF| = ${dF.toFixed(3)} = dist(P, directrix) = ${dL.toFixed(3)}` })), cfg());
   }
 
+  // ── P19. One focus, one directrix, one ratio: r = ed / (1 ± e cos θ) or ed / (1 ± e sin θ) ─
+  const conicKind = e => (e < 0.005 ? 'circle' : Math.abs(e - 1) < 0.005 ? 'parabola' : e < 1 ? 'ellipse' : 'hyperbola');
+  function conicPolar() {
+    const id = 'conic-polar';
+    const e = Math.max(0, val(id, 'e', 0.5)), s = val(id, 'd', 3), dir = Math.max(0, Math.min(3, Math.round(val(id, 'dir', 0))));
+    const th = val(id, 'theta', 0.5) * PI, keepEd = Math.round(val(id, 'keep', 0)) === 1, family = Math.round(val(id, 'family', 1)) === 1;
+    // keep = 0 holds the directrix, so the curve shrinks into the focus as e → 0; keep = 1 holds the numerator ed
+    // (the curve's half-width at the focus), so the directrix recedes as e → 0 and e = 0 is the circle r = ed
+    const ell = keepEd ? s : e * s, d = keepEd ? (e > 1e-9 ? s / e : Infinity) : s;
+    const rot = [0, PI, PI / 2, -PI / 2][dir];                    // directrix x = d, x = −d, y = d, y = −d
+    const R = (x, y) => [x * Math.cos(rot) - y * Math.sin(rot), x * Math.sin(rot) + y * Math.cos(rot)];
+    const W = 2.6 * s, far = 40 * W, vertical = dir >= 2;
+    const sign = dir === 0 || dir === 2 ? '+' : '−', trig = vertical ? 'sin' : 'cos';
+    // the curve where the directrix is x = d: r = ed / (1 + e cos φ), cut where the denominator changes sign;
+    // the points with r < 0 are the far branch of a hyperbola
+    const conic = (ee, ll) => {
+      const X = [], Y = [];
+      let prev = null;
+      for (let i = 0; i <= 1440; i++) {
+        const ph = 2 * PI * i / 1440, den = 1 + ee * Math.cos(ph), r = ll / den;
+        const ok = Math.abs(den) > 1e-4 && Math.abs(r) <= far;
+        if (!ok || (prev !== null && Math.sign(den) !== Math.sign(prev))) { X.push(null); Y.push(null); }
+        prev = den;
+        if (!ok) continue;
+        const [x, y] = R(r * Math.cos(ph), r * Math.sin(ph));
+        X.push(x); Y.push(y);
+      }
+      return { x: X, y: Y };
+    };
+    const traces = [];
+    if (family) {
+      const ghosts = (keepEd ? [0, 0.5, 1, 1.5] : [0.5, 1, 1.5]).filter(g => Math.abs(g - e) > 0.04);
+      ghosts.forEach((g, i) => traces.push({ ...conic(g, keepEd ? s : g * s), mode: 'lines', legendgroup: 'family', showlegend: i === 0,
+        name: `dotted: e = ${ghosts.join(', ')}, same focus and ${keepEd ? 'ed' : 'directrix'}`, hovertemplate: `e = ${g}: ${conicKind(g)}<extra></extra>`,
+        line: { color: C_GHOST, width: 1.5, dash: 'dot' } }));
+    }
+    if (isFinite(d)) {
+      const [a0, a1] = [R(d, -far), R(d, far)];
+      traces.push({ x: [a0[0], a1[0]], y: [a0[1], a1[1]], mode: 'lines', name: `directrix ${vertical ? 'y' : 'x'} = ${n2(dir % 2 ? -d : d)}`, line: { color: C_ARROW, width: 2, dash: 'dash' } });
+    }
+    if (ell > 0) traces.push({ ...conic(e, ell), mode: 'lines', name: `r = ${n2(ell)} / (1 ${sign} ${n2(e)} ${trig} θ)`, line: { color: C_PATH, width: 3 } });
+    // the vertices on the axis; for the ellipse and the hyperbola also the centre, a, b, c and (hyperbola) the asymptotes
+    if (ell > 0 && e >= 0.005) {
+      const vs = [[ell / (1 + e), 0]].concat(Math.abs(e - 1) >= 0.005 ? [[-ell / (1 - e), 0]] : []);
+      traces.push({ x: vs.map(z => R(z[0], z[1])[0]), y: vs.map(z => R(z[0], z[1])[1]), mode: 'markers', name: vs.length > 1 ? 'vertices' : 'vertex', marker: { color: '#e5e7eb', size: 7 } });
+    }
+    if (ell > 0 && e >= 0.005 && Math.abs(e - 1) >= 0.005) {
+      const a = ell / Math.abs(1 - e * e), c = e * a, b = ell / Math.sqrt(Math.abs(1 - e * e)), xc = -e * ell / (1 - e * e), C = R(xc, 0);
+      traces.push({ x: [C[0]], y: [C[1]], mode: 'markers', name: `centre: a = ${a.toFixed(2)}, b = ${b.toFixed(2)}, c = ${c.toFixed(2)}, c/a = ${(c / a).toFixed(2)}`, marker: { color: C_GHOST, size: 9, symbol: 'x' } });
+      if (e > 1) {
+        const m = Math.sqrt(e * e - 1);
+        [1, -1].forEach((sg, i) => {
+          const [p0, p1] = [R(xc - far, -sg * m * far), R(xc + far, sg * m * far)];
+          traces.push({ x: [p0[0], p1[0]], y: [p0[1], p1[1]], mode: 'lines', name: `asymptotes through the centre, slopes ±${(vertical ? 1 / m : m).toFixed(2)}`, showlegend: i === 0, line: { color: C_GHOST, width: 1.2, dash: 'dash' } });
+        });
+      }
+    }
+    traces.push({ x: [0], y: [0], mode: 'markers+text', text: ['F'], textposition: 'bottom right', textfont: { color: '#e5e7eb' }, name: 'focus at the pole', marker: { color: '#c084fc', size: 11, symbol: 'diamond' } });
+    // P at polar angle θ: |PF| = |r|; a negative r puts P on the opposite ray, the far branch
+    traces.push({ x: [0, 1.5 * W * Math.cos(th)], y: [0, 1.5 * W * Math.sin(th)], mode: 'lines', name: `ray θ = ${(th / PI).toFixed(2)}π`, line: { color: '#94a3b8', width: 1, dash: 'dash' } });
+    const ph = th - rot, den = 1 + e * Math.cos(ph);
+    let second;
+    if (ell === 0) second = 'e = 0 with d kept: the curve has shrunk into the focus (keep ed instead to see the circle)';
+    else if (Math.abs(den) <= 1e-3) second = `1 ${sign} e ${trig} θ = 0 at θ = ${(th / PI).toFixed(2)}π: r is infinite, the curve runs off in this direction`;
+    else {
+      const r = ell / den, P0 = [r * Math.cos(ph), r * Math.sin(ph)], PP = R(P0[0], P0[1]);
+      traces.push({ x: [0, PP[0]], y: [0, PP[1]], mode: 'lines', name: `|PF| = |r| = ${Math.abs(r).toFixed(3)}${r < 0 ? ' (r < 0: the far branch)' : ''}`, line: { color: C_TAN, width: 2.5 } });
+      if (isFinite(d)) {
+        const ft = R(d, P0[1]), dist = Math.abs(d - P0[0]);
+        traces.push({ x: [PP[0], ft[0]], y: [PP[1], ft[1]], mode: 'lines', name: `dist(P, directrix) = ${dist.toFixed(3)}`, line: { color: C_ARROW, width: 2.5 } });
+        second = `|PF| = ${Math.abs(r).toFixed(3)}, dist(P, directrix) = ${dist.toFixed(3)}, ratio = ${(Math.abs(r) / dist).toFixed(3)} = e`;
+      } else second = `|PF| = ${Math.abs(r).toFixed(3)} = ed at every θ: a circle, its directrix at infinity`;
+      traces.push({ x: [PP[0]], y: [PP[1]], mode: 'markers', name: `P (${n2(PP[0])}, ${n2(PP[1])})`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } });
+    }
+    const rule = e < 0.005 ? 'e = 0' : Math.abs(e - 1) < 0.005 ? 'e = 1' : `e = ${e.toFixed(2)} ${e < 1 ? '<' : '>'} 1`;
+    const head = `${ell === 0 ? 'a single point' : conicKind(e)}, ${rule}: d = ${isFinite(d) ? d.toFixed(2) : '∞'}, ed = ${ell.toFixed(2)}`;
+    const [rx, ry] = vertical ? [0.62 * W, W] : [W, 0.62 * W];
+    Plotly.newPlot(el(id), traces, layout(view(0, 0, rx, ry, { height: 560, title: `${head}<br>${second}` })), cfg());
+  }
+
   // ══════════════════════════════════════════════════════════════
   //  MAST 221 — Probability
   // ══════════════════════════════════════════════════════════════
@@ -2698,6 +2778,7 @@
     'conic-ellipse':       conicEllipse,
     'conic-hyperbola':     conicHyperbola,
     'conic-parabola':      conicParabola,
+    'conic-polar':         conicPolar,
     // MAST 221
     'dice-sum-grid':       diceSumGrid,
     'empirical-dice':      empiricalDice,
