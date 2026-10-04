@@ -1,8 +1,8 @@
 ---
 title: Transfer learning
-domain: ml
+domain: ml.deep
 wikipedia: "Transfer learning"
-aliases: ["fine-tuning", "pretrained model"]
+aliases: ["pretrained model", "feature reuse", "domain adaptation"]
 maps_to: [study-hub/ds-core/vision-architectures, study-hub/ds-core/foundation-models]
 ---
 

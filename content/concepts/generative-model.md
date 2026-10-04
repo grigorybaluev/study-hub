@@ -1,8 +1,8 @@
 ---
 title: Generative model
-domain: ml
+domain: ml.deep
 wikipedia: "Generative model"
-aliases: ["generative adversarial network", "GAN", "diffusion model"]
+aliases: ["generative modelling", "generative AI", "sampling new data"]
 requires: [{concept: autoencoder, strength: soft}, {concept: joint-distribution, strength: soft}]
 maps_to: [study-hub/ds-core/neural-networks, study-hub/ds-core/unsupervised-learning]
 ---

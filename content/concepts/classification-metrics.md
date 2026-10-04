@@ -2,7 +2,7 @@
 title: Classification metrics
 domain: ml
 wikipedia: "Precision and recall"
-aliases: ["accuracy", "precision", "recall", "F1 score", "confusion matrix", "ROC curve", "AUC"]
+aliases: ["accuracy", "precision", "recall", "F1 score", "confusion matrix", "precision–recall curve"]
 maps_to: [study-hub/ds-core/model-evaluation]
 ---
 

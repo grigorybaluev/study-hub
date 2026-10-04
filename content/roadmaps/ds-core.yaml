@@ -152,6 +152,9 @@ areas:
       - id: unsupervised-learning
         title: Unsupervised learning
         summary: Clustering, dimensionality reduction and density estimation.
+      - id: natural-language-processing
+        title: Natural language processing
+        summary: Representing and modelling text, from tokens, word counts and embeddings to topic models and language models.
       - id: model-evaluation
         title: Model evaluation and selection
         summary: Validation, metrics, the bias-variance trade-off, overfitting and regularisation.

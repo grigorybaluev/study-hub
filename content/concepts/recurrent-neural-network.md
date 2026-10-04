@@ -1,6 +1,6 @@
 ---
 title: Recurrent neural network
-domain: ml
+domain: ml.deep
 wikipedia: "Recurrent neural network"
 aliases: ["RNN", "LSTM", "long short-term memory", "GRU", "gated recurrent unit", "backpropagation through time", "hidden state"]
 maps_to: [study-hub/ds-core/sequence-models]

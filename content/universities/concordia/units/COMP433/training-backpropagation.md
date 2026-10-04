@@ -4,7 +4,8 @@ order: 4
 status: outline
 weeks: [4]
 introduces:
-  - {concept: backpropagation, perspective: "derived on a computational graph, with vanishing and exploding gradients"}
+  - {concept: backpropagation, perspective: "derived on a computational graph"}
+  - vanishing-gradient-problem
 requires:
   - {concept: automatic-differentiation, strength: hard}
   - {concept: neural-network, strength: hard}
