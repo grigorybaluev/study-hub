@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { ElementDefinition, LayoutOptions } from "cytoscape";
 import GraphView, { FONT, boxLabel, tint, useTheme } from "../components/GraphView";
 import { Badge, CourseChip } from "../components/Chips";
-import { href, node, useData, type Data } from "../data/load";
+import { defaultVariantId, href, node, useData, type Data } from "../data/load";
 import type { CourseNode } from "../data/types";
 import { NEUTRAL } from "../components/domains";
 
@@ -19,7 +19,7 @@ type Theme = "light" | "dark";
 export default function CourseGraph() {
   const d = useData();
   const nav = useNavigate();
-  const [variantId, setVariantId] = useState(d.programs[0].variants.find((v) => v.coop)?.id ?? d.programs[0].variants[0].id);
+  const [variantId, setVariantId] = useState(() => defaultVariantId(d.programs[0]));
   const [selected, setSelected] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const theme = useTheme();

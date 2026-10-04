@@ -33,10 +33,8 @@ export default function App() {
           <NavLink to="/" className="brand">Study Hub</NavLink>
           <nav>
             <NavLink to="/" end>Program</NavLink>
-            <NavLink to="/concepts">Concepts</NavLink>
-            <NavLink to="/roadmap">Roadmap</NavLink>
             <NavLink to="/explore">Explore</NavLink>
-            <NavLink to="/analytics">Analytics</NavLink>
+            {/* Concepts, Roadmap and Analytics are left out of the menu for now; their pages still open from links */}
           </nav>
           <div className="spacer" />
           <Search />
