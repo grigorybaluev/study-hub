@@ -617,6 +617,57 @@ focus and $8$ from the directrix.
 :::
 ::::
 
+```sim
+id: conic-parabola
+controls:
+  - {id: p, label: "p (signed, vertex to focus)", min: -4, max: 4, step: 0.1, default: 1, decimals: 1}
+  - {id: horiz, label: "axis (0 vertical, 1 horizontal)", min: 0, max: 1, step: 1, default: 0, decimals: 0}
+  - {id: h, label: "h (vertex x)", min: -3, max: 3, step: 0.5, default: 0, decimals: 1}
+  - {id: k, label: "k (vertex y)", min: -3, max: 3, step: 0.5, default: 0, decimals: 1}
+  - {id: t, label: "P at t (2pt across the axis, pt² along it)", min: -2.5, max: 2.5, step: 0.01, default: 1.5, decimals: 2}
+note: 'Move P along the curve: its distances to the focus and to the directrix change together and stay equal. Raise |p| and the focus and the directrix move apart as the curve widens; the dotted chord through F is 4|p| long, the 4p of the equation. Take p below 0 and the curve turns to open the other way, still round the focus. The defaults are x² = 4y; for y² − 2y = 2x set the axis horizontal, p = 0.5, h = −0.5, k = 1, and for the vertex (2, 3) with focus (2, −1) set p = −4, h = 2, k = 3, t = −1, which puts P at (10, −1).'
+```
+
+```python
+# The parabola (x − h)² = 4p(y − k): every point is as far from the focus as from the directrix,
+# and the focus and the directrix are read off the vertex and p. Defaults: x² = 4y, p = 1.
+from math import hypot
+
+def parabola(h, k, p, horizontal=False):
+    """Vertex (h, k) and signed p: the focus, the directrix as (axis letter, value), the point at t."""
+    if horizontal:                                     # (y − k)² = 4p(x − h)
+        return (h + p, k), ("x", h - p), lambda t: (h + p * t**2, k + 2 * p * t)
+    return (h, k + p), ("y", k - p), lambda t: (h + 2 * p * t, k + p * t**2)
+
+def check(P, F, directrix):
+    letter, c = directrix
+    return hypot(P[0] - F[0], P[1] - F[1]), abs((P[0] if letter == "x" else P[1]) - c)
+
+F, ell, point = parabola(0, 0, 1)
+for t in (0, 0.5, 1.5, -2.5):
+    P = point(t)
+    pf, dl = check(P, F, ell)
+    print(f"t = {t:4}: P = ({P[0]:5.2f}, {P[1]:5.2f})  |PF| = {pf:.4f}  dist(P, directrix) = {dl:.4f}")
+
+# y² − 2y = 2x  →  (y − 1)² = 2(x + 1/2): horizontal, vertex (−1/2, 1), 4p = 2
+F, (letter, c), _ = parabola(-0.5, 1, 0.5, horizontal=True)
+print(f"(y − 1)² = 2(x + 1/2): focus ({F[0]:g}, {F[1]:g}), directrix {letter} = {c:g}")
+
+# vertex (2, 3) and focus (2, −1) are on x = 2: p = −1 − 3 = −4
+h, k, p = 2, 3, -1 - 3
+F, (letter, c), _ = parabola(h, k, p)
+P = (10, -1)
+pf, dl = check(P, F, (letter, c))
+print(f"(x − 2)² = {4 * p}(y − 3), directrix {letter} = {c}: {P} on it: {(P[0] - h)**2 == 4 * p * (P[1] - k)}, |PF| = {pf:g}, dist = {dl:g}")
+# Output:
+#   t =    0: P = ( 0.00,  0.00)  |PF| = 1.0000  dist(P, directrix) = 1.0000
+#   t =  0.5: P = ( 1.00,  0.25)  |PF| = 1.2500  dist(P, directrix) = 1.2500
+#   t =  1.5: P = ( 3.00,  2.25)  |PF| = 3.2500  dist(P, directrix) = 3.2500
+#   t = -2.5: P = (-5.00,  6.25)  |PF| = 7.2500  dist(P, directrix) = 7.2500
+#   (y − 1)² = 2(x + 1/2): focus (0, 1), directrix x = -1
+#   (x − 2)² = -16(y − 3), directrix y = 7: (10, -1) on it: True, |PF| = 8, dist = 8
+```
+
 :::caution
 $p$ is a signed distance, from the vertex *to* the focus. If the focus is below or to the left of
 the vertex, $p$ is negative; writing $p = 4$ in the last example gives the parabola that opens

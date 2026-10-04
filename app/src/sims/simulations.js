@@ -784,6 +784,38 @@
     Plotly.newPlot(el(id), traces, layout(view(h, k, ex, ey, { title: `c = √(a² + b²) = ${c.toFixed(3)}<br>||PF₁| − |PF₂|| = ${d.toFixed(3)} = 2a` })), cfg());
   }
 
+  // ── P18. Parabola: |PF| = dist(P, ℓ), vertical or horizontal, shifted ─
+  function conicParabola() {
+    const id = 'conic-parabola';
+    const pIn = val(id, 'p', 1), horiz = Math.round(val(id, 'horiz', 0)) === 1;
+    const h = val(id, 'h', 0), k = val(id, 'k', 0), t = val(id, 't', 1.5);
+    const p = Math.abs(pIn) < 0.05 ? (pIn < 0 ? -0.05 : 0.05) : pIn;        // p = 0 would put the focus on the directrix
+    // the parabola's own axes: u across the axis, v along it, so (2pt, pt²) lies on u² = 4pv; a horizontal axis swaps them
+    const P = placeConic(horiz, h, k), U = Math.sqrt(160 * Math.abs(p)), L = 60;
+    const [u, v] = samplePath(s => s, s => s * s / (4 * p), -U, U, 400);
+    const q = u.map((_, i) => P(u[i], v[i]));
+    const pp = P(2 * p * t, p * t * t), F = P(0, p), foot = P(2 * p * t, -p);
+    const dF = Math.hypot(pp[0] - F[0], pp[1] - F[1]), dL = Math.hypot(pp[0] - foot[0], pp[1] - foot[1]);
+    const opens = horiz ? (p > 0 ? 'right' : 'left') : (p > 0 ? 'up' : 'down');
+    const directrix = horiz ? `x = ${n2(h - p)}` : `y = ${n2(k - p)}`;
+    const vLabel = horiz ? (p > 0 ? 'middle left' : 'middle right') : (p > 0 ? 'bottom center' : 'top center');  // V's label on the directrix side
+    const traces = [
+      { ...pts(P, [[0, -L], [0, L]]), mode: 'lines', name: `axis ${horiz ? 'y' : 'x'} = ${n2(horiz ? k : h)}`, line: { color: C_GHOST, width: 1.5, dash: 'dot' } },
+      { ...pts(P, [[-L, -p], [L, -p]]), mode: 'lines', name: `directrix ${directrix}`, line: { color: C_ARROW, width: 2, dash: 'dash' } },
+      { ...pts(P, [[-2 * p, p], [2 * p, p]]), mode: 'lines', name: `chord through F, length 4|p| = ${(4 * Math.abs(p)).toFixed(2)}`, line: { color: '#c084fc', width: 1.5, dash: 'dot' } },
+      { x: q.map(z => z[0]), y: q.map(z => z[1]), mode: 'lines', name: horiz ? `(y − k)² = ${n2(4 * p)}(x − h)` : `(x − h)² = ${n2(4 * p)}(y − k)`, line: { color: C_PATH, width: 3 } },
+      { x: [h], y: [k], mode: 'markers+text', text: ['V'], textposition: vLabel, textfont: { color: '#e5e7eb' }, name: `vertex (${n2(h)}, ${n2(k)})`, marker: { color: '#e5e7eb', size: 8 } },
+      { x: [F[0]], y: [F[1]], mode: 'markers+text', text: ['F'], textposition: 'top right', textfont: { color: '#e5e7eb' }, name: `focus (${n2(F[0])}, ${n2(F[1])})`, marker: { color: '#c084fc', size: 11, symbol: 'diamond' } },
+      { x: [pp[0], F[0]], y: [pp[1], F[1]], mode: 'lines', name: `|PF| = ${dF.toFixed(3)}`, line: { color: C_TAN, width: 2.5 } },
+      { x: [pp[0], foot[0]], y: [pp[1], foot[1]], mode: 'lines', name: `dist(P, directrix) = ${dL.toFixed(3)}`, line: { color: C_ARROW, width: 2.5 } },
+      { x: [foot[0]], y: [foot[1]], mode: 'markers', showlegend: false, hoverinfo: 'skip', marker: { color: C_ARROW, size: 7, symbol: 'square' } },
+      { x: [pp[0]], y: [pp[1]], mode: 'markers', name: `P (${n2(pp[0])}, ${n2(pp[1])})`, marker: { color: C_PT, size: 12, line: { color: '#fff', width: 1.5 } } },
+    ];
+    const clamp = Math.abs(pIn) < 0.05 ? ` (p = 0 would put F on the directrix: held at ${n2(p)})` : '';
+    // a fixed frame, so a larger |p| shows as a wider curve and a shift as a moving vertex
+    Plotly.newPlot(el(id), traces, layout(view(0, 0, 10, 7.5, { title: `p = ${n2(p)}, opens ${opens}: focus (${n2(F[0])}, ${n2(F[1])}), directrix ${directrix}${clamp}<br>|PF| = ${dF.toFixed(3)} = dist(P, directrix) = ${dL.toFixed(3)}` })), cfg());
+  }
+
   // ══════════════════════════════════════════════════════════════
   //  MAST 221 — Probability
   // ══════════════════════════════════════════════════════════════
@@ -2665,6 +2697,7 @@
     'polar-area':          polarArea,
     'conic-ellipse':       conicEllipse,
     'conic-hyperbola':     conicHyperbola,
+    'conic-parabola':      conicParabola,
     // MAST 221
     'dice-sum-grid':       diceSumGrid,
     'empirical-dice':      empiricalDice,
