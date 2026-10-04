@@ -5,11 +5,16 @@
 // (min-zoomed-font-size against a font that grows with the score), and the titles start to fade;
 // 2 detail — every name, the titles faint. Edges are hidden until a concept is hovered or selected,
 // or the "all edges" mode is on and the view is zoomed in; the edges of filtered concepts never show.
-// Filters and search dim nodes in place, so the map never reshuffles.
+// Filters and search dim nodes in place, so the map never reshuffles. While zoomed out, domain links
+// (one line per pair of domains with at least LINK_MIN dependencies between them, as wide as the
+// square root of their number) stand in for the concept edges; they follow the filters.
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import cytoscape, { type ElementDefinition, type StylesheetJson } from "cytoscape";
 import { useTheme } from "./GraphView";
 import { TITLE_FONT } from "./domains";
+
+/** a pair of domains gets a link from this many dependencies between their visible concepts */
+export const LINK_MIN = 5;
 
 export type Lod = 0 | 1 | 2;
 export const LOD_LABEL: Record<Lod, string> = { 0: "overview", 1: "regions", 2: "detail" };
@@ -36,6 +41,10 @@ export interface ClusterGraphProps {
   edgeMode: "focus" | "all";
   /** coverage overlay: dashed and dotted borders for what no unit teaches */
   mark: boolean;
+  /** draw the domain links while zoomed out */
+  links: boolean;
+  onLinkHover: (h: { from: string; to: string; count: number; x: number; y: number } | null) => void;
+  onLinkClick: (from: string, to: string) => void;
   /** pan to this concept and zoom in to read it; `n` changes on every request */
   focus: { id: string; n: number } | null;
   /** zoom thresholds between the levels, in model-to-screen scale */
@@ -89,6 +98,8 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
     } },
     { selector: "node.region.lod1", style: { opacity: 0.6 } },
     { selector: "node.region.lod2", style: { opacity: 0.22 } },
+    // the title of a domain (or family) whose concepts are all hidden fades with them
+    { selector: "node.region.filtered, node.header.filtered", style: { opacity: 0.12 } },
     // interaction states
     { selector: "node.concept.filtered", style: { opacity: 0.07, events: "no", label: "" } },
     { selector: "node.concept.dim", style: { opacity: 0.2 } },
@@ -102,24 +113,35 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
     { selector: "edge[kind = 'soft']", style: { "line-style": "dashed", opacity: 0.2 } },
     { selector: "edge[kind = 'part']", style: { "line-style": "dotted", width: 1.6 } },
     { selector: "edge[kind = 'gen']", style: { "line-style": "dashed", "line-color": "#8a63d2", "target-arrow-color": "#8a63d2" } },
-    { selector: "edge.show", style: { display: "element" } },
-    { selector: "edge.hi", style: { display: "element", opacity: 0.95, width: 2.2, "z-index": 42 } },
+    // every edge at once: straight lines without arrowheads, Cytoscape's fastest edges
+    { selector: "edge.show", style: { display: "element", "curve-style": "haystack", "haystack-radius": 0, "target-arrow-shape": "none" } },
+    { selector: "edge.hi", style: { display: "element", opacity: 0.95, width: 2.2, "z-index": 42, "curve-style": "bezier", "target-arrow-shape": "triangle" } },
     { selector: "edge.hi[kind = 'soft']", style: { opacity: 0.6 } },
-    // last, so it wins over .show and .hi: a hidden concept's edges never show
+    // domain links: invisible anchors at the clusters, a curved line per strong pair of domains
+    { selector: "node.anchor", style: { width: 1, height: 1, "background-opacity": 0, "border-width": 0, label: "", events: "no", "z-index": 0 } },
+    { selector: "edge.meta", style: {
+      display: "element", width: "data(width)", "line-color": "data(color)", "target-arrow-color": "data(color)", "target-arrow-shape": "triangle",
+      "arrow-scale": 1.15, opacity: 0.5, "curve-style": "unbundled-bezier", "control-point-distances": "data(cpd)" as never,
+      "control-point-weights": 0.5 as never, "line-cap": "round" as never, "z-index": 20,
+    } },
+    { selector: "edge.meta.hover", style: { opacity: 0.92 } },
+    { selector: "edge.meta.dim", style: { opacity: 0.1 } },
+    // last, so they win over the rules above: zoomed in, below the threshold, switched off, or a hidden concept's edge
+    { selector: "edge.meta.zoomed, edge.meta.weak, edge.meta.off", style: { display: "none" } },
     { selector: "edge.filtered", style: { display: "none" } },
   ];
 }
 
 const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function ClusterGraph(props, ref) {
-  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, filtered, matches, edgeMode, mark, focus, lodAt, inset } = props;
+  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, filtered, matches, edgeMode, mark, links, onLinkHover, onLinkClick, focus, lodAt, inset } = props;
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const lod = useRef<Lod>(0);
   const hovered = useRef<string | null>(null);
   const theme = useTheme();
   // callbacks change identity on every render of the page; read them through a ref
-  const cb = useRef({ onSelect, onOpen, onHover, onLod });
-  cb.current = { onSelect, onOpen, onHover, onLod };
+  const cb = useRef({ onSelect, onOpen, onHover, onLod, onLinkHover, onLinkClick });
+  cb.current = { onSelect, onOpen, onHover, onLod, onLinkHover, onLinkClick };
   const edgeModeRef = useRef(edgeMode);
   edgeModeRef.current = edgeMode;
   const selectedRef = useRef(selected);
@@ -147,8 +169,9 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
   // edges shown for the hovered and selected concepts, or all of them in "all" mode once zoomed in
   const refreshEdges = (c: cytoscape.Core) => {
     c.batch(() => {
-      c.edges().removeClass("show hi");
-      if (edgeModeRef.current === "all" && lod.current >= 1) c.edges().addClass("show");
+      const plain = c.edges().not(".meta");
+      plain.removeClass("show hi");
+      if (edgeModeRef.current === "all" && lod.current >= 1) plain.addClass("show");
       for (const id of [selectedRef.current, hovered.current]) {
         if (!id) continue;
         const n = c.getElementById(id);
@@ -160,7 +183,7 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
   useEffect(() => {
     if (!host.current) return;
     const c = cytoscape({ container: host.current, elements, style: stylesheet(theme), layout: { name: "preset", fit: false } as cytoscape.LayoutOptions,
-      wheelSensitivity: 0.25, minZoom: 0.04, maxZoom: 3, boxSelectionEnabled: false, autoungrabify: false });
+      wheelSensitivity: 0.25, minZoom: 0.04, maxZoom: 3, boxSelectionEnabled: false, autoungrabify: false, hideEdgesOnViewport: true });
     const concepts = () => c.nodes(".concept");
     const saved = loadSaved(positionsKey);
     concepts().forEach((n) => { const p = saved[n.id()]; if (p) n.position(p); });
@@ -176,6 +199,7 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
         lod.current = next;
         c.batch(() => {
           c.nodes().removeClass("lod0 lod1 lod2").addClass(`lod${next}`);
+          c.edges(".meta").toggleClass("zoomed", next >= 1);
         });
         refreshEdges(c);
       }
@@ -199,6 +223,14 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
       refreshEdges(c);
     });
     c.on("mouseout", "node.concept", () => { hovered.current = null; cb.current.onHover(null); refreshEdges(c); });
+    c.on("mouseover", "edge.meta", (e) => {
+      e.target.addClass("hover");
+      const p = e.target.renderedMidpoint();
+      cb.current.onLinkHover({ from: e.target.data("from"), to: e.target.data("to"), count: e.target.data("count"), x: p.x, y: p.y });
+    });
+    c.on("mouseout", "edge.meta", (e) => { e.target.removeClass("hover"); cb.current.onLinkHover(null); });
+    c.on("tap", "edge.meta", (e) => cb.current.onLinkClick(e.target.data("from"), e.target.data("to")));
+    c.on("pan zoom", () => cb.current.onLinkHover(null));
     c.on("pan zoom drag", () => { if (hovered.current) { hovered.current = null; cb.current.onHover(null); } });
     cy.current = c;
     return () => { cancelAnimationFrame(raf); c.destroy(); cy.current = null; };
@@ -229,10 +261,38 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
           n.addClass("sel");
         }
       }
+      // titles fade when every concept of their domain (or family) is hidden
+      const shown = new Set<string>();
+      all.not(".filtered").forEach((n) => { shown.add(`d:${n.data("domain")}`); shown.add(`f:${n.data("family")}`); });
+      c.nodes(".region, .header").forEach((t) => {
+        const key = t.data("domain") ? `d:${t.data("domain")}` : t.data("family") ? `f:${t.data("family")}` : null;
+        t.toggleClass("filtered", key !== null && !shown.has(key));
+      });
+      // domain links count the dependencies between visible concepts only
+      const metas = c.edges(".meta");
+      if (metas.nonempty()) {
+        const counts = new Map<string, number>();
+        c.edges().not(".meta").forEach((e) => {
+          if (e.data("kind") === "soft") return;
+          const a = e.source(), b = e.target();
+          if (a.hasClass("filtered") || b.hasClass("filtered")) return;
+          const da = a.data("domain"), db = b.data("domain");
+          if (!da || !db || da === db) return;
+          const k = `${da}>${db}`;
+          counts.set(k, (counts.get(k) ?? 0) + 1);
+        });
+        metas.forEach((m) => {
+          const n = counts.get(`${m.data("from")}>${m.data("to")}`) ?? 0;
+          m.data({ count: n, width: m.data("scale") * (0.5 + Math.sqrt(n)) });
+          m.toggleClass("weak", n < LINK_MIN);
+        });
+        metas.toggleClass("off", !links);
+        metas.toggleClass("dim", !!matches || !!selected);
+      }
     });
     refreshEdges(c);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, matches, selected, edgeMode, mark, elements, theme, resetToken]);
+  }, [filtered, matches, selected, edgeMode, mark, links, elements, theme, resetToken]);
 
   useEffect(() => {
     const c = cy.current;

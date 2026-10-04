@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import type { ElementDefinition } from "cytoscape";
-import ClusterGraph, { LOD_LABEL, clearSavedPositions, type ClusterGraphHandle, type Lod } from "../components/ClusterGraph";
+import ClusterGraph, { LINK_MIN, LOD_LABEL, clearSavedPositions, type ClusterGraphHandle, type Lod } from "../components/ClusterGraph";
 import { tint, useTheme } from "../components/GraphView";
 import { LAYOUTS, TIER_NAMES, layoutField, type FieldEdge, type FieldItem, type FieldLayout, type LayoutName } from "../components/fieldLayouts";
 import { DOMAIN_LABEL, DOMAIN_ORDER, FAMILY_COLOR, FAMILY_LABEL, FAMILY_OF, familyTitleColor, fieldColor, titleColor, type Family } from "../components/domains";
@@ -45,6 +45,7 @@ export default function FieldMap() {
   const coverage = (params.get("cov") ?? "all") as Coverage;
   const mark = params.get("mark") === "1";
   const edgeMode = params.get("edges") === "all" ? "all" : "focus";
+  const links = params.get("links") !== "0";
   const set = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
     for (const [k, v] of Object.entries(patch)) { if (v === null || v === "") next.delete(k); else next.set(k, v); }
@@ -73,13 +74,14 @@ export default function FieldMap() {
   const [lod, setLod] = useState<Lod>(0);
   const [zoom, setZoom] = useState(1);
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [linkHover, setLinkHover] = useState<{ from: string; to: string; count: number; x: number; y: number } | null>(null);
   const [query, setQuery] = useState("");
   const [focus, setFocus] = useState<{ id: string; n: number } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const graph = useRef<ClusterGraphHandle>(null);
   const positionsKey = `fieldmap:${layoutName}:${version}`;
 
-  const { elements, lodAt } = useMemo(() => build(d, layout, edges, theme), [d, layout, edges, theme]);
+  const { elements, lodAt } = useMemo(() => build(d, layout, layoutName, edges, theme), [d, layout, layoutName, edges, theme]);
 
   const filtered = useMemo(() => {
     const out = new Set<string>();
@@ -127,7 +129,8 @@ export default function FieldMap() {
         {layout ? (
           <ClusterGraph ref={graph} elements={elements} positionsKey={positionsKey} resetToken={resetToken} selected={selected}
             onSelect={select} onOpen={(id) => nav(href.concept(id))} onHover={setHover} onLod={(l, z) => { setLod(l); setZoom(z); }}
-            filtered={filtered} matches={matches} edgeMode={edgeMode} mark={mark} focus={focus} lodAt={lodAt} inset={INSET} />
+            filtered={filtered} matches={matches} edgeMode={edgeMode} mark={mark} focus={focus} lodAt={lodAt} inset={INSET}
+            links={links} onLinkHover={setLinkHover} onLinkClick={(a, b) => set({ hide: DOMAIN_ORDER.filter((dm) => dm !== a && dm !== b).join(",") })} />
         ) : <div className="fieldmap-busy">Laying out the network…</div>}
       </div>
 
@@ -140,6 +143,9 @@ export default function FieldMap() {
           ))}
         </div>
         <FieldSearch query={query} setQuery={setQuery} onPick={choose} inputRef={searchBox} filtered={filtered} />
+        <label className="fieldmap-check" title={`While zoomed out, one line per pair of domains with at least ${LINK_MIN} dependencies between them, as wide as their number`}>
+          <input type="checkbox" checked={links} onChange={(e) => set({ links: e.target.checked ? null : "0" })} /> domain links
+        </label>
         <label className="fieldmap-check" title="Show the dependency arrows of every visible concept once zoomed in (otherwise only for the hovered or selected one)">
           <input type="checkbox" checked={edgeMode === "all"} onChange={(e) => set({ edges: e.target.checked ? "all" : null })} /> all edges
         </label>
@@ -212,12 +218,19 @@ export default function FieldMap() {
       {showHelp && (
         <div className="fieldmap-help">
           <p><b>{LAYOUTS.find((l) => l.id === layoutName)!.label}.</b> {help}</p>
-          <p>Colour is the domain, grouped in five families; size grows with the field relevance score. Zoomed out you see the domains; zoom in to read the concepts, the most load-bearing named first. Hover for a definition, click to see why a concept matters and what it rests on, double-click to open its page. Arrows lead from a foundation to what rests on it; hiding a domain or a tier hides its arrows too.</p>
+          <p>Colour is the domain, grouped in five families; size grows with the field relevance score. Zoomed out you see the domains; zoom in to read the concepts, the most load-bearing named first. Hover for a definition, click to see why a concept matters and what it rests on, double-click to open its page. Arrows lead from a foundation to what rests on it; hiding a domain or a tier hides its arrows too. Zoomed out, lines between domains stand for their dependencies: as wide as their number, coloured by the domain they come from, drawn for pairs with {LINK_MIN} or more.</p>
           <p className="muted small">Keys: / search · Esc clear · + and − zoom · f fit. Drag boxes to tidy; positions are kept per layout.</p>
         </div>
       )}
 
       {hover && hover.id !== selected && <HoverCard id={hover.id} x={hover.x} y={hover.y} />}
+      {linkHover && !hover && (
+        <div className="fieldmap-hover link" style={{ left: Math.min(Math.max(12, linkHover.x - 150), window.innerWidth - 330), top: Math.max(12, linkHover.y - 14), transform: "translateY(-100%)" }}>
+          <div className="hover-title">{DOMAIN_LABEL[linkHover.to] ?? linkHover.to} rests on {DOMAIN_LABEL[linkHover.from] ?? linkHover.from}</div>
+          <div className="small">{linkHover.count} dependenc{linkHover.count === 1 ? "y" : "ies"} between their visible concepts</div>
+          <div className="small muted">Click to show only these two domains</div>
+        </div>
+      )}
       {selected && <DetailPanel id={selected} onPick={choose} onClose={() => select(null)} />}
     </div>
   );
@@ -251,7 +264,7 @@ function fieldEdges(d: Data): FieldEdgeRow[] {
   return out;
 }
 
-function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme: "light" | "dark"): { elements: ElementDefinition[]; lodAt: [number, number] } {
+function build(d: Data, layout: FieldLayout | null, name: LayoutName, edges: FieldEdgeRow[], theme: "light" | "dark"): { elements: ElementDefinition[]; lodAt: [number, number] } {
   if (!layout) return { elements: [], lodAt: [0.45, 0.85] };
   const field = d.derived.ds_field.concepts;
   const xs = [...layout.nodes.values()];
@@ -273,6 +286,8 @@ function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme
     // a column header must fit its column: no word wider than the column it names
     if (dec.kind === "header") data.fs = Math.min(Math.max(dec.fs ?? 14, k(10)), dec.w / (Math.max(...dec.label.split(" ").map((x) => x.length)) * 0.7));
     if (dec.align) data.align = dec.align;
+    if (dec.domain) data.domain = dec.domain;
+    if (fam) data.family = fam;
     els.push({ classes: dec.kind, data, position: { x: dec.x, y: dec.y } });
   }
   let minFs = Infinity, maxFs = 0;
@@ -283,7 +298,7 @@ function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme
     const color = fieldColor(c.domain, theme);
     els.push({
       classes: "concept",
-      data: { id: c.id, label: p.label, name: c.short ?? c.title, w: p.w, h: p.h, fs: p.fs, fill: tint(color, theme), border: color, taught: field[c.id]?.taught ?? "none" },
+      data: { id: c.id, label: p.label, name: c.short ?? c.title, domain: c.domain, family: FAMILY_OF[c.domain], w: p.w, h: p.h, fs: p.fs, fill: tint(color, theme), border: color, taught: field[c.id]?.taught ?? "none" },
       position: { x: p.x, y: p.y },
     });
   }
@@ -291,9 +306,47 @@ function build(d: Data, layout: FieldLayout | null, edges: FieldEdgeRow[], theme
     if (!layout.nodes.has(e.source) || !layout.nodes.has(e.target)) continue;
     els.push({ data: { id: `${e.source}>${e.target}`, source: e.source, target: e.target, kind: e.kind } });
   }
+  els.push(...domainLinks(d, layout, name, edges, theme, fitZoom));
   // levels follow readability (labels hide below 9 px on screen): the overview lasts until the
   // largest names become legible, the detail level starts when the smallest do
   return { elements: els, lodAt: [Math.max(fitZoom * 1.05, 9 / maxFs), Math.max(fitZoom * 1.6, 9 / minFs)] };
+}
+
+/** Domain links (#179): the hard dependencies from one domain's concepts to another's, one curved line per
+ *  pair with at least LINK_MIN of them, from an anchor at each cluster — its centre on the radial map, its
+ *  title on the network, and below its column on the grid, where the lines arc under the table. Width is
+ *  set in screen pixels at the fitted zoom (half a pixel plus the square root of the count). */
+function domainLinks(d: Data, layout: FieldLayout, name: LayoutName, edges: FieldEdgeRow[], theme: "light" | "dark", fitZoom: number): ElementDefinition[] {
+  const dom = new Map(d.concepts.map((c) => [c.id, c.domain]));
+  const counts = new Map<string, number>();
+  for (const e of edges) {
+    if (e.kind === "soft") continue;
+    const a = dom.get(e.source), b = dom.get(e.target);
+    if (!a || !b || a === b || !layout.nodes.has(e.source) || !layout.nodes.has(e.target)) continue;
+    counts.set(`${a}>${b}`, (counts.get(`${a}>${b}`) ?? 0) + 1);
+  }
+  const strong = [...counts].filter(([, n]) => n >= LINK_MIN);
+  const domains = [...new Set(strong.flatMap(([k]) => k.split(">")))];
+  const rowsBottom = Math.max(0, ...layout.decorations.filter((x) => x.kind === "rowband").map((x) => x.y + x.h / 2));
+  const anchor = new Map<string, { x: number; y: number }>();
+  for (const dm of domains) {
+    const members = d.concepts.filter((c) => c.domain === dm).map((c) => layout.nodes.get(c.id)).filter((p): p is NonNullable<typeof p> => !!p);
+    const centre = { x: members.reduce((a, p) => a + p.x, 0) / members.length, y: members.reduce((a, p) => a + p.y, 0) / members.length };
+    const title = layout.decorations.find((x) => x.id === `region:${dm}`);
+    const head = layout.decorations.find((x) => x.id === `head:${dm}`);
+    anchor.set(dm, name === "network" && title ? { x: title.x, y: title.y }
+      : name === "grid" && head ? { x: head.x, y: rowsBottom + 50 } : centre);
+  }
+  const els: ElementDefinition[] = domains.map((dm) => ({ classes: "anchor", data: { id: `anchor:${dm}` }, position: anchor.get(dm)! }));
+  const scale = 1 / fitZoom;
+  for (const [k, n] of strong) {
+    const [a, b] = k.split(">");
+    const pa = anchor.get(a)!, pb = anchor.get(b)!;
+    // a gentle curve, so the two directions of one pair part ways; on the grid an arc below the table
+    const cpd = name === "grid" ? Math.sign(pb.x - pa.x || 1) * Math.abs(pb.x - pa.x) * 0.3 : Math.hypot(pb.x - pa.x, pb.y - pa.y) * 0.12;
+    els.push({ classes: "meta", data: { id: `link:${k}`, source: `anchor:${a}`, target: `anchor:${b}`, from: a, to: b, count: n, scale, width: scale * (0.5 + Math.sqrt(n)), color: fieldColor(a, theme), cpd } });
+  }
+  return els;
 }
 
 /** radial and network titles are sized by their layout; the grid's family titles by the fitted zoom */
