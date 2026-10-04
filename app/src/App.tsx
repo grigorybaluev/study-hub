@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { DataContext, loadData, type Data } from "./data/load";
 import Search from "./components/Search";
 import ThemeToggle from "./components/ThemeToggle";
@@ -9,8 +9,8 @@ import Course from "./pages/Course";
 import Unit from "./pages/Unit";
 import Concept from "./pages/Concept";
 import Roadmap from "./pages/Roadmap";
-import Explore from "./pages/Explore";
-import FieldMap from "./pages/FieldMap";
+import ConceptMap from "./pages/ConceptMap";
+import CourseGraph from "./pages/CourseGraph";
 import Design from "./pages/Design";
 import Analytics from "./pages/Analytics";
 
@@ -51,9 +51,11 @@ export default function App() {
             <Route path="/concept/:slug" element={<Concept />} />
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/skill/:slug" element={<Roadmap />} />
-            <Route path="/explore" element={<Explore />} />
-            <Route path="/explore/ds-map" element={<Explore mapRoute />} />
-            <Route path="/explore/ds-map-2" element={<FieldMap />} />
+            <Route path="/explore" element={<ConceptMap />} />
+            <Route path="/explore/courses" element={<CourseGraph />} />
+            {/* the earlier names of the map (#155, #173) still open it, with their view settings */}
+            <Route path="/explore/ds-map" element={<ToExplore />} />
+            <Route path="/explore/ds-map-2" element={<ToExplore />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/design/:kind" element={<Design />} />
             <Route path="*" element={<p>Not found.</p>} />
@@ -63,4 +65,10 @@ export default function App() {
       </div>
     </DataContext.Provider>
   );
+}
+
+/** Old map addresses redirect to the DS Concept Map, keeping their query (layout, selection, filters). */
+function ToExplore() {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: "/explore", search }} replace />;
 }

@@ -72,7 +72,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 }
 .explore-legend span { display: inline-flex; align-items: center; gap: 0.35em; white-space: nowrap; }
 .explore-legend i { display: inline-block; width: 0.9em; height: 0.9em; border: 1.5px solid; border-radius: 3px; }
-.explore-legend .explore-legend-sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 0.2rem; }
 /* search box inside the graph window (#155): results drop down over the graph */
 .explore-search { position: relative; }
 .explore-search input { font: inherit; font-size: 0.86rem; padding: 0.3em 0.6em; border-radius: 6px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--fg); width: 11rem; }
@@ -81,8 +80,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .explore-search .results button i { display: inline-block; width: 0.6em; height: 0.6em; border-radius: 50%; flex: none; }
 .explore-search .results button.hi, .explore-search .results button:hover { background: var(--accent-soft); color: var(--accent-dk); }
 .explore-search .results button.hidden { color: var(--fg-muted); }
-.explore-why { margin-top: 0.35em; }
-.explore-path { margin-top: 0.25em; line-height: 1.7; }
 button.linkish { font: inherit; padding: 0; border: 0; background: transparent; color: var(--link); cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
 button.linkish:hover { color: var(--accent-dk); }
 .badge.tier-application { background: #d4a01726; color: #8a6a0c; }
@@ -327,7 +324,7 @@ blockquote.wiki p { margin: 0.4em 0; }
 .solmap-graph { min-width: 0; border-top: 1px solid var(--line); }
 @container (min-width: 620px) { .solmap-graph { border-top: 0; } }
 
-/* ---------------------------------------------------------------- DS map 2 (#173) */
+/* ---------------------------------------------------------------- DS Concept Map (#173) */
 .fieldmap-canvas { width: 100%; height: 100%; background: var(--bg-elev); }
 .fieldmap-busy { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--fg-muted); background: var(--bg-elev); }
 .fieldmap .explore-panel.fieldmap-top { right: auto; max-width: calc(100% - 1.8rem); }

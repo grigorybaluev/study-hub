@@ -1,4 +1,4 @@
-// Cytoscape view for DS map 2 (#173): concepts placed by a field layout, with semantic zoom.
+// Cytoscape view for the DS Concept Map (#173): concepts placed by a field layout, with semantic zoom.
 //
 // Zoom levels (LOD): 0 overview — only the domain titles are named, the concepts are coloured boxes;
 // 1 regions — names appear from the most relevant down, as their text becomes readable

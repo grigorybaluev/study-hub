@@ -1,4 +1,4 @@
-// Layouts for DS map 2 (#173): where each concept goes, and the decorations that explain the space
+// Layouts for the DS Concept Map (#173): where each concept goes, and the decorations that explain the space
 // (guides, headers, domain titles). Every layout is deterministic, so the map is the same on every
 // load; the network layout runs a force simulation with a seeded random generator for the same reason.
 //

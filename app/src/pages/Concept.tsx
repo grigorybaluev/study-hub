@@ -4,7 +4,7 @@ import { Badge, ConceptChip, UnitLink } from "../components/Chips";
 import WikipediaSummary from "../components/WikipediaSummary";
 import { edgesIn, edgesOut, href, node, useData } from "../data/load";
 import type { CourseNode, RoadmapSkillNode, UnitNode } from "../data/types";
-import { TIER_LABEL } from "./Explore";
+import { TIER_LABEL } from "../components/tiers";
 
 export default function Concept() {
   const { slug } = useParams();

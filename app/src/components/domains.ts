@@ -1,11 +1,11 @@
 // Concept domains: their order around the maps and their colours.
 //
 // DOMAIN_COLOR is the original per-domain palette of the Explore views (#155). FIELD_COLOR is the
-// palette of DS map 2 (#173): one hue per family of domains, taken from the validated categorical
+// palette of the DS Concept Map (#173): one hue per family of domains, taken from the validated categorical
 // palette, so neighbouring families stay apart under protanopia and deuteranopia (worst adjacent
 // OKLab ΔE 8.4, normal vision 19.3, light and dark); the domains inside a family are lightness
 // steps of its hue (monotone, ΔL >= 0.06). Families are ordered so that the ones that touch around
-// the rings (maths, probability and statistics, computing, data, ML, back to maths) are the
+// the radial map (maths, probability and statistics, computing, data, ML, back to maths) are the
 // validated neighbours. Identity is never colour alone: every region is labelled.
 
 export const DOMAIN_ORDER = [

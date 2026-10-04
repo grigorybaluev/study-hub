@@ -1,4 +1,4 @@
-// DS map 2 (#173): the concepts a data-science professional should know, whatever the program
+// DS Concept Map (#173): the concepts a data-science professional should know, whatever the program
 // teaches, placed by their field relevance (derived.ds_field) and coloured by domain family.
 // The view lives in the URL (layout, selection, filters), so a reload or a shared link shows the
 // same map; dragged positions are remembered per layout in this browser.
@@ -32,7 +32,7 @@ const BAND_LINE = { light: "#d6d2c6", dark: "#3a3f48" };
 // the network layout takes about a second; keep it for the session
 const networkCache = new Map<string, FieldLayout>();
 
-export default function FieldMap() {
+export default function ConceptMap() {
   const d = useData();
   const nav = useNavigate();
   const theme = useTheme();
@@ -138,7 +138,7 @@ export default function FieldMap() {
       </div>
 
       <div className="explore-panel fieldmap-top">
-        <h1 title="The field picture of data science, independent of the program (#173)">DS map 2</h1>
+        <h1 title="Every concept of data science, whatever the program teaches, placed by relevance and coloured by domain (#173)">DS Concept Map</h1>
         <div className="seg" role="tablist" aria-label="Layout">
           {LAYOUTS.map((l) => (
             <button key={l.id} role="tab" aria-selected={layoutName === l.id} className={layoutName === l.id ? "active" : ""} title={l.help}
@@ -153,7 +153,7 @@ export default function FieldMap() {
           <input type="checkbox" checked={edgeMode === "all"} onChange={(e) => set({ edges: e.target.checked ? "all" : null })} /> all edges
         </label>
         <button className="plain" onClick={() => { clearSavedPositions(positionsKey); setResetToken((t) => t + 1); }} title="Forget dragged positions for this layout">reset layout</button>
-        <Link className="small" to="/explore/ds-map" title="The original DS map: the program's concepts, scored by its units">DS map (program) →</Link>
+        <Link className="small" to="/explore/courses" title="The program's courses by term, with their prerequisites">Courses →</Link>
       </div>
 
       <aside className="fieldmap-legend" aria-label="Filters">
