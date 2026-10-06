@@ -617,6 +617,57 @@ focus and $8$ from the directrix.
 :::
 ::::
 
+```sim
+id: conic-parabola
+controls:
+  - {id: p, label: "p (signed, vertex to focus)", min: -4, max: 4, step: 0.1, default: 1, decimals: 1}
+  - {id: horiz, label: "axis (0 vertical, 1 horizontal)", min: 0, max: 1, step: 1, default: 0, decimals: 0}
+  - {id: h, label: "h (vertex x)", min: -3, max: 3, step: 0.5, default: 0, decimals: 1}
+  - {id: k, label: "k (vertex y)", min: -3, max: 3, step: 0.5, default: 0, decimals: 1}
+  - {id: t, label: "P at t (2pt across the axis, pt² along it)", min: -2.5, max: 2.5, step: 0.01, default: 1.2, decimals: 2}
+note: 'Move P along the curve: its distances to the focus and to the directrix change together and stay equal. Raise |p| and the focus and the directrix move apart as the curve widens; the dotted chord through F is 4|p| long, the 4p of the equation. Take p below 0 and the curve turns to open the other way, still round the focus. The defaults are x² = 4y; for y² − 2y = 2x set the axis horizontal, p = 0.5, h = −0.5, k = 1, and for the vertex (2, 3) with focus (2, −1) set p = −4, h = 2, k = 3, t = −1, which puts P at (10, −1).'
+```
+
+```python
+# The parabola (x − h)² = 4p(y − k): every point is as far from the focus as from the directrix,
+# and the focus and the directrix are read off the vertex and p. Defaults: x² = 4y, p = 1.
+from math import hypot
+
+def parabola(h, k, p, horizontal=False):
+    """Vertex (h, k) and signed p: the focus, the directrix as (axis letter, value), the point at t."""
+    if horizontal:                                     # (y − k)² = 4p(x − h)
+        return (h + p, k), ("x", h - p), lambda t: (h + p * t**2, k + 2 * p * t)
+    return (h, k + p), ("y", k - p), lambda t: (h + 2 * p * t, k + p * t**2)
+
+def check(P, F, directrix):
+    letter, c = directrix
+    return hypot(P[0] - F[0], P[1] - F[1]), abs((P[0] if letter == "x" else P[1]) - c)
+
+F, ell, point = parabola(0, 0, 1)
+for t in (0, 0.5, 1.2, -2.5):
+    P = point(t)
+    pf, dl = check(P, F, ell)
+    print(f"t = {t:4}: P = ({P[0]:5.2f}, {P[1]:5.2f})  |PF| = {pf:.4f}  dist(P, directrix) = {dl:.4f}")
+
+# y² − 2y = 2x  →  (y − 1)² = 2(x + 1/2): horizontal, vertex (−1/2, 1), 4p = 2
+F, (letter, c), _ = parabola(-0.5, 1, 0.5, horizontal=True)
+print(f"(y − 1)² = 2(x + 1/2): focus ({F[0]:g}, {F[1]:g}), directrix {letter} = {c:g}")
+
+# vertex (2, 3) and focus (2, −1) are on x = 2: p = −1 − 3 = −4
+h, k, p = 2, 3, -1 - 3
+F, (letter, c), _ = parabola(h, k, p)
+P = (10, -1)
+pf, dl = check(P, F, (letter, c))
+print(f"(x − 2)² = {4 * p}(y − 3), directrix {letter} = {c}: {P} on it: {(P[0] - h)**2 == 4 * p * (P[1] - k)}, |PF| = {pf:g}, dist = {dl:g}")
+# Output:
+#   t =    0: P = ( 0.00,  0.00)  |PF| = 1.0000  dist(P, directrix) = 1.0000
+#   t =  0.5: P = ( 1.00,  0.25)  |PF| = 1.2500  dist(P, directrix) = 1.2500
+#   t =  1.2: P = ( 2.40,  1.44)  |PF| = 2.4400  dist(P, directrix) = 2.4400
+#   t = -2.5: P = (-5.00,  6.25)  |PF| = 7.2500  dist(P, directrix) = 7.2500
+#   (y − 1)² = 2(x + 1/2): focus (0, 1), directrix x = -1
+#   (x − 2)² = -16(y − 3), directrix y = 7: (10, -1) on it: True, |PF| = 8, dist = 8
+```
+
 :::caution
 $p$ is a signed distance, from the vertex *to* the focus. If the focus is below or to the left of
 the vertex, $p$ is negative; writing $p = 4$ in the last example gives the parabola that opens
@@ -835,6 +886,59 @@ $$
 which agrees with the slopes $\pm\frac{a}{b} = \pm\frac{1/6}{1/(2\sqrt3)}$ of the vertical form.
 :::
 ::::
+
+```sim
+id: conic-polar
+controls:
+  - {id: e, label: "e (eccentricity)", min: 0, max: 2.5, step: 0.01, default: 0.5, decimals: 2}
+  - {id: d, label: "d (ed when keep = 1)", min: 0.25, max: 5, step: 0.05, default: 3, decimals: 2}
+  - {id: dir, label: "directrix (0 x = d, 1 x = −d, 2 y = d, 3 y = −d)", min: 0, max: 3, step: 1, default: 0, decimals: 0}
+  - {id: theta, label: "P at θ (× π)", min: 0, max: 2, step: 0.01, default: 0.5, decimals: 2}
+  - {id: keep, label: "as e moves, keep (0 d, 1 ed)", min: 0, max: 1, step: 1, default: 0, decimals: 0}
+  - {id: family, label: "dotted family (0 off, 1 on)", min: 0, max: 1, step: 1, default: 1, decimals: 0}
+note: 'The focus F is at the pole and the yellow dashed line is the directrix. Slide e: below 1 the curve is an ellipse, at 1 a parabola, above 1 a hyperbola, whose second branch (the points with r < 0) comes in from far beyond the directrix as e grows; with keep = 0 the frame widens with ed past e = 1. Slide θ: P moves along the curve and |PF| ÷ dist(P, directrix) stays e. The dotted curves keep everything but e. With keep = 0 the focus and the directrix stay put, so as e falls to 0 the curve shrinks into the focus. With keep = 1 the slider sets ed instead: every curve passes through the same two points beside the focus, the directrix comes in from infinity as e grows, and e = 0 is the circle r = ed. The defaults are the ellipse r = 3/(2 + cos θ); for the other two examples set e = 2, d = 5, directrix 3, and e = 2, d = 0.25, directrix 2.'
+```
+
+```python
+# r = ed / (1 + e cos θ), focus at the pole and directrix x = d: |PF| / dist(P, ℓ) = e at every θ.
+# Defaults: e = 1/2 and d = 3, the ellipse r = 3/(2 + cos θ).
+from math import cos, sin, sqrt, pi
+
+def kind(e):
+    return "circle" if e == 0 else "parabola" if e == 1 else "ellipse" if e < 1 else "hyperbola"
+
+e, d = 0.5, 3
+for th in (0, pi / 2, pi, 4.0):
+    r = e * d / (1 + e * cos(th))
+    x, y = r * cos(th), r * sin(th)
+    print(f"θ = {th:.3f}: r = {r:.4f}, P = ({x:7.4f}, {y:7.4f}), |PF| / dist(P, ℓ) = {abs(r) / abs(d - x):.4f}")
+
+def axes(e, ed):
+    """Centre (along the axis, from the focus), a, b and c, from the vertices at θ = 0 and θ = π."""
+    r0, r1 = ed / (1 + e), ed / (1 - e)         # r1 < 0 for a hyperbola: that vertex is on the far branch
+    centre = (r0 - r1) / 2                       # the vertices are r0 and −r1 along the axis
+    a, c = abs(r0 + r1) / 2, abs(centre)         # the focus is c from the centre
+    return centre, a, sqrt(abs(a**2 - c**2)), c
+
+for name, e, ed in (("r = 3/(2 + cos θ)", 0.5, 1.5), ("r = 1/(2 + 4 sin θ)", 2, 0.5)):
+    centre, a, b, c = axes(e, ed)
+    print(f"{name}: e = {e}, {kind(e)}, d = {ed / e:g}; centre {centre:+.4f} along the axis, a = {a:.4f}, b = {b:.4f}, c = {c:.4f}, c/a = {c / a:g}")
+
+# hold ed = 3/2 and let e shrink: r is squeezed between its values at θ = 0 and θ = π towards the circle r = 3/2
+for e in (0.5, 0.1, 0.01, 0):
+    print(f"e = {e:<4}: {1.5 / (1 + e):.4f} ≤ r ≤ {1.5 / (1 - e):.4f}  ({kind(e)})")
+# Output:
+#   θ = 0.000: r = 1.0000, P = ( 1.0000,  0.0000), |PF| / dist(P, ℓ) = 0.5000
+#   θ = 1.571: r = 1.5000, P = ( 0.0000,  1.5000), |PF| / dist(P, ℓ) = 0.5000
+#   θ = 3.142: r = 3.0000, P = (-3.0000,  0.0000), |PF| / dist(P, ℓ) = 0.5000
+#   θ = 4.000: r = 2.2282, P = (-1.4565, -1.6863), |PF| / dist(P, ℓ) = 0.5000
+#   r = 3/(2 + cos θ): e = 0.5, ellipse, d = 3; centre -1.0000 along the axis, a = 2.0000, b = 1.7321, c = 1.0000, c/a = 0.5
+#   r = 1/(2 + 4 sin θ): e = 2, hyperbola, d = 0.25; centre +0.3333 along the axis, a = 0.1667, b = 0.2887, c = 0.3333, c/a = 2
+#   e = 0.5 : 1.0000 ≤ r ≤ 3.0000  (ellipse)
+#   e = 0.1 : 1.3636 ≤ r ≤ 1.6667  (ellipse)
+#   e = 0.01: 1.4851 ≤ r ≤ 1.5152  (ellipse)
+#   e = 0   : 1.5000 ≤ r ≤ 1.5000  (circle)
+```
 
 :::caution
 The angles where $r \to \infty$ come from solving $\sin\theta = -\frac12$, which has its solutions
