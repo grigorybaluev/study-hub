@@ -1,14 +1,20 @@
 import { Link, useParams } from "react-router-dom";
 import { Badge, ConceptChip, UnitLink } from "../components/Chips";
 import Markdown from "../components/Markdown";
-import { edgesOut, href, node, useData } from "../data/load";
-import type { ConceptNode, CourseNode } from "../data/types";
+import { edgesOut, href, node, useData, useUnitBody } from "../data/load";
+import type { ConceptNode, CourseNode, UnitNode } from "../data/types";
 
 export default function Unit() {
   const d = useData();
   const { code, slug } = useParams();
   const unit = d.units.find((u) => u.course.endsWith("/" + code) && u.id.endsWith("/" + slug));
   if (!unit) return <p>Unknown unit {code}/{slug}.</p>;
+  return <UnitPage unit={unit} />;
+}
+
+function UnitPage({ unit }: { unit: UnitNode }) {
+  const d = useData();
+  const body = useUnitBody(unit);
   const course = node<CourseNode>(d, unit.course)!;
   const siblings = d.unitsOf.get(unit.course) ?? [];
   const i = siblings.findIndex((u) => u.id === unit.id);
@@ -36,7 +42,9 @@ export default function Unit() {
           <p className="muted">Review unit: recaps material introduced elsewhere. See the concepts in the sidebar for where they are taught.</p>
         )}
         <div className={`unit-body prose${course.pages ? ` pages-${course.pages}` : ""}`}>
-          <Markdown key={unit.id} source={unit.body} />
+          {body === undefined ? <p className="muted">Loading…</p>
+            : body instanceof Error ? <p className="muted">Could not load this unit: {body.message}</p>
+            : <Markdown key={unit.id} source={body} />}
         </div>
         <nav className="unit-nav">
           <span>{prev && <Link to={href.unit(prev.id)}>← {prev.title}</Link>}</span>

@@ -42,8 +42,11 @@ export interface UnitNode {
   weeks: number[];
   /** Sim blocks in the body and how many carry each `verified:` check; verified = both. */
   sims: { total: number; interface: number; content: number; verified: number };
-  body: string;
+  // `body` is in graph.json but not in the app's copy: scripts/data.mjs moves it to UnitBodies (#189)
 }
+
+/** data/units/<university>/<CODE>.json: unit id -> markdown body, for one course (#189). */
+export type UnitBodies = Record<string, string>;
 
 export interface Term {
   index: number;
