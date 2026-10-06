@@ -9,9 +9,11 @@ export default function UpdatePrompt() {
   const { needRefresh: [needRefresh, setNeedRefresh], updateServiceWorker } = useRegisterSW({
     onRegisteredSW(_url, reg) {
       if (!reg) return;
-      setInterval(() => reg.update(), HOUR);
+      // offline the check fails, which is expected: try again next time
+      const check = () => reg.update().catch(() => undefined);
+      setInterval(check, HOUR);
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") reg.update();
+        if (document.visibilityState === "visible") check();
       });
     },
   });

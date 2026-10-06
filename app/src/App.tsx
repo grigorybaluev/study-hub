@@ -4,7 +4,6 @@ import { DataContext, loadData, type Data } from "./data/load";
 import Search from "./components/Search";
 import ThemeToggle from "./components/ThemeToggle";
 import Footer from "./components/Footer";
-import UpdatePrompt from "./components/UpdatePrompt";
 import Home from "./pages/Home";
 import Course from "./pages/Course";
 import Unit from "./pages/Unit";
@@ -61,7 +60,6 @@ export default function App() {
           </Routes>
         </main>
         {!full && <Footer />}
-        <UpdatePrompt />
       </div>
     </DataContext.Provider>
   );

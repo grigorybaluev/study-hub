@@ -34,7 +34,10 @@ cd app && npm run dev        # runs the pipeline first (npm run data), then Vite
 ```
 
 Node via nvm (`nvm use`, .nvmrc = 24); Python via `.venv` (3.12). The app's `npm run data`
-runs lint -> build_graph -> derive and copies the JSON into app/public/data/.
+runs lint -> build_graph -> derive and copies the JSON into app/public/data/, moving unit bodies
+out of graph.json into one file per course, `data/units/<uni>/<CODE>.json` (#189). The built
+app is an installable PWA (vite-plugin-pwa): `public/icon.svg` is the one icon source, and the
+service worker precaches everything except the Sim chunk and sql.js.
 
 ## Graph model
 

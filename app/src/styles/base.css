@@ -33,7 +33,10 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .shell { display: flex; flex-direction: column; min-height: 100vh; }
 .topbar {
   display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap;
-  padding: 0.65rem 1.25rem; border-bottom: 2px solid var(--header-line); background: var(--header-bg);
+  /* installed on an iPhone (#189) the page runs under the translucent status bar and, in landscape, beside
+     the notch: the dark top bar extends under the status bar, and nothing sits under the notch or home bar */
+  padding: max(0.65rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right)) 0.65rem max(1.25rem, env(safe-area-inset-left));
+  border-bottom: 2px solid var(--header-line); background: var(--header-bg);
   position: sticky; top: 0; z-index: 20;
 }
 .topbar .brand { font-weight: 700; letter-spacing: 0.01em; color: var(--header-fg); font-size: 1.05rem; }
@@ -45,21 +48,16 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .theme-toggle { font: inherit; font-size: 0.85rem; padding: 0.3em 0.7em; border-radius: 999px; cursor: pointer; border: 1px solid #ffffff33; background: transparent; color: var(--header-muted); }
 .theme-toggle:hover { color: var(--header-fg); border-color: var(--accent); }
 .topbar .spacer { flex: 1; }
-.main { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 1rem 1.25rem 4rem; }
-/* Installed on an iPhone (#189) the page runs under the translucent status bar and, in landscape, beside
-   the notch: the dark top bar extends under the status bar, and nothing sits under the notch or home bar. */
-.topbar { padding-top: max(0.65rem, env(safe-area-inset-top)); padding-left: max(1.25rem, env(safe-area-inset-left)); padding-right: max(1.25rem, env(safe-area-inset-right)); }
-.main:not(.full) { padding-left: max(1.25rem, env(safe-area-inset-left)); padding-right: max(1.25rem, env(safe-area-inset-right)); }
+.main { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 1rem max(1.25rem, env(safe-area-inset-right)) 4rem max(1.25rem, env(safe-area-inset-left)); }
 .main.full { max-width: none; padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); display: flex; flex-direction: column; }
 .footer {
   display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; justify-content: center;
-  padding: 1rem 1.25rem; border-top: 1px solid var(--line);
-  font-size: 0.8rem; color: var(--fg-muted);
+  padding: 1rem max(1.25rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+  border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--fg-muted);
 }
 .footer a { color: var(--fg-muted); text-decoration: underline; text-underline-offset: 2px; }
 .footer a:hover { color: var(--fg); }
 .footer .version { font-family: var(--mono); color: var(--fg-faint); }
-.footer { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
 .update-toast {
   position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
   display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.6rem 0.55rem 1rem; max-width: calc(100vw - 2rem);
@@ -104,7 +102,7 @@ button.linkish:hover { color: var(--accent-dk); }
 .explore-selected { position: absolute; right: 0.9rem; bottom: 0.8rem; z-index: 5; max-width: 34rem; font-size: 0.9rem; padding: 0.5rem 0.8rem; background: var(--bg-elev); border: 1.5px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .explore-zoom { position: absolute; right: 0.9rem; top: 0.8rem; z-index: 5; font-size: 0.78rem; color: var(--fg-muted); padding: 0.25rem 0.55rem; background: color-mix(in srgb, var(--bg-elev) 88%, transparent); border-radius: 6px; }
 .with-sidebar { display: grid; grid-template-columns: minmax(0, 1fr) var(--sidebar); gap: 2rem; align-items: start; }
-.sidebar { position: sticky; top: 4rem; font-size: 0.92rem; }
+.sidebar { position: sticky; top: calc(4rem + env(safe-area-inset-top)); font-size: 0.92rem; }
 .sidebar section { margin-bottom: 1.2rem; }
 .sidebar h4 { margin: 0 0 0.4em; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .sidebar ul { list-style: none; padding: 0; margin: 0; }

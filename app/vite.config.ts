@@ -31,10 +31,12 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            // hashed file names never change content, so the first copy is good until the next release
-            urlPattern: ({ url }) => url.pathname.includes("/assets/"),
+            // the heavy chunks left out of the precache, kept after their first load; hashed names never
+            // change content. Each release adds one Sim chunk and at most one wasm, so 4 entries keep the
+            // current and previous release and old copies are evicted instead of piling up.
+            urlPattern: ({ url }) => /\/assets\/(Sim-.*\.js|sql-wasm.*\.wasm)$/.test(url.pathname),
             handler: "CacheFirst",
-            options: { cacheName: "lazy-assets", expiration: { maxEntries: 80 } },
+            options: { cacheName: "lazy-assets", expiration: { maxEntries: 4, purgeOnQuotaError: true } },
           },
         ],
       },
