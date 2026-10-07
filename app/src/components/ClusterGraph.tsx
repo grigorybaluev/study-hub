@@ -76,6 +76,7 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
       "min-zoomed-font-size": 8,
     } },
     // coverage overlay: dashed = no unit teaches it, dotted = taught inside a topic it is part of
+    { selector: "node.concept.memory", style: { "background-color": "data(mfill)", "border-color": "data(mborder)" } },
     { selector: "node.concept.cov[taught = 'none']", style: { "border-style": "dashed", "border-width": 2 } },
     { selector: "node.concept.cov[taught = 'parent']", style: { "border-style": "dotted", "border-width": 2.2 } },
     // overview: only the domain titles are named
@@ -266,9 +267,9 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
     const c = cy.current;
     if (!c) return;
     c.batch(() => c.nodes(".concept").forEach((n) => {
-      if (n.data("fill0") === undefined) n.data({ fill0: n.data("fill"), border0: n.data("border") });
       const p = paint?.get(n.id());
-      n.data({ fill: p ? p.fill : n.data("fill0"), border: p ? p.border : n.data("border0") });
+      if (p) n.data({ mfill: p.fill, mborder: p.border });
+      n.toggleClass("memory", !!p);
     }));
   }, [paint, elements, theme, resetToken]);
 

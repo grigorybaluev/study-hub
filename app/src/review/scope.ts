@@ -44,6 +44,8 @@ export interface ScopeContext {
   areaConcepts(id: string): Set<string>;
   /** concepts the units of a term's courses require (hard): what to have in memory before it starts */
   termRequires(index: number): Set<string>;
+  /** courses of the terms before a term: before it, review only what was already taught */
+  earlierCourses(index: number): string[];
 }
 
 export function inScope(card: Card, s: Scope, ctx: ScopeContext): boolean {
@@ -54,7 +56,11 @@ export function inScope(card: Card, s: Scope, ctx: ScopeContext): boolean {
     case "unit": return card.unit === s.id;
     case "concept": return card.concepts.includes(s.id);
     case "area": { const k = ctx.areaConcepts(s.id); return card.concepts.some((c) => k.has(c)); }
-    case "before": { const k = ctx.termRequires(s.index); return card.concepts.some((c) => k.has(c)); }
+    case "before": {
+      if (!ctx.earlierCourses(s.index).includes(card.course)) return false;
+      const k = ctx.termRequires(s.index);
+      return card.concepts.some((c) => k.has(c));
+    }
   }
 }
 

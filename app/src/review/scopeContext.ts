@@ -31,27 +31,21 @@ export function scopes(d: Data): Scopes {
     return areaCache.get(id)!;
   };
   const termCourses = (index: number) => terms.find((t) => t.index === index)?.courses ?? [];
+  /** hard requires of these courses' units: (concept, unit order) pairs */
+  const hardRequires = (courses: string[]) => courses.flatMap((c) => (d.unitsOf.get(c) ?? []).flatMap((u) =>
+    edgesOut(d, u.id, "requires").filter((e) => (e.strength ?? "hard") === "hard").map((e) => ({ concept: e.to, order: u.order }))));
+  const earlierCourses = (index: number) => terms.filter((t) => t.index < index).flatMap((t) => t.courses);
   const requiresCache = new Map<number, Set<string>>();
   const termRequires = (index: number) => {
-    if (!requiresCache.has(index)) {
-      const k = new Set<string>();
-      for (const c of termCourses(index)) for (const u of d.unitsOf.get(c) ?? []) {
-        for (const e of edgesOut(d, u.id, "requires")) if ((e.strength ?? "hard") === "hard") k.add(e.to);
-      }
-      requiresCache.set(index, k);
-    }
+    if (!requiresCache.has(index)) requiresCache.set(index, new Set(hardRequires(termCourses(index)).map((r) => r.concept)));
     return requiresCache.get(index)!;
   };
   return {
-    termCourses, areaConcepts, termRequires, terms, areas,
+    termCourses, areaConcepts, termRequires, earlierCourses, terms, areas,
     courses: (s) => s.kind === "course" ? [s.id] : s.kind === "term" ? termCourses(s.index) : [],
     weight(courses) {
       const orders = new Map<string, number[]>();             // concept -> orders of the units requiring it
-      for (const c of courses) for (const u of d.unitsOf.get(c) ?? []) {
-        for (const e of edgesOut(d, u.id, "requires")) {
-          if ((e.strength ?? "hard") === "hard") orders.set(e.to, [...(orders.get(e.to) ?? []), u.order]);
-        }
-      }
+      for (const r of hardRequires(courses)) orders.set(r.concept, [...(orders.get(r.concept) ?? []), r.order]);
       return (k, after) => (orders.get(k) ?? []).filter((o) => o > after).length;
     },
     label(s) {

@@ -84,14 +84,17 @@ export interface Deck {
 const EXTEND_BY = 5;
 
 /** The cards, this device's store and an engine over its log: what the deck and the stats page read. */
-export function useReviewData(): { st: { store: Store; engine: Engine; cards: Card[] } | null; error?: string } {
+export function useReviewData(enabled = true): { st: { store: Store; engine: Engine; cards: Card[] } | null; error?: string } {
   const [st, setSt] = useState<{ store: Store; engine: Engine; cards: Card[] } | null>(null);
   const [error, setError] = useState<string | undefined>();
   useEffect(() => {
+    if (!enabled || st) return;
+    let live = true;
     Promise.all([openStore(), loadCards()])
-      .then(([store, file]) => setSt({ store, engine: new Engine(store.reviews, store.settings), cards: file.cards }))
-      .catch((e) => setError(String(e)));
-  }, []);
+      .then(([store, file]) => live && setSt({ store, engine: new Engine(store.reviews, store.settings), cards: file.cards }))
+      .catch((e) => live && setError(String(e)));
+    return () => { live = false; };
+  }, [enabled, st]);
   return { st, error };
 }
 

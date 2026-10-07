@@ -15,6 +15,7 @@ const ctx = {
   termCourses: (i) => (i === 2 ? ["concordia/STAT280"] : ["concordia/MAST221"]),
   areaConcepts: (id) => new Set(id === "study-hub/ds-core/linear-algebra" ? ["matrix", "inverse-matrix"] : ["probability"]),
   termRequires: (i) => new Set(i === 3 ? ["vector", "probability"] : []),
+  earlierCourses: (i) => (i === 3 ? ["concordia/STAT280"] : []),
 };
 
 test("the URL names the scope, and the scope gives back its URL", () => {
@@ -33,7 +34,7 @@ test("each scope picks its cards", () => {
   assert.equal(ids({ kind: "unit", id: "concordia/STAT280/matrices" }), "bc");
   assert.equal(ids({ kind: "concept", id: "matrix" }), "b");
   assert.equal(ids({ kind: "area", id: "study-hub/ds-core/linear-algebra" }), "bc");      // interview prep, across courses
-  assert.equal(ids({ kind: "before", index: 3 }), "ad");                                   // what term 4's units require
+  assert.equal(ids({ kind: "before", index: 3 }), "a");   // what term 4 requires, from earlier terms' courses only (not d's MAST221)
 });
 
 test("exam prep puts first the cards whose concepts later units require most, keeping course order otherwise", () => {

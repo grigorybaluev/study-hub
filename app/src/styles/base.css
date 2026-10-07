@@ -696,12 +696,6 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .mastery-bar i, .legend i { display: inline-block; height: 100%; }
 .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; }
 .legend i { width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; }
-.t-new { background: var(--bg-sunken); outline: 1px solid var(--line); outline-offset: -1px; }
-.t-learning { background: #c9b8ec; }   /* lavender: not a metal, unlike the tiers after it */
-.t-bronze { background: #c4834a; }
-.t-silver { background: #8d99a8; }
-.t-gold { background: #ddb231; }
-.t-diamond { background: #4fa3e6; }
 .milestones { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.6rem; }
 .milestones li { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.6rem 0.75rem; border-radius: var(--radius); border: 1.5px dashed var(--line); opacity: 0.55; }
 .milestones li.reached { opacity: 1; border-style: solid; border-color: var(--accent); background: var(--accent-soft); }

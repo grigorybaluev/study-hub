@@ -12,8 +12,9 @@ import { DOMAIN_LABEL, DOMAIN_ORDER, FAMILY_COLOR, FAMILY_LABEL, FAMILY_OF, fami
 import { Badge, UnitLink } from "../components/Chips";
 import { edgesOut, href, node, useData, type Data } from "../data/load";
 import type { ConceptNode, DsFieldConcept, DsTier, RoadmapSkillNode } from "../data/types";
-import { NO_CARDS, TIER_COLOR, useMemory } from "../review/memory";
-import { TIER_RANK, type Tier } from "../review/engine";
+import { NO_CARDS, TIER_COLOR, useMemory, type Memory } from "../review/memory";
+import type { Tier } from "../review/engine";
+import { TIERS as MEMORY_TIERS } from "../components/MasteryBar";
 import { TIER_NAME } from "../review/rewards";
 
 const TIERS: DsTier[] = ["application", "core", "supporting", "peripheral"];
@@ -54,7 +55,7 @@ export default function ConceptMap() {
   const links = params.get("links") !== "0";
   // colour by memory (#197): each concept takes the tier of its review cards; concepts without cards fade
   const memoryOn = params.get("color") === "memory";
-  const memory = useMemory();
+  const { memory, error: memoryError } = useMemory(memoryOn);
   const set = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
     for (const [k, v] of Object.entries(patch)) { if (v === null || v === "") next.delete(k); else next.set(k, v); }
@@ -179,6 +180,7 @@ export default function ConceptMap() {
 
       <aside className="fieldmap-legend" aria-label="Filters">
         {memoryOn && memory && <MemoryLegend memory={memory} total={d.concepts.length} theme={theme} />}
+        {memoryOn && !memory && <section><h4>Memory</h4><p className="small muted">{memoryError ? `Your review log could not be read (${memoryError}); the map stays in domain colours.` : "Reading your review log…"}</p></section>}
         <section>
           <h4>Relevance <span className="muted">· click to hide</span></h4>
           {TIERS.map((t) => {
@@ -294,20 +296,18 @@ function fieldEdges(d: Data): FieldEdgeRow[] {
 }
 
 /** The tiers of memory with how many concepts sit in each, and how many reach Silver. */
-function MemoryLegend({ memory, total, theme }: { memory: NonNullable<ReturnType<typeof useMemory>>; total: number; theme: "light" | "dark" }) {
-  const tiers = (Object.keys(TIER_RANK) as Tier[]).sort((a, b) => TIER_RANK[a] - TIER_RANK[b]);
+function MemoryLegend({ memory, total, theme }: { memory: Memory; total: number; theme: "light" | "dark" }) {
   const count = (t: Tier) => [...memory.concepts.values()].filter((c) => c.tier === t).length;
-  const silver = [...memory.concepts.values()].filter((c) => TIER_RANK[c.tier] >= TIER_RANK.silver).length;
   return (
     <section>
       <h4>Memory <Link className="muted" to="/review/stats">· stats</Link></h4>
-      {tiers.map((t) => (
+      {MEMORY_TIERS.map((t) => (
         <div key={t} className="legend-row static">
           <i style={{ background: tint(TIER_COLOR[t], theme), borderColor: TIER_COLOR[t] }} /><span>{TIER_NAME[t]}</span><span className="count">{count(t)}</span>
         </div>
       ))}
       <div className="legend-row static"><i style={{ background: tint(NO_CARDS[theme], theme), borderColor: NO_CARDS[theme] }} /><span>No cards yet</span><span className="count">{total - memory.concepts.size}</span></div>
-      <p className="small muted">{silver} of {memory.concepts.size} concepts with cards at Silver or above (remembered a month).</p>
+      <p className="small muted">{memory.silverPlus} of {memory.concepts.size} concepts with cards at Silver or above (remembered a month).</p>
     </section>
   );
 }

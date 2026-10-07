@@ -1,6 +1,7 @@
 // A course's cards by mastery tier, as one bar (#195 stats page, #197 course page).
 import { TIER_RANK, type Tier } from "../review/engine";
 import { TIER_NAME } from "../review/rewards";
+import { TIER_COLOR } from "../review/memory";
 
 export const TIERS = (Object.keys(TIER_RANK) as Tier[]).sort((a, b) => TIER_RANK[a] - TIER_RANK[b]);
 
@@ -8,7 +9,7 @@ export default function MasteryBar({ tiers }: { tiers: Record<Tier, number> }) {
   const total = TIERS.reduce((n, t) => n + tiers[t], 0) || 1;
   return (
     <span className="mastery-bar" title={TIERS.map((t) => `${TIER_NAME[t]} ${tiers[t]}`).join(" · ")}>
-      {TIERS.map((t) => tiers[t] > 0 && <i key={t} className={`t-${t}`} style={{ width: `${(100 * tiers[t]) / total}%` }} />)}
+      {TIERS.map((t) => tiers[t] > 0 && <i key={t} style={{ width: `${(100 * tiers[t]) / total}%`, background: TIER_COLOR[t] }} />)}
     </span>
   );
 }
@@ -22,7 +23,7 @@ export function MasteryRing({ tiers }: { tiers: Record<Tier, number> }) {
     <svg className="mastery-ring" viewBox="0 0 18 18" width="16" height="16" role="img" aria-label={`${held} of ${total} cards remembered a week or longer`}>
       <title>{`${held} of ${total} cards remembered a week or longer`}</title>
       <circle cx="9" cy="9" r={r} className="ring-track" />
-      <circle cx="9" cy="9" r={r} className="ring-fill" strokeDasharray={`${c * share} ${c}`} transform="rotate(-90 9 9)" />
+      {share > 0 && <circle cx="9" cy="9" r={r} className="ring-fill" strokeDasharray={`${c * share} ${c}`} transform="rotate(-90 9 9)" />}
     </svg>
   );
 }

@@ -4,7 +4,6 @@ import { Badge, ConceptChip } from "../components/Chips";
 import { defaultVariantId, href, node, useData } from "../data/load";
 import type { CourseNode, UnitNode, VariantTerm } from "../data/types";
 import { MasteryRing } from "../components/MasteryBar";
-import { useCards } from "../data/load";
 import { useMemory } from "../review/memory";
 import { inScope, scopeQuery } from "../review/scope";
 import { scopes } from "../review/scopeContext";
@@ -21,10 +20,11 @@ export default function Home() {
   const analysis = d.derived.variants[`${program.id}/${vid}`];
   const uni = d.universities.find((u) => u.id === program.university);
   // review (#197): a memory ring per course with cards, and what to review before each term
-  const memory = useMemory();
-  const cards = useCards();
+  const { memory } = useMemory();
   const sc = useMemo(() => scopes(d), [d]);
-  const beforeCount = (index: number) => cards?.filter((c) => inScope(c, { kind: "before", index }, sc)).length ?? 0;
+  const before = useMemo(() => new Map(sc.terms.map((t) => [t.index,
+    memory ? memory.cards.filter((c) => inScope(c, { kind: "before", index: t.index }, sc)).length : 0])), [memory, sc]);
+  const beforeCount = (index: number) => before.get(index) ?? 0;
 
   return (
     <>

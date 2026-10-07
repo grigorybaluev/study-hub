@@ -4,9 +4,10 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { node, useData } from "../data/load";
 import type { CourseNode } from "../data/types";
-import { calendar, conceptMastery, milestones, streak, tierCounts } from "../review/days";
+import { calendar, milestones, streak } from "../review/days";
 import MasteryBar, { TIERS } from "../components/MasteryBar";
-import { TIER_RANK, type Settings } from "../review/engine";
+import { TIER_COLOR, memoryOf } from "../review/memory";
+import type { Settings } from "../review/engine";
 import { prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
 import { TIER_NAME } from "../review/rewards";
 import { clearedDays, useReviewData } from "../review/useDeck";
@@ -21,14 +22,10 @@ export default function ReviewStats() {
     if (!st) return null;
     const now = Date.now();
     const s = streak(st.engine.log, clearedDays(st.store), now);
-    const courses = [...new Set(st.cards.map((c) => c.course))].map((id) => ({
-      id, code: node<CourseNode>(d, id)?.code ?? id,
-      tiers: tierCounts(st.engine, st.cards.filter((c) => c.course === id).map((c) => c.id)),
-    }));
-    const concepts = conceptMastery(st.engine, st.cards);
-    const silverPlus = [...concepts.values()].filter((c) => TIER_RANK[c.tier] >= TIER_RANK.silver).length;
+    const m = memoryOf(st.engine, st.cards);
+    const courses = [...m.courses].map(([id, tiers]) => ({ id, code: node<CourseNode>(d, id)?.code ?? id, tiers }));
     return {
-      streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: concepts.size, silverPlus },
+      streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: m.concepts.size, silverPlus: m.silverPlus },
       milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(now),
     };
   }, [st, d]);
@@ -72,7 +69,7 @@ export default function ReviewStats() {
         {view.courses.map((c) => (
           <div key={c.id} className="mastery-row"><span className="mastery-course">{c.code}</span><MasteryBar tiers={c.tiers} /></div>
         ))}
-        <p className="small muted legend">{TIERS.map((t) => <span key={t}><i className={`t-${t}`} /> {TIER_NAME[t]}</span>)}</p>
+        <p className="small muted legend">{TIERS.map((t) => <span key={t}><i style={{ background: TIER_COLOR[t] }} /> {TIER_NAME[t]}</span>)}</p>
         <p className="small muted">
           {view.concepts.silverPlus} of {view.concepts.total} concepts at Silver or above: a concept takes the mean memory of its cards
           (a week for Bronze, a month for Silver, three months for Gold, a year for Diamond).

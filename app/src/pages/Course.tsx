@@ -9,6 +9,7 @@ import type { CourseNode, RoadmapSkillNode } from "../data/types";
 export default function Course() {
   const d = useData();
   const { code } = useParams();
+  const { memory } = useMemory();                  // hooks before the early return below
   const course = d.courses.find((c) => c.code === code);
   if (!course) return <p>Unknown course {code}.</p>;
   const units = d.unitsOf.get(course.id) ?? [];
@@ -21,7 +22,6 @@ export default function Course() {
   const sims = units.reduce((n, u) => n + u.sims.total, 0);
   const simsVerified = units.reduce((n, u) => n + u.sims.verified, 0);
   const introduced = units.flatMap((u) => edgesOut(d, u.id, "introduces").map((e) => e.to));
-  const memory = useMemory();
   const tiers = memory?.courses.get(course.id);
   const skills = new Map<string, number>();
   for (const c of introduced) for (const e of edgesOut(d, c, "maps_to")) skills.set(e.to, (skills.get(e.to) ?? 0) + 1);
