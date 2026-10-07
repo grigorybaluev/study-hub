@@ -43,6 +43,8 @@ export interface ClusterGraphProps {
   mark: boolean;
   /** draw the domain links while zoomed out */
   links: boolean;
+  /** another colouring of the concepts (fill and border per concept id), e.g. memory (#197); null: the domains */
+  paint?: Map<string, { fill: string; border: string }> | null;
   /** the domain link whose summary is open ("from>to"): its concept edges are highlighted, the rest dimmed */
   selectedLink: string | null;
   onLinkHover: (h: { from: string; to: string; count: number; x: number; y: number } | null) => void;
@@ -74,6 +76,7 @@ function stylesheet(theme: "light" | "dark"): StylesheetJson {
       "min-zoomed-font-size": 8,
     } },
     // coverage overlay: dashed = no unit teaches it, dotted = taught inside a topic it is part of
+    { selector: "node.concept.memory", style: { "background-color": "data(mfill)", "border-color": "data(mborder)" } },
     { selector: "node.concept.cov[taught = 'none']", style: { "border-style": "dashed", "border-width": 2 } },
     { selector: "node.concept.cov[taught = 'parent']", style: { "border-style": "dotted", "border-width": 2.2 } },
     // overview: only the domain titles are named
@@ -147,7 +150,7 @@ function linkEdges(c: cytoscape.Core, key: string) {
 }
 
 const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function ClusterGraph(props, ref) {
-  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, filtered, matches, edgeMode, mark, links, selectedLink, onLinkHover, onLinkClick, focus, lodAt, inset } = props;
+  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, filtered, matches, edgeMode, mark, links, selectedLink, onLinkHover, onLinkClick, focus, lodAt, inset, paint } = props;
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const lod = useRef<Lod>(0);
@@ -258,6 +261,17 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
     return () => { el.removeEventListener("mouseleave", leave); cancelAnimationFrame(raf); c.destroy(); cy.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elements, theme, positionsKey, resetToken]);
+
+  // a colouring other than the domains changes only the nodes' fill and border; the domain colours are kept to come back to
+  useEffect(() => {
+    const c = cy.current;
+    if (!c) return;
+    c.batch(() => c.nodes(".concept").forEach((n) => {
+      const p = paint?.get(n.id());
+      if (p) n.data({ mfill: p.fill, mborder: p.border });
+      n.toggleClass("memory", !!p);
+    }));
+  }, [paint, elements, theme, resetToken]);
 
   // filters, search, selection and the overlay only change classes
   useEffect(() => {

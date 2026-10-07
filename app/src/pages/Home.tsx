@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, ConceptChip } from "../components/Chips";
 import { defaultVariantId, href, node, useData } from "../data/load";
 import type { CourseNode, UnitNode, VariantTerm } from "../data/types";
+import { MasteryRing } from "../components/MasteryBar";
+import { useMemory } from "../review/memory";
+import { inScope, scopeQuery } from "../review/scope";
+import { scopes } from "../review/scopeContext";
 
 const SEASON = { fall: "Fall", winter: "Winter", summer: "Summer" };
 // Concept-debt badges per course: hidden for now, kept for later use.
@@ -15,6 +19,12 @@ export default function Home() {
   const variant = program.variants.find((v) => v.id === vid)!;
   const analysis = d.derived.variants[`${program.id}/${vid}`];
   const uni = d.universities.find((u) => u.id === program.university);
+  // review (#197): a memory ring per course with cards, and what to review before each term
+  const { memory } = useMemory();
+  const sc = useMemo(() => scopes(d), [d]);
+  const before = useMemo(() => new Map(sc.terms.map((t) => [t.index,
+    memory ? memory.cards.filter((c) => inScope(c, { kind: "before", index: t.index }, sc)).length : 0])), [memory, sc]);
+  const beforeCount = (index: number) => before.get(index) ?? 0;
 
   return (
     <>
@@ -35,6 +45,12 @@ export default function Home() {
               <span>Year {t.year} · {SEASON[t.season]}</span>
               {t.introduced && t.introduced.length > 0 && <span className="faint small">{t.introduced.length} new concepts</span>}
             </h3>
+            {vid === defaultVariantId(program) && beforeCount(t.index) > 0 && (
+              <Link className="small review-before" to={`/review${scopeQuery({ kind: "before", index: t.index })}`}
+                title="Cards for the concepts this term's units require: the ones to have in memory when it starts">
+                ↻ Review before this term · {beforeCount(t.index)} cards
+              </Link>
+            )}
             {t.work_term ? <div className="work">Work term {t.work_term}</div> : (
               <ul>
                 {t.courses?.map((cid) => {
@@ -43,7 +59,7 @@ export default function Home() {
                   const debt = t.debt?.filter((x) => x.unit.startsWith(cid + "/")) ?? [];
                   return (
                     <li key={cid}>
-                      <span><Link to={href.course(cid)}>{c.code}</Link> <span className="muted small">{c.title}</span></span>
+                      <span>{memory?.courses.get(cid) && <MasteryRing tiers={memory.courses.get(cid)!} />} <Link to={href.course(cid)}>{c.code}</Link> <span className="muted small">{c.title}</span></span>
                       <span className="small">
                         {units.length === 0 ? <Badge kind="external">no units</Badge> : <Progress units={units} />}
                         {SHOW_DEBT && debt.length > 0 && <> <Badge kind={debt.some((x) => x.introduced_in_term === null) ? "never" : "same"}>{debt.length} debt</Badge></>}

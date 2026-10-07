@@ -14,10 +14,12 @@ const cards = [
 const ctx = {
   termCourses: (i) => (i === 2 ? ["concordia/STAT280"] : ["concordia/MAST221"]),
   areaConcepts: (id) => new Set(id === "study-hub/ds-core/linear-algebra" ? ["matrix", "inverse-matrix"] : ["probability"]),
+  termRequires: (i) => new Set(i === 3 ? ["vector", "probability"] : []),
+  earlierCourses: (i) => (i === 3 ? ["concordia/STAT280"] : []),
 };
 
 test("the URL names the scope, and the scope gives back its URL", () => {
-  for (const q of ["", "?course=concordia%2FSTAT280", "?term=2", "?unit=concordia%2FSTAT280%2Fvectors", "?concept=matrix", "?area=study-hub%2Fds-core%2Flinear-algebra"]) {
+  for (const q of ["", "?course=concordia%2FSTAT280", "?term=2", "?unit=concordia%2FSTAT280%2Fvectors", "?concept=matrix", "?area=study-hub%2Fds-core%2Flinear-algebra", "?before=3"]) {
     assert.equal(scopeQuery(parseScope(new URLSearchParams(q))), q);
   }
   assert.deepEqual(parseScope(new URLSearchParams("?term=x")), ALL);
@@ -32,6 +34,7 @@ test("each scope picks its cards", () => {
   assert.equal(ids({ kind: "unit", id: "concordia/STAT280/matrices" }), "bc");
   assert.equal(ids({ kind: "concept", id: "matrix" }), "b");
   assert.equal(ids({ kind: "area", id: "study-hub/ds-core/linear-algebra" }), "bc");      // interview prep, across courses
+  assert.equal(ids({ kind: "before", index: 3 }), "a");   // what term 4 requires, from earlier terms' courses only (not d's MAST221)
 });
 
 test("exam prep puts first the cards whose concepts later units require most, keeping course order otherwise", () => {
