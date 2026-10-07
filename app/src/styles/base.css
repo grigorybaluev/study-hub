@@ -501,6 +501,7 @@ html.sheet-open { overflow: hidden; }
 @media (max-width: 420px) {
   .topbar .brand { display: none; }
   .deck-undo .lbl { display: none; }     /* Undo and Sync as icons, so the counts keep one line */
+  .deck-counts .c-done { display: none; } /* the ring shows the day's progress */
 }
 
 /* ---------------------------------------------------------------- review deck (#194) */
@@ -617,3 +618,53 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .sync-note.bad { background: var(--bad-soft); color: var(--bad); }
 .sync-sheet.dropping { outline: 3px dashed var(--accent); outline-offset: -6px; }
 .deck-undo.remind { border-color: var(--warn); color: var(--warn); }
+
+/* ---------------------------------------------------------------- rewards (#195) */
+/* the day's ring; it pulses at each quarter, and a +1 floats up from it on every grade, whatever the grade */
+.deck-ring { position: relative; display: inline-grid; place-items: center; align-self: center; }
+.deck-ring svg { transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: var(--line); stroke-width: 3.5; }
+.ring-fill { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dasharray 0.4s ease-out; }
+.deck-ring[data-pulse] { animation: ring-pulse 0.6s ease-out; }
+@keyframes ring-pulse { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.deck-burst { position: absolute; left: 50%; top: -4px; font-weight: 800; font-size: 0.85rem; color: var(--accent); pointer-events: none; animation: burst 0.9s ease-out forwards; }
+@keyframes burst { 0% { opacity: 0; transform: translate(-50%, 6px) scale(0.8); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -22px) scale(1.15); } }
+
+/* the cards left, as a stack under the top card (up to three edges) */
+.deck-stack[data-depth="1"]::before, .deck-stack[data-depth="2"]::before, .deck-stack[data-depth="3"]::before,
+.deck-stack[data-depth="2"]::after, .deck-stack[data-depth="3"]::after {
+  content: ""; position: absolute; left: 6%; right: 6%; bottom: -8px; height: 40px; border-radius: 0 0 18px 18px;
+  background: var(--bg-elev); border: 1.5px solid var(--line); border-top: 0; z-index: 0;
+}
+.deck-stack[data-depth="2"]::after, .deck-stack[data-depth="3"]::after { left: 11%; right: 11%; bottom: -15px; opacity: 0.6; }
+.deck-stack { margin-bottom: 14px; }
+
+/* a level-up or a comeback, over the deck for a moment */
+.deck-moment {
+  position: absolute; left: 50%; top: 38%; z-index: 6; transform: translate(-50%, -50%); pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.7rem 1.3rem; border-radius: 16px;
+  font-weight: 800; font-size: 1.4rem; color: #fff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); text-align: center;
+  animation: moment 1.6s ease-out forwards;
+}
+.deck-moment .small { font-weight: 500; opacity: 0.9; }
+.deck-moment.tier-bronze { background: linear-gradient(135deg, #b0703a, #d99a5f); }
+.deck-moment.tier-silver { background: linear-gradient(135deg, #7d8794, #b9c2cc); }
+.deck-moment.tier-gold { background: linear-gradient(135deg, #c9971c, #f1c94e); color: #3b2a00; }
+.deck-moment.tier-diamond { background: linear-gradient(135deg, #3a7bd5, #7fd6f5); }
+.deck-moment.comeback { background: linear-gradient(135deg, #00a651, #4cd28b); }
+@keyframes moment { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.85); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); } 22% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -60%); } }
+
+/* deck cleared: the day's numbers */
+.deck-numbers { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1.4rem; margin: 0.4rem 0 0.8rem; }
+.deck-numbers div { display: flex; flex-direction: column-reverse; align-items: center; }
+.deck-numbers dt { font-size: 0.78rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.deck-numbers dd { margin: 0; font-size: 1.7rem; font-weight: 800; }
+.deck-more { margin-top: 0.6rem; font: inherit; font-weight: 700; padding: 0.6rem 1.2rem; border-radius: 999px; border: 1.5px solid var(--accent); background: transparent; color: var(--accent-dk); cursor: pointer; }
+.confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.confetti i { position: absolute; top: -12px; left: var(--x); width: 8px; height: 12px; border-radius: 2px; background: hsl(var(--h) 80% 55%); opacity: 0; animation: confetti var(--t) cubic-bezier(.2,.6,.4,1) var(--d) forwards; }
+@keyframes confetti { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(var(--dx), 105vh) rotate(600deg); opacity: 0.2; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-ring[data-pulse], .deck-burst, .confetti { animation: none; display: none; }
+  .deck-moment { animation: none; opacity: 1; }
+}

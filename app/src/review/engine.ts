@@ -47,9 +47,16 @@ export interface CardState {
 /** Mastery tiers by FSRS stability (days a memory lasts at 90 % recall); names and rewards are #195's. */
 export type Tier = "new" | "learning" | "bronze" | "silver" | "gold" | "diamond";
 const TIERS: [Tier, number][] = [["diamond", 365], ["gold", 90], ["silver", 30], ["bronze", 7]];
+/** The tiers in order, lowest first (the rewards compare them, #195). */
+export const TIER_RANK: Record<Tier, number> = { new: 0, learning: 1, bronze: 2, silver: 3, gold: 4, diamond: 5 };
 
 const DAY_TURNS_AT = 4;   // a review day starts at 4 am, as in Anki
 const HOUR = 3_600_000;
+
+/** Start of the review day after the one `now` falls in (calendar arithmetic: a DST day is 23 or 25 h). */
+export function nextDay(now: number): number {
+  return dayStart(dayStart(now) + 36 * HOUR);
+}
 
 /** Start of the review day that `now` falls in. */
 export function dayStart(now: number): number {
@@ -179,8 +186,9 @@ export class Engine {
   }
 
   /** What to review now among `cards` (in their given order for new ones), within the daily limits. */
-  queue(cards: string[], now: number): { due: string[]; fresh: string[]; later: { card: string; due: number }[] } {
-    const tomorrow = dayStart(dayStart(now) + 36 * HOUR);   // calendar arithmetic: a DST day is 23 or 25 h
+  /** `extraNew`: new cards allowed today beyond the daily limit (the deck's "5 more", never saved). */
+  queue(cards: string[], now: number, extraNew = 0): { due: string[]; fresh: string[]; later: { card: string; due: number }[] } {
+    const tomorrow = nextDay(now);
     const { newToday, reviewsToday } = this.today(now);
     const due: { card: string; due: number; learning: boolean }[] = [];
     const later: { card: string; due: number }[] = [];
@@ -198,18 +206,35 @@ export class Engine {
     let room = Math.max(0, this.settings.reviewsPerDay - reviewsToday);
     const shown = due.filter((d) => d.learning || room-- > 0).map((d) => d.card);
     later.sort((a, b) => a.due - b.due);
-    return { due: shown, fresh: fresh.slice(0, Math.max(0, this.settings.newPerDay - newToday)), later };
+    return { due: shown, fresh: fresh.slice(0, Math.max(0, this._settings.newPerDay + extraNew - newToday)), later };
   }
 
-  /** Counts for the current review day. */
-  today(now: number): { newToday: number; reviewsToday: number; graded: number } {
+  /** Counts for the current review day: new cards started, review cards seen, grades, time spent, and how
+   *  many review-type grades were recalls (not Again). */
+  today(now: number): { newToday: number; reviewsToday: number; graded: number; ms: number; reviewed: number; recalled: number } {
     const start = dayStart(now);
     let newToday = 0;
     for (const ts of this.first.values()) if (ts >= start) newToday++;
     let lo = 0, hi = this.log.length;                          // the log is sorted: find today's first grade
     while (lo < hi) { const mid = (lo + hi) >> 1; if (this.log[mid].ts < start) lo = mid + 1; else hi = mid; }
     const graded = this.log.slice(lo);
-    return { newToday, reviewsToday: new Set(graded.filter((r) => r.type !== "learn").map((r) => r.card)).size, graded: graded.length };
+    const reviews = graded.filter((r) => r.type === "review");
+    return {
+      newToday, reviewsToday: new Set(graded.filter((r) => r.type !== "learn").map((r) => r.card)).size, graded: graded.length,
+      ms: graded.reduce((s, r) => s + r.ms, 0), reviewed: reviews.length, recalled: reviews.filter((r) => r.rating > 1).length,
+    };
+  }
+
+  /** Whether a card has been graded at all. */
+  seen(card: string): boolean {
+    return this.cards.has(card);
+  }
+
+  /** How many of `cards` fall due in [from, until) (the forecast on the done screen). */
+  dueBetween(cards: string[], from: number, until: number): number {
+    let n = 0;
+    for (const id of cards) { const t = this.cards.get(id)?.due.getTime(); if (t !== undefined && t >= from && t < until) n++; }
+    return n;
   }
 
   /** Lifetime counts and true retention: share of review-type grades in the last 30 days that were not Again. */
