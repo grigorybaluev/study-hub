@@ -20,13 +20,15 @@ export interface ProgressFile {
   /** when those settings were last changed (0: never), so the newer settings win on import */
   settingsAt: number;
   reviews: Review[];
+  /** review days on which the deck was cleared (they count for the streak, #195); absent in older files */
+  cleared?: number[];
 }
 
 /** Why an import was refused; nothing has been changed when this is thrown. */
 export class ProgressError extends Error {}
 
-export function makeFile(device: string, reviews: Review[], settings: Settings, settingsAt: number, now: number): ProgressFile {
-  return { format: FORMAT, version: VERSION, device, exported: now, settings, settingsAt, reviews };
+export function makeFile(device: string, reviews: Review[], settings: Settings, settingsAt: number, now: number, cleared: number[] = []): ProgressFile {
+  return { format: FORMAT, version: VERSION, device, exported: now, settings, settingsAt, reviews, cleared };
 }
 
 async function pipe(bytes: Uint8Array, stream: CompressionStream | DecompressionStream): Promise<Uint8Array> {
@@ -93,6 +95,7 @@ function validate(d: unknown): ProgressFile {
   return {
     format: FORMAT, version: f.version, device: f.device, exported: Number(f.exported) || 0,
     settings: f.settings as Settings, settingsAt: Number(f.settingsAt) || 0, reviews: f.reviews as Review[],
+    cleared: Array.isArray(f.cleared) ? f.cleared.filter((d): d is number => Number.isFinite(d)) : [],
   };
 }
 

@@ -14,6 +14,7 @@ import CourseGraph from "./pages/CourseGraph";
 import Design from "./pages/Design";
 import Analytics from "./pages/Analytics";
 import Review from "./pages/Review";
+import ReviewStats from "./pages/ReviewStats";
 
 export default function App() {
   const [data, setData] = useState<Data | null>(null);
@@ -65,6 +66,7 @@ export default function App() {
             <Route path="/explore/ds-map-2" element={<ToExplore />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/review" element={<Review />} />
+            <Route path="/review/stats" element={<ReviewStats />} />
             <Route path="/design/:kind" element={<Design />} />
             <Route path="*" element={<p>Not found.</p>} />
           </Routes>

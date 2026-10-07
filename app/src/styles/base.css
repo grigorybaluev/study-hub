@@ -668,3 +668,48 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
   .deck-ring[data-pulse], .deck-burst, .confetti { animation: none; display: none; }
   .deck-moment { animation: none; opacity: 1; }
 }
+
+/* ---------------------------------------------------------------- streak and stats (#195) */
+.deck-ring-link { display: inline-grid; align-self: center; }
+.deck-streak { margin: 0 0 0.3rem; font-size: 1.05rem; }
+.deck-streak b { font-size: 1.3rem; color: var(--accent-dk); }
+.stats { max-width: 760px; }
+.stats section { margin: 1.4rem 0; }
+.stats h2 { font-size: 1.1rem; }
+.stats-streak { display: flex; flex-wrap: wrap; gap: 0.8rem 2rem; align-items: flex-end; }
+.stats-streak p { flex-basis: 100%; margin: 0; }
+.stats-big { display: flex; flex-direction: column; }
+.stats-big b { font-size: 2.2rem; line-height: 1; color: var(--accent-dk); }
+.stats-big span { font-size: 0.8rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.heatmap { display: flex; gap: 3px; overflow-x: auto; padding-bottom: 4px; }
+.heat-col { display: flex; flex-direction: column; gap: 3px; }
+.heat { display: block; width: 10px; height: 10px; border-radius: 2px; background: var(--bg-sunken); border: 1px solid var(--line); }
+.heat.l1 { background: color-mix(in srgb, var(--accent) 30%, var(--bg-elev)); border-color: transparent; }
+.heat.l2 { background: color-mix(in srgb, var(--accent) 55%, var(--bg-elev)); border-color: transparent; }
+.heat.l3 { background: color-mix(in srgb, var(--accent) 80%, var(--bg-elev)); border-color: transparent; }
+.heat.l4 { background: var(--accent-dk); border-color: transparent; }
+.heat.lx { visibility: hidden; }
+.heat.frozen { background: #9fd3f2; border-color: #5fb0e0; }
+.mastery-row { display: flex; align-items: center; gap: 0.8rem; margin: 0.35rem 0; }
+.mastery-course { width: 5.5rem; font-weight: 600; font-size: 0.9rem; }
+.mastery-bar { flex: 1; display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--bg-sunken); }
+.mastery-bar i, .legend i { display: inline-block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; }
+.t-new { background: var(--bg-sunken); outline: 1px solid var(--line); outline-offset: -1px; }
+.t-learning { background: #c9b8ec; }   /* lavender: not a metal, unlike the tiers after it */
+.t-bronze { background: #c4834a; }
+.t-silver { background: #8d99a8; }
+.t-gold { background: #ddb231; }
+.t-diamond { background: #4fa3e6; }
+.milestones { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.6rem; }
+.milestones li { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.6rem 0.75rem; border-radius: var(--radius); border: 1.5px dashed var(--line); opacity: 0.55; }
+.milestones li.reached { opacity: 1; border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
+.settings { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem; }
+.settings label { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.settings input[type=number], .settings select { font: inherit; font-size: 16px; width: 7rem; flex: none; padding: 0.3rem 0.5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--fg); }
+.settings button { align-self: flex-start; font: inherit; font-weight: 700; padding: 0.5rem 1.2rem; border-radius: 999px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+.settings button:disabled { opacity: 0.5; cursor: default; }
+.settings select { width: auto; }
+.settings label.toggle { justify-content: flex-start; align-items: flex-start; }
+.settings label.toggle input { margin-top: 0.3rem; }
