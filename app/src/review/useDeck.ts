@@ -6,6 +6,8 @@ import { loadCards } from "../data/load";
 import type { Card } from "../data/types";
 import { Engine, dayStart, nextDay, type Rating, type Settings } from "./engine";
 import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTally } from "./rewards";
+import { streak, type Streak } from "./days";
+import { prefs } from "./feedback";
 import { openStore, type Store } from "./storage";
 import { makeFile, missing, type ProgressFile } from "./transfer";
 
@@ -53,6 +55,10 @@ export interface Deck {
   canExtend: boolean;
   /** five more new cards today, at most the daily limit again (session only, never saved) */
   extendNew(): void;
+  /** days in a row (#195) */
+  streak: Streak | null;
+  /** record that the deck was cleared today (a day that counts for the streak) */
+  markCleared(): void;
   canUndo: boolean;
   sync: SyncStatus | null;
   /** the whole log as a progress document (no side effect) */
@@ -70,9 +76,25 @@ export interface Deck {
 
 const EXTEND_BY = 5;
 
-export function useDeck(): Deck {
+/** The cards, this device's store and an engine over its log: what the deck and the stats page read. */
+export function useReviewData(): { st: { store: Store; engine: Engine; cards: Card[] } | null; error?: string } {
   const [st, setSt] = useState<{ store: Store; engine: Engine; cards: Card[] } | null>(null);
   const [error, setError] = useState<string | undefined>();
+  useEffect(() => {
+    Promise.all([openStore(), loadCards()])
+      .then(([store, file]) => setSt({ store, engine: new Engine(store.reviews, store.settings), cards: file.cards }))
+      .catch((e) => setError(String(e)));
+  }, []);
+  return { st, error };
+}
+
+/** Days the deck was cleared, kept in the store's meta (the last 400). */
+export function clearedDays(store: Store): number[] {
+  return Array.isArray(store.meta.cleared) ? (store.meta.cleared as number[]) : [];
+}
+
+export function useDeck(): Deck {
+  const { st, error } = useReviewData();
   const [tick, setTick] = useState(0);
   const [forced, setForced] = useState<string | null>(null);     // an undone card comes back first
   const [tally, setTally] = useState<SessionTally>(EMPTY_TALLY);
@@ -80,12 +102,6 @@ export function useDeck(): Deck {
   const [extra, setExtra] = useState({ day: 0, n: 0 });
   const shownAt = useRef(Date.now());
   const bump = useCallback(() => setTick((t) => t + 1), []);
-
-  useEffect(() => {
-    Promise.all([openStore(), loadCards()])
-      .then(([store, file]) => setSt({ store, engine: new Engine(store.reviews, store.settings), cards: file.cards }))
-      .catch((e) => setError(String(e)));
-  }, []);
 
   // back to the app (a new day, a learning step now due) or a learning step's time: look again
   useEffect(() => {
@@ -124,6 +140,7 @@ export function useDeck(): Deck {
       day: { graded: today.graded, ms: today.ms, reviewed: today.reviewed, recalled: today.recalled },
       tomorrow: st.engine.dueBetween(ids, tomorrow, nextDay(tomorrow)),
       canExtend: !q.fresh.length && unseen > 0 && extraToday + EXTEND_BY <= st.engine.settings.newPerDay,
+      streak: streak(st.engine.log, clearedDays(st.store), now),
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
   }, [st, tick, forced, extra]);
@@ -152,6 +169,20 @@ export function useDeck(): Deck {
     bump();
     return reward;
   }, [st, view, bump]);
+
+  // the due count on the app icon, where the platform allows it and the badge is switched on
+  const left = view ? view.left.due + view.left.fresh : 0;
+  useEffect(() => {
+    if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;
+    (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => { /* not allowed here */ });
+  }, [view, left]);
+
+  const markCleared = useCallback(() => {
+    if (!st) return;
+    const day = dayStart(Date.now()), days = clearedDays(st.store);
+    if (days.includes(day)) return;
+    st.store.setMeta("cleared", [...days, day].slice(-400)).then(bump).catch(() => { /* not kept */ });
+  }, [st, bump]);
 
   const extendNew = useCallback(() => {
     const day = dayStart(Date.now());
@@ -199,7 +230,7 @@ export function useDeck(): Deck {
   if (!st || !view) return EMPTY;
   return {
     status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), showing: tick,
-    tally, extendNew, exportProgress, markSent, importProgress, grade, undo,
+    tally, extendNew, markCleared, exportProgress, markSent, importProgress, grade, undo,
   };
 }
 
@@ -207,6 +238,7 @@ const EMPTY: Deck = {
   status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0,
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
   day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
+  streak: null, markCleared: () => {},
   sync: null, exportProgress: () => Promise.reject(new Error("loading")), markSent: async () => {},
   importProgress: () => Promise.reject(new Error("loading")),
 };

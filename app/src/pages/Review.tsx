@@ -106,7 +106,7 @@ export default function Review() {
     <div className="deck">
       <div className="deck-head">
         <h1>Review</h1>
-        <Ring done={deck.doneToday} total={total} pulse={pulse} bursts={bursts} />
+        <Link to="/review/stats" className="deck-ring-link" title="Streak and stats"><Ring done={deck.doneToday} total={total} pulse={pulse} bursts={bursts} /></Link>
         <span className="deck-counts" title="due reviews · new cards left today · graded today">
           <b className="c-due">{deck.left.due}</b> due · <b className="c-new">{deck.left.fresh}</b> new<span className="c-done"> · {deck.doneToday} done</span>
         </span>
@@ -230,6 +230,7 @@ function DeckDone({ deck }: { deck: Deck }) {
   // confetti once a day, for the deck really cleared (no learning step still to come back)
   const cleared = day.graded > 0 && !laterAt;
   const [confetti, setConfetti] = useState(false);
+  useEffect(() => { if (cleared) deck.markCleared(); }, [cleared]);   // a cleared deck counts for the streak
   useEffect(() => {
     if (!cleared || !motionOn()) return;
     const today = String(dayStart(Date.now()));
@@ -256,10 +257,17 @@ function DeckDone({ deck }: { deck: Deck }) {
         {tally.levelUps > 0 && <div><dt>level-ups</dt><dd>{tally.levelUps}</dd></div>}
         {tally.comebacks > 0 && <div><dt>comebacks</dt><dd>{tally.comebacks}</dd></div>}
       </dl>
+      {deck.streak && deck.streak.current > 0 && (
+        <p className="deck-streak">
+          <b>{deck.streak.current}</b> day{deck.streak.current === 1 ? "" : "s"} in a row
+          {deck.streak.freezes > 0 && <span className="muted"> · {deck.streak.freezes} freeze{deck.streak.freezes === 1 ? "" : "s"} held</span>}
+        </p>
+      )}
       <p className="muted">
         {at ? `The next card in its learning steps comes back at ${at}. ` : ""}
         {deck.tomorrow ? `Tomorrow: ${deck.tomorrow} card${deck.tomorrow === 1 ? "" : "s"} due.` : "Nothing due tomorrow yet."}
       </p>
+      <Link to="/review/stats" className="small">Streak, calendar and stats →</Link>
       {deck.canExtend && <button className="deck-more" onClick={deck.extendNew}>5 more new cards</button>}
     </div>
   );

@@ -1,0 +1,154 @@
+// /review/stats (#195): days in a row and freezes, the calendar of review days, mastery per course and
+// per concept, milestones, totals, and the settings (daily limits, retention, feedback).
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { node, useData } from "../data/load";
+import type { CourseNode } from "../data/types";
+import { calendar, conceptMastery, milestones, streak, tierCounts } from "../review/days";
+import { TIER_RANK, type Settings, type Tier } from "../review/engine";
+import { prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
+import { TIER_NAME } from "../review/rewards";
+import { clearedDays, useReviewData } from "../review/useDeck";
+
+const TIERS: Tier[] = ["new", "learning", "bronze", "silver", "gold", "diamond"];
+
+export default function ReviewStats() {
+  const d = useData();
+  const { st, error } = useReviewData();
+  const [, redraw] = useState(0);
+
+  const view = useMemo(() => {
+    if (!st) return null;
+    const now = Date.now();
+    const s = streak(st.engine.log, clearedDays(st.store), now);
+    const courses = [...new Set(st.cards.map((c) => c.course))].map((id) => ({
+      id, code: node<CourseNode>(d, id)?.code ?? id,
+      tiers: tierCounts(st.engine, st.cards.filter((c) => c.course === id).map((c) => c.id)),
+    }));
+    const concepts = conceptMastery(st.engine, st.cards);
+    const silverPlus = [...concepts.values()].filter((c) => TIER_RANK[c.tier] >= TIER_RANK.silver).length;
+    return {
+      streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: concepts.size, silverPlus },
+      milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(now),
+    };
+  }, [st, d]);
+
+  if (error) return <p>Could not load the review data: {error}</p>;
+  if (!st || !view) return <p className="muted">Loading…</p>;
+  const { streak: s, stats } = view;
+
+  return (
+    <div className="stats">
+      <div className="crumbs"><Link to="/review">Review</Link> › stats</div>
+      <h1>Streak and stats</h1>
+
+      <section className="stats-streak">
+        <div className="stats-big"><b>{s.current}</b><span>day{s.current === 1 ? "" : "s"} in a row</span></div>
+        <div className="stats-big"><b>{s.best}</b><span>best</span></div>
+        <div className="stats-big"><b>{s.freezes}</b><span>freeze{s.freezes === 1 ? "" : "s"} held</span></div>
+        <p className="small muted">
+          A day counts when the deck is cleared or 10 cards are graded{s.today ? "; today already counts." : "; today does not count yet."} Every
+          7 days in a row earn a freeze (at most 2), used by itself on a missed day, so one missed day does not undo weeks.
+        </p>
+      </section>
+
+      <section>
+        <h2>The last 26 weeks</h2>
+        <div className="heatmap" role="img" aria-label="Cards graded per day over the last 26 weeks">
+          {view.cal.map((col, i) => (
+            <div key={i} className="heat-col">
+              {col.map((c) => (
+                <i key={c.day} className={`heat l${c.count < 0 ? "x" : level(c.count)}${s.frozen.includes(c.day) ? " frozen" : ""}`}
+                  title={c.count < 0 ? "" : `${new Date(c.day).toLocaleDateString()}: ${c.count} card${c.count === 1 ? "" : "s"}${s.frozen.includes(c.day) ? " (freeze)" : ""}`} />
+              ))}
+            </div>
+          ))}
+        </div>
+        <p className="small muted">{stats.reviews} grades in all, {Math.round(stats.ms / 60_000)} minutes{stats.retention30 !== null ? `; ${Math.round(stats.retention30 * 100)}% of reviews recalled in the last 30 days` : ""}.</p>
+      </section>
+
+      <section>
+        <h2>Mastery</h2>
+        {view.courses.map((c) => {
+          const total = TIERS.reduce((n, t) => n + c.tiers[t], 0) || 1;
+          return (
+            <div key={c.id} className="mastery-row">
+              <span className="mastery-course">{c.code}</span>
+              <span className="mastery-bar" title={TIERS.map((t) => `${TIER_NAME[t]} ${c.tiers[t]}`).join(" · ")}>
+                {TIERS.map((t) => c.tiers[t] > 0 && <i key={t} className={`t-${t}`} style={{ width: `${(100 * c.tiers[t]) / total}%` }} />)}
+              </span>
+            </div>
+          );
+        })}
+        <p className="small muted legend">{TIERS.map((t) => <span key={t}><i className={`t-${t}`} /> {TIER_NAME[t]}</span>)}</p>
+        <p className="small muted">
+          {view.concepts.silverPlus} of {view.concepts.total} concepts at Silver or above: a concept takes the mean memory of its cards
+          (a week for Bronze, a month for Silver, three months for Gold, a year for Diamond).
+        </p>
+      </section>
+
+      <section>
+        <h2>Milestones</h2>
+        <ul className="milestones">
+          {view.milestones.map((m) => (
+            <li key={m.id} className={m.reached ? "reached" : ""} title={m.hint}><b>{m.title}</b><span className="small muted">{m.hint}</span></li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2>Settings</h2>
+        <SettingsForm settings={st.engine.settings} onSave={async (x) => { st.engine.setSettings(x); await st.store.saveSettings(x); redraw((n) => n + 1); }} />
+        <FeedbackForm />
+      </section>
+    </div>
+  );
+}
+
+function level(n: number): number {
+  return n === 0 ? 0 : n < 5 ? 1 : n < 15 ? 2 : n < 30 ? 3 : 4;
+}
+
+function SettingsForm({ settings, onSave }: { settings: Settings; onSave(s: Settings): Promise<void> }) {
+  const [s, setS] = useState(settings);
+  const [saved, setSaved] = useState(false);
+  const changed = s.newPerDay !== settings.newPerDay || s.reviewsPerDay !== settings.reviewsPerDay || s.retention !== settings.retention;
+  const num = (v: string, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(Number(v) || 0)));
+  return (
+    <form className="settings" onSubmit={async (e) => { e.preventDefault(); await onSave(s); setSaved(true); }}>
+      <label>New cards a day <input type="number" inputMode="numeric" min={0} max={200} value={s.newPerDay} onChange={(e) => { setSaved(false); setS({ ...s, newPerDay: num(e.target.value, 0, 200) }); }} /></label>
+      <label>Reviews a day, at most <input type="number" inputMode="numeric" min={10} max={2000} value={s.reviewsPerDay} onChange={(e) => { setSaved(false); setS({ ...s, reviewsPerDay: num(e.target.value, 10, 2000) }); }} /></label>
+      <label>Recall to aim for
+        <select value={s.retention} onChange={(e) => { setSaved(false); setS({ ...s, retention: Number(e.target.value) }); }}>
+          {[0.8, 0.85, 0.9, 0.95].map((r) => <option key={r} value={r}>{Math.round(r * 100)}%{r === 0.9 ? " (Anki's default)" : ""}</option>)}
+        </select>
+      </label>
+      <p className="small muted">Higher recall means shorter intervals and more reviews. Settings travel with Sync; the newer ones win.</p>
+      <button type="submit" disabled={!changed}>{saved && !changed ? "Saved" : "Save"}</button>
+    </form>
+  );
+}
+
+function FeedbackForm() {
+  const [p, setP] = useState<FeedbackPrefs>(prefs);
+  const set = async (k: keyof FeedbackPrefs, v: boolean) => {
+    if (k === "badge" && v && "Notification" in window && Notification.permission === "default") {
+      try { await Notification.requestPermission(); } catch { /* the badge may stay hidden */ }
+    }
+    if (k === "badge" && !v && "clearAppBadge" in navigator) navigator.clearAppBadge().catch(() => {});
+    const next = { ...p, [k]: v };
+    setPrefs(next);
+    setP(next);
+  };
+  const row = (k: keyof FeedbackPrefs, label: string, note: string) => (
+    <label className="toggle"><input type="checkbox" checked={p[k]} onChange={(e) => set(k, e.target.checked)} /> <span>{label}<span className="small muted"> — {note}</span></span></label>
+  );
+  return (
+    <div className="settings">
+      {row("motion", "Animations", "card flights, the +1, confetti (reduced motion in the system turns them off too)")}
+      {row("haptics", "Haptic tick", "on a phone, as a swipe passes its point and on each grade")}
+      {row("sound", "Sound", "a soft tick; the mute switch silences it")}
+      {row("badge", "Count on the app icon", "the cards left today on the installed app's icon (asks for permission on an iPhone)")}
+    </div>
+  );
+}

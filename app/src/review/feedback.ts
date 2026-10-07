@@ -1,9 +1,9 @@
 // Feedback a browser can give beyond the screen (#195): a haptic tick and a soft sound. Both are
 // experiments where the platform allows them, and each can be switched off; the choices are per-device
 // conveniences, so they live in localStorage (reads and writes may fail in a private window).
-export interface FeedbackPrefs { motion: boolean; haptics: boolean; sound: boolean }
+export interface FeedbackPrefs { motion: boolean; haptics: boolean; sound: boolean; badge: boolean }
 const KEY = "study-hub-feedback";
-const DEFAULTS: FeedbackPrefs = { motion: true, haptics: true, sound: false };
+const DEFAULTS: FeedbackPrefs = { motion: true, haptics: true, sound: false, badge: false };
 
 let cached: FeedbackPrefs | null = null;
 
