@@ -3,7 +3,7 @@
 // ```sim fenced blocks as interactive simulations, ```solution-map blocks as stepped solutions beside
 // their method graph (#91), a code block (any language) placed right after a sim as that sim's code,
 // collapsed under it, and an ```output block right after a code block as that code's output (#131).
-import { Children, Suspense, isValidElement, lazy, type ReactNode } from "react";
+import { Children, isValidElement, lazy, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -14,6 +14,7 @@ import YAML from "yaml";
 import type { Nodes, PhrasingContent, Root } from "mdast";
 import type {} from "mdast-util-directive";
 import type {} from "mdast-util-math";
+import LazyBlock from "./LazyBlock";
 import MathFit from "./MathFit";
 import { splitSpacers } from "./mathSplit";
 import type { VFile } from "vfile";
@@ -231,16 +232,16 @@ export default function Markdown({ source }: { source: string }) {
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,
         code: ({ className, children, ...rest }) => {
           if (className === "language-automaton" || className === "hljs language-automaton") {
-            return <Suspense fallback={<div className="automaton" />}><Automaton source={textOf(children)} /></Suspense>;
+            return <LazyBlock fallback={<div className="automaton" />}><Automaton source={textOf(children)} /></LazyBlock>;
           }
           if (className === "language-solution-map" || className === "hljs language-solution-map") {
-            return <Suspense fallback={<div className="solmap" />}><SolutionMap source={textOf(children)} /></Suspense>;
+            return <LazyBlock fallback={<div className="solmap" />}><SolutionMap source={textOf(children)} /></LazyBlock>;
           }
           if (className === "language-sim" || className === "hljs language-sim") {
             let cfg: Record<string, unknown> | null = null;
             try { cfg = YAML.parse(textOf(children)); } catch { cfg = null; }
             return cfg && typeof cfg.id === "string"
-              ? <Suspense fallback={<div className="sim-box"><div className="sim-note">Loading simulation…</div></div>}><Sim cfg={cfg as never} /></Suspense>
+              ? <LazyBlock fallback={<div className="sim-box"><div className="sim-note">Loading simulation…</div></div>}><Sim cfg={cfg as never} /></LazyBlock>
               : <pre><code>{children}</code></pre>;
           }
           return <code className={className} {...rest}>{children}</code>;
