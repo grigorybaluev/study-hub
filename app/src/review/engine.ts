@@ -230,6 +230,22 @@ export class Engine {
     };
   }
 
+  /** The log as Anki's revlog (#198): each grade with the interval it set (days once in review, else
+   *  negative seconds, as Anki writes learning steps) and the card's interval before it, by replay. */
+  revlog(): { review: Review; ivl: number; lastIvl: number }[] {
+    const cards = new Map<string, FsrsCard>(), last = new Map<string, number>(), out: { review: Review; ivl: number; lastIvl: number }[] = [];
+    for (const r of this.log) {
+      const before = cards.get(r.card) ?? createEmptyCard<FsrsCard>(new Date(r.ts));
+      const after = this.f.next(before, new Date(r.ts), r.rating as Grade).card;
+      cards.set(r.card, after);
+      const secs = Math.max(0, Math.round((after.due.getTime() - r.ts) / 1000));
+      const ivl = after.state === State.Review ? Math.max(1, Math.round(secs / 86_400)) : -secs;
+      out.push({ review: r, ivl, lastIvl: last.get(r.card) ?? 0 });
+      last.set(r.card, ivl);
+    }
+    return out;
+  }
+
   /** Whether a card has been graded at all. */
   seen(card: string): boolean {
     return this.cards.has(card);
