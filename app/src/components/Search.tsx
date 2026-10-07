@@ -13,7 +13,8 @@ export default function Search() {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
-  const done = () => { setQ(""); setOpen(false); };
+  // blur too: on a phone the closed box is a hidden input that would keep the keyboard up
+  const done = () => { setQ(""); setOpen(false); input.current?.blur(); };
 
   const all = useMemo<Hit[]>(() => [
     ...d.courses.map((c) => ({ kind: "course", title: `${c.code} ${c.title}`, sub: c.kind, to: href.course(c.id), key: c.id })),

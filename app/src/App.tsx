@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigationType } from "react-router-dom";
 import { DataContext, loadData, type Data } from "./data/load";
 import Search from "./components/Search";
 import ThemeToggle from "./components/ThemeToggle";
@@ -20,8 +20,10 @@ export default function App() {
   const { pathname } = useLocation();
   const full = pathname.startsWith("/explore");
 
-  // a new page opens at its top (a ?part= link then scrolls to its part, #190)
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  // a new page opens at its top (a ?part= link then scrolls to its part, #190); Back and Forward
+  // (POP) keep the position the browser restores
+  const navType = useNavigationType();
+  useEffect(() => { if (navType !== "POP") window.scrollTo(0, 0); }, [pathname, navType]);
 
   useEffect(() => {
     loadData().then(setData).catch((e) => setError(String(e)));

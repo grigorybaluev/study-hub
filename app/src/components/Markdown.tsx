@@ -147,12 +147,12 @@ function remarkMathPunct() {
 
 /** `##` and `###` headings get ids from their text (unique in the page): the parts sheet on a phone and
  *  `?part=<id>` links to a part go through them (#190). */
-export function slugify(text: string): string {
+function slugify(text: string): string {
   return text.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "part";
 }
 
 function remarkHeadingIds() {
-  const text = (n: Nodes): string => n.type === "text" || n.type === "inlineCode" ? n.value
+  const text = (n: Nodes): string => n.type === "text" || n.type === "inlineCode" || n.type === "inlineMath" ? n.value
     : "children" in n ? (n.children as Nodes[]).map(text).join("") : "";
   return (tree: Root) => {
     const seen = new Map<string, number>();
