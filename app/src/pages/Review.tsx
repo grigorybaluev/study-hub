@@ -6,6 +6,7 @@ import { ConceptChip } from "../components/Chips";
 import { href, node, useData } from "../data/load";
 import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
 import CardView from "../review/CardView";
+import SyncPanel from "../review/SyncPanel";
 import type { Rating } from "../review/engine";
 import { useDeck } from "../review/useDeck";
 
@@ -29,6 +30,7 @@ export default function Review() {
   const [flipped, setFlipped] = useState(false);
   // a grade button's flight belongs to the card it was pressed for: the next card must never inherit it
   const [exit, setExit] = useState<{ card: string; dir: -1 | 1; r: Rating } | null>(null);
+  const [syncing, setSyncing] = useState(false);
   const currentId = deck.current?.id;
 
   useEffect(() => { setFlipped(false); setExit(null); }, [currentId, deck.showing]);
@@ -55,7 +57,7 @@ export default function Review() {
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.closest("input, textarea, select, a, button, [contenteditable]")) return;
+      if (syncing || (e.target as HTMLElement)?.closest("input, textarea, select, a, button, [contenteditable]")) return;
       if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey || (!e.altKey && !e.shiftKey))) {
         e.preventDefault(); undo(); return;
       }
@@ -65,7 +67,7 @@ export default function Review() {
     };
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
-  }, [flipped, press, undo]);
+  }, [flipped, press, undo, syncing]);
 
   if (deck.status === "loading") return <div className="deck"><p className="muted">Loading the deck…</p></div>;
   if (deck.status === "error") return <div className="deck"><p>Could not load the cards: {deck.error}</p></div>;
@@ -80,8 +82,13 @@ export default function Review() {
         <span className="deck-counts" title="due reviews · new cards left today · graded today">
           <b className="c-due">{deck.left.due}</b> due · <b className="c-new">{deck.left.fresh}</b> new · {deck.doneToday} done
         </span>
-        <button className="deck-undo" onClick={undo} disabled={!deck.canUndo || !!exit} title="Undo the last grade (Z)">↶ Undo</button>
+        <button className="deck-undo" onClick={undo} disabled={!deck.canUndo || !!exit} title="Undo the last grade (Z)" aria-label="Undo">↶<span className="lbl"> Undo</span></button>
+        <button className={`deck-undo${deck.sync?.remind ? " remind" : ""}`} onClick={() => setSyncing(true)} title="Move progress to or from another device" aria-label="Sync">⇅<span className="lbl"> Sync</span></button>
       </div>
+      {deck.sync?.remind && (
+        <p className="deck-warn">{deck.sync.since} reviews on this device have not been sent to your other device for over 3 days. <button className="linkish" onClick={() => setSyncing(true)}>Sync now</button></p>
+      )}
+      {syncing && <SyncPanel deck={deck} onClose={() => setSyncing(false)} />}
       {!deck.persistent && (
         <p className="deck-warn">This browser does not keep data for this site, so these grades last only until the page is closed.</p>
       )}

@@ -145,6 +145,11 @@ export class Engine {
     return r;
   }
 
+  /** Grades already sent to another device cannot be taken back: a later import would return them. */
+  forgetUndo() {
+    this.mine = [];
+  }
+
   /** Whether this session has a grade to take back. */
   canUndo(): boolean {
     return this.mine.length > 0;

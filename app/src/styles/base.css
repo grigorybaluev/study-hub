@@ -439,15 +439,15 @@ body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 
 .sim-collapsed-label { font-weight: 600; }
 
 /* the parts sheet (PartsNav.tsx) */
-.parts-backdrop { position: fixed; inset: 0; z-index: 45; background: rgba(0, 0, 0, 0.35); }
-.parts-sheet {
+.parts-backdrop, .sheet-backdrop { position: fixed; inset: 0; z-index: 45; background: rgba(0, 0, 0, 0.35); }
+.parts-sheet, .sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 46; max-width: 640px; margin: 0 auto; max-height: 75vh;
   display: flex; flex-direction: column; background: var(--bg-elev); color: var(--fg);
   border-radius: 16px 16px 0 0; box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
   padding-bottom: env(safe-area-inset-bottom); animation: sheet-up 0.18s ease-out;
 }
-.parts-sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.1rem; border-bottom: 1px solid var(--line); font-weight: 700; }
-.parts-sheet-head button { font: inherit; font-size: 1.05rem; border: 0; background: transparent; color: var(--fg-muted); padding: 0.2rem 0.4rem; cursor: pointer; }
+.parts-sheet-head, .sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.1rem; border-bottom: 1px solid var(--line); font-weight: 700; }
+.parts-sheet-head button, .sheet-head button { font: inherit; font-size: 1.05rem; border: 0; background: transparent; color: var(--fg-muted); padding: 0.2rem 0.4rem; cursor: pointer; }
 .parts-sheet ol { list-style: none; margin: 0; padding: 0.3rem 0; overflow-y: auto; overscroll-behavior: contain; }
 .parts-sheet li button { display: block; width: 100%; text-align: left; font: inherit; line-height: 1.35; border: 0; background: transparent; color: var(--fg); padding: 0.6rem 1.1rem; cursor: pointer; }
 .parts-sheet li.d2 button { font-weight: 600; }
@@ -455,7 +455,7 @@ body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 
 .parts-sheet li.current button { background: var(--accent-soft); color: var(--accent-dk); box-shadow: inset 3px 0 0 var(--accent); }
 html.sheet-open { overflow: hidden; }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
-@media (prefers-reduced-motion: reduce) { .parts-sheet { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .parts-sheet, .sheet { animation: none; } }
 
 /* one column (the unit sidebar has moved below): the top bar scrolls away, the parts bar stays */
 @media (max-width: 900px) {
@@ -500,6 +500,7 @@ html.sheet-open { overflow: hidden; }
 /* a narrow phone: Program, Explore, Review and the two icons need the whole row; Program is the home page */
 @media (max-width: 420px) {
   .topbar .brand { display: none; }
+  .deck-undo .lbl { display: none; }     /* Undo and Sync as icons, so the counts keep one line */
 }
 
 /* ---------------------------------------------------------------- review deck (#194) */
@@ -602,3 +603,17 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
   .review-face.back { transform: none; }
   .review-card:not(.flipped) .review-face.back { visibility: hidden; }
 }
+
+/* sync panel (#193) */
+.sync-body { padding: 0.9rem 1.1rem 1.1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.7rem; }
+.sync-body p { margin: 0; }
+.sync-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.sync-row button, .sync-manual button { font: inherit; padding: 0.7rem; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg-elev); color: var(--fg); cursor: pointer; }
+.sync-row button.sync-main, .sync-manual button.sync-main { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.sync-manual { display: flex; flex-direction: column; gap: 0.5rem; }
+.sync-manual textarea { font: 16px var(--mono); padding: 0.5rem; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-sunken); color: var(--fg); resize: vertical; }
+.sync-note { padding: 0.5rem 0.75rem; border-radius: var(--radius); font-size: 0.9rem; }
+.sync-note.ok { background: var(--ok-soft); color: var(--ok); }
+.sync-note.bad { background: var(--bad-soft); color: var(--bad); }
+.sync-sheet.dropping { outline: 3px dashed var(--accent); outline-offset: -6px; }
+.deck-undo.remind { border-color: var(--warn); color: var(--warn); }
