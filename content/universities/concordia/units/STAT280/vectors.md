@@ -92,7 +92,7 @@ x^z              # exponents 2,4,2,4,...
 
 R warns if the longer length is not a multiple of the shorter one, because that is often a symptom of a bug:
 
-```r
+```r quiz recycling-warning
 x <- 1:4
 y <- c(1,2,3)
 x^y
@@ -256,7 +256,7 @@ Check out `paste0` as well (`paste` with `sep = ""`).
 
 Factors store character vectors by organising them into **levels** — efficient for datasets with repeated entries, because each string is encoded as an integer:
 
-```r
+```r quiz factor-codes
 class.grades <- c("A", "A+", "B", "A", "B", "B")
 class.grades <- factor(class.grades)
 class.grades
@@ -283,7 +283,7 @@ as.integer(class.grades)
 
 A factor may contain levels that do not occur in the data; control them with the `levels` argument. The levels vector can also be indexed by the codes to build a new character vector:
 
-```r
+```r quiz factor-levels
 new.grades <- factor(c("A", "B", "A", "C"), levels = c("A", "B", "C", "D", "F"))
 new.grades
 ## [1] A B A C
@@ -362,7 +362,7 @@ The character-vector and factor examples of this part. table() is the most commo
 
 Commands like `is.integer()` return logical values `TRUE` or `FALSE`; vectors of such values are **logical vectors**.
 
-```r
+```r quiz class-of-pi
 class(pi)
 ## [1] "numeric"
 is.integer(pi)

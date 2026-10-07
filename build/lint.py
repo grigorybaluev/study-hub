@@ -13,7 +13,7 @@ from pathlib import Path
 import yaml
 
 from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, ROADMAP_AREA_ROLES, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH, METHOD_NODE_KINDS,
-                    OPEN_RE, QUOTE_RE, UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
+                    OPEN_RE, QUOTE_RE, SOLMAP_BLOCK_RE, UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
                     roadmap_node_ids, roadmap_root, unit_slug, answer_label)
 
 
@@ -260,7 +260,6 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
 
 
 # --------------------------------------------------------------------------- method graphs and solution maps (#91)
-SOLMAP_BLOCK_RE = re.compile(r"^```solution-map\n(.*?)^```", re.M | re.S)
 
 
 def lint_methods(c: Content, rep: Report):
@@ -430,14 +429,14 @@ def code_fences(body: str):
     out, open_lang, open_len, prev, prev_end = [], None, 0, None, -1
     lines = body.split("\n")
     for n, text in enumerate(lines):
-        m = re.match(r"^(`{3,})\s*([\w-]*)\s*$", text)
+        m = re.match(r"^(`{3,})\s*([\w-]*)((?:\s+\S+)*)\s*$", text)   # ```lang, maybe words after it (```r quiz x, #196)
         if not m:
             continue
         if open_lang is None:
             adjacent = prev_end >= 0 and all(not l.strip() for l in lines[prev_end + 1:n])
             out.append((n + 1, m.group(2), prev if adjacent else None))
             open_lang, open_len = m.group(2), len(m.group(1))
-        elif not m.group(2) and len(m.group(1)) >= open_len:   # a closing fence is at least as long, with no language
+        elif not m.group(2) and not m.group(3) and len(m.group(1)) >= open_len:   # a closing fence: as long or longer, nothing after it
             prev, prev_end, open_lang = open_lang, n, None
     return out
 

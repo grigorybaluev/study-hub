@@ -10,6 +10,13 @@ becomes a card, and each line of an `equations` block becomes one:
     insight                             front: "Key idea: <title or part>"    back: the body
     equations line `- *Name*: formula`  front: the name                       back: the formula
 
+and two kinds of quiz (#196):
+
+    ```r quiz <slug> code block          front: the code without its ## output  back: the code with its output
+    solution map in the gallery          front: the task, the method graph's     back: the worked solution map
+    (app/src/design/solution-map.md,     method nodes as options
+    under the course's ## heading)
+
 Card ids leave out the unit, so units stay free to be renamed, split or merged:
 `<course>/<kind>/<slug of title>`, an untitled insight `<course>/insight/<slug of its ## part>`,
 an equations line `<course>/eq/<slug of name>`. `{#x}` on a block replaces the slug (keep a card's
@@ -20,15 +27,17 @@ lint.py runs the same extraction and reports duplicate ids (error) and untitled 
 """
 from __future__ import annotations
 
+import functools
 import hashlib
 import html
 import json
+import yaml
 import re
 import sys
 import unicodedata
 from dataclasses import dataclass, field
 
-from schema import OPEN_RE, QUOTE_RE, ROOT, SLUG_RE, Content, Doc, edge_entries, load, unit_slug
+from schema import OPEN_RE, QUOTE_RE, ROOT, SLUG_RE, SOLMAP_BLOCK_RE, Content, Doc, edge_entries, load, unit_slug
 
 OUT = ROOT / "cards.json"
 
@@ -38,6 +47,10 @@ CARD_KINDS = TITLED_KINDS | {"insight", "equations"}
 CLOSE_RE = re.compile(r"^(:{3,})\s*$")
 FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
 HEADING_RE = re.compile(r"^(#{2,3})\s+(.+?)(?:\s+#+)?\s*$")     # a closing # run needs a space before it
+QUIZ_RE = re.compile(r"^\s*```r\s+quiz(?:\s+(\S+))?\s*$")     # ```r quiz <slug> (#196)
+OUTPUT_LINE_RE = re.compile(r"^\s*##(\s|$)")                     # R's printed output (knitr style), blank lines too
+COMMENT_RE = re.compile(r"""^\s*#.*$|\s{2,}#[^'"]*$""")         # a whole-line or trailing comment (outside quotes)
+GALLERY = ROOT / "app" / "src" / "design" / "solution-map.md"
 EQ_ITEM_RE = re.compile(r"^[-*]\s+\*(?P<name>[^*]+)\*\s*:\s*(?P<rest>.*)$")
 SPAN_RE = re.compile(r"(`+)(.+?)\1|\$([^$]+)\$")
 
@@ -108,6 +121,7 @@ def scan(body: str) -> list[Block]:
     blocks: list[Block] = []
     stack: list[tuple[int, Block | None]] = []      # (colons, block or None for other kinds)
     fence: str | None = None
+    quiz: Block | None = None                       # an open ```r quiz block: its code lines (#196)
     seen: dict[str, int] = {}
     part = section = None
     def keep(line: str):
@@ -121,10 +135,18 @@ def scan(body: str) -> list[Block]:
             s = line.strip()
             if s.startswith(fence) and not s.strip(fence[0]):
                 fence = None
+                if quiz:
+                    blocks.append(quiz)
+                    quiz = None
+            elif quiz:
+                quiz.body.append(line)
             continue
         f = FENCE_RE.match(line)
         if f:
             fence = f.group(1)
+            q = QUIZ_RE.match(line)
+            if q:
+                quiz = Block("output", q.group(1), {}, n, part=part, section=section)
             keep(line)
             continue
         bare = QUOTE_RE.sub("", line, count=1)     # as lint reads it: blocks may sit in a list or quote
@@ -237,6 +259,20 @@ def course_cards(c: Content, uni_id: str, code: str, docs: list[Doc], names: dic
                 })
 
             title = plain(b.title) if b.title else None
+            if b.kind == "output":
+                if not b.title or not SLUG_RE.match(b.title):
+                    problems.append((doc, f"line {b.line}: a quiz block needs a slug: ```r quiz <slug>", True))
+                    continue
+                # the front is the code without its output, and without comments, which often say the answer;
+                # write comments in quiz blocks with one #, as ## marks printed output
+                printed = [x for x in b.body if OUTPUT_LINE_RE.match(x)]
+                program = [COMMENT_RE.sub("", x).rstrip() for x in b.body if not OUTPUT_LINE_RE.match(x)]
+                program = [x for x in program if x.strip()]
+                if not printed:
+                    problems.append((doc, f"line {b.line}: quiz {b.title} prints nothing (no ## output lines)", False))
+                full = "\n".join(b.body).rstrip()
+                card("output", b.title, "```r\n" + "\n".join(program) + "\n```", "```r\n" + full + "\n```", None, b.title)
+                continue
             if b.kind == "equations":
                 items, cur = [], None
                 for line in b.body:
@@ -265,14 +301,79 @@ def course_cards(c: Content, uni_id: str, code: str, docs: list[Doc], names: dic
             front = {"steps": f"How: {b.title}", "caution": f"{b.title} — why, and what instead?"}.get(b.kind, b.title)
             card(b.kind, title, front, back, title, b.title)
 
+    gallery_cards, gallery_problems = method_quizzes(c, uni_id, code, docs)
+    cards += gallery_cards
+    problems += gallery_problems
+    cards.sort(key=lambda x: x["order"] if isinstance(x["order"], int) else 999)    # stable: unit order kept within
+
     where_used: dict[str, list[str]] = {}
     for card_ in cards:
-        where_used.setdefault(card_["id"], []).append(card_["unit"].rsplit("/", 1)[1])
+        where_used.setdefault(card_["id"], []).append((card_["unit"] or "the solution-map gallery").rsplit("/", 1)[-1])
     for cid, units in where_used.items():
         if len(units) > 1:
             problems.append((None, f"card id {cid} is used by {len(units)} blocks (units: {', '.join(units)}): "
                                    "rename a title, or give one block `{#other-id}` (on an equations block it goes "
                                    "before each line's name)", True))
+    return cards, problems
+
+
+@functools.lru_cache(maxsize=1)
+def gallery_maps() -> dict[str, list[tuple[str, dict]]]:
+    """Solution maps of the gallery by course code: {"STAT280": [(block text, parsed), ...]}, read once.
+    Blocks that are not a mapping are left out; lint reports them."""
+    out: dict[str, list[tuple[str, dict]]] = {}
+    if not GALLERY.exists():
+        return out
+    text = GALLERY.read_text(encoding="utf-8")
+    heads = [(m.start(), m.group(1) + m.group(2)) for m in re.finditer(r"^## ([A-Z]{4}) (\d{3})\b", text, re.M)]
+    for m in SOLMAP_BLOCK_RE.finditer(text):
+        code = next((c for pos, c in reversed(heads) if pos < m.start()), None)
+        try:
+            data = yaml.safe_load(m.group(1))
+        except yaml.YAMLError:
+            continue
+        if code and isinstance(data, dict):
+            out.setdefault(code, []).append((m.group(0).rstrip(), data))
+    return out
+
+
+def method_quizzes(c: Content, uni_id: str, code: str, docs: list[Doc]):
+    """"Which method?" quizzes (#196) from the gallery's solution maps under this course: the options are
+    the method graph's method nodes, the answer is the one the worked solution reaches."""
+    course, cards, problems = f"{uni_id}/{code}", [], []
+    introduced_in: dict[str, int] = {}
+    for doc in docs:
+        if isinstance(doc.meta.get("order"), int):
+            for e in edge_entries(doc.meta.get("introduces")):
+                if e["concept"]:
+                    introduced_in[e["concept"]] = min(introduced_in.get(e["concept"], 999), doc.meta["order"])
+    for text, m in gallery_maps().get(code, []):
+        graph = c.methods.get(m.get("method"))
+        nodes = [n for n in (graph or {}).get("nodes") or [] if isinstance(n, dict) and n.get("id") and n.get("label")]
+        steps = [s for s in m.get("steps") or [] if isinstance(s, dict)]
+        if not graph or not m.get("id") or not isinstance(m.get("task"), str):
+            continue                          # lint reports a malformed map or an unknown method graph
+        where = f"solution map {m['id']!r} in the gallery"
+        methods = [n for n in nodes if n.get("kind") == "method"]
+        ids = [n["id"] for n in methods]
+        reached = [s.get("node") for s in steps if s.get("node") in ids]     # every method the worked path uses
+        if len(methods) < 2 or not reached:
+            problems.append((None, f"{where} makes no method quiz: it needs two or more method nodes and a step through one", False))
+            continue
+        concepts = sorted({n["concept"] for n in methods if n.get("concept")})
+        answer = ids.index(reached[0])
+        # the quiz comes with the unit that teaches the answer's concept (else the graph's earliest)
+        key = methods[answer].get("concept")
+        when = introduced_in.get(key) if key in introduced_in else min((introduced_in[k] for k in concepts if k in introduced_in), default=999)
+        cards.append({
+            "id": f"{course}/method/{m['id']}", "kind": "method", "front": str(m.get("task", "")), "back": text,
+            "course": course, "unit": "", "link": "/design/solution-map",
+            "order": when,
+            "part": None, "part_title": graph.get("title"), "concepts": concepts,
+            "options": [n["label"] for n in methods], "answer": answer,
+            "accepted": sorted({ids.index(r) for r in reached}),        # a path through two methods: both are right
+            "hash": hashlib.sha1(f"{m.get('task')}\n{text}".encode()).hexdigest()[:8],
+        })
     return cards, problems
 
 

@@ -713,3 +713,26 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .settings select { width: auto; }
 .settings label.toggle { justify-content: flex-start; align-items: flex-start; }
 .settings label.toggle input { margin-top: 0.3rem; }
+
+/* ---------------------------------------------------------------- quizzes in the deck (#196) */
+.review-face.front.quiz { justify-content: flex-start; text-align: left; }
+.review-face.front.quiz .review-front { font-size: 1.05rem; font-weight: 500; margin: 0.6rem 0; max-width: none; }
+.review-face.front.quiz .review-front pre { margin: 0; box-shadow: none; }
+.review-face.front.quiz .review-context, .review-face.front.quiz .review-hint { text-align: center; }
+.review-face.front.quiz .review-hint { margin-top: auto; padding-top: 1rem; }
+.review-options { list-style: none; padding: 0; margin: 0.4rem 0 0.8rem; display: flex; flex-direction: column; gap: 0.45rem; }
+.review-options button {
+  display: flex; align-items: flex-start; gap: 0.6rem; width: 100%; text-align: left; cursor: pointer;
+  font: inherit; font-size: 0.95rem; line-height: 1.35; padding: 0.65rem 0.8rem; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--bg-sunken); color: var(--fg);
+}
+.review-options button:hover { border-color: var(--accent); }
+.opt-key { flex: none; display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--bg-elev); border: 1px solid var(--line); font-size: 0.8rem; font-weight: 700; color: var(--fg-muted); }
+.review-verdict { margin: 0.2rem 0 0.6rem; padding: 0.5rem 0.75rem; border-radius: var(--radius); background: var(--bg-sunken); }
+.review-verdict.right { background: var(--ok-soft); color: var(--ok); }
+.review-verdict.wrong { background: var(--bad-soft); color: var(--bad); }
+.review-verdict b { color: var(--fg); }
+.review-kind.k-output, .review-kind.k-method { color: var(--accent-dk); }
+.grade.suggested { box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 35%, transparent); font-weight: 800; }
+/* the verification banner belongs to the unit and gallery pages, where its checks are done; not to a card */
+.review-back .sim-verify { display: none; }

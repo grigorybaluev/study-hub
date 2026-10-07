@@ -303,13 +303,22 @@ export interface Derived {
 export interface Card {
   /** `<course>/<kind>/<slug>`, e.g. `concordia/STAT280/definition/data-frame` */
   id: string;
-  kind: "definition" | "theorem" | "lemma" | "proposition" | "corollary" | "steps" | "caution" | "insight" | "eq";
+  kind: "definition" | "theorem" | "lemma" | "proposition" | "corollary" | "steps" | "caution" | "insight" | "eq"
+    | "output" | "method";   // quizzes (#196): "what does this print?" and "which method?"
   /** markdown: the prompt ("Data frame", "How: Rejection sampling", "Key idea: Lists") */
   front: string;
   /** markdown: the block body (a statement without its proof; an equation line's formula) */
   back: string;
   course: string;
+  /** the unit it comes from; "" for a quiz from the solution-map gallery (see `link`) */
   unit: string;
+  /** where a card from outside a unit is taught (a method quiz: /design/solution-map) */
+  link?: string;
+  /** a method quiz: the method graph's method nodes, and the index of the one the worked solution reaches */
+  options?: string[];
+  answer?: number;
+  /** every option the worked solution uses (a path can pass two methods); `answer` is the first */
+  accepted?: number[];
   /** the unit's teaching order */
   order: number;
   /** heading id of the part the block sits in (the unit page's `?part=`), and its text */

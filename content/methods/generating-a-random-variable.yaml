@@ -7,7 +7,7 @@ description: >-
 start: builtin
 nodes:
   - {id: builtin, kind: decision, label: "Is there a built-in r… function (rnorm, rexp, rbinom …)?"}
-  - {id: call, kind: method, label: "Call it", concept: r-programming}
+  - {id: call, kind: method, label: "Call R's built-in generator (rnorm, rexp …)", concept: r-programming}
   - {id: invertible, kind: decision, label: "Can the cdf F be inverted in closed form?"}
   - {id: inverse, kind: method, label: "Inverse transform: X = F⁻¹(U), U ~ Unif(0, 1)", concept: random-variate-generation}
   - {id: envelope, kind: decision, label: "A density g you can sample, with f ≤ c·g?"}

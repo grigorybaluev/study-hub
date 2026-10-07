@@ -37,7 +37,7 @@ The Lucas numbers start 2, 1 and continue with each term the sum of the two befo
 vector of the right length first, set the first two terms, then let the loop fill in the rest.
 :::
 
-```r
+```r quiz lucas-loop
 lucas <- numeric(10)             # 10 zeros, filled in below
 lucas[1] <- 2
 lucas[2] <- 1
@@ -181,7 +181,7 @@ steps
 
 A `while` loop is also the natural way to collect "all values below a bound":
 
-```r
+```r quiz while-powers
 powers <- 1
 while (3 * powers[length(powers)] < 1000) powers <- c(powers, 3 * powers[length(powers)])
 powers

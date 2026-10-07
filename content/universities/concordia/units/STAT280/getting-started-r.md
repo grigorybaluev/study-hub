@@ -88,7 +88,7 @@ The ## lines are R's output, shown as comments so the whole block can be pasted 
 
 Mathematical expressions are evaluated with the usual operators: addition `+`, subtraction `-`, multiplication `*`, division `/`, exponentiation `^`. Type the expression, hit return, and R evaluates it:
 
-```r
+```r quiz arithmetic-precedence
 (1+1)*1.2 - 4/5^2
 ## [1] 2.24
 ```
@@ -119,7 +119,7 @@ Everything after a `#` is a comment and is ignored by R.
 
 Parentheses ensure that `:`, `*` and `+` are carried out in the order we want. Without them:
 
-```r
+```r quiz colon-precedence
 5:2*3 + 10
 ## [1] 25 22 19 16
 5:2
@@ -141,7 +141,7 @@ The parentheses in `(7:10) + pi` were not required. We used them anyway: they he
 
 ### Integer division and remainder
 
-```r
+```r quiz integer-division
 31 %% 7      # remainder of 31/7, i.e. 31 (mod 7)
 ## [1] 3
 31 %/% 7     # integer part of 31/7
@@ -244,7 +244,7 @@ A name in R
 
 Breaking the rules gives an error:
 
-```r
+```r quiz invalid-names
 if <- atan(2/3)
 ## Error: unexpected assignment in "if <-"
 _invalid.name <- 23^23

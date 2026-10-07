@@ -73,7 +73,7 @@ element** of `x` and simplifies the results to a vector or matrix. Both hide the
 bookkeeping (the index, the storage vector), which removes a common source of bugs.
 :::
 
-```r
+```r quiz sapply-names
 sapply(1:6, function(n) sum(1:n))           # one call per element of 1:6
 ## [1]  1  3  6 10 15 21
 sapply(c(a = 4, b = 9, c = 16), sqrt)
@@ -128,7 +128,7 @@ bubble(4)
 failure is at an **edge case**. The cause is that `length(x):2` counts *down* when the length is
 below 2:
 
-```r
+```r quiz length-colon-trap
 length(4):2           # the loop runs with last = 1 and then last = 2
 ## [1] 1 2
 ```
@@ -254,7 +254,7 @@ are sure of and check the fast one against it.
 quietly returns `NaN`, which may surface much later in a program.
 :::
 
-```r
+```r quiz rescale-constant
 rescale <- function(x) (x - min(x)) / (max(x) - min(x))
 rescale(c(10, 15, 30))
 ## [1] 0.00 0.25 1.00
