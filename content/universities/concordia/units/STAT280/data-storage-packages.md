@@ -85,15 +85,19 @@ cbind(v1, v2)
 ## [3,]  3  7
 ```
 
-> **Key insight.** matrix() fills column by column and a single index A[k] walks down the columns. * and ^ are entry-wise; the linear-algebra product is %*%. rbind/cbind stack vectors into a matrix and keep their names as dimnames.
+:::insight
+`matrix()` fills column by column and a single index `A[k]` walks down the columns. `*` and `^` are entry-wise; the linear-algebra product is `%*%`. `rbind()`/`cbind()` stack vectors into a matrix and keep their names as `dimnames`.
+:::
 
-> **Caution.** B^2 is NOT the matrix square. B^2 squares each entry; B %*% B is the matrix product. The same goes for B * B versus B %*% B.
+:::caution[Squaring a matrix]
+`B^2` is not the matrix square: it squares each entry, while `B %*% B` is the matrix product. The same goes for `B * B` versus `B %*% B`.
+:::
 
-**Equations**
-
+:::equations
 - *Matrix product (B is 2×2, A is 2×4)*: $(BA)_{ij} = \sum_{k=1}^{2} B_{ik} A_{kj},\qquad \texttt{B \%*\% A}$ — Inner dimensions must agree: ncol(B) = nrow(A).
 - *Entry-wise operations*: $(B * B)_{ij} = B_{ij}^2 = (B\hat{}2)_{ij}$ — Every arithmetic operator acts element by element, like on vectors.
 - *Column-major single index*: $A[k] = A[\,(k-1) \bmod n_{\text{row}} + 1,\ \lfloor (k-1)/n_{\text{row}} \rfloor + 1\,]$ — k = 3 in a 2-row matrix is row 1, column 2 — hence A[3] = 3.
+:::
 
 ```sim
 id: r-matrix-index
@@ -181,7 +185,9 @@ Letters.array[8]         # the array indexed as a vector
 ## [1] "h"
 ```
 
-> **Key insight.** An array is a vector plus a dim attribute. Give one index per dimension (blank = all) to take entries, vectors or matrices out of it; a single index treats it as the underlying vector, first dimension varying fastest.
+:::insight
+An array is a vector plus a `dim` attribute. Give one index per dimension (blank = all) to take entries, vectors or matrices out of it; a single index treats it as the underlying vector, first dimension varying fastest.
+:::
 
 ```r
 Letters.array <- array(letters, dim = c(2, 2, 2))
@@ -262,17 +268,23 @@ sum( (x - mean(x))^2 ) / (n-1)
 
 The one-pass formula subtracts two huge, nearly equal numbers ($\sum x_i^2 \approx n\bar x^2 \approx 10^{21}$) and the difference is dominated by round-off noise. The two-pass formula subtracts the mean *first*, so it only ever handles numbers of size ~10.
 
-> **Note — Take-home message:.** be careful about *what* you compute. Round-off errors might lead to false discoveries!
+:::note[Take-home message]
+Be careful about *what* you compute: round-off errors can lead to false discoveries.
+:::
 
-> **Key insight.** Doubles carry about 16 significant digits. Subtracting two nearly equal large numbers throws most of them away (catastrophic cancellation) — which is exactly what the one-pass variance formula does when the data have a large mean. Prefer formulas that centre first.
+:::insight
+Doubles carry about 16 significant digits. Subtracting two nearly equal large numbers throws most of them away (catastrophic cancellation) — which is exactly what the one-pass variance formula does when the data have a large mean. Prefer formulas that centre first.
+:::
 
-> **Caution.** Never test floating-point results with ==; sin(pi) == 0 is FALSE. Use all.equal() or compare with a tolerance: abs(x - y) < 1e-8.
+:::caution[Testing doubles for equality]
+Never test floating-point results with `==`; `sin(pi) == 0` is `FALSE`. Use `all.equal()` or compare with a tolerance: `abs(x - y) < 1e-8`.
+:::
 
-**Equations**
-
+:::equations
 - *Two-pass (standard) variance*: $s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar x)^2$ — What var() computes; subtracts the mean before squaring.
 - *One-pass variance*: $s^2 = \frac{1}{n-1}\Big(\sum_{i=1}^{n} x_i^2 - n\bar x^2\Big)$ — Algebraically identical; numerically fragile when |x̄| is large.
 - *Why they agree on paper*: $\begin{gathered} \sum (x_i-\bar x)^2 = \sum x_i^2 - 2\bar x\sum x_i + n\bar x^2 \\[4pt] = \sum x_i^2 - 2n\bar x^2 + n\bar x^2 = \sum x_i^2 - n\bar x^2 \end{gathered}$ — Expand the square and use Σxᵢ = n x̄.
+:::
 
 ```sim
 id: r-roundoff
@@ -359,9 +371,13 @@ Sys.time()
 ## [1] "2024-09-15 22:08:29 EDT"
 ```
 
-> **Key insight.** NA means "missing", NaN means "undefined result", Inf/−Inf mean overflow or division of a non-zero by zero. Test for them with is.na() (which is also TRUE for NaN), is.nan() and is.infinite() — never with == NA.
+:::insight
+`NA` means "missing", `NaN` means "undefined result", `Inf`/`-Inf` mean overflow or division of a non-zero by zero. Test for them with `is.na()` (which is also `TRUE` for `NaN`), `is.nan()` and `is.infinite()` — never with `== NA`.
+:::
 
-> **Caution.** x == NA is always NA, never TRUE. Use is.na(x). Also note that most summaries propagate NA: mean(c(1, NA)) is NA unless you pass na.rm = TRUE.
+:::caution[Comparing with NA]
+`x == NA` is always `NA`, never `TRUE`. Use `is.na(x)`. Most summaries also propagate `NA`: `mean(c(1, NA))` is `NA` unless you pass `na.rm = TRUE`.
+:::
 
 ```r
 a.vector <- numeric(0)

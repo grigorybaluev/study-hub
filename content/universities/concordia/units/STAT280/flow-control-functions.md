@@ -466,7 +466,7 @@ h()
 Local variables are what make functions trustworthy: while writing one you only have to think
 about its own names, and nothing else in the program can change them behind your back.
 
-:::caution
+:::caution[Functions that read global variables]
 A function that quietly reads a global variable (like `h()` above) gives different answers when
 that variable changes. Pass everything a function needs as an argument.
 :::
