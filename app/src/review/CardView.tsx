@@ -23,19 +23,23 @@ interface Props {
   peek?: boolean;
   flipped: boolean;
   onFlip(): void;
-  /** a finished swipe: 1 (left, Again) or 3 (right, Good) */
+  /** a swipe past the commit point: 1 (left, Again) or 3 (right, Good); the parent then sets `exit` */
   onSwipe(r: Rating): void;
-  /** set by a grade button: fly this way, then call onExited */
+  /** set by the parent for a swipe or a grade button: fly this way, then call onExited */
   exit?: -1 | 1 | null;
   onExited?(): void;
+  /** a new showing of this card (it can come straight back): start centred */
+  showing?: number;
   context: ReactNode;      // under the front: course and unit
   details: ReactNode;      // under the back: part link, concepts, prerequisites
   updated?: boolean;
 }
 
-export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, onExited, context, details, updated }: Props) {
+export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, onExited, showing, context, details, updated }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x0: number; y0: number; t0: number; dx: number; axis: "x" | "y" | null } | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   const place = (dx: number, animate: boolean) => {
     const e = el.current;
@@ -48,27 +52,26 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
     e.classList.toggle("armed", Math.abs(ratio) >= 1);
   };
 
-  const fly = (dir: -1 | 1, done: () => void) => {
-    if (reducedMotion()) { done(); return; }
-    place(dir * (el.current?.offsetWidth ?? 400) * 1.4, true);
-    setTimeout(done, FLY_MS);
-  };
-
-  // a grade button: fly the way that grade points
+  // fly the way the grade points, then report; a new exit or an unmount cancels the report
   useEffect(() => {
-    if (exit && !peek) fly(exit, () => onExited?.());
+    if (!exit || peek) return;
+    if (reducedMotion()) { onExited?.(); return; }
+    place(exit * (el.current?.offsetWidth ?? 400) * 1.4, true);
+    timer.current = setTimeout(() => onExited?.(), FLY_MS);
+    return () => clearTimeout(timer.current);
   }, [exit]);   // only a new exit starts a flight
 
-  // when a peeking card becomes the top card it must start centred
-  useEffect(() => { if (!peek) place(0, false); }, [peek]);
+  // the top card starts centred: when a peeking card comes up, and when a card comes straight back
+  useEffect(() => { if (!peek) place(0, false); }, [peek, showing]);
 
   const down = (e: React.PointerEvent) => {
-    if (peek || !flipped || e.button !== 0) return;
+    if (peek || !flipped || exit || e.button !== 0) return;     // no new drag while the card flies
     drag.current = { x0: e.clientX, y0: e.clientY, t0: e.timeStamp, dx: 0, axis: null };
   };
   const move = (e: React.PointerEvent) => {
     const d = drag.current;
     if (!d) return;
+    if (!(e.buttons & 1)) { cancel(); return; }      // released somewhere we did not hear about
     const dx = e.clientX - d.x0, dy = e.clientY - d.y0;
     if (!d.axis && Math.hypot(dx, dy) > 8) {
       d.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";      // vertical: the back scrolls, no swipe
@@ -83,19 +86,19 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
     const w = el.current?.offsetWidth ?? 400;
     const v = d.dx / Math.max(1, e.timeStamp - d.t0);
     if (Math.abs(d.dx) > w * COMMIT || (Math.abs(v) > FLICK && Math.abs(d.dx) > 40)) {
-      const dir = d.dx > 0 ? 1 : -1;
-      fly(dir, () => onSwipe(dir > 0 ? 3 : 1));
+      onSwipe(d.dx > 0 ? 3 : 1);
     } else {
       place(0, true);
     }
   };
-  const cancel = () => { if (drag.current) { drag.current = null; place(0, true); } };
+  function cancel() { if (drag.current) { drag.current = null; place(0, true); } }
 
   return (
     <div
       ref={el}
       className={`review-card${peek ? " peek" : ""}${flipped ? " flipped" : ""}`}
       onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
+      onPointerLeave={() => { if (drag.current && !drag.current.axis) cancel(); }}
       onClick={() => { if (!peek && !flipped) onFlip(); }}
       aria-hidden={peek || undefined}
     >

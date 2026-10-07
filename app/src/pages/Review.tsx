@@ -2,6 +2,7 @@
 // Good, or use the four buttons (keys 1-4), each labelled with when the card comes back. Z undoes.
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ConceptChip } from "../components/Chips";
 import { href, node, useData } from "../data/load";
 import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
 import CardView from "../review/CardView";
@@ -30,12 +31,20 @@ export default function Review() {
   const [exit, setExit] = useState<{ card: string; dir: -1 | 1; r: Rating } | null>(null);
   const currentId = deck.current?.id;
 
-  useEffect(() => { setFlipped(false); setExit(null); }, [currentId]);
+  useEffect(() => { setFlipped(false); setExit(null); }, [currentId, deck.showing]);
+
+  // the update toast moves to the top while the deck is open, off the grade buttons
+  useEffect(() => {
+    document.documentElement.classList.add("deck-open");
+    return () => document.documentElement.classList.remove("deck-open");
+  }, []);
 
   const press = useCallback((r: Rating) => {
     if (!flipped || exit || !currentId) return;
     setExit({ card: currentId, dir: r <= 2 ? -1 : 1, r });     // Again and Hard fly left, Good and Easy right
   }, [flipped, exit, currentId]);
+
+  const undo = useCallback(() => { if (!exit) deck.undo(); }, [exit, deck]);   // not while a card flies
 
   // grade and clear in one update, so the card that comes up next renders unflipped and without a flight
   const finish = useCallback((r: Rating) => {
@@ -46,9 +55,9 @@ export default function Review() {
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.closest("input, textarea")) return;
+      if ((e.target as HTMLElement)?.closest("input, textarea, select, a, button, [contenteditable]")) return;
       if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey || (!e.altKey && !e.shiftKey))) {
-        e.preventDefault(); deck.undo(); return;
+        e.preventDefault(); undo(); return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (!flipped && (e.key === " " || e.key === "Enter")) { e.preventDefault(); setFlipped(true); return; }
@@ -56,7 +65,7 @@ export default function Review() {
     };
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
-  }, [flipped, press, deck]);
+  }, [flipped, press, undo]);
 
   if (deck.status === "loading") return <div className="deck"><p className="muted">Loading the deck…</p></div>;
   if (deck.status === "error") return <div className="deck"><p>Could not load the cards: {deck.error}</p></div>;
@@ -71,10 +80,10 @@ export default function Review() {
         <span className="deck-counts" title="due reviews · new cards left today · graded today">
           <b className="c-due">{deck.left.due}</b> due · <b className="c-new">{deck.left.fresh}</b> new · {deck.doneToday} done
         </span>
-        <button className="deck-undo" onClick={deck.undo} disabled={!deck.canUndo} title="Undo the last grade (Z)">↶ Undo</button>
+        <button className="deck-undo" onClick={undo} disabled={!deck.canUndo || !!exit} title="Undo the last grade (Z)">↶ Undo</button>
       </div>
       {!deck.persistent && (
-        <p className="deck-warn">This browser does not keep data for this site, so today's grades will be lost when the page closes.</p>
+        <p className="deck-warn">This browser does not keep data for this site, so these grades last only until the page is closed.</p>
       )}
 
       <div className="deck-stack">
@@ -84,8 +93,9 @@ export default function Review() {
             <CardView
               key={c.id} card={c} peek={!top}
               flipped={top && flipped} onFlip={() => setFlipped(true)}
-              onSwipe={finish}
+              onSwipe={press}
               exit={top && exit?.card === c.id ? exit.dir : null} onExited={() => exit && finish(exit.r)}
+              showing={deck.showing}
               updated={top && deck.updated}
               context={<CardContext card={c} />} details={<CardDetails card={c} />}
             />
@@ -138,13 +148,13 @@ function CardDetails({ card }: { card: Card }) {
       </Link>
       {concepts.map((c) => (
         <div key={c.id} className="review-concept">
-          <Link className="chip dom" style={{ ["--dom" as string]: `var(--dom-${c.domain.replace(".", "-")})` }} to={href.concept(c.id)}>{c.title}</Link>
+          <ConceptChip id={c.id} />
           <span className="small muted"> {c.body}</span>
         </div>
       ))}
       {builds.length > 0 && (
         <div className="review-builds small muted">
-          Builds on: {builds.map((c) => <Link key={c.id} className="chip" to={href.concept(c.id)}>{c.title}</Link>)}
+          Builds on: {builds.map((c) => <ConceptChip key={c.id} id={c.id} />)}
         </div>
       )}
     </>

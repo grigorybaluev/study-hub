@@ -60,7 +60,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .footer .version { font-family: var(--mono); color: var(--fg-faint); }
 .update-toast {
   position: fixed; z-index: 50; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 2rem);
-  top: calc(env(safe-area-inset-top) + 0.6rem);   /* at the top: at the bottom it would cover the deck's grade buttons (#194) */
+  bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
   display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.6rem 0.55rem 1rem;
   background: var(--header-bg); color: var(--header-fg); border: 1px solid var(--header-line); border-radius: 999px; box-shadow: var(--shadow); font-size: 0.9rem;
 }
@@ -516,7 +516,14 @@ html.sheet-open { overflow: hidden; }
 .deck-undo:disabled { opacity: 0.4; cursor: default; }
 .deck-warn { margin: 0; padding: 0.5rem 0.8rem; border-radius: var(--radius); background: var(--warn-soft); color: var(--warn); font-size: 0.85rem; }
 
-.deck-stack { position: relative; flex: 1; min-height: 260px; perspective: 1400px; }
+.deck-stack { position: relative; flex: 1; min-height: 180px; perspective: 1400px; }
+/* while the deck is open the update toast sits at the top, off the grade buttons */
+html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bottom: auto; }
+/* a short screen (a phone in landscape): the page scrolls instead of cutting off the buttons */
+@media (max-height: 560px) {
+  .shell.fixed { height: auto; overflow: visible; }
+  .deck-stack { flex: none; height: 75vh; min-height: 0; }
+}
 .review-card {
   position: absolute; inset: 0; cursor: pointer; touch-action: pan-y; user-select: none; -webkit-user-select: none;
   will-change: transform; --swipe: 0; z-index: 2;

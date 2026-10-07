@@ -46,20 +46,32 @@ function newDevice(): string {
 }
 
 function memoryStore(): Store {
-  const s: Store = {
+  return {
     persistent: false, device: newDevice(), reviews: [], settings: { ...DEFAULT_SETTINGS },
     add: async () => {}, remove: async () => {}, addAll: async () => {}, saveSettings: async () => {},
   };
-  return s;
 }
 
-/** Open this device's review log. Never throws: without IndexedDB the log lives in memory. */
-export async function openStore(): Promise<Store> {
-  try {
-    return await openDb();
-  } catch {
-    return memoryStore();
-  }
+/** `reviews` follows every write, so a store opened once serves the whole page load. */
+function tracked(s: Store): Store {
+  return {
+    ...s,
+    add: async (r) => { s.reviews.push(r); await s.add(r); },
+    remove: async (id) => { const i = s.reviews.findIndex((r) => r.id === id); if (i >= 0) s.reviews.splice(i, 1); await s.remove(id); },
+    addAll: async (rs) => { s.reviews.push(...rs); await s.addAll(rs); },
+    saveSettings: async (x) => { s.settings = { ...x }; await s.saveSettings(x); },
+    get reviews() { return s.reviews; },
+    get settings() { return s.settings; },
+  };
+}
+
+let opened: Promise<Store> | null = null;
+
+/** This device's review log, opened once per page load. Never throws: without IndexedDB the log lives
+ *  in memory until the page is closed (leaving /review and coming back keeps it). */
+export function openStore(): Promise<Store> {
+  opened ??= openDb().catch(() => memoryStore()).then(tracked);
+  return opened;
 }
 
 async function openDb(): Promise<Store> {

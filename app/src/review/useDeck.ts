@@ -27,6 +27,8 @@ export interface Deck {
   /** with nothing to do now: when the next learning step falls due today */
   laterAt: number | null;
   canUndo: boolean;
+  /** goes up each time a card is put on top, also when the same card comes straight back */
+  showing: number;
   grade(rating: Rating): void;
   undo(): void;
 }
@@ -78,8 +80,7 @@ export function useDeck(): Deck {
   }, [st, tick, forced]);
 
   // the clock that starts when a card is shown
-  const currentId = view?.current?.id;
-  useEffect(() => { shownAt.current = Date.now(); }, [currentId]);
+  useEffect(() => { shownAt.current = Date.now(); }, [tick]);
 
   // wake up when the next learning step comes within the learn-ahead window
   useEffect(() => {
@@ -110,10 +111,10 @@ export function useDeck(): Deck {
 
   if (error) return { ...EMPTY, status: "error", error };
   if (!st || !view) return EMPTY;
-  return { status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), grade, undo };
+  return { status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), showing: tick, grade, undo };
 }
 
 const EMPTY: Deck = {
   status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0,
-  preview: null, updated: false, laterAt: null, canUndo: false, grade: () => {}, undo: () => {},
+  preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => {}, undo: () => {},
 };
