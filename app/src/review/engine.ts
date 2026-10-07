@@ -201,15 +201,33 @@ export class Engine {
     return { due: shown, fresh: fresh.slice(0, Math.max(0, this.settings.newPerDay - newToday)), later };
   }
 
-  /** Counts for the current review day. */
-  today(now: number): { newToday: number; reviewsToday: number; graded: number } {
+  /** Counts for the current review day: new cards started, review cards seen, grades, time spent, and how
+   *  many review-type grades were recalls (not Again). */
+  today(now: number): { newToday: number; reviewsToday: number; graded: number; ms: number; reviewed: number; recalled: number } {
     const start = dayStart(now);
     let newToday = 0;
     for (const ts of this.first.values()) if (ts >= start) newToday++;
     let lo = 0, hi = this.log.length;                          // the log is sorted: find today's first grade
     while (lo < hi) { const mid = (lo + hi) >> 1; if (this.log[mid].ts < start) lo = mid + 1; else hi = mid; }
     const graded = this.log.slice(lo);
-    return { newToday, reviewsToday: new Set(graded.filter((r) => r.type !== "learn").map((r) => r.card)).size, graded: graded.length };
+    const reviews = graded.filter((r) => r.type === "review");
+    return {
+      newToday, reviewsToday: new Set(graded.filter((r) => r.type !== "learn").map((r) => r.card)).size, graded: graded.length,
+      ms: graded.reduce((s, r) => s + r.ms, 0), reviewed: reviews.length, recalled: reviews.filter((r) => r.rating > 1).length,
+    };
+  }
+
+  /** The card's latest grade, or null if it was never graded. */
+  lastRating(card: string): Rating | null {
+    for (let i = this.log.length - 1; i >= 0; i--) if (this.log[i].card === card) return this.log[i].rating;
+    return null;
+  }
+
+  /** How many of `cards` that have been seen fall due before `until` (the forecast on the done screen). */
+  dueBy(cards: string[], until: number): number {
+    let n = 0;
+    for (const id of cards) { const c = this.cards.get(id); if (c && c.due.getTime() < until) n++; }
+    return n;
   }
 
   /** Lifetime counts and true retention: share of review-type grades in the last 30 days that were not Again. */
