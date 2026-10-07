@@ -3,11 +3,11 @@
 // concept (exam prep's order), and a scope's name.
 import { defaultVariantId, edgesIn, edgesOut, node, type Data } from "../data/load";
 import type { ConceptNode, CourseNode, RoadmapSkillNode, UnitNode } from "../data/types";
-import type { Scope, ScopeContext } from "./scope";
+import type { Scope, ScopeContext, Weight } from "./scope";
 
 export interface Scopes extends ScopeContext {
-  /** units of these courses that require a concept (hard), per concept */
-  weight(courses: string[]): (concept: string) => number;
+  /** units of these courses that require a concept (hard), later than a given unit order */
+  weight(courses: string[]): Weight;
   label(s: Scope): string;
   /** the courses a course or term scope covers (for the weight) */
   courses(s: Scope): string[];
@@ -31,21 +31,22 @@ export function scopes(d: Data): Scopes {
     return areaCache.get(id)!;
   };
   const termCourses = (index: number) => terms.find((t) => t.index === index)?.courses ?? [];
-  const courseId = (code: string) => d.courses.find((c) => c.code === code)?.id;
   return {
     termCourses, areaConcepts, terms, areas,
-    courses: (s) => s.kind === "course" ? [courseId(s.code)].filter((x): x is string => !!x) : s.kind === "term" ? termCourses(s.index) : [],
+    courses: (s) => s.kind === "course" ? [s.id] : s.kind === "term" ? termCourses(s.index) : [],
     weight(courses) {
-      const n = new Map<string, number>();
+      const orders = new Map<string, number[]>();             // concept -> orders of the units requiring it
       for (const c of courses) for (const u of d.unitsOf.get(c) ?? []) {
-        for (const e of edgesOut(d, u.id, "requires")) if ((e.strength ?? "hard") === "hard") n.set(e.to, (n.get(e.to) ?? 0) + 1);
+        for (const e of edgesOut(d, u.id, "requires")) {
+          if ((e.strength ?? "hard") === "hard") orders.set(e.to, [...(orders.get(e.to) ?? []), u.order]);
+        }
       }
-      return (k) => n.get(k) ?? 0;
+      return (k, after) => (orders.get(k) ?? []).filter((o) => o > after).length;
     },
     label(s) {
       switch (s.kind) {
         case "all": return "All cards";
-        case "course": { const c = d.courses.find((x) => x.code === s.code); return c ? `${c.code} · ${c.title}` : s.code; }
+        case "course": { const c = node<CourseNode>(d, s.id); return c ? `${c.code} · ${c.title}` : s.id; }
         case "term": return terms.find((t) => t.index === s.index)?.label ?? `Term ${s.index + 1}`;
         case "unit": { const u = node<UnitNode>(d, s.id); const c = u && node<CourseNode>(d, u.course); return u ? `${c?.code ?? ""} · ${u.title}` : s.id; }
         case "concept": return node<ConceptNode>(d, s.id)?.title ?? s.id;

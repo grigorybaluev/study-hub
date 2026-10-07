@@ -31,7 +31,7 @@ export default function Course() {
           <Badge kind={course.kind} /> <span>{course.credits} credits</span>
           {units.length > 0 && <span>· {units.length} units · {introduced.length} concepts introduced · {reviewed}/{units.length} reviewed</span>}
           {sims > 0 && <span title="interactive examples whose interface and content have been checked">· {simsVerified}/{sims} examples verified</span>}
-          <ReviewThis scope={{ kind: "course", code: course.code }} what="course" />
+          <ReviewThis scope={{ kind: "course", id: course.id }} what="course" />
         </div>
         <p className="prose">{course.body}</p>
 

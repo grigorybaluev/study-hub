@@ -39,6 +39,9 @@ export interface Deck {
   /** cards left today: reviews (due now) and new ones within the daily limit */
   left: { due: number; fresh: number };
   doneToday: number;
+  /** grades today on this scope's cards (doneToday when the scope is everything) */
+  doneHere: number;
+  leftAll: number;
   /** when each grade would bring the current card back */
   preview: Record<Rating, number> | null;
   /** the current card's text changed since it was last graded */
@@ -106,6 +109,7 @@ export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
   // "5 more new cards": an allowance for one review day, apart from the settings, never saved or sent
   const [extra, setExtra] = useState({ day: 0, n: 0 });
   const shownAt = useRef(Date.now());
+  useEffect(() => { setForced(null); }, [select]);           // an undone card does not follow into another scope
   const bump = useCallback(() => setTick((t) => t + 1), []);
 
   // back to the app (a new day, a learning step now due) or a learning step's time: look again
@@ -121,10 +125,11 @@ export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
     const byId = new Map(st.cards.map((c) => [c.id, c]));
     const pool = select ? select(st.cards) : st.cards;
     const ids = pool.map((c) => c.id);
+    const inPool = new Set(ids);
     const extraToday = extra.day === dayStart(now) ? extra.n : 0;
     const q = st.engine.queue(ids, now, extraToday);
     let order = [...q.due, ...q.fresh];
-    if (forced && byId.has(forced)) order = [forced, ...order.filter((id) => id !== forced)];
+    if (forced && inPool.has(forced)) order = [forced, ...order.filter((id) => id !== forced)];   // an undone card, if in scope
     let laterAt: number | null = null;
     if (!order.length && q.later.length) {
       if (q.later[0].due - now <= LEARN_AHEAD) order = q.later.map((l) => l.card);
@@ -139,6 +144,10 @@ export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
       current, next: order.length > 1 ? byId.get(order[1])! : null,
       left: { due: q.due.length, fresh: q.fresh.length },
       doneToday: today.graded,
+      // this scope's grades today (the ring of a scoped session counts these with its cards left)
+      doneHere: select ? st.engine.log.slice(-today.graded).filter((r) => inPool.has(r.card)).length : today.graded,
+      // the badge counts every card left today, whatever the scope
+      leftAll: (() => { if (!select) return q.due.length + q.fresh.length + q.later.length; const a = st.engine.queue(st.cards.map((c) => c.id), now, extraToday); return a.due.length + a.fresh.length + a.later.length; })(),
       preview: current ? st.engine.preview(current.id, now) : null,
       updated: !!state && !!state.hash && state.hash !== current!.hash,
       laterAt,
@@ -178,8 +187,8 @@ export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
     return reward;
   }, [st, view, bump]);
 
-  // the cards left today on the app icon (learning steps included), where the platform allows it and the badge is on
-  const left = view ? view.left.due + view.left.fresh + view.learning : 0;
+  // the cards left today on the app icon (learning steps included, every scope), where allowed and switched on
+  const left = view ? view.leftAll : 0;
   useEffect(() => {
     if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;
     (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => { /* not allowed here */ });
@@ -248,7 +257,7 @@ export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
 }
 
 const EMPTY: Deck = {
-  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0,
+  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, leftAll: 0,
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
   day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
   streak: null, learning: 0, markCleared: () => {}, cards: [],

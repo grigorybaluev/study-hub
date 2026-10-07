@@ -5,7 +5,7 @@ import type { Card } from "../data/types";
 
 export type Scope =
   | { kind: "all" }
-  | { kind: "course"; code: string }       // STAT280
+  | { kind: "course"; id: string }         // concordia/STAT280 (a code alone could name two universities' courses)
   | { kind: "term"; index: number }         // a term of the program's default variant, 0-based
   | { kind: "unit"; id: string }            // concordia/STAT280/vectors
   | { kind: "concept"; id: string }
@@ -15,7 +15,7 @@ export const ALL: Scope = { kind: "all" };
 
 export function parseScope(q: URLSearchParams): Scope {
   const course = q.get("course"), term = q.get("term"), unit = q.get("unit"), concept = q.get("concept"), area = q.get("area");
-  if (course) return { kind: "course", code: course };
+  if (course) return { kind: "course", id: course };
   if (term !== null && /^\d+$/.test(term)) return { kind: "term", index: Number(term) };
   if (unit) return { kind: "unit", id: unit };
   if (concept) return { kind: "concept", id: concept };
@@ -26,7 +26,7 @@ export function parseScope(q: URLSearchParams): Scope {
 /** The query string that opens /review on a scope ("" for everything). */
 export function scopeQuery(s: Scope): string {
   switch (s.kind) {
-    case "course": return `?course=${encodeURIComponent(s.code)}`;
+    case "course": return `?course=${encodeURIComponent(s.id)}`;
     case "term": return `?term=${s.index}`;
     case "unit": return `?unit=${encodeURIComponent(s.id)}`;
     case "concept": return `?concept=${encodeURIComponent(s.id)}`;
@@ -44,7 +44,7 @@ export interface ScopeContext {
 export function inScope(card: Card, s: Scope, ctx: ScopeContext): boolean {
   switch (s.kind) {
     case "all": return true;
-    case "course": return card.course.endsWith(`/${s.code}`);
+    case "course": return card.course === s.id;
     case "term": return ctx.termCourses(s.index).includes(card.course);
     case "unit": return card.unit === s.id;
     case "concept": return card.concepts.includes(s.id);
@@ -52,15 +52,18 @@ export function inScope(card: Card, s: Scope, ctx: ScopeContext): boolean {
   }
 }
 
-/** Exam prep: new cards whose concepts the course's units require most come first; otherwise the
- *  course order is kept (a stable sort). `weight(concept)` counts the units that require it. */
-export function examOrder(cards: Card[], weight: (concept: string) => number): Card[] {
-  const w = new Map(cards.map((c) => [c.id, Math.max(0, ...c.concepts.map(weight))]));
+/** How many of the scope's units after a card's own unit require a concept (exam prep's order). */
+export type Weight = (concept: string, after: number) => number;
+
+/** Exam prep: new cards whose concepts the later units require most come first; otherwise the course
+ *  order is kept (a stable sort). */
+export function examOrder(cards: Card[], weight: Weight): Card[] {
+  const w = new Map(cards.map((c) => [c.id, Math.max(0, ...c.concepts.map((k) => weight(k, c.order)))]));
   return [...cards].sort((a, b) => w.get(b.id)! - w.get(a.id)!);
 }
 
 /** Cards of a scope, in the order new ones should come: exam order for a course or a term. */
-export function scopeCards(cards: Card[], s: Scope, ctx: ScopeContext, weight?: (concept: string) => number): Card[] {
+export function scopeCards(cards: Card[], s: Scope, ctx: ScopeContext, weight?: Weight): Card[] {
   const picked = cards.filter((c) => inScope(c, s, ctx));
   return (s.kind === "course" || s.kind === "term") && weight ? examOrder(picked, weight) : picked;
 }

@@ -2,6 +2,7 @@
 // Clipboard carries it between an iPhone and a Mac), or a file as fallback and backup. Import merges.
 import { useEffect, useRef, useState } from "react";
 import type { Deck } from "./useDeck";
+import { useSheet } from "../components/useSheet";
 import { ProgressError, decode, encode, fileName, type ProgressFile } from "./transfer";
 
 type Note = { ok: boolean; text: string } | null;
@@ -26,13 +27,7 @@ export default function SyncPanel({ deck, onClose }: { deck: Deck; onClose(): vo
   };
   useEffect(prepare, []);   // on opening; take() prepares again after an import
 
-  // Escape closes; the deck behind does not scroll while the sheet is open (as the parts sheet)
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", esc);
-    document.documentElement.classList.add("sheet-open");
-    return () => { document.removeEventListener("keydown", esc); document.documentElement.classList.remove("sheet-open"); };
-  }, [onClose]);
+  useSheet(true, onClose);
 
   useEffect(() => { if (manual) area.current?.select(); }, [manual]);
 
