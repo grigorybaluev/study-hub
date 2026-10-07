@@ -218,7 +218,7 @@ The last three lines are the same query written three ways. `subset()` is often 
 readable: its condition and column list are evaluated inside the data frame, so the column names
 can be written bare.
 
-:::caution
+:::caution[Conditions on data frame columns]
 Inside `[ ]` the condition must name the data frame (`plants$height > 30`), because
 `height` alone is not an object in the workspace. Only functions such as `subset()` and `with()`
 look the names up inside the data frame for you.

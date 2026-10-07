@@ -27,8 +27,14 @@ A first introduction to statistical programming in **R**. Topics covered:
 
 Being an introductory course, no previous experience with programming nor statistics is required. Statistical programming is a key component of modern data science — machine learning, computer simulation, signal processing, neural networks, AI all rest on it.
 
-> **Definition — Computer programming.** — giving instructions to computers: what calculations to do, what to display, etc.
->  **Statistical programming** — performing computations that aid in statistical analysis: statistical graphics, numerical techniques, data manipulation, summarisation and display of data, simulation techniques.
+:::definition[Computer programming]
+Giving instructions to a computer: what to calculate, what to display, and in what order.
+:::
+
+:::definition[Statistical programming]
+Programming that carries out the computations of a statistical analysis: statistical graphics,
+numerical techniques, data manipulation, summarising and displaying data, and simulation.
+:::
 
 ### A little bit of history
 
@@ -60,7 +66,9 @@ Output is indicated with the `##` prefix; user input is given without any prefix
 
 The number `[1]` indicates that this is the first (here: the only) element of the output for the given command.
 
-> **Key insight.** R is a command-line language: you type commands into the console and R prints results prefixed (on these pages) by ##. RStudio wraps that console in an IDE with an editor, environment pane and help pane.
+:::insight
+R is a command-line language: you type commands into the console and R prints results prefixed (on these pages) by `##`. RStudio wraps that console in an IDE with an editor, environment pane and help pane.
+:::
 
 ```r
 # The very first command: R prints the value of an expression.
@@ -120,12 +128,14 @@ Parentheses ensure that `:`, `*` and `+` are carried out in the order we want. W
 
 R first built `5:2`, then multiplied each number by 3 and added 10.
 
-> **Definition — Order of operations.** (computed left to right within a level):
-> 1. `( )`
-> 2. `^`
-> 3. `*` and `/`
-> 4. `+` and `-`
-> The parentheses in `(7:10) + pi` were not required. We used them anyway: they help others read the code quickly, and it is easy to forget one of R's precedence rules. **Recommendation: use parentheses whenever you are unsure (or even when you think you are right!).**
+:::definition[Order of operations]
+(computed left to right within a level):
+1. `( )`
+2. `^`
+3. `*` and `/`
+4. `+` and `-`
+The parentheses in `(7:10) + pi` were not required. We used them anyway: they help others read the code quickly, and it is easy to forget one of R's precedence rules. **Recommendation: use parentheses whenever you are unsure (or even when you think you are right!).**
+:::
 
 ### Integer division and remainder
 
@@ -144,14 +154,18 @@ R first built `5:2`, then multiplied each number by 3 and added 10.
 
 For a complete list, type `?S4groupGeneric`.
 
-> **Key insight.** The colon operator binds tighter than * and +, but R's precedence rules are easy to misremember — parenthesise anything you are unsure about. %% gives the remainder and %/% the integer quotient.
+:::insight
+The colon operator binds tighter than `*` and `+`, but R's precedence rules are easy to misremember — parenthesise anything you are unsure about. `%%` gives the remainder and `%/%` the integer quotient.
+:::
 
-> **Caution.** 5:2*3 + 10 is (5:2)*3 + 10, not 5:(2*3 + 10). When an expression mixes :, ^, * and +, write the parentheses explicitly.
+:::caution[Precedence of the colon operator]
+`5:2*3 + 10` is `(5:2)*3 + 10`, not `5:(2*3 + 10)`. When an expression mixes `:`, `^`, `*` and `+`, write the parentheses explicitly.
+:::
 
-**Equations**
-
+:::equations
 - *Precedence*: $(\ )\ \succ\ \hat{}\ \succ\ *,\ /\ \succ\ +,\ -$ — Highest to lowest; equal levels are evaluated left to right.
 - *Integer division & remainder*: $31 = 4 \cdot 7 + 3 \quad\Rightarrow\quad 31\ \%/\%\ 7 = 4,\qquad 31\ \%\%\ 7 = 3$ — a %/% b is the quotient, a %% b the remainder (a mod b).
+:::
 
 ```sim
 id: r-precedence
@@ -219,11 +233,14 @@ my_result
 
 ### Choosing names
 
-> **Definition.**  A valid name
-> - must consist of letters, digits, `.` and `_`;
-> - cannot begin with `_` or a digit;
-> - cannot be a reserved word (`TRUE`, `NULL`, `if`, `function`, … — see `?Reserved`).
-> Breaking the rules gives an error:
+:::definition[Valid name]
+A name in R
+- must consist of letters, digits, `.` and `_`;
+- cannot begin with `_` or a digit;
+- cannot be a reserved word (`TRUE`, `NULL`, `if`, `function`, … — see `?Reserved`).
+:::
+
+Breaking the rules gives an error:
 
 ```r
 if <- atan(2/3)
@@ -250,9 +267,10 @@ SUM(x)
 
 ### Example: applying a formula
 
-> **Example.**
-> An individual takes out a loan today of $P$ at a monthly interest rate $i$, to be paid back in $n$ monthly instalments of size $R$, beginning one month from now. Given $P$, $n$ and $i$,
->  $$R = P\,\frac{i}{1 - (1+i)^{-n}} .$$
+:::example
+An individual takes out a loan today of $P$ at a monthly interest rate $i$, to be paid back in $n$ monthly instalments of size $R$, beginning one month from now. Given $P$, $n$ and $i$,
+ $$R = P\,\frac{i}{1 - (1+i)^{-n}} .$$
+:::
 
 ```r
 i <- 0.01
@@ -280,11 +298,13 @@ When you quit R/RStudio (`q()` or the ✕ button) the objects in the workspace a
 2. save the **command history** (top-right pane);
 3. **R scripts** (top-left pane) — *recommended*: `File > New File > R Script`. Commands can be executed line-wise or selection-wise (cursor on the line, or select lines, then “Run”); the script can be saved and reused later.
 
-> **Key insight.** x <- value stores; typing x shows. Names are case sensitive and may not start with a digit or underscore. Keep your work in an R script rather than relying on the saved workspace.
+:::insight
+`x <- value` stores; typing `x` shows. Names are case sensitive and may not start with a digit or underscore. Keep your work in an R script rather than relying on the saved workspace.
+:::
 
-**Equations**
-
+:::equations
 - *Loan instalment*: $R = P\,\frac{i}{1-(1+i)^{-n}}$ — P = 1500, i = 0.01, n = 10 gives R = 158.3731.
+:::
 
 ```sim
 id: r-loan
@@ -341,8 +361,7 @@ add.3.to(10)
 ## [1] 13
 ```
 
-> **Definition — General format.**
-
+:::definition[General format of a function]
 ```r
 fun_name <- function(input_args){
   command 1
@@ -356,10 +375,13 @@ fun_name <- function(input_args){
 - `input_args`: a list of input arguments separated by commas, such as `arg1, arg2`;
 - the commands go on different lines, or on one line separated by semicolons;
 - `return(output)`: the desired output.
+:::
 
 Like in math, a function is a mapping $(\text{arg}_1, \dots, \text{arg}_n) \mapsto \text{output}$, where the output is produced by a finite sequence of R commands in the function's body. *Note:* a function might not terminate — interrupt it with `Ctrl`+`C`.
 
-> **Example — Exercises.** Create the functions $$x \mapsto \cos(x) - \sqrt{\log_2(x)} \qquad\text{and}\qquad (x,y,z) \mapsto x^2 + y^2 + z^2$$ and verify that they correctly apply the desired formulas. (Solutions in the R example below.)
+:::example[Exercises]
+Create the functions $$x \mapsto \cos(x) - \sqrt{\log_2(x)} \qquad\text{and}\qquad (x,y,z) \mapsto x^2 + y^2 + z^2$$ and verify that they correctly apply the desired formulas. (Solutions in the R example below.)
+:::
 
 ### Default arguments — the q function
 
@@ -376,16 +398,22 @@ q
 - `q("no")` and `q(save = "no")` both quit without saving — the first argument is given, the rest keep their defaults. Two unnamed arguments would go to `save` and `status`, in that order.
 - To set only a particular argument, name it: `q(runLast = FALSE)` — the same as `q( , , FALSE)`.
 
-> **Note — = versus <- inside a call.** `q(runLast <- FALSE)` is quite different from `q(runLast = FALSE)`: the arrow first assigns `FALSE` to an object named `runLast`, then passes the *value* `FALSE` as the *first* argument — i.e. `q(save = FALSE)`, probably not what you wanted. Use `=` to set arguments, and use named arguments whenever a function has many arguments or you are using uncommon ones: less risk of a wrong argument, and more readable code.
+:::note[= versus <- inside a call]
+`q(runLast <- FALSE)` is quite different from `q(runLast = FALSE)`: the arrow first assigns `FALSE` to an object named `runLast`, then passes the *value* `FALSE` as the *first* argument — i.e. `q(save = FALSE)`, probably not what you wanted. Use `=` to set arguments, and use named arguments whenever a function has many arguments or you are using uncommon ones: less risk of a wrong argument, and more readable code.
+:::
 
-> **Key insight.** fun <- function(args){ body; return(output) }. Arguments are matched by position unless named; defaults fill in whatever you leave out. Inside a call, = sets an argument while <- performs an assignment and passes the value positionally.
+:::insight
+`fun <- function(args){ body; return(output) }`. Arguments are matched by position unless named; defaults fill in whatever you leave out. Inside a call, `=` sets an argument while `<-` performs an assignment and passes the value positionally.
+:::
 
-> **Caution.** q(runLast <- FALSE) silently becomes q(save = FALSE). Always use = for arguments inside function calls.
+:::caution[Assigning inside a function call]
+`q(runLast <- FALSE)` silently becomes `q(save = FALSE)`. Always use `=` for arguments inside function calls.
+:::
 
-**Equations**
-
+:::equations
 - *Exercise 1*: $f(x) = \cos(x) - \sqrt{\log_2(x)}$ — Needs x > 0 and log2(x) ≥ 0, i.e. x ≥ 1, for a real result.
 - *Exercise 2*: $g(x,y,z) = x^2 + y^2 + z^2$ — Three input arguments, one output.
+:::
 
 ```sim
 id: r-function-plot

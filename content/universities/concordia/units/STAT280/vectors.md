@@ -130,14 +130,18 @@ sample(0:1, size = 15, replace = TRUE)     # a coin (heads = 0, tails = 1)
 ##  [1] 0 1 0 1 1 0 0 1 0 0 0 1 0 1 0
 ```
 
-> **Key insight.** Everything in R is vectorised: x + y, x^y, cos(x) act element by element, and a shorter operand is recycled. Index with [ ] using positive positions, negative exclusions or ranges — but never a mix of positive and negative.
+:::insight
+Everything in R is vectorised: `x + y`, `x^y`, `cos(x)` act element by element, and a shorter operand is recycled. Index with `[ ]` using positive positions, negative exclusions or ranges — but never a mix of positive and negative.
+:::
 
-> **Caution.** z[1,3,5] is an error (that syntax is for matrices); use z[c(1,3,5)]. And a recycling *warning* is only issued when the lengths are not multiples — x^c(2,4) on a length-10 x recycles silently, which may or may not be what you meant.
+:::caution[Indexing several elements, and silent recycling]
+`z[1,3,5]` is an error (that syntax is for matrices); use `z[c(1,3,5)]`. And a recycling *warning* is only issued when the lengths are not multiples — `x^c(2,4)` on a length-10 `x` recycles silently, which may or may not be what you meant.
+:::
 
-**Equations**
-
+:::equations
 - *Component-wise arithmetic*: $(x_1,\dots,x_n) \circ (y_1,\dots,y_n) = (x_1 \circ y_1,\ \dots,\ x_n \circ y_n)\quad \circ \in \{+,-,*,/,\hat{}\}$ — Applies to every operator and to functions like cos, sqrt, log.
 - *Recycling*: $x^{z},\quad z = (2,4) \;\Rightarrow\; (x_1^2,\ x_2^4,\ x_3^2,\ x_4^4,\ \dots)$ — The shorter vector is repeated to match the longer one.
+:::
 
 ```sim
 id: r-recycling
@@ -290,9 +294,13 @@ levels(new.grades)[c(1,2,5,2)]
 ## [1] "A" "B" "F" "B"
 ```
 
-> **Key insight.** A vector holds one type: mix strings and numbers and the numbers become strings. A factor is a character vector stored as integer codes plus a levels vector — change the levels and every observation is relabelled at once.
+:::insight
+A vector holds one type: mix strings and numbers and the numbers become strings. A factor is a character vector stored as integer codes plus a levels vector — change the levels and every observation is relabelled at once.
+:::
 
-> **Caution.** as.numeric(factor) returns the level codes (1, 2, 3, …), not the original strings converted to numbers. To recover the labels use as.character(f) or levels(f)[f].
+:::caution[as.numeric() on a factor]
+`as.numeric(f)` on a factor returns the level codes (1, 2, 3, …), not the original strings converted to numbers. To recover the labels use `as.character(f)` or `levels(f)[f]`.
+:::
 
 ```r
 movies  <- c("The Matrix", "Men in Black")
@@ -419,9 +427,13 @@ which(not.5.nor.6)
 ## [1] 2 3 5 7 8
 ```
 
-> **Key insight.** A comparison on a vector gives a logical vector of the same length; putting that logical vector inside [ ] filters the original. Combine conditions with & and |, negate with !, and use which() when you need positions instead of values.
+:::insight
+A comparison on a vector gives a logical vector of the same length; putting that logical vector inside `[ ]` filters the original. Combine conditions with `&` and `|`, negate with `!`, and use `which()` when you need positions instead of values.
+:::
 
-> **Caution.** & and | are vectorised (element-wise). The double forms && and || work on a single TRUE/FALSE only and are meant for if-conditions — do not use them to filter vectors.
+:::caution[Filtering with && or ||]
+`&` and `|` are vectorised (element-wise). The double forms `&&` and `||` work on a single `TRUE`/`FALSE` only and are meant for `if` conditions — do not use them to filter vectors.
+:::
 
 ```sim
 id: r-logical-filter
