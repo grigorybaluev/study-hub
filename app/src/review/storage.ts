@@ -30,7 +30,11 @@ function open(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains("reviews")) db.createObjectStore("reviews", { keyPath: "id" });
       if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
     };
-    r.onsuccess = () => res(r.result);
+    r.onsuccess = () => {
+      // a newer version opening in another tab (a release with VERSION + 1) must not be blocked by this one
+      r.result.onversionchange = () => r.result.close();
+      res(r.result);
+    };
     r.onerror = () => rej(r.error);
     r.onblocked = () => rej(new Error("review database blocked by another tab"));
   });
@@ -38,9 +42,7 @@ function open(): Promise<IDBDatabase> {
 
 /** A random device id, fixed once per device: it prefixes every review id. */
 function newDevice(): string {
-  const a = new Uint8Array(5);
-  crypto.getRandomValues(a);
-  return [...a].map((x) => x.toString(36).padStart(2, "0")).join("").slice(0, 8);
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 10);
 }
 
 function memoryStore(): Store {
@@ -53,12 +55,15 @@ function memoryStore(): Store {
 
 /** Open this device's review log. Never throws: without IndexedDB the log lives in memory. */
 export async function openStore(): Promise<Store> {
-  let db: IDBDatabase;
   try {
-    db = await open();
+    return await openDb();
   } catch {
     return memoryStore();
   }
+}
+
+async function openDb(): Promise<Store> {
+  const db = await open();
   const tx = (mode: IDBTransactionMode) => db.transaction(["reviews", "meta"], mode);
   const t = tx("readonly");
   const [reviews, device, settings] = await Promise.all([

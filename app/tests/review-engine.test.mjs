@@ -130,3 +130,43 @@ test("replaying 5,000 reviews stays fast", () => {
   assert.equal(e.stats(now).reviews, 5000);
   assert.ok(took < 300, `${took.toFixed(1)} ms`);
 });
+
+test("a review card is due for its whole day, not only from its minute", () => {
+  const e = new Engine();
+  const evening = new Date(2026, 9, 7, 21, 0).getTime();
+  e.grade("c", 4, opts(evening));                                   // Easy: due days later, at 9 pm
+  const dueDay = e.state("c").due;
+  const morning = new Date(dueDay); morning.setHours(9, 0, 0, 0);
+  assert.deepEqual(e.queue(["c"], morning.getTime()).due, ["c"]);
+});
+
+test("undo takes back this session's grade, never a merged one", () => {
+  const e = new Engine();
+  e.grade("x", 3, opts(T0, "phone"));
+  e.merge([{ id: "mac-1", card: "y", ts: T0 + 1000, rating: 3, ms: 1, type: "learn", hash: "h" }]);
+  assert.equal(e.undo().card, "x");
+  assert.ok(e.log.some((r) => r.id === "mac-1"));
+  assert.equal(e.undo(), undefined);
+});
+
+test("two grades in the same millisecond keep distinct ids", () => {
+  const e = new Engine();
+  const a = e.grade("p", 3, opts(T0)), b = e.grade("q", 3, opts(T0));
+  assert.notEqual(a.id, b.id);
+  assert.equal(new Engine(e.log).log.length, 2);
+});
+
+test("a new retention reschedules", () => {
+  const e = new Engine();
+  let now = T0;
+  for (const r of [3, 3, 3]) { e.grade("c", r, opts(now)); now = e.state("c").due + MIN; }
+  const at90 = e.state("c").due;
+  e.setSettings({ ...DEFAULT_SETTINGS, retention: 0.7 });
+  assert.ok(e.state("c").due > at90);                                 // lower retention: longer intervals
+});
+
+test("a merged record's type comes from the card's state at its time", () => {
+  const e = new Engine();
+  e.merge([{ id: "mac-1", card: "c", ts: T0, rating: 3, ms: 1, type: "relearn", hash: "h" }]);
+  assert.equal(e.log[0].type, "learn");
+});

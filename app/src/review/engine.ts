@@ -65,28 +65,46 @@ const byTime = (a: Review, b: Review) => a.ts - b.ts || (a.id < b.id ? -1 : a.id
 
 export class Engine {
   readonly log: Review[] = [];
-  settings: Settings;
+  private _settings: Settings;
   private f: FSRS;
   private cards = new Map<string, FsrsCard>();
   private hashes = new Map<string, string>();
   private first = new Map<string, number>();   // ts of each card's first grade
+  private ids = new Set<string>();
+  private mine: string[] = [];                 // ids graded in this session, latest last: what undo takes back
 
   constructor(log: Review[] = [], settings: Settings = DEFAULT_SETTINGS) {
-    this.settings = { ...settings };
-    this.f = fsrs(generatorParameters({ request_retention: settings.retention, enable_fuzz: false }));
+    this._settings = { ...settings };
+    this.f = Engine.scheduler(settings);
     this.log = [...log].sort(byTime);
     this.replay();
+  }
+
+  private static scheduler(s: Settings): FSRS {
+    return fsrs(generatorParameters({ request_retention: s.retention, enable_fuzz: false }));
+  }
+
+  get settings(): Settings { return { ...this._settings }; }
+
+  /** New limits apply at once; a new retention reschedules every card (a replay). */
+  setSettings(s: Settings) {
+    const retention = s.retention !== this._settings.retention;
+    this._settings = { ...s };
+    if (retention) { this.f = Engine.scheduler(s); this.replay(); }
   }
 
   private replay() {
     this.cards.clear();
     this.hashes.clear();
     this.first.clear();
+    this.ids = new Set(this.log.map((r) => r.id));
     for (const r of this.log) this.apply(r);
   }
 
   private apply(r: Review) {
     const before = this.cards.get(r.card) ?? createEmptyCard<FsrsCard>(new Date(r.ts));
+    // the type is the card's state at this grade's time, whatever order records arrived in (merge, clock)
+    r.type = TYPE_OF[before.state];
     this.cards.set(r.card, this.f.next(before, new Date(r.ts), r.rating as Grade).card);
     this.hashes.set(r.card, r.hash);
     if (!this.first.has(r.card)) this.first.set(r.card, r.ts);
@@ -112,28 +130,37 @@ export class Engine {
   /** Grade a card: appends to the log and returns the record (storage.ts saves it). */
   grade(card: string, rating: Rating, opts: { now: number; ms: number; hash: string; device: string }): Review {
     const c = this.cards.get(card);
+    let id = `${opts.device}-${opts.now}`;
+    for (let k = 2; this.ids.has(id); k++) id = `${opts.device}-${opts.now}-${k}`;   // same ms, or a clock that went back
     const r: Review = {
-      id: `${opts.device}-${opts.now}`, card, ts: opts.now, rating, ms: Math.max(0, Math.round(opts.ms)),
+      id, card, ts: opts.now, rating, ms: Math.max(0, Math.round(opts.ms)),
       type: TYPE_OF[c ? c.state : State.New], hash: opts.hash,
     };
     const last = this.log[this.log.length - 1];
     this.log.push(r);
+    this.ids.add(id);
+    this.mine.push(id);
     if (!last || byTime(last, r) <= 0) this.apply(r);
     else { this.log.sort(byTime); this.replay(); }   // a clock that went back: replay in time order
     return r;
   }
 
-  /** Remove the latest grade (by time); returns it so storage.ts can delete it too. */
+  /** Take back the last grade made in this session (never one merged from another device); returns it
+   *  so storage.ts can delete it too. */
   undo(): Review | undefined {
-    const r = this.log.pop();
-    if (r) this.replay();
+    const id = this.mine.pop();
+    if (!id) return undefined;
+    const i = this.log.findIndex((r) => r.id === id);
+    if (i < 0) return undefined;
+    const [r] = this.log.splice(i, 1);
+    this.replay();
     return r;
   }
 
   /** Add reviews from another device: union by id, then replay. Returns how many were new. */
   merge(reviews: Review[]): number {
     const have = new Set(this.log.map((r) => r.id));
-    const add = reviews.filter((r) => !have.has(r.id));
+    const add = reviews.filter((r) => !have.has(r.id)).map((r) => ({ ...r }));
     if (!add.length) return 0;
     this.log.push(...add);
     this.log.sort(byTime);
@@ -143,7 +170,7 @@ export class Engine {
 
   /** What to review now among `cards` (in their given order for new ones), within the daily limits. */
   queue(cards: string[], now: number): { due: string[]; fresh: string[]; later: { card: string; due: number }[] } {
-    const today = dayStart(now), tomorrow = today + 24 * HOUR;
+    const tomorrow = dayStart(dayStart(now) + 36 * HOUR);   // calendar arithmetic: a DST day is 23 or 25 h
     const { newToday, reviewsToday } = this.today(now);
     const due: { card: string; due: number; learning: boolean }[] = [];
     const later: { card: string; due: number }[] = [];
@@ -152,7 +179,8 @@ export class Engine {
       const c = this.cards.get(id);
       if (!c) { fresh.push(id); continue; }
       const t = c.due.getTime(), learning = c.state === State.Learning || c.state === State.Relearning;
-      if (t <= now) due.push({ card: id, due: t, learning });
+      // a review is due for its whole day, as in Anki; a learning step at its minute
+      if (learning ? t <= now : t < tomorrow) due.push({ card: id, due: t, learning });
       else if (learning && t < tomorrow) later.push({ card: id, due: t });
     }
     due.sort((a, b) => a.due - b.due);
@@ -168,7 +196,9 @@ export class Engine {
     const start = dayStart(now);
     let newToday = 0;
     for (const ts of this.first.values()) if (ts >= start) newToday++;
-    const graded = this.log.filter((r) => r.ts >= start);
+    let lo = 0, hi = this.log.length;                          // the log is sorted: find today's first grade
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (this.log[mid].ts < start) lo = mid + 1; else hi = mid; }
+    const graded = this.log.slice(lo);
     return { newToday, reviewsToday: new Set(graded.filter((r) => r.type !== "learn").map((r) => r.card)).size, graded: graded.length };
   }
 
