@@ -48,5 +48,7 @@ jobs:
           cache-dependency-path: app/package-lock.json
       - run: npm ci
         working-directory: app
+      - run: npm test               # the review engine in node (#192)
+        working-directory: app
       - run: npm run build          # runs the Python pipeline first via prebuild
         working-directory: app
