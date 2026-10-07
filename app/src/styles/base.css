@@ -488,9 +488,12 @@ html.sheet-open { overflow: hidden; }
   .topbar .spacer { min-width: 0; }
   .search { display: flex; gap: 0.5rem; }
   /* closed, the input stays focusable (iOS opens the keyboard only for a focus inside the tap) */
+  /* 16px even while closed: the focus comes in the same tap, before .open applies, and iOS zooms in on
+     a field smaller than 16px and stays zoomed */
+  .search input { font-size: 16px; }
   .search:not(.open) input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
   .search.open { order: 10; flex-basis: 100%; }
-  .search.open input { flex: 1; width: auto; font-size: 16px; }   /* 16px: smaller makes iOS zoom in on focus */
+  .search.open input { flex: 1; width: auto; }
   .search .results { left: 0; right: 0; width: auto; top: calc(100% + 6px); }
   .unit-body .math-nowrap { white-space: normal; }   /* a glued formula may still be wider than the screen */
 }
