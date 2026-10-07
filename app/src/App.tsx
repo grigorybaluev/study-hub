@@ -13,12 +13,14 @@ import ConceptMap from "./pages/ConceptMap";
 import CourseGraph from "./pages/CourseGraph";
 import Design from "./pages/Design";
 import Analytics from "./pages/Analytics";
+import Review from "./pages/Review";
 
 export default function App() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { pathname } = useLocation();
   const full = pathname.startsWith("/explore");
+  const deck = pathname === "/review";   // the deck fills the screen like an app (#194)
 
   // a new page opens at its top (a ?part= link then scrolls to its part, #190); Back and Forward
   // (POP) keep the position the browser restores
@@ -34,19 +36,20 @@ export default function App() {
 
   return (
     <DataContext.Provider value={data}>
-      <div className="shell">
+      <div className={deck ? "shell fixed" : "shell"}>
         <header className="topbar">
           <NavLink to="/" className="brand">Study Hub</NavLink>
           <nav>
             <NavLink to="/" end>Program</NavLink>
             <NavLink to="/explore">Explore</NavLink>
+            <NavLink to="/review">Review</NavLink>
             {/* Concepts, Roadmap and Analytics are left out of the menu for now; their pages still open from links */}
           </nav>
           <div className="spacer" />
           <Search />
           <ThemeToggle />
         </header>
-        <main className={full ? "main full" : "main"}>
+        <main className={full ? "main full" : deck ? "main deck-main" : "main"}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/course/:code" element={<Course />} />
@@ -61,11 +64,12 @@ export default function App() {
             <Route path="/explore/ds-map" element={<ToExplore />} />
             <Route path="/explore/ds-map-2" element={<ToExplore />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/review" element={<Review />} />
             <Route path="/design/:kind" element={<Design />} />
             <Route path="*" element={<p>Not found.</p>} />
           </Routes>
         </main>
-        {!full && <Footer />}
+        {!full && !deck && <Footer />}
       </div>
     </DataContext.Provider>
   );
