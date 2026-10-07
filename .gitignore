@@ -18,6 +18,7 @@ content/universities/*/programs/local/
 
 # Build artifacts (regenerate with build/build_graph.py and build/derive.py)
 graph.json
+cards.json
 derived.json
 analytics/report.md
 .aider*
