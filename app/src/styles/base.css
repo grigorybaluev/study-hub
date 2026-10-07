@@ -59,8 +59,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .footer a:hover { color: var(--fg); }
 .footer .version { font-family: var(--mono); color: var(--fg-faint); }
 .update-toast {
-  position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
-  display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.6rem 0.55rem 1rem; max-width: calc(100vw - 2rem);
+  position: fixed; z-index: 50; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 2rem);
+  bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.6rem 0.55rem 1rem;
   background: var(--header-bg); color: var(--header-fg); border: 1px solid var(--header-line); border-radius: 999px; box-shadow: var(--shadow); font-size: 0.9rem;
 }
 .update-toast button { font: inherit; font-size: 0.85rem; padding: 0.3em 0.9em; border-radius: 999px; cursor: pointer; border: 1px solid #ffffff33; background: transparent; color: var(--header-muted); }
@@ -420,3 +421,79 @@ button.chip.linkchip.untaught { border-style: dashed; }
 .fieldmap-detail .link-all ul { list-style: none; padding: 0; margin: 0.4rem 0 0; }
 .fieldmap-detail .link-all li { margin: 0.15rem 0; line-height: 1.9; }
 .fieldmap-detail .detail-actions button.button { font: inherit; display: inline-block; padding: 0.35em 0.8em; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent-dk); background: var(--accent-soft); font-size: 0.86rem; cursor: pointer; }
+
+/* ---------------------------------------------------------------- phone (#190) */
+/* Installed, the page scrolls under the translucent status bar: keep a strip of top-bar colour there. */
+body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--header-bg); z-index: 40; }
+.unit-body h2[id], .unit-body h3[id] { scroll-margin-top: calc(env(safe-area-inset-top) + 4.5rem); }
+.search-toggle { display: none; }
+.parts-bar { display: none; }
+
+/* a sim on a phone: a collapsed row, loaded when tapped (Markdown.tsx SimSlot) */
+.sim-collapsed {
+  display: flex; align-items: baseline; gap: 0.6em; width: 100%; margin: 1.2em 0; padding: 0.75rem 1rem;
+  font: inherit; text-align: left; cursor: pointer; color: var(--fg);
+  background: var(--sim-surface); border: 1.5px dashed var(--line); border-radius: 14px;
+}
+.sim-collapsed::before { content: "▸"; color: var(--accent); }
+.sim-collapsed-label { font-weight: 600; }
+
+/* the parts sheet (PartsNav.tsx) */
+.parts-backdrop { position: fixed; inset: 0; z-index: 45; background: rgba(0, 0, 0, 0.35); }
+.parts-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 46; max-width: 640px; margin: 0 auto; max-height: 75vh;
+  display: flex; flex-direction: column; background: var(--bg-elev); color: var(--fg);
+  border-radius: 16px 16px 0 0; box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
+  padding-bottom: env(safe-area-inset-bottom); animation: sheet-up 0.18s ease-out;
+}
+.parts-sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.1rem; border-bottom: 1px solid var(--line); font-weight: 700; }
+.parts-sheet-head button { font: inherit; font-size: 1.05rem; border: 0; background: transparent; color: var(--fg-muted); padding: 0.2rem 0.4rem; cursor: pointer; }
+.parts-sheet ol { list-style: none; margin: 0; padding: 0.3rem 0; overflow-y: auto; overscroll-behavior: contain; }
+.parts-sheet li button { display: block; width: 100%; text-align: left; font: inherit; line-height: 1.35; border: 0; background: transparent; color: var(--fg); padding: 0.6rem 1.1rem; cursor: pointer; }
+.parts-sheet li.d2 button { font-weight: 600; }
+.parts-sheet li.d3 button { padding-left: 2.1rem; font-size: 0.92rem; color: var(--fg-muted); }
+.parts-sheet li.current button { background: var(--accent-soft); color: var(--accent-dk); box-shadow: inset 3px 0 0 var(--accent); }
+html.sheet-open { overflow: hidden; }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .parts-sheet { animation: none; } }
+
+/* one column (the unit sidebar has moved below): the top bar scrolls away, the parts bar stays */
+@media (max-width: 900px) {
+  .topbar { position: static; }
+  .parts-bar {
+    display: block; position: sticky; top: env(safe-area-inset-top); z-index: 15;
+    margin: 0.4rem calc(-1 * max(1.25rem, env(safe-area-inset-right))) 0.6rem calc(-1 * max(1.25rem, env(safe-area-inset-left)));
+    background: var(--bg);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .parts-bar button {
+    display: flex; align-items: center; gap: 0.6em; width: 100%; text-align: left; cursor: pointer;
+    font: inherit; font-size: 0.9rem; border: 0; background: transparent; color: var(--fg);
+    padding: 0.55rem max(1.25rem, env(safe-area-inset-right)) 0.55rem max(1.25rem, env(safe-area-inset-left));
+  }
+  .parts-current { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  .parts-icon, .parts-caret { color: var(--fg-muted); }
+}
+
+/* phone: the top bar is one row; search and theme are icons, and search opens its own row */
+@media (max-width: 640px) {
+  .topbar { gap: 0.9rem; padding-top: max(0.5rem, env(safe-area-inset-top)); padding-bottom: 0.5rem; }
+  .topbar .brand { font-size: 1rem; }
+  .topbar nav { gap: 0.9rem; flex-wrap: nowrap; }
+  .theme-toggle .label { display: none; }
+  .theme-toggle, .search-toggle {
+    display: grid; place-items: center; width: 2.1rem; height: 2.1rem; padding: 0; border-radius: 50%;
+    font: inherit; font-size: 1rem; cursor: pointer; border: 1px solid #ffffff33; background: transparent; color: var(--header-muted);
+  }
+  .topbar .spacer { min-width: 0; }
+  .search { display: flex; gap: 0.5rem; }
+  /* closed, the input stays focusable (iOS opens the keyboard only for a focus inside the tap) */
+  /* 16px even while closed: the focus comes in the same tap, before .open applies, and iOS zooms in on
+     a field smaller than 16px and stays zoomed */
+  .search input { font-size: 16px; }
+  .search:not(.open) input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .search.open { order: 10; flex-basis: 100%; }
+  .search.open input { flex: 1; width: auto; }
+  .search .results { left: 0; right: 0; width: auto; top: calc(100% + 6px); }
+  .unit-body .math-nowrap { white-space: normal; }   /* a glued formula may still be wider than the screen */
+}

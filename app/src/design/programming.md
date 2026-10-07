@@ -405,6 +405,7 @@ last pass by hand, and the off-by-one bugs go away.
 
 ## Change log
 
+- 2026-10-07: the phone rules of every page kind are in the math design, "On a phone" (#190).
 - 2026-09-27: the Erlang stepper (`engine: erl`, #140): process lanes with mailboxes, selective
   receive, tail calls, Eshell-style results; mode `shared` for races, locks and deadlock.
 - 2026-09-27: the Clojure evaluator (`engine: clj`, #139): a reduction view, frames, a REPL panel

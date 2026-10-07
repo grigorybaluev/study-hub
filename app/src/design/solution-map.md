@@ -1178,6 +1178,7 @@ steps:
 
 ## Change log
 
+- 2026-10-07: the phone rules of every page kind are in the math design, "On a phone" (#190).
 - 2026-09-24: the gallery of #120: 36 more method graphs, one worked specimen each; the page is
   now ordered by course, with the earlier specimens moved into their courses.
 - 2026-09-24: six more method graphs and specimens, one per course: distributions (MAST 221),

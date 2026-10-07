@@ -123,9 +123,13 @@ constraint is "$E = \emptyset$" or "$E_1 \subseteq E_2$". Referential integrity 
 `StarsIn` toward `Movie`: $\pi_{title, year}(StarsIn) \subseteq \pi_{title,
 year}(Movie)$. A functional dependency `name → address` on `Star`: join `Star` with a
 renamed copy on `name`, select the pairs whose addresses differ, and require the
-result empty — $\sigma_{S1.address \ne S2.address}(\rho_{S1}(Star) \bowtie_{S1.name =
-S2.name} \rho_{S2}(Star)) = \emptyset$. A domain constraint: $\sigma_{gender \ne 'F'
-\land gender \ne 'M'}(Star) = \emptyset$.
+result empty:
+
+$$
+\sigma_{S1.address \ne S2.address}(\rho_{S1}(Star) \bowtie_{S1.name = S2.name} \rho_{S2}(Star)) = \emptyset
+$$
+
+A domain constraint: $\sigma_{gender \ne 'F' \land gender \ne 'M'}(Star) = \emptyset$.
 
 ## "For all" queries and division
 
