@@ -117,6 +117,11 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
   );
 }
 
+/** A method quiz's choice is right when the worked solution uses that method. */
+export function isRight(card: Card, i: number): boolean {
+  return (card.accepted ?? (card.answer !== undefined ? [card.answer] : [])).includes(i);
+}
+
 /** Both faces, rendered once per card: KaTeX and highlighting are not redone while a card is dragged. */
 const Faces = memo(function Faces({ card, context, details, updated, chosen, onChoose }: {
   card: Card; context: ReactNode; details: ReactNode; updated?: boolean; chosen: number | null; onChoose?(i: number): void;
@@ -130,7 +135,11 @@ const Faces = memo(function Faces({ card, context, details, updated, chosen, onC
         {card.options && (
           <ol className="review-options">
             {card.options.map((o, i) => (
-              <li key={i}><button onClick={(e) => { e.stopPropagation(); onChoose?.(i); }}><span className="opt-key">{i + 1}</span>{o}</button></li>
+              <li key={i}><button onClick={(e) => {
+                e.stopPropagation();
+                e.currentTarget.blur();          // or the keys would go to this button on the hidden front
+                onChoose?.(i);
+              }}><span className="opt-key">{i + 1}</span>{o}</button></li>
             ))}
           </ol>
         )}
@@ -142,10 +151,12 @@ const Faces = memo(function Faces({ card, context, details, updated, chosen, onC
           <span className={`review-kind k-${card.kind}`}>{KIND_LABEL[card.kind]}</span>
           {updated && <span className="review-updated" title="The text changed since you last reviewed this card">updated</span>}
         </div>
-        {card.kind !== "output" && <div className="review-back-front prose"><Markdown source={card.front} /></div>}
+        {/* an output card's code and a method card's task are on the back already (the code, the map) */}
+        {card.kind !== "output" && card.kind !== "method" && <div className="review-back-front prose"><Markdown source={card.front} /></div>}
         {card.options && card.answer !== undefined && (
-          <p className={`review-verdict ${chosen === null ? "" : chosen === card.answer ? "right" : "wrong"}`}>
-            {chosen === null ? "The method: " : chosen === card.answer ? "Right: " : "Not quite. The method: "}<b>{card.options[card.answer]}</b>
+          <p className={`review-verdict ${chosen === null ? "" : isRight(card, chosen) ? "right" : "wrong"}`}>
+            {chosen === null ? "The method: " : isRight(card, chosen) ? "Right: " : "Not quite. The method: "}
+            <b>{chosen !== null && isRight(card, chosen) ? card.options[chosen] : card.options[card.answer]}</b>
           </p>
         )}
         <div className="review-back prose"><Markdown source={card.back} /></div>

@@ -13,7 +13,7 @@ from pathlib import Path
 import yaml
 
 from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, ROADMAP_AREA_ROLES, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH, METHOD_NODE_KINDS,
-                    OPEN_RE, QUOTE_RE, UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
+                    OPEN_RE, QUOTE_RE, SOLMAP_BLOCK_RE, UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
                     roadmap_node_ids, roadmap_root, unit_slug, answer_label)
 
 
@@ -260,7 +260,6 @@ def lint_sim_blocks(doc: Doc, registry: dict | None, rep: Report):
 
 
 # --------------------------------------------------------------------------- method graphs and solution maps (#91)
-SOLMAP_BLOCK_RE = re.compile(r"^```solution-map\n(.*?)^```", re.M | re.S)
 
 
 def lint_methods(c: Content, rep: Report):

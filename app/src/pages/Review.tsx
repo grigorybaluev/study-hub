@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { ConceptChip } from "../components/Chips";
 import { href, node, useData } from "../data/load";
 import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
-import CardView from "../review/CardView";
+import CardView, { isRight } from "../review/CardView";
 import SyncPanel from "../review/SyncPanel";
 import { dayStart, type Rating } from "../review/engine";
 import { haptic, motionOn, tick } from "../review/feedback";
@@ -44,7 +44,7 @@ export default function Review() {
   useEffect(() => { setFlipped(false); setExit(null); setChosen(null); }, [currentId, deck.showing]);
   const choose = useCallback((i: number) => { if (!flipped) { setChosen(i); setFlipped(true); } }, [flipped]);
   // the grade a choice suggests: Good when right, Again when not (the buttons and swipes still decide)
-  const suggested: Rating | null = chosen === null || deck.current?.answer === undefined ? null : chosen === deck.current.answer ? 3 : 1;
+  const suggested: Rating | null = chosen === null || !deck.current?.options ? null : isRight(deck.current, chosen) ? 3 : 1;
 
   // the update toast moves to the top while the deck is open, off the grade buttons
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function Review() {
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (syncing || (e.target as HTMLElement)?.closest("input, textarea, select, a, button, [contenteditable]")) return;
+      if (e.repeat || syncing || (e.target as HTMLElement)?.closest("input, textarea, select, a, button, [contenteditable]")) return;
       if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey || (!e.altKey && !e.shiftKey))) {
         e.preventDefault(); undo(); return;
       }
@@ -170,7 +170,8 @@ function CardContext({ card }: { card: Card }) {
   const d = useData();
   const course = node<CourseNode>(d, card.course);
   const unit = node<UnitNode>(d, card.unit);
-  return <>{course?.code ?? card.course} · {unit?.title ?? card.part_title ?? "Solution maps"}</>;
+  const where = card.unit ? unit?.title ?? card.unit : card.part_title ?? "Solution maps";   // a gallery quiz names its method graph
+  return <>{course?.code ?? card.course} · {where}</>;
 }
 
 /** Under the answer: where it is taught, what it is about, and what it builds on. */
@@ -187,7 +188,7 @@ function CardDetails({ card }: { card: Card }) {
   return (
     <>
       <Link className="review-where" to={to} onClick={(e) => e.stopPropagation()}>
-        {course?.code} › {unit?.title ?? "Solution maps"}{card.part_title ? ` › ${card.part_title}` : ""} <span aria-hidden="true">→</span>
+        {course?.code} › {card.unit ? unit?.title ?? card.unit : "Solution maps"}{card.part_title ? ` › ${card.part_title}` : ""} <span aria-hidden="true">→</span>
       </Link>
       {concepts.map((c) => (
         <div key={c.id} className="review-concept">

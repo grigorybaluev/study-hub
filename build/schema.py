@@ -64,6 +64,7 @@ OPTIONAL = {
 # the container grammar of unit bodies, shared by lint.py and build_cards.py
 QUOTE_RE = re.compile(r"^[ \t]*(?:>[ \t]?)*[ \t]*")        # list indent / blockquote markers before a line
 OPEN_RE = re.compile(r"^(:{3,})([A-Za-z][\w-]*)(\[.*\])?(\{.*\})?\s*$")   # :::name[title]{attrs}
+SOLMAP_BLOCK_RE = re.compile(r"^```solution-map\n(.*?)^```", re.M | re.S)       # a solution map (#91)
 
 
 # --------------------------------------------------------------------------- records

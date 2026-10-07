@@ -317,6 +317,8 @@ export interface Card {
   /** a method quiz: the method graph's method nodes, and the index of the one the worked solution reaches */
   options?: string[];
   answer?: number;
+  /** every option the worked solution uses (a path can pass two methods); `answer` is the first */
+  accepted?: number[];
   /** the unit's teaching order */
   order: number;
   /** heading id of the part the block sits in (the unit page's `?part=`), and its text */
