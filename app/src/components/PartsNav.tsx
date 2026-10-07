@@ -3,6 +3,7 @@
 // It reads the headings from the rendered body, whose ids come from remarkHeadingIds in Markdown.tsx.
 // A jump does not change the URL: a new location re-renders the body and would reset open sims.
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { useSheet } from "./useSheet";
 
 const NARROW = "(max-width: 900px)";   // where base.css shows the bar
 
@@ -59,13 +60,7 @@ export default function PartsNav({ root, version, title }: { root: RefObject<HTM
     return () => { removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
   }, [parts, narrow]);
 
-  useEffect(() => {
-    if (!open) return;
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("keydown", esc);
-    document.documentElement.classList.add("sheet-open");
-    return () => { document.removeEventListener("keydown", esc); document.documentElement.classList.remove("sheet-open"); };
-  }, [open]);
+  useSheet(open, () => setOpen(false));
 
   if (parts.length < 2) return null;
   const go = (id: string) => {

@@ -1,7 +1,7 @@
 // /review (#194): the swipe deck. Tap (or Space) shows the answer; then swipe left for Again, right for
 // Good, or use the four buttons (keys 1-4), each labelled with when the card comes back. Z undoes.
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ConceptChip } from "../components/Chips";
 import { href, node, useData } from "../data/load";
 import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
@@ -11,6 +11,9 @@ import { dayStart, type Rating } from "../review/engine";
 import { haptic, motionOn, tick } from "../review/feedback";
 import { TIER_NAME, quarterCrossed, type GradeReward } from "../review/rewards";
 import { useDeck, type Deck } from "../review/useDeck";
+import { ALL, inScope, parseScope, scopeCards, scopeQuery, type Scope } from "../review/scope";
+import { scopes, type Scopes } from "../review/scopeContext";
+import { useSheet } from "../components/useSheet";
 
 const GRADES: { r: Rating; label: string; cls: string }[] = [
   { r: 1, label: "Again", cls: "again" }, { r: 2, label: "Hard", cls: "hard" },
@@ -28,7 +31,19 @@ export function interval(ms: number): string {
 }
 
 export default function Review() {
-  const deck = useDeck();
+  // the scope of the session (#197): all cards, a course or term (exam prep), a unit, a concept, an area
+  const d = useData();
+  const [params] = useSearchParams();
+  const scope = parseScope(params);
+  const key = scopeQuery(scope);
+  const sc = useMemo(() => scopes(d), [d]);
+  const select = useMemo(() => {
+    const weight = scope.kind === "course" || scope.kind === "term" ? sc.weight(sc.courses(scope)) : undefined;
+    return (cards: Card[]) => scopeCards(cards, scope, sc, weight);
+  }, [key, sc]);   // the scope is the query string: recomputed when it changes
+  const deck = useDeck(select);
+  const [picking, setPicking] = useState(false);
+  const closePicker = useCallback(() => setPicking(false), []);
   const [flipped, setFlipped] = useState(false);
   // a grade button's flight belongs to the card it was pressed for: the next card must never inherit it
   const [exit, setExit] = useState<{ card: string; dir: -1 | 1; r: Rating } | null>(null);
@@ -72,13 +87,13 @@ export default function Review() {
   }, [deck]);
 
   // the day's ring pulses as it passes a quarter
-  const total = deck.doneToday + deck.left.due + deck.left.fresh;
+  const total = deck.doneHere + deck.left.due + deck.left.fresh;
   useEffect(() => {
     if (deck.status !== "ready") return;
     const prev = prevDone.current;
-    prevDone.current = deck.doneToday;
-    if (prev !== null && prev < deck.doneToday && quarterCrossed(prev, deck.doneToday, total)) setPulse((n) => n + 1);
-  }, [deck.status, deck.doneToday, total]);
+    prevDone.current = deck.doneHere;
+    if (prev !== null && prev < deck.doneHere && quarterCrossed(prev, deck.doneHere, total)) setPulse((n) => n + 1);
+  }, [deck.status, deck.doneHere, total]);
 
   useEffect(() => {
     if (!moment) return;
@@ -88,7 +103,7 @@ export default function Review() {
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (e.repeat || syncing || (e.target as HTMLElement)?.closest("input, textarea, select, a, button, [contenteditable]")) return;
+      if (e.repeat || syncing || picking || (e.target as HTMLElement)?.closest("input, textarea, select, a, button, [contenteditable]")) return;
       if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey || (!e.altKey && !e.shiftKey))) {
         e.preventDefault(); undo(); return;
       }
@@ -100,7 +115,7 @@ export default function Review() {
     };
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
-  }, [flipped, press, undo, syncing, choose, deck]);
+  }, [flipped, press, undo, syncing, picking, choose, deck]);
 
   if (deck.status === "loading") return <div className="deck"><p className="muted">Loading the deck…</p></div>;
   if (deck.status === "error") return <div className="deck"><p>Could not load the cards: {deck.error}</p></div>;
@@ -112,13 +127,18 @@ export default function Review() {
     <div className="deck">
       <div className="deck-head">
         <h1>Review</h1>
-        <Link to="/review/stats" className="deck-ring-link" title="Streak and stats"><Ring done={deck.doneToday} total={total} pulse={pulse} bursts={bursts} /></Link>
+        <Link to="/review/stats" className="deck-ring-link" title="Streak and stats"><Ring done={deck.doneHere} total={total} pulse={pulse} bursts={bursts} /></Link>
         <span className="deck-counts" title="due reviews · new cards left today · graded today">
           <b className="c-due">{deck.left.due}</b> due · <b className="c-new">{deck.left.fresh}</b> new<span className="c-done"> · {deck.doneToday} done</span>
         </span>
         <button className="deck-undo" onClick={undo} disabled={!deck.canUndo || !!exit} title="Undo the last grade (Z)" aria-label="Undo">↶<span className="lbl"> Undo</span></button>
         <button className={`deck-undo${deck.sync?.remind ? " remind" : ""}`} onClick={() => setSyncing(true)} title="Move progress to or from another device" aria-label="Sync">⇅<span className="lbl"> Sync</span></button>
       </div>
+      <div className="deck-scope-row">
+        <button className="deck-scope" onClick={() => setPicking(true)} disabled={!!exit} title="Choose what to review">{sc.label(scope)} <span aria-hidden="true">▾</span></button>
+        {scope.kind !== "all" && <Link className="small" to="/review" onClick={(e) => { if (exit) e.preventDefault(); }}>all cards</Link>}
+      </div>
+      {picking && <ScopePicker deck={deck} sc={sc} current={scope} onClose={closePicker} />}
       {deck.sync?.remind && (
         <p className="deck-warn">{deck.sync.since} reviews on this device have not been sent to your other device for over 3 days. <button className="linkish" onClick={() => setSyncing(true)}>Sync now</button></p>
       )}
@@ -143,7 +163,7 @@ export default function Review() {
               context={<CardContext card={c} />} details={<CardDetails card={c} />}
             />
           );
-        }) : <DeckDone deck={deck} />}
+        }) : <DeckDone deck={deck} daily={scope.kind === "all"} />}
       </div>
 
       {deck.current && (
@@ -205,6 +225,40 @@ function CardDetails({ card }: { card: Card }) {
   );
 }
 
+/** Choose what to review: everything, a course or a term (exam prep), or a roadmap area across courses
+ *  (interview prep); each with how many cards it holds. Units and concepts start from their pages. */
+function ScopePicker({ deck, sc, current, onClose }: { deck: Deck; sc: Scopes; current: Scope; onClose(): void }) {
+  const nav = useNavigate();
+  const d = useData();
+  const count = (s: Scope) => deck.cards.filter((c) => inScope(c, s, sc)).length;
+  const go = (s: Scope) => { onClose(); nav(`/review${scopeQuery(s)}`, { replace: true }); };
+  useSheet(true, onClose);
+  const courseIds = [...new Set(deck.cards.map((c) => c.course))].filter((id) => d.courses.some((x) => x.id === id));
+  const row = (s: Scope, label: string, n = count(s)) => n > 0 && (
+    <li key={scopeQuery(s) || "all"}><button className={scopeQuery(s) === scopeQuery(current) ? "current" : ""} onClick={() => go(s)}>
+      <span>{label}</span><span className="small muted">{n} card{n === 1 ? "" : "s"}</span>
+    </button></li>
+  );
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose} />
+      <div className="sheet scope-sheet" role="dialog" aria-label="What to review">
+        <div className="sheet-head"><span>What to review</span><button onClick={onClose} aria-label="Close">✕</button></div>
+        <div className="scope-body">
+          <ul>{row(ALL, "Everything due, every course (daily review)")}</ul>
+          <h4>Exam prep: a course</h4>
+          <ul>{courseIds.map((id) => row({ kind: "course", id }, sc.label({ kind: "course", id })))}</ul>
+          <h4>Exam prep: a term</h4>
+          <ul>{sc.terms.map((t) => row({ kind: "term", index: t.index }, t.label))}</ul>
+          <h4>Interview prep: a topic across courses</h4>
+          <ul>{sc.areas.map((a) => row({ kind: "area", id: a.id }, a.title))}</ul>
+          <p className="small muted">A unit or a concept: start from its page (“Review this unit”). New cards in exam prep come first when the course's later units rely on their concepts most.</p>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /** The day's progress as a ring that fills as cards are graded; a +1 floats up from it on every grade. */
 function Ring({ done, total, pulse, bursts }: { done: number; total: number; pulse: number; bursts: number }) {
   const r = 11, c = 2 * Math.PI * r, share = total ? done / total : 0;
@@ -232,11 +286,12 @@ function Moment({ reward }: { reward: GradeReward }) {
 const CONFETTI_KEY = "study-hub-confetti";
 
 /** Nothing left to review now: the day's numbers, once a day with confetti, and the offer of five more. */
-function DeckDone({ deck }: { deck: Deck }) {
+/** `daily`: the whole deck (only clearing it counts for the streak, with confetti); else a scope is done. */
+function DeckDone({ deck, daily }: { deck: Deck; daily: boolean }) {
   const { day, tally, laterAt } = deck;
   const at = laterAt ? new Date(laterAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
   // confetti once a day, for the deck really cleared (no learning step still to come back)
-  const cleared = day.graded > 0 && !laterAt;
+  const cleared = daily && day.graded > 0 && !laterAt;
   const [confetti, setConfetti] = useState(false);
   useEffect(() => { if (cleared) deck.markCleared(); }, [cleared]);   // a cleared deck counts for the streak
   useEffect(() => {
@@ -257,7 +312,7 @@ function DeckDone({ deck }: { deck: Deck }) {
   return (
     <div className="deck-done">
       {confetti && <Confetti />}
-      <h2>{at ? "Done for now" : "Deck cleared"}</h2>
+      <h2>{at ? "Done for now" : daily ? "Deck cleared" : "This part is done for now"}</h2>
       <dl className="deck-numbers">
         <div><dt>cards</dt><dd>{day.graded}</dd></div>
         <div><dt>minutes</dt><dd>{minutes}</dd></div>
