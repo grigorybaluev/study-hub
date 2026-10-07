@@ -9,17 +9,19 @@ export type Scope =
   | { kind: "term"; index: number }         // a term of the program's default variant, 0-based
   | { kind: "unit"; id: string }            // concordia/STAT280/vectors
   | { kind: "concept"; id: string }
-  | { kind: "area"; id: string };           // a roadmap area, study-hub/ds-core/<area>
+  | { kind: "area"; id: string }            // a roadmap area, study-hub/ds-core/<area>
+  | { kind: "before"; index: number };      // what a term's units require: review before it starts
 
 export const ALL: Scope = { kind: "all" };
 
 export function parseScope(q: URLSearchParams): Scope {
-  const course = q.get("course"), term = q.get("term"), unit = q.get("unit"), concept = q.get("concept"), area = q.get("area");
+  const course = q.get("course"), term = q.get("term"), unit = q.get("unit"), concept = q.get("concept"), area = q.get("area"), before = q.get("before");
   if (course) return { kind: "course", id: course };
   if (term !== null && /^\d+$/.test(term)) return { kind: "term", index: Number(term) };
   if (unit) return { kind: "unit", id: unit };
   if (concept) return { kind: "concept", id: concept };
   if (area) return { kind: "area", id: area };
+  if (before !== null && /^\d+$/.test(before)) return { kind: "before", index: Number(before) };
   return ALL;
 }
 
@@ -31,6 +33,7 @@ export function scopeQuery(s: Scope): string {
     case "unit": return `?unit=${encodeURIComponent(s.id)}`;
     case "concept": return `?concept=${encodeURIComponent(s.id)}`;
     case "area": return `?area=${encodeURIComponent(s.id)}`;
+    case "before": return `?before=${s.index}`;
     default: return "";
   }
 }
@@ -39,6 +42,8 @@ export function scopeQuery(s: Scope): string {
 export interface ScopeContext {
   termCourses(index: number): string[];          // course ids
   areaConcepts(id: string): Set<string>;
+  /** concepts the units of a term's courses require (hard): what to have in memory before it starts */
+  termRequires(index: number): Set<string>;
 }
 
 export function inScope(card: Card, s: Scope, ctx: ScopeContext): boolean {
@@ -49,6 +54,7 @@ export function inScope(card: Card, s: Scope, ctx: ScopeContext): boolean {
     case "unit": return card.unit === s.id;
     case "concept": return card.concepts.includes(s.id);
     case "area": { const k = ctx.areaConcepts(s.id); return card.concepts.some((c) => k.has(c)); }
+    case "before": { const k = ctx.termRequires(s.index); return card.concepts.some((c) => k.has(c)); }
   }
 }
 
