@@ -159,8 +159,9 @@ Courses and programs
   `theorem` (lemma, proposition, corollary), `steps` and `caution`, every `insight` (named by its
   title or its `##` part) and every `equations` line becomes a card in `cards.json`. Card ids are
   `<course>/<kind>/<slug of title>`, without the unit, so units stay renameable; a block's
-  `{#x}` replaces the slug (to keep a card's review history across a title change) and
-  `{concept=a,b}` names its concepts. Lint: duplicate card ids are errors, untitled card blocks
+  `{#x}` replaces the slug (to keep a card's review history across a title change; on an
+  `equations` block it goes before each line's name, `eq/x-<name>`) and `{concept=a,b}` names
+  its concepts (else a concept whose title is the card's title, else the unit's `introduces`). Lint: duplicate card ids are errors, untitled card blocks
   warnings. Cards are never authored separately; examples are quiz material (#196).
 
 ## Workflow

@@ -13,7 +13,7 @@ from pathlib import Path
 import yaml
 
 from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, ROADMAP_AREA_ROLES, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH, METHOD_NODE_KINDS,
-                    UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
+                    OPEN_RE, QUOTE_RE, UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
                     roadmap_node_ids, roadmap_root, unit_slug, answer_label)
 
 
@@ -378,8 +378,6 @@ def lint_solution_maps(c: Content, body: str, where, rep: Report):
 
 
 FENCE_RE = re.compile(r"^```.*?^```", re.M | re.S)
-QUOTE_RE = re.compile(r"^[ \t]*(?:>[ \t]?)*[ \t]*")        # list indent / blockquote markers before a fence
-OPEN_RE = re.compile(r"^(:{3,})([A-Za-z][\w-]*)(\[.*\])?(\{.*\})?\s*$")
 
 
 def blank_fences(body: str) -> str:
