@@ -16,6 +16,9 @@ export interface Store {
   /** many at once (an import, #193) */
   addAll(rs: Review[]): Promise<void>;
   saveSettings(s: Settings): Promise<void>;
+  /** small values kept with the log (the last sync, when the settings changed), read at open */
+  meta: Record<string, unknown>;
+  setMeta(key: string, value: unknown): Promise<void>;
 }
 
 function request<T>(r: IDBRequest<T>): Promise<T> {
@@ -47,8 +50,8 @@ function newDevice(): string {
 
 function memoryStore(): Store {
   return {
-    persistent: false, device: newDevice(), reviews: [], settings: { ...DEFAULT_SETTINGS },
-    add: async () => {}, remove: async () => {}, addAll: async () => {}, saveSettings: async () => {},
+    persistent: false, device: newDevice(), reviews: [], settings: { ...DEFAULT_SETTINGS }, meta: {},
+    add: async () => {}, remove: async () => {}, addAll: async () => {}, saveSettings: async () => {}, setMeta: async () => {},
   };
 }
 
@@ -60,6 +63,7 @@ function tracked(s: Store): Store {
     remove: async (id) => { const i = s.reviews.findIndex((r) => r.id === id); if (i >= 0) s.reviews.splice(i, 1); await s.remove(id); },
     addAll: async (rs) => { s.reviews.push(...rs); await s.addAll(rs); },
     saveSettings: async (x) => { s.settings = { ...x }; await s.saveSettings(x); },
+    setMeta: async (k, v) => { s.meta[k] = v; await s.setMeta(k, v); },
     get reviews() { return s.reviews; },
     get settings() { return s.settings; },
   };
@@ -78,11 +82,14 @@ async function openDb(): Promise<Store> {
   const db = await open();
   const tx = (mode: IDBTransactionMode) => db.transaction(["reviews", "meta"], mode);
   const t = tx("readonly");
-  const [reviews, device, settings] = await Promise.all([
+  const [reviews, keys, values] = await Promise.all([
     request(t.objectStore("reviews").getAll() as IDBRequest<Review[]>),
-    request(t.objectStore("meta").get("device") as IDBRequest<string | undefined>),
-    request(t.objectStore("meta").get("settings") as IDBRequest<Settings | undefined>),
+    request(t.objectStore("meta").getAllKeys()),
+    request(t.objectStore("meta").getAll()),
   ]);
+  const meta: Record<string, unknown> = Object.fromEntries(keys.map((k, i) => [String(k), values[i]]));
+  const device = meta.device as string | undefined;
+  const settings = meta.settings as Settings | undefined;
   let id = device;
   if (!id) {
     id = newDevice();
@@ -99,5 +106,7 @@ async function openDb(): Promise<Store> {
     remove: (rid) => write((s) => s.delete(rid)),
     addAll: (rs) => write((s) => rs.forEach((r) => s.put(r))),
     saveSettings: async (s) => { await request(tx("readwrite").objectStore("meta").put(s, "settings")); },
+    meta,
+    setMeta: async (k, v) => { await request(tx("readwrite").objectStore("meta").put(v, k)); },
   };
 }

@@ -4,11 +4,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadCards } from "../data/load";
 import type { Card } from "../data/types";
-import { Engine, type Rating } from "./engine";
+import { Engine, type Rating, type Settings } from "./engine";
 import { openStore, type Store } from "./storage";
+import { makeFile, missing, type ProgressFile } from "./transfer";
 
 const LEARN_AHEAD = 20 * 60_000;
 const MAX_MS = 60_000;          // time on a card counts up to a minute, as in Anki
+const REMIND_AFTER = 3 * 24 * 3_600_000;
+
+/** The last exchange with another device (#193), kept in the store's meta. */
+export interface LastSync { at: number; dir: "in" | "out"; with?: string }
+export interface SyncStatus {
+  device: string;
+  last: LastSync | null;
+  /** grades made on this device since the last exchange */
+  since: number;
+  /** time to send them: some, and more than 3 days old */
+  remind: boolean;
+}
 
 export interface Deck {
   status: "loading" | "ready" | "error";
@@ -27,6 +40,13 @@ export interface Deck {
   /** with nothing to do now: when the next learning step falls due today */
   laterAt: number | null;
   canUndo: boolean;
+  sync: SyncStatus | null;
+  /** the whole log as a progress document (no side effect) */
+  exportProgress(): Promise<ProgressFile>;
+  /** record that progress went out (after a successful copy or save) */
+  markSent(): Promise<void>;
+  /** merge another device's progress: never overwrites; returns how many reviews were new */
+  importProgress(file: ProgressFile): Promise<{ added: number; total: number }>;
   /** goes up each time a card is put on top, also when the same card comes straight back */
   showing: number;
   grade(rating: Rating): void;
@@ -109,12 +129,55 @@ export function useDeck(): Deck {
     bump();
   }, [st, bump]);
 
+  const exportProgress = useCallback(async () => {
+    if (!st) throw new Error("the deck is not loaded");
+    const now = Date.now();
+    return makeFile(st.store.device, [...st.engine.log], st.engine.settings, Number(st.store.meta.settingsAt) || 0, now);
+  }, [st]);
+
+  const markSent = useCallback(async () => {
+    if (!st) return;
+    await st.store.setMeta("sync", { at: Date.now(), dir: "out" } satisfies LastSync);
+    bump();
+  }, [st, bump]);
+
+  const importProgress = useCallback(async (file: ProgressFile) => {
+    if (!st) throw new Error("the deck is not loaded");
+    const add = missing(st.engine.log, file);
+    st.engine.merge(add);
+    await st.store.addAll(add);
+    // the newer settings win; settings that do not look like settings are ignored
+    if (file.settingsAt > (Number(st.store.meta.settingsAt) || 0) && validSettings(file.settings)) {
+      st.engine.setSettings(file.settings);
+      await st.store.saveSettings(file.settings);
+      await st.store.setMeta("settingsAt", file.settingsAt);
+    }
+    if (file.device !== st.store.device) await st.store.setMeta("sync", { at: Date.now(), dir: "in", with: file.device } satisfies LastSync);
+    bump();
+    return { added: add.length, total: st.engine.log.length };
+  }, [st, bump]);
+
   if (error) return { ...EMPTY, status: "error", error };
   if (!st || !view) return EMPTY;
-  return { status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), showing: tick, grade, undo };
+  const last = (st.store.meta.sync as LastSync | undefined) ?? null;
+  const mine = `${st.store.device}-`;
+  const since = st.engine.log.filter((r) => r.id.startsWith(mine) && r.ts > (last?.at ?? 0)).length;
+  const oldest = st.engine.log.find((r) => r.id.startsWith(mine) && r.ts > (last?.at ?? 0))?.ts ?? Date.now();
+  const sync: SyncStatus = { device: st.store.device, last, since, remind: since > 0 && Date.now() - Math.max(last?.at ?? 0, oldest) > REMIND_AFTER };
+  return {
+    status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), showing: tick,
+    sync, exportProgress, markSent, importProgress, grade, undo,
+  };
 }
 
 const EMPTY: Deck = {
   status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0,
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => {}, undo: () => {},
+  sync: null, exportProgress: () => Promise.reject(new Error("loading")), markSent: async () => {},
+  importProgress: () => Promise.reject(new Error("loading")),
 };
+
+function validSettings(s: Settings | undefined): s is Settings {
+  return !!s && [s.newPerDay, s.reviewsPerDay].every((n) => Number.isInteger(n) && n >= 0 && n <= 9999)
+    && typeof s.retention === "number" && s.retention >= 0.7 && s.retention <= 0.99;
+}

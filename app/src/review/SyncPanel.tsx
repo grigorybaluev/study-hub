@@ -1,0 +1,133 @@
+// Moving progress between devices (#193): Copy progress on one, Paste progress on the other (Universal
+// Clipboard carries it between an iPhone and a Mac), or a file as fallback and backup. Import merges.
+import { useEffect, useRef, useState } from "react";
+import type { Deck } from "./useDeck";
+import { ProgressError, decode, encode, fileName, type ProgressFile } from "./transfer";
+
+type Note = { ok: boolean; text: string } | null;
+
+const when = (ms: number) => new Date(ms).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+export default function SyncPanel({ deck, onClose }: { deck: Deck; onClose(): void }) {
+  const [note, setNote] = useState<Note>(null);
+  const [manual, setManual] = useState<"copy" | "paste" | null>(null);   // the clipboard was refused: do it by hand
+  const [text, setText] = useState("");
+  const [dropping, setDropping] = useState(false);
+  const ready = useRef<{ file: ProgressFile; text: string } | null>(null);
+  const picker = useRef<HTMLInputElement>(null);
+  const area = useRef<HTMLTextAreaElement>(null);
+
+  // encode as the panel opens, so a tap on Copy writes at once, inside the gesture as Safari requires
+  useEffect(() => {
+    let live = true;
+    deck.exportProgress().then(async (file) => { const t = await encode(file); if (live) ready.current = { file, text: t }; });
+    return () => { live = false; };
+  }, []);   // once per opening: the log does not change while the panel covers the deck
+
+  useEffect(() => { if (manual) area.current?.select(); }, [manual]);
+
+  const copy = async () => {
+    setNote(null);
+    const pending = ready.current ? Promise.resolve(ready.current.text) : deck.exportProgress().then(encode);
+    try {
+      if (ready.current) await navigator.clipboard.writeText(ready.current.text);
+      else await navigator.clipboard.write([new ClipboardItem({ "text/plain": pending.then((t) => new Blob([t], { type: "text/plain" })) })]);
+      await deck.markSent();
+      const n = ready.current?.file.reviews.length;
+      setNote({ ok: true, text: `Copied ${n ?? "all"} reviews. Now tap “Paste progress” on the other device.` });
+    } catch {
+      setText(await pending);
+      setManual("copy");
+      setNote({ ok: false, text: "This browser would not write to the clipboard: copy the text below by hand." });
+    }
+  };
+
+  const take = async (raw: string, from: string) => {
+    try {
+      const file = await decode(raw);
+      const { added, total } = await deck.importProgress(file);
+      setNote({ ok: true, text: added ? `Added ${added} reviews from ${from === "file" ? "the file" : `device ${file.device}`}; ${total} in total.` : "Nothing new: this device already has all those reviews." });
+      setManual(null);
+    } catch (e) {
+      setNote({ ok: false, text: e instanceof ProgressError ? e.message : `Could not import: ${String(e)}` });
+    }
+  };
+
+  const paste = async () => {
+    setNote(null);
+    try {
+      const raw = await navigator.clipboard.readText();
+      await take(raw, "clipboard");
+    } catch {
+      setText("");
+      setManual("paste");
+      setNote({ ok: false, text: "This browser would not read the clipboard: paste into the box below, then Import." });
+    }
+  };
+
+  const save = async () => {
+    setNote(null);
+    const file = ready.current?.file ?? await deck.exportProgress();
+    const blob = new File([JSON.stringify(file)], fileName(file), { type: "application/json" });
+    try {
+      if (navigator.canShare?.({ files: [blob] })) {
+        await navigator.share({ files: [blob], title: "Study Hub progress" });
+        await deck.markSent();
+        setNote({ ok: true, text: "Shared the progress file." });
+        return;
+      }
+    } catch (e) {
+      if ((e as Error).name === "AbortError") return;      // the share sheet was closed
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = blob.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    await deck.markSent();
+    setNote({ ok: true, text: `Saved ${blob.name}.` });
+  };
+
+  const open = async (f: File | undefined) => { if (f) await take(await f.text(), "file"); };
+
+  const s = deck.sync;
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose} />
+      <div
+        className={`sheet sync-sheet${dropping ? " dropping" : ""}`} role="dialog" aria-label="Move progress between devices"
+        onDragOver={(e) => { e.preventDefault(); setDropping(true); }} onDragLeave={() => setDropping(false)}
+        onDrop={(e) => { e.preventDefault(); setDropping(false); open(e.dataTransfer.files[0]); }}
+      >
+        <div className="sheet-head"><span>Sync progress</span><button onClick={onClose} aria-label="Close">✕</button></div>
+        <div className="sync-body">
+          <p className="small muted">
+            {s?.last
+              ? <>Last exchange: {when(s.last.at)} ({s.last.dir === "in" ? `received from ${s.last.with}` : "sent from here"}). </>
+              : <>No exchange yet. </>}
+            {s && s.since > 0 ? <>{s.since} review{s.since === 1 ? "" : "s"} on this device since.</> : <>Nothing new on this device since.</>}
+            {" "}This device is <code>{s?.device}</code>.
+          </p>
+          <div className="sync-row">
+            <button className="sync-main" onClick={copy}>Copy progress</button>
+            <button className="sync-main" onClick={paste}>Paste progress</button>
+          </div>
+          <p className="small muted">Copy on one device, then Paste on the other: between an iPhone and a Mac the clipboard travels by Handoff. A paste only adds reviews, never removes any.</p>
+          <div className="sync-row">
+            <button onClick={save}>Save file</button>
+            <button onClick={() => picker.current?.click()}>Open file</button>
+            <input ref={picker} type="file" accept=".json,.txt,application/json,text/plain" hidden onChange={(e) => { open(e.target.files?.[0]); e.target.value = ""; }} />
+          </div>
+          {manual && (
+            <div className="sync-manual">
+              <textarea ref={area} value={text} onChange={(e) => setText(e.target.value)} readOnly={manual === "copy"} rows={4}
+                placeholder="Paste the progress here (it starts with SHP1:)" />
+              {manual === "paste" && <button className="sync-main" onClick={() => take(text, "clipboard")} disabled={!text.trim()}>Import</button>}
+            </div>
+          )}
+          {note && <p className={note.ok ? "sync-note ok" : "sync-note bad"} role="status">{note.text}</p>}
+        </div>
+      </div>
+    </>
+  );
+}
