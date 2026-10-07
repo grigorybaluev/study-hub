@@ -5,12 +5,12 @@ import { Link } from "react-router-dom";
 import { node, useData } from "../data/load";
 import type { CourseNode } from "../data/types";
 import { calendar, conceptMastery, milestones, streak, tierCounts } from "../review/days";
-import { TIER_RANK, type Settings, type Tier } from "../review/engine";
+import MasteryBar, { TIERS } from "../components/MasteryBar";
+import { TIER_RANK, type Settings } from "../review/engine";
 import { prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
 import { TIER_NAME } from "../review/rewards";
 import { clearedDays, useReviewData } from "../review/useDeck";
 
-const TIERS = (Object.keys(TIER_RANK) as Tier[]).sort((a, b) => TIER_RANK[a] - TIER_RANK[b]);
 
 export default function ReviewStats() {
   const d = useData();
@@ -69,17 +69,9 @@ export default function ReviewStats() {
 
       <section>
         <h2>Mastery</h2>
-        {view.courses.map((c) => {
-          const total = TIERS.reduce((n, t) => n + c.tiers[t], 0) || 1;
-          return (
-            <div key={c.id} className="mastery-row">
-              <span className="mastery-course">{c.code}</span>
-              <span className="mastery-bar" title={TIERS.map((t) => `${TIER_NAME[t]} ${c.tiers[t]}`).join(" · ")}>
-                {TIERS.map((t) => c.tiers[t] > 0 && <i key={t} className={`t-${t}`} style={{ width: `${(100 * c.tiers[t]) / total}%` }} />)}
-              </span>
-            </div>
-          );
-        })}
+        {view.courses.map((c) => (
+          <div key={c.id} className="mastery-row"><span className="mastery-course">{c.code}</span><MasteryBar tiers={c.tiers} /></div>
+        ))}
         <p className="small muted legend">{TIERS.map((t) => <span key={t}><i className={`t-${t}`} /> {TIER_NAME[t]}</span>)}</p>
         <p className="small muted">
           {view.concepts.silverPlus} of {view.concepts.total} concepts at Silver or above: a concept takes the mean memory of its cards

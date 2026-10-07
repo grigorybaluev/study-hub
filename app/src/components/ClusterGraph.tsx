@@ -43,6 +43,8 @@ export interface ClusterGraphProps {
   mark: boolean;
   /** draw the domain links while zoomed out */
   links: boolean;
+  /** another colouring of the concepts (fill and border per concept id), e.g. memory (#197); null: the domains */
+  paint?: Map<string, { fill: string; border: string }> | null;
   /** the domain link whose summary is open ("from>to"): its concept edges are highlighted, the rest dimmed */
   selectedLink: string | null;
   onLinkHover: (h: { from: string; to: string; count: number; x: number; y: number } | null) => void;
@@ -147,7 +149,7 @@ function linkEdges(c: cytoscape.Core, key: string) {
 }
 
 const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function ClusterGraph(props, ref) {
-  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, filtered, matches, edgeMode, mark, links, selectedLink, onLinkHover, onLinkClick, focus, lodAt, inset } = props;
+  const { elements, positionsKey, resetToken, selected, onSelect, onOpen, onHover, onLod, filtered, matches, edgeMode, mark, links, selectedLink, onLinkHover, onLinkClick, focus, lodAt, inset, paint } = props;
   const host = useRef<HTMLDivElement>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const lod = useRef<Lod>(0);
@@ -258,6 +260,17 @@ const ClusterGraph = forwardRef<ClusterGraphHandle, ClusterGraphProps>(function 
     return () => { el.removeEventListener("mouseleave", leave); cancelAnimationFrame(raf); c.destroy(); cy.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elements, theme, positionsKey, resetToken]);
+
+  // a colouring other than the domains changes only the nodes' fill and border; the domain colours are kept to come back to
+  useEffect(() => {
+    const c = cy.current;
+    if (!c) return;
+    c.batch(() => c.nodes(".concept").forEach((n) => {
+      if (n.data("fill0") === undefined) n.data({ fill0: n.data("fill"), border0: n.data("border") });
+      const p = paint?.get(n.id());
+      n.data({ fill: p ? p.fill : n.data("fill0"), border: p ? p.border : n.data("border0") });
+    }));
+  }, [paint, elements, theme, resetToken]);
 
   // filters, search, selection and the overlay only change classes
   useEffect(() => {

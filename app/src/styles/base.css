@@ -748,3 +748,12 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .scope-body button.current { background: var(--accent-soft); color: var(--accent-dk); }
 .review-this { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.86rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 999px; border: 1.5px solid var(--accent); color: var(--accent-dk); }
 .review-this:hover { background: var(--accent-soft); text-decoration: none; }
+
+/* ---------------------------------------------------------------- memory on the map and pages (#197) */
+.legend-row.static { cursor: default; }
+.legend-row.static:hover { background: transparent; }
+.course-memory { display: flex; align-items: center; gap: 0.8rem; max-width: 34rem; margin: 0.6rem 0 1rem; }
+.course-memory .mastery-bar { flex: 1; }
+.mastery-ring { vertical-align: -3px; }
+.mastery-ring .ring-track, .mastery-ring .ring-fill { stroke-width: 3; }
+.review-before { display: inline-block; margin: -0.2rem 0 0.4rem; font-weight: 600; }

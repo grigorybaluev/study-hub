@@ -1,6 +1,8 @@
 import { Link, useParams } from "react-router-dom";
 import { Badge, ConceptChip, CourseChip } from "../components/Chips";
 import ReviewThis from "../components/ReviewThis";
+import MasteryBar from "../components/MasteryBar";
+import { useMemory } from "../review/memory";
 import { edgesIn, edgesOut, href, useData } from "../data/load";
 import type { CourseNode, RoadmapSkillNode } from "../data/types";
 
@@ -19,6 +21,8 @@ export default function Course() {
   const sims = units.reduce((n, u) => n + u.sims.total, 0);
   const simsVerified = units.reduce((n, u) => n + u.sims.verified, 0);
   const introduced = units.flatMap((u) => edgesOut(d, u.id, "introduces").map((e) => e.to));
+  const memory = useMemory();
+  const tiers = memory?.courses.get(course.id);
   const skills = new Map<string, number>();
   for (const c of introduced) for (const e of edgesOut(d, c, "maps_to")) skills.set(e.to, (skills.get(e.to) ?? 0) + 1);
 
@@ -34,6 +38,12 @@ export default function Course() {
           <ReviewThis scope={{ kind: "course", id: course.id }} what="course" />
         </div>
         <p className="prose">{course.body}</p>
+        {tiers && (
+          <div className="course-memory">
+            <span className="small muted">Your memory of its cards</span><MasteryBar tiers={tiers} />
+            <Link className="small" to="/review/stats">stats →</Link>
+          </div>
+        )}
 
         <h2>Units</h2>
         {units.length === 0 ? <p className="muted">No units yet.</p> : (

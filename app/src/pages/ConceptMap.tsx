@@ -12,6 +12,9 @@ import { DOMAIN_LABEL, DOMAIN_ORDER, FAMILY_COLOR, FAMILY_LABEL, FAMILY_OF, fami
 import { Badge, UnitLink } from "../components/Chips";
 import { edgesOut, href, node, useData, type Data } from "../data/load";
 import type { ConceptNode, DsFieldConcept, DsTier, RoadmapSkillNode } from "../data/types";
+import { NO_CARDS, TIER_COLOR, useMemory } from "../review/memory";
+import { TIER_RANK, type Tier } from "../review/engine";
+import { TIER_NAME } from "../review/rewards";
 
 const TIERS: DsTier[] = ["application", "core", "supporting", "peripheral"];
 const TIER_INDEX: Record<DsTier, number> = { application: 0, core: 1, supporting: 2, peripheral: 3 };
@@ -49,6 +52,9 @@ export default function ConceptMap() {
   // every edge shows once zoomed in, unless switched off (edges=focus: only the hovered or selected concept's)
   const edgeMode = params.get("edges") === "focus" ? "focus" : "all";
   const links = params.get("links") !== "0";
+  // colour by memory (#197): each concept takes the tier of its review cards; concepts without cards fade
+  const memoryOn = params.get("color") === "memory";
+  const memory = useMemory();
   const set = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
     for (const [k, v] of Object.entries(patch)) { if (v === null || v === "") next.delete(k); else next.set(k, v); }
@@ -85,6 +91,16 @@ export default function ConceptMap() {
   const positionsKey = `fieldmap:${layoutName}:${version}`;
 
   const { elements, lodAt } = useMemo(() => build(d, layout, layoutName, edges, theme), [d, layout, layoutName, edges, theme]);
+  const paint = useMemo(() => {
+    if (!memoryOn || !memory) return null;
+    const m = new Map<string, { fill: string; border: string }>();
+    for (const c of d.concepts) {
+      const k = memory.concepts.get(c.id);
+      const border = k ? TIER_COLOR[k.tier] : NO_CARDS[theme];
+      m.set(c.id, { fill: tint(border, theme), border });
+    }
+    return m;
+  }, [memoryOn, memory, d, theme]);
 
   const filtered = useMemo(() => {
     const out = new Set<string>();
@@ -134,7 +150,7 @@ export default function ConceptMap() {
           <ClusterGraph ref={graph} elements={elements} positionsKey={positionsKey} resetToken={resetToken} selected={selected}
             onSelect={select} onOpen={(id) => nav(href.concept(id))} onHover={setHover} onLod={(l, z) => { setLod(l); setZoom(z); }}
             filtered={filtered} matches={matches} edgeMode={edgeMode} mark={mark} focus={focus} lodAt={lodAt} inset={INSET}
-            links={links} selectedLink={selectedLink} onLinkHover={setLinkHover} onLinkClick={openLink} />
+            links={links} selectedLink={selectedLink} onLinkHover={setLinkHover} onLinkClick={openLink} paint={paint} />
         ) : <div className="fieldmap-busy">Laying out the network…</div>}
       </div>
 
@@ -145,6 +161,10 @@ export default function ConceptMap() {
             <button key={l.id} role="tab" aria-selected={layoutName === l.id} className={layoutName === l.id ? "active" : ""} title={l.help}
               onClick={() => set({ layout: l.id === "radial" ? null : l.id })}>{l.label}</button>
           ))}
+        </div>
+        <div className="seg" role="tablist" aria-label="Colour">
+          <button role="tab" aria-selected={!memoryOn} className={memoryOn ? "" : "active"} onClick={() => set({ color: null })} title="Colour by domain">Domains</button>
+          <button role="tab" aria-selected={memoryOn} className={memoryOn ? "active" : ""} onClick={() => set({ color: "memory" })} title="Colour by what you remember: the mastery of each concept's review cards (#197)">Memory</button>
         </div>
         <FieldSearch query={query} setQuery={setQuery} onPick={choose} inputRef={searchBox} filtered={filtered} />
         <label className="fieldmap-check" title={`While zoomed out, one line per pair of domains with at least ${LINK_MIN} dependencies between them, as wide as their number`}>
@@ -158,6 +178,7 @@ export default function ConceptMap() {
       </div>
 
       <aside className="fieldmap-legend" aria-label="Filters">
+        {memoryOn && memory && <MemoryLegend memory={memory} total={d.concepts.length} theme={theme} />}
         <section>
           <h4>Relevance <span className="muted">· click to hide</span></h4>
           {TIERS.map((t) => {
@@ -270,6 +291,25 @@ function fieldEdges(d: Data): FieldEdgeRow[] {
   for (const e of d.derived.concept_depends_on) if (e.strength === "soft") add(e.to, e.from, "soft");
   edgeCache.set(d, out);
   return out;
+}
+
+/** The tiers of memory with how many concepts sit in each, and how many reach Silver. */
+function MemoryLegend({ memory, total, theme }: { memory: NonNullable<ReturnType<typeof useMemory>>; total: number; theme: "light" | "dark" }) {
+  const tiers = (Object.keys(TIER_RANK) as Tier[]).sort((a, b) => TIER_RANK[a] - TIER_RANK[b]);
+  const count = (t: Tier) => [...memory.concepts.values()].filter((c) => c.tier === t).length;
+  const silver = [...memory.concepts.values()].filter((c) => TIER_RANK[c.tier] >= TIER_RANK.silver).length;
+  return (
+    <section>
+      <h4>Memory <Link className="muted" to="/review/stats">· stats</Link></h4>
+      {tiers.map((t) => (
+        <div key={t} className="legend-row static">
+          <i style={{ background: tint(TIER_COLOR[t], theme), borderColor: TIER_COLOR[t] }} /><span>{TIER_NAME[t]}</span><span className="count">{count(t)}</span>
+        </div>
+      ))}
+      <div className="legend-row static"><i style={{ background: tint(NO_CARDS[theme], theme), borderColor: NO_CARDS[theme] }} /><span>No cards yet</span><span className="count">{total - memory.concepts.size}</span></div>
+      <p className="small muted">{silver} of {memory.concepts.size} concepts with cards at Silver or above (remembered a month).</p>
+    </section>
+  );
 }
 
 function build(d: Data, layout: FieldLayout | null, name: LayoutName, edges: FieldEdgeRow[], theme: "light" | "dark"): { elements: ElementDefinition[]; lodAt: [number, number] } {
