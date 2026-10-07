@@ -33,6 +33,7 @@ export default function Review() {
   // a grade button's flight belongs to the card it was pressed for: the next card must never inherit it
   const [exit, setExit] = useState<{ card: string; dir: -1 | 1; r: Rating } | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [chosen, setChosen] = useState<number | null>(null);     // a method quiz's option (#196)
   // rewards (#195): a +1 per grade, a pulse at each quarter of the day, and the moments a card earns
   const [bursts, setBursts] = useState(0);
   const [pulse, setPulse] = useState(0);
@@ -40,7 +41,10 @@ export default function Review() {
   const prevDone = useRef<number | null>(null);         // null until the deck has loaded: no pulse on opening
   const currentId = deck.current?.id;
 
-  useEffect(() => { setFlipped(false); setExit(null); }, [currentId, deck.showing]);
+  useEffect(() => { setFlipped(false); setExit(null); setChosen(null); }, [currentId, deck.showing]);
+  const choose = useCallback((i: number) => { if (!flipped) { setChosen(i); setFlipped(true); } }, [flipped]);
+  // the grade a choice suggests: Good when right, Again when not (the buttons and swipes still decide)
+  const suggested: Rating | null = chosen === null || deck.current?.answer === undefined ? null : chosen === deck.current.answer ? 3 : 1;
 
   // the update toast moves to the top while the deck is open, off the grade buttons
   useEffect(() => {
@@ -89,12 +93,14 @@ export default function Review() {
         e.preventDefault(); undo(); return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const n = deck.current?.options?.length ?? 0;
+      if (!flipped && n && /^[1-9]$/.test(e.key) && Number(e.key) <= n) { e.preventDefault(); choose(Number(e.key) - 1); return; }
       if (!flipped && (e.key === " " || e.key === "Enter")) { e.preventDefault(); setFlipped(true); return; }
       if (flipped && "1234".includes(e.key) && e.key.length === 1) { e.preventDefault(); press(Number(e.key) as Rating); }
     };
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
-  }, [flipped, press, undo, syncing]);
+  }, [flipped, press, undo, syncing, choose, deck]);
 
   if (deck.status === "loading") return <div className="deck"><p className="muted">Loading the deck…</p></div>;
   if (deck.status === "error") return <div className="deck"><p>Could not load the cards: {deck.error}</p></div>;
@@ -133,6 +139,7 @@ export default function Review() {
               exit={top && exit?.card === c.id ? exit.dir : null} onExited={() => exit && finish(exit.r)}
               showing={deck.showing}
               updated={top && deck.updated}
+              chosen={top ? chosen : null} onChoose={choose}
               context={<CardContext card={c} />} details={<CardDetails card={c} />}
             />
           );
@@ -146,7 +153,7 @@ export default function Review() {
           ) : (
             <div className="deck-grades">
               {GRADES.map((g) => (
-                <button key={g.r} className={`grade ${g.cls}`} onClick={() => press(g.r)} disabled={!!exit}>
+                <button key={g.r} className={`grade ${g.cls}${suggested === g.r ? " suggested" : ""}`} onClick={() => press(g.r)} disabled={!!exit}>
                   <span className="grade-label">{g.label}</span>
                   <span className="grade-ivl">{deck.preview ? interval(deck.preview[g.r] - now) : ""}</span>
                 </button>
@@ -163,7 +170,7 @@ function CardContext({ card }: { card: Card }) {
   const d = useData();
   const course = node<CourseNode>(d, card.course);
   const unit = node<UnitNode>(d, card.unit);
-  return <>{course?.code ?? card.course} · {unit?.title ?? card.unit}</>;
+  return <>{course?.code ?? card.course} · {unit?.title ?? card.part_title ?? "Solution maps"}</>;
 }
 
 /** Under the answer: where it is taught, what it is about, and what it builds on. */
@@ -176,11 +183,11 @@ function CardDetails({ card }: { card: Card }) {
   const builds = [...new Set(d.derived.concept_depends_on
     .filter((e) => own.has(e.from) && e.strength === "hard" && !own.has(e.to)).map((e) => e.to))]
     .map((id) => node<ConceptNode>(d, id)).filter((c): c is ConceptNode => !!c).slice(0, 5);
-  const to = href.unit(card.unit) + (card.part ? `?part=${encodeURIComponent(card.part)}` : "");
+  const to = card.link ?? href.unit(card.unit) + (card.part ? `?part=${encodeURIComponent(card.part)}` : "");
   return (
     <>
       <Link className="review-where" to={to} onClick={(e) => e.stopPropagation()}>
-        {course?.code} › {unit?.title}{card.part_title ? ` › ${card.part_title}` : ""} <span aria-hidden="true">→</span>
+        {course?.code} › {unit?.title ?? "Solution maps"}{card.part_title ? ` › ${card.part_title}` : ""} <span aria-hidden="true">→</span>
       </Link>
       {concepts.map((c) => (
         <div key={c.id} className="review-concept">

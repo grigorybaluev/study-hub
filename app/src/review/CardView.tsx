@@ -14,6 +14,7 @@ const FLY_MS = 220;
 export const KIND_LABEL: Record<Card["kind"], string> = {
   definition: "Definition", theorem: "Theorem", lemma: "Lemma", proposition: "Proposition", corollary: "Corollary",
   steps: "Method", caution: "Caution", insight: "Key idea", eq: "Formula",
+  output: "What does this print?", method: "Which method?",
 };
 
 
@@ -33,9 +34,12 @@ interface Props {
   context: ReactNode;      // under the front: course and unit
   details: ReactNode;      // under the back: part link, concepts, prerequisites
   updated?: boolean;
+  /** a method quiz: the option chosen (null before), and how one is chosen */
+  chosen?: number | null;
+  onChoose?(i: number): void;
 }
 
-export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, onExited, showing, context, details, updated }: Props) {
+export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, onExited, showing, context, details, updated, chosen, onChoose }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x0: number; y0: number; t0: number; dx: number; axis: "x" | "y" | null } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -101,11 +105,11 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
       className={`review-card${peek ? " peek" : ""}${flipped ? " flipped" : ""}`}
       onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
       onPointerLeave={() => { if (drag.current && !drag.current.axis) cancel(); }}
-      onClick={() => { if (!peek && !flipped) onFlip(); }}
+      onClick={() => { if (!peek && !flipped && !card.options) onFlip(); }}     // a method quiz turns by choosing
       aria-hidden={peek || undefined}
     >
       <div className="review-card-inner">
-        <Faces card={card} context={context} details={details} updated={updated} />
+        <Faces card={card} context={context} details={details} updated={updated} chosen={chosen ?? null} onChoose={peek ? undefined : onChoose} />
       </div>
       <div className="swipe-label again" aria-hidden="true">Again</div>
       <div className="swipe-label good" aria-hidden="true">Good</div>
@@ -114,24 +118,40 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
 }
 
 /** Both faces, rendered once per card: KaTeX and highlighting are not redone while a card is dragged. */
-const Faces = memo(function Faces({ card, context, details, updated }: { card: Card; context: ReactNode; details: ReactNode; updated?: boolean }) {
+const Faces = memo(function Faces({ card, context, details, updated, chosen, onChoose }: {
+  card: Card; context: ReactNode; details: ReactNode; updated?: boolean; chosen: number | null; onChoose?(i: number): void;
+}) {
+  const quiz = card.kind === "output" || card.kind === "method";
   return (
     <>
-      <section className="review-face front">
+      <section className={`review-face front${quiz ? " quiz" : ""}`}>
         <div className={`review-kind k-${card.kind}`}>{KIND_LABEL[card.kind]}</div>
         <div className="review-front prose"><Markdown source={card.front} /></div>
+        {card.options && (
+          <ol className="review-options">
+            {card.options.map((o, i) => (
+              <li key={i}><button onClick={(e) => { e.stopPropagation(); onChoose?.(i); }}><span className="opt-key">{i + 1}</span>{o}</button></li>
+            ))}
+          </ol>
+        )}
         <div className="review-context">{context}</div>
-        <div className="review-hint">Tap to show the answer</div>
+        <div className="review-hint">{card.options ? "Choose the method" : card.kind === "output" ? "Work out the output, then tap" : "Tap to show the answer"}</div>
       </section>
       <section className="review-face back">
         <div className="review-back-head">
           <span className={`review-kind k-${card.kind}`}>{KIND_LABEL[card.kind]}</span>
           {updated && <span className="review-updated" title="The text changed since you last reviewed this card">updated</span>}
         </div>
-        <div className="review-back-front prose"><Markdown source={card.front} /></div>
+        {card.kind !== "output" && <div className="review-back-front prose"><Markdown source={card.front} /></div>}
+        {card.options && card.answer !== undefined && (
+          <p className={`review-verdict ${chosen === null ? "" : chosen === card.answer ? "right" : "wrong"}`}>
+            {chosen === null ? "The method: " : chosen === card.answer ? "Right: " : "Not quite. The method: "}<b>{card.options[card.answer]}</b>
+          </p>
+        )}
         <div className="review-back prose"><Markdown source={card.back} /></div>
         <div className="review-details">{details}</div>
       </section>
     </>
   );
-}, (a, b) => a.card.id === b.card.id && a.card.hash === b.card.hash && a.updated === b.updated);
+}, (a, b) => a.card.id === b.card.id && a.card.hash === b.card.hash && a.updated === b.updated && a.chosen === b.chosen
+  && !!a.onChoose === !!b.onChoose);
