@@ -50,7 +50,7 @@ all(scores >= 0)
 length. `xor(a, b)` is the *exclusive or*: true when exactly one of the two is true (the plain `|`
 is the *inclusive* or, true also when both are).
 
-```r
+```r quiz logical-operators
 x <- c(TRUE, TRUE, FALSE)
 y <- c(TRUE, FALSE, FALSE)
 x & y                  # element by element
@@ -125,7 +125,7 @@ description of the difference, not `FALSE`, when the values differ, so wrap it i
 before using it in `if()`.
 :::
 
-```r
+```r quiz floating-equality
 0.1 + 0.2 == 0.3
 ## [1] FALSE
 all.equal(0.1 + 0.2, 0.3)

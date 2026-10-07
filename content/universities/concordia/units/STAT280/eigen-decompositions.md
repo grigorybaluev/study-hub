@@ -102,7 +102,7 @@ note: "A symmetric matrix [a b; b d] maps the unit circle onto an ellipse. Its a
 A matrix that is not symmetric may have complex eigenvalues. A rotation by 90° leaves no real
 direction unchanged, and R reports the eigenvalues $\pm i$:
 
-```r
+```r quiz rotation-eigenvalues
 rot <- matrix(c(0, -1,
                 1,  0), nrow = 2, byrow = TRUE)   # rotation by 90 degrees
 eigen(rot)$values                 # no real direction is left unchanged
@@ -284,7 +284,7 @@ solve(S, b)
 For a matrix that is not positive definite the factorisation breaks down, which makes `chol()` a
 practical test of positive definiteness:
 
-```r
+```r quiz chol-not-positive-definite
 chol(matrix(c(1, 2,
               2, 1), 2))          # eigenvalues 3 and -1: not positive definite
 ## Error: the leading minor of order 2 is not positive

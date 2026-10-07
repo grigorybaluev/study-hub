@@ -219,7 +219,7 @@ The letters array, every kind of section, and the dim<- trick that shows an arra
 
 Computations in R are done in **finite-precision arithmetic** using a binary representation; numbers stored in memory are *floating-point numbers*. This introduces round-off errors:
 
-```r
+```r quiz sin-pi-round-off
 n <- 1:3
 sin(pi*n)
 ## [1]  1.224647e-16 -2.449294e-16  3.673940e-16
