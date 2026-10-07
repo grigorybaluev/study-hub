@@ -7,6 +7,7 @@ prereqs: [[MATH203], [MATH204]]
 coreqs: []
 requirements: []
 source: concordia-cs-ds-sequence-v3
+cards: true
 ---
 
 Programming in R for statistics: data types and structures, control flow, functions,

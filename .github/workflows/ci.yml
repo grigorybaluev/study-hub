@@ -18,6 +18,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python build/lint.py
       - run: python build/build_graph.py
+      - run: python build/build_cards.py
       - run: python build/derive.py
       - run: python analytics/report.py
       - name: Upload build artifacts
@@ -26,6 +27,7 @@ jobs:
           name: graph
           path: |
             graph.json
+            cards.json
             derived.json
             analytics/report.md
 

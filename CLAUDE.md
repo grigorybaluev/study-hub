@@ -17,7 +17,8 @@ content/
     units/<CODE>/<slug>.md            unit content + authored edges (frontmatter)
     programs/<program>.yaml           variants -> terms -> courses (placements only)
     programs/local/                   personal plans, same shape, git-ignored
-build/    schema.py, build_graph.py, derive.py, lint.py   -> graph.json, derived.json (never hand-edited)
+build/    schema.py, build_graph.py, build_cards.py, derive.py, lint.py
+          -> graph.json, cards.json, derived.json (never hand-edited)
 analytics/ report generator and notebooks
 app/      Vite + React + TS + Cytoscape.js, reads graph.json and derived.json
 app/src/sims/   simulation engines (simulations.js, automata.js) + registry.yaml checked by lint
@@ -28,13 +29,14 @@ app/src/sims/   simulation engines (simulations.js, automata.js) + registry.yaml
 ```
 python build/lint.py           # validate content; run before every commit
 python build/build_graph.py    # content -> graph.json
+python build/build_cards.py    # content -> cards.json (review cards of courses with cards: true)
 python build/derive.py         # graph.json -> derived.json
 python analytics/report.py     # derived.json -> analytics/report.md
 cd app && npm run dev        # runs the pipeline first (npm run data), then Vite
 ```
 
 Node via nvm (`nvm use`, .nvmrc = 24); Python via `.venv` (3.12). The app's `npm run data`
-runs lint -> build_graph -> derive and copies the JSON into app/public/data/, moving unit bodies
+runs lint -> build_graph -> build_cards -> derive and copies the JSON into app/public/data/, moving unit bodies
 out of graph.json into one file per course, `data/units/<uni>/<CODE>.json` (#189). The built
 app is an installable PWA (vite-plugin-pwa): `public/icon.svg` is the one icon source, and the
 service worker precaches everything except the Sim chunk and sql.js.
@@ -153,6 +155,14 @@ Courses and programs
 - Prereqs are OR-groups (`[[COMP232, COEN231], [COMP249, COEN244]]`); coreqs mean
   "prior or concurrent"; free-text requirements go in `requirements:` (not edges).
 - Variants hold term placements only; prereqs live in `courses/`.
+- `cards: true` makes a course's units a source of review cards (#191): every titled `definition`,
+  `theorem` (lemma, proposition, corollary), `steps` and `caution`, every `insight` (named by its
+  title or its `##` part) and every `equations` line becomes a card in `cards.json`. Card ids are
+  `<course>/<kind>/<slug of title>`, without the unit, so units stay renameable; a block's
+  `{#x}` replaces the slug (to keep a card's review history across a title change; on an
+  `equations` block it goes before each line's name, `eq/x-<name>`) and `{concept=a,b}` names
+  its concepts (else a concept whose title is the card's title, else the unit's `introduces`). Lint: duplicate card ids are errors, untitled card blocks
+  warnings. Cards are never authored separately; examples are quiz material (#196).
 
 ## Workflow
 
@@ -170,7 +180,7 @@ Courses and programs
   The pre-commit hook runs `lint.py` (enable once: `git config core.hooksPath .githooks`).
 - PR per branch using the template: what, why, how it was verified (lint/build output,
   screenshots of the app), what was left out. Run `/code-review` before opening it.
-  CI runs lint -> build_graph -> derive -> report and `npm run build`.
+  CI runs lint -> build_graph -> build_cards -> derive -> report and `npm run build`.
 - Merge when CI is green with `gh pr merge <n> --squash --delete-branch` (the PR title and
   body become the history, so branch commits need not be tidy); then
   `git switch main && git pull` before the next branch.

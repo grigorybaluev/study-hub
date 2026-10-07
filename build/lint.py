@@ -13,7 +13,7 @@ from pathlib import Path
 import yaml
 
 from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, ROADMAP_AREA_ROLES, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH, METHOD_NODE_KINDS,
-                    UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
+                    OPEN_RE, QUOTE_RE, UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
                     roadmap_node_ids, roadmap_root, unit_slug, answer_label)
 
 
@@ -148,6 +148,8 @@ def lint_university(c: Content, uni, rep: Report):
             rep.error(doc.path, f"code {doc.meta.get('code')!r} does not match filename")
         check_enum(doc, "kind", COURSE_KIND, rep)
         check_enum(doc, "pages", PAGE_KINDS, rep)
+        if "cards" in doc.meta and not isinstance(doc.meta["cards"], bool):
+            rep.error(doc.path, "cards must be true or false")
         for key in ("prereqs", "coreqs"):
             groups = prereq_groups(doc.meta.get(key)) if key == "prereqs" else [[x] for x in doc.meta.get(key) or []]
             for group in groups:
@@ -376,8 +378,6 @@ def lint_solution_maps(c: Content, body: str, where, rep: Report):
 
 
 FENCE_RE = re.compile(r"^```.*?^```", re.M | re.S)
-QUOTE_RE = re.compile(r"^[ \t]*(?:>[ \t]?)*[ \t]*")        # list indent / blockquote markers before a fence
-OPEN_RE = re.compile(r"^(:{3,})([A-Za-z][\w-]*)(\[.*\])?(\{.*\})?\s*$")
 
 
 def blank_fences(body: str) -> str:
@@ -597,6 +597,21 @@ def lint_findings(c: Content, rep: Report):
         rep.note(f"{len(field)} concept(s) are not referenced by any unit: field vocabulary for the DS map (#173)")
 
 
+# --------------------------------------------------------------------------- review cards (#191)
+def lint_cards(c: Content, rep: Report):
+    """Courses with `cards: true`: card ids unique in the course (error), every card block titled (warning)."""
+    import build_cards
+    names = build_cards.concept_names(c)
+    counts = []
+    for uni, code, course_doc in build_cards.card_courses(c):
+        cards, problems = build_cards.course_cards(c, uni.id, code, uni.units.get(code, []), names)
+        for doc, msg, is_error in problems:
+            (rep.error if is_error else rep.warn)(doc.path if doc else course_doc.path, msg)
+        counts.append(f"{code} {len(cards)}")
+    if counts:
+        rep.note(f"review cards (#191): {', '.join(counts)}")
+
+
 # --------------------------------------------------------------------------- cycles (11)
 def lint_concept_cycles(c: Content, rep: Report):
     for key in ("generalizes", "part_of", "requires"):
@@ -636,6 +651,7 @@ def run(content=None) -> Report:
     for uni in c.universities.values():
         lint_university(c, uni, rep)
     lint_findings(c, rep)
+    lint_cards(c, rep)
     lint_methods(c, rep)
     # the design specimens (app/src/design/*.md) may hold solution maps too
     for p in sorted((ROOT / "app" / "src" / "design").glob("*.md")):

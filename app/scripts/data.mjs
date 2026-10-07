@@ -1,4 +1,4 @@
-// Runs the Python pipeline and copies graph.json + derived.json into public/data/.
+// Runs the Python pipeline and copies graph.json, cards.json and derived.json into public/data/.
 // Uses the repo's .venv if present so the app never runs against stale data.
 // Unit bodies (about half of graph.json) move to one file per course, data/units/<university>/<CODE>.json
 // ({unit id: markdown}), which the unit page fetches on demand (#189); the app's graph.json has none.
@@ -12,11 +12,13 @@ const run = (script) => execFileSync(python, [resolve(root, script)], { cwd: roo
 
 run("build/lint.py");
 run("build/build_graph.py");
+run("build/build_cards.py");
 run("build/derive.py");
 
 const out = resolve(import.meta.dirname, "..", "public", "data");
 mkdirSync(out, { recursive: true });
 copyFileSync(resolve(root, "derived.json"), resolve(out, "derived.json"));
+copyFileSync(resolve(root, "cards.json"), resolve(out, "cards.json"));
 
 const graph = JSON.parse(readFileSync(resolve(root, "graph.json"), "utf8"));
 const bodies = new Map();
@@ -34,4 +36,4 @@ for (const [course, units] of bodies) {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(units));
 }
-console.log(`copied graph.json (unit bodies split into ${bodies.size} course files), derived.json -> app/public/data/`);
+console.log(`copied graph.json (unit bodies split into ${bodies.size} course files), cards.json, derived.json -> app/public/data/`);

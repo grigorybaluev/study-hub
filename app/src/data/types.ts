@@ -296,3 +296,31 @@ export interface Derived {
   ds_relevance: DsRelevance;
   ds_field: DsField;
 }
+
+// ---------------------------------------------------------------- cards.json (build/build_cards.py, #191)
+
+/** A review card derived from a unit block; ids leave out the unit, so units can be renamed freely. */
+export interface Card {
+  /** `<course>/<kind>/<slug>`, e.g. `concordia/STAT280/definition/data-frame` */
+  id: string;
+  kind: "definition" | "theorem" | "lemma" | "proposition" | "corollary" | "steps" | "caution" | "insight" | "eq";
+  /** markdown: the prompt ("Data frame", "How: Rejection sampling", "Key idea: Lists") */
+  front: string;
+  /** markdown: the block body (a statement without its proof; an equation line's formula) */
+  back: string;
+  course: string;
+  unit: string;
+  /** the unit's teaching order */
+  order: number;
+  /** heading id of the part the block sits in (the unit page's `?part=`), and its text */
+  part: string | null;
+  part_title: string | null;
+  concepts: string[];
+  /** first 8 hex digits of sha1(front + back): a change marks the card "updated" */
+  hash: string;
+}
+
+export interface CardsFile {
+  meta: { content_version: string; schema: number };
+  cards: Card[];
+}
