@@ -4,7 +4,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadCards } from "../data/load";
 import type { Card } from "../data/types";
-import { Engine, type Rating, type Settings } from "./engine";
+import { Engine, dayStart, type Rating, type Settings } from "./engine";
+import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTally } from "./rewards";
 import { openStore, type Store } from "./storage";
 import { makeFile, missing, type ProgressFile } from "./transfer";
 
@@ -42,6 +43,16 @@ export interface Deck {
   updated: boolean;
   /** with nothing to do now: when the next learning step falls due today */
   laterAt: number | null;
+  /** today's work, from the log: grades, minutes, review-type grades and how many were recalls */
+  day: { graded: number; ms: number; reviewed: number; recalled: number };
+  /** cards due by the end of tomorrow's review day */
+  tomorrow: number;
+  /** this session's tally of the rewards (#195) */
+  tally: SessionTally;
+  /** today's new cards are used up but unseen cards remain, and today's extension has room */
+  canExtend: boolean;
+  /** five more new cards today, at most the daily limit again (session only, never saved) */
+  extendNew(): void;
   canUndo: boolean;
   sync: SyncStatus | null;
   /** the whole log as a progress document (no side effect) */
@@ -52,15 +63,20 @@ export interface Deck {
   importProgress(file: ProgressFile): Promise<{ added: number; total: number }>;
   /** goes up each time a card is put on top, also when the same card comes straight back */
   showing: number;
-  grade(rating: Rating): void;
+  /** grade the current card; returns what the grade earned (#195) */
+  grade(rating: Rating): GradeReward | null;
   undo(): void;
 }
+
+const EXTEND_BY = 5;
 
 export function useDeck(): Deck {
   const [st, setSt] = useState<{ store: Store; engine: Engine; cards: Card[] } | null>(null);
   const [error, setError] = useState<string | undefined>();
   const [tick, setTick] = useState(0);
   const [forced, setForced] = useState<string | null>(null);     // an undone card comes back first
+  const [tally, setTally] = useState<SessionTally>(EMPTY_TALLY);
+  const extended = useRef(0);
   const shownAt = useRef(Date.now());
   const bump = useCallback(() => setTick((t) => t + 1), []);
 
@@ -91,14 +107,20 @@ export function useDeck(): Deck {
     }
     const current = order.length ? byId.get(order[0])! : null;
     const state = current ? st.engine.state(current.id) : null;
+    const today = st.engine.today(now);
+    const unseen = st.cards.reduce((n, c) => n + (st.engine.state(c.id) ? 0 : 1), 0);
+    const base = st.engine.settings.newPerDay - extended.current;
     return {
       current, next: order.length > 1 ? byId.get(order[1])! : null,
       left: { due: q.due.length, fresh: q.fresh.length },
-      doneToday: st.engine.today(now).graded,
+      doneToday: today.graded,
       preview: current ? st.engine.preview(current.id, now) : null,
       updated: !!state && !!state.hash && state.hash !== current!.hash,
       laterAt,
       sync: syncStatus(st.store, st.engine, now),
+      day: { graded: today.graded, ms: today.ms, reviewed: today.reviewed, recalled: today.recalled },
+      tomorrow: st.engine.dueBy(st.cards.map((c) => c.id), dayStart(dayStart(dayStart(now) + 36 * 3_600_000) + 36 * 3_600_000)),
+      canExtend: !q.fresh.length && unseen > 0 && extended.current + EXTEND_BY <= base,
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
   }, [st, tick, forced]);
@@ -113,16 +135,27 @@ export function useDeck(): Deck {
     return () => clearTimeout(t);
   }, [view?.laterAt, bump]);
 
-  const grade = useCallback((rating: Rating) => {
-    if (!st || !view?.current) return;
-    const now = Date.now();
-    const r = st.engine.grade(view.current.id, rating, {
+  const grade = useCallback((rating: Rating): GradeReward | null => {
+    if (!st || !view?.current) return null;
+    const now = Date.now(), id = view.current.id;
+    const before = { state: st.engine.state(id), tier: st.engine.mastery(id).tier };
+    const r = st.engine.grade(id, rating, {
       now, ms: Math.min(MAX_MS, now - shownAt.current), hash: view.current.hash, device: st.store.device,
     });
     st.store.add(r).catch((e) => console.warn("review not saved", e));
+    const reward = rewardOf(before, { tier: st.engine.mastery(id).tier }, rating);
+    setTally((t) => addTo(t, reward, now));
     setForced(null);
     bump();
+    return reward;
   }, [st, view, bump]);
+
+  const extendNew = useCallback(() => {
+    if (!st) return;
+    extended.current += EXTEND_BY;
+    st.engine.setSettings({ ...st.engine.settings, newPerDay: st.engine.settings.newPerDay + EXTEND_BY });
+    bump();
+  }, [st, bump]);
 
   const undo = useCallback(() => {
     if (!st) return;
@@ -165,13 +198,14 @@ export function useDeck(): Deck {
   if (!st || !view) return EMPTY;
   return {
     status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), showing: tick,
-    exportProgress, markSent, importProgress, grade, undo,
+    tally, extendNew, exportProgress, markSent, importProgress, grade, undo,
   };
 }
 
 const EMPTY: Deck = {
   status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0,
-  preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => {}, undo: () => {},
+  preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
+  day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
   sync: null, exportProgress: () => Promise.reject(new Error("loading")), markSent: async () => {},
   importProgress: () => Promise.reject(new Error("loading")),
 };

@@ -5,6 +5,7 @@ import { memo, useEffect, useRef, type ReactNode } from "react";
 import Markdown from "../components/Markdown";
 import type { Card } from "../data/types";
 import type { Rating } from "./engine";
+import { haptic, tick } from "./feedback";
 
 const COMMIT = 0.28;          // share of the card's width that commits a swipe
 const FLICK = 0.5;            // px/ms: a fast flick commits a shorter swipe
@@ -49,7 +50,9 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
     e.style.transform = dx ? `translateX(${dx}px) rotate(${dx / 24}deg)` : "";
     const ratio = Math.max(-1.5, Math.min(1.5, dx / (w * COMMIT)));
     e.style.setProperty("--swipe", String(ratio));
-    e.classList.toggle("armed", Math.abs(ratio) >= 1);
+    const armed = Math.abs(ratio) >= 1;
+    if (armed && !e.classList.contains("armed") && !animate) { haptic(); tick(880); }   // the snap: past the commit point
+    e.classList.toggle("armed", armed);
   };
 
   // fly the way the grade points, then report; a new exit or an unmount cancels the report
