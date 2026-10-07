@@ -55,8 +55,10 @@ export interface Deck {
   canExtend: boolean;
   /** five more new cards today, at most the daily limit again (session only, never saved) */
   extendNew(): void;
-  /** days in a row (#195) */
+  /** days in a row (#195), computed only once the deck is done */
   streak: Streak | null;
+  /** learning steps still to come back today */
+  learning: number;
   /** record that the deck was cleared today (a day that counts for the streak) */
   markCleared(): void;
   canUndo: boolean;
@@ -140,7 +142,9 @@ export function useDeck(): Deck {
       day: { graded: today.graded, ms: today.ms, reviewed: today.reviewed, recalled: today.recalled },
       tomorrow: st.engine.dueBetween(ids, tomorrow, nextDay(tomorrow)),
       canExtend: !q.fresh.length && unseen > 0 && extraToday + EXTEND_BY <= st.engine.settings.newPerDay,
-      streak: streak(st.engine.log, clearedDays(st.store), now),
+      // only the done screen shows it: no walk over the whole log on every swipe
+      streak: current ? null : streak(st.engine.log, clearedDays(st.store), now),
+      learning: q.later.length,
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
   }, [st, tick, forced, extra]);
@@ -170,8 +174,8 @@ export function useDeck(): Deck {
     return reward;
   }, [st, view, bump]);
 
-  // the due count on the app icon, where the platform allows it and the badge is switched on
-  const left = view ? view.left.due + view.left.fresh : 0;
+  // the cards left today on the app icon (learning steps included), where the platform allows it and the badge is on
+  const left = view ? view.left.due + view.left.fresh + view.learning : 0;
   useEffect(() => {
     if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;
     (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => { /* not allowed here */ });
@@ -194,6 +198,9 @@ export function useDeck(): Deck {
     const r = st.engine.undo();
     if (!r) return;
     st.store.remove(r.id).catch((e) => console.warn("undo not saved", e));
+    // a grade taken back: today no longer counts as cleared (clearing again records it again)
+    const today = dayStart(Date.now()), days = clearedDays(st.store);
+    if (days.includes(today)) st.store.setMeta("cleared", days.filter((d) => d !== today)).catch(() => { /* not kept */ });
     setForced(r.card);
     bump();
   }, [st, bump]);
@@ -201,7 +208,7 @@ export function useDeck(): Deck {
   const exportProgress = useCallback(async () => {
     if (!st) throw new Error("the deck is not loaded");
     const now = Date.now();
-    return makeFile(st.store.device, [...st.engine.log], st.engine.settings, Number(st.store.meta.settingsAt) || 0, now);
+    return makeFile(st.store.device, [...st.engine.log], st.engine.settings, Number(st.store.meta.settingsAt) || 0, now, clearedDays(st.store));
   }, [st]);
 
   const markSent = useCallback(async () => {
@@ -221,6 +228,8 @@ export function useDeck(): Deck {
       st.engine.setSettings(file.settings);
       await st.store.saveSettings(file.settings, file.settingsAt);
     }
+    const days = clearedDays(st.store), more = (file.cleared ?? []).filter((d) => !days.includes(d));
+    if (more.length) await st.store.setMeta("cleared", [...days, ...more].sort((a, b) => a - b).slice(-400));
     if (file.device !== st.store.device) await st.store.setMeta("received", { at: Date.now(), with: file.device } satisfies Received);
     bump();
     return { added: add.length, total: st.engine.log.length };
@@ -238,7 +247,7 @@ const EMPTY: Deck = {
   status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0,
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
   day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
-  streak: null, markCleared: () => {},
+  streak: null, learning: 0, markCleared: () => {},
   sync: null, exportProgress: () => Promise.reject(new Error("loading")), markSent: async () => {},
   importProgress: () => Promise.reject(new Error("loading")),
 };

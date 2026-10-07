@@ -47,6 +47,11 @@ export interface CardState {
 /** Mastery tiers by FSRS stability (days a memory lasts at 90 % recall); names and rewards are #195's. */
 export type Tier = "new" | "learning" | "bronze" | "silver" | "gold" | "diamond";
 const TIERS: [Tier, number][] = [["diamond", 365], ["gold", 90], ["silver", 30], ["bronze", 7]];
+
+/** The tier a stability (days) reaches: Bronze from 7, Silver 30, Gold 90, Diamond 365; else learning. */
+export function tierOf(stability: number): Tier {
+  return TIERS.find(([, d]) => stability >= d)?.[0] ?? "learning";
+}
 /** The tiers in order, lowest first (the rewards compare them, #195). */
 export const TIER_RANK: Record<Tier, number> = { new: 0, learning: 1, bronze: 2, silver: 3, gold: 4, diamond: 5 };
 
@@ -251,6 +256,6 @@ export class Engine {
     const c = this.cards.get(card);
     if (!c) return { stability: 0, tier: "new" };
     if (c.state !== State.Review) return { stability: c.stability, tier: "learning" };
-    return { stability: c.stability, tier: TIERS.find(([, d]) => c.stability >= d)?.[0] ?? "learning" };
+    return { stability: c.stability, tier: tierOf(c.stability) };
   }
 }

@@ -1,7 +1,7 @@
 // Days and the long run (#195): the streak with its freezes, the calendar of review days, milestones,
 // and the mastery of a concept (what the map will colour, #197). Pure, from the log and the engine;
 // tests/review-days.test.mjs runs it in node.
-import { TIER_RANK, dayStart, nextDay, type Engine, type Review, type Tier } from "./engine.ts";
+import { TIER_RANK, dayStart, nextDay, tierOf, type Engine, type Review, type Tier } from "./engine.ts";
 
 /** A day counts for the streak when the deck was cleared that day, or when this many cards were graded. */
 export const DAY_GOAL = 10;
@@ -16,7 +16,7 @@ export function perDay(log: Review[]): Map<number, number> {
 }
 
 export interface Streak {
-  /** days in a row, freezes included, up to yesterday, plus today once today counts */
+  /** counted days in a row (a frozen day bridges a gap but adds nothing), plus today once today counts */
   current: number;
   best: number;
   /** freezes held, used by themselves on a missed day */
@@ -28,7 +28,8 @@ export interface Streak {
 }
 
 /** Walk the days from the first review to today. Missing today does not break the run (the day is
- *  not over); a missed past day uses a freeze if one is held, else the run starts again. */
+ *  not over). A gap of missed past days is bridged only when enough freezes are held for all of it;
+ *  otherwise no freeze is spent and the run starts again. */
 export function streak(log: Review[], cleared: number[], now: number): Streak {
   const counts = perDay(log), done = new Set(cleared.map(dayStart));
   const counted = (d: number) => done.has(d) || (counts.get(d) ?? 0) >= DAY_GOAL;
@@ -41,14 +42,20 @@ export function streak(log: Review[], cleared: number[], now: number): Streak {
       run++;
       earned++;
       if (earned % FREEZE_EVERY === 0) freezes = Math.min(MAX_FREEZES, freezes + 1);
-    } else if (run > 0 && freezes > 0) {
-      freezes--;
-      frozen.push(d);                     // covered: the run goes on, but the day adds nothing
+      best = Math.max(best, run);
+      continue;
+    }
+    const gap: number[] = [];
+    let e = d;
+    for (; e < today && !counted(e); e = nextDay(e)) gap.push(e);
+    if (run > 0 && gap.length <= freezes) {
+      freezes -= gap.length;
+      frozen.push(...gap);                // bridged: the run goes on, the days add nothing
     } else {
       run = 0;
       earned = 0;
     }
-    best = Math.max(best, run);
+    d = gap[gap.length - 1];              // the loop steps on to the day after the gap
   }
   const t = counted(today);
   const current = run + (t ? 1 : 0);
@@ -79,10 +86,11 @@ export function calendar(log: Review[], now: number, weeks = 26): { day: number;
 export function conceptMastery(engine: Engine, cards: { id: string; concepts: string[] }[]): Map<string, { tier: Tier; cards: number; seen: number; stability: number }> {
   const acc = new Map<string, { sum: number; cards: number; seen: number }>();
   for (const c of cards) {
-    const m = engine.mastery(c.id), seen = engine.seen(c.id);
+    // a card still in its learning or relearning steps counts 0 days, as its own tier says "learning"
+    const m = engine.mastery(c.id), seen = engine.seen(c.id), days = m.tier === "learning" || m.tier === "new" ? 0 : m.stability;
     for (const k of c.concepts) {
       const a = acc.get(k) ?? { sum: 0, cards: 0, seen: 0 };
-      a.sum += seen ? m.stability : 0;
+      a.sum += days;
       a.cards++;
       if (seen) a.seen++;
       acc.set(k, a);
@@ -91,13 +99,9 @@ export function conceptMastery(engine: Engine, cards: { id: string; concepts: st
   const out = new Map<string, { tier: Tier; cards: number; seen: number; stability: number }>();
   for (const [k, a] of acc) {
     const s = a.sum / a.cards;
-    out.set(k, { tier: a.seen ? tierOfStability(s) : "new", cards: a.cards, seen: a.seen, stability: s });
+    out.set(k, { tier: a.seen ? tierOf(s) : "new", cards: a.cards, seen: a.seen, stability: s });
   }
   return out;
-}
-
-export function tierOfStability(s: number): Tier {
-  return s >= 365 ? "diamond" : s >= 90 ? "gold" : s >= 30 ? "silver" : s >= 7 ? "bronze" : "learning";
 }
 
 /** How many cards of a set sit in each tier. */
@@ -114,9 +118,14 @@ export function milestones(engine: Engine, cards: { id: string; course: string }
   const reviews = engine.log.length;
   const tiers = cards.map((c) => engine.mastery(c.id).tier);
   const atLeast = (t: Tier) => tiers.some((x) => TIER_RANK[x] >= TIER_RANK[t]);
-  const byCourse = new Map<string, Tier[]>();
-  cards.forEach((c, i) => byCourse.set(c.course, [...(byCourse.get(c.course) ?? []), tiers[i]]));
-  const halfSilver = [...byCourse.values()].some((ts) => ts.filter((t) => TIER_RANK[t] >= TIER_RANK.silver).length * 2 >= ts.length);
+  const byCourse = new Map<string, { all: number; silver: number }>();
+  cards.forEach((c, i) => {
+    const n = byCourse.get(c.course) ?? { all: 0, silver: 0 };
+    n.all++;
+    if (TIER_RANK[tiers[i]] >= TIER_RANK.silver) n.silver++;
+    byCourse.set(c.course, n);
+  });
+  const halfSilver = [...byCourse.values()].some((n) => n.silver * 2 >= n.all);
   return [
     { id: "first", title: "First review", hint: "Grade a card", reached: reviews > 0 },
     { id: "bronze", title: "First Bronze card", hint: "A card remembered for a week", reached: atLeast("bronze") },

@@ -1,8 +1,8 @@
 // Days, streaks and mastery (#195) in node: `npm test`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Engine, dayStart } from "../src/review/engine.ts";
-import { DAY_GOAL, calendar, conceptMastery, milestones, perDay, streak, tierOfStability } from "../src/review/days.ts";
+import { Engine, dayStart, tierOf } from "../src/review/engine.ts";
+import { DAY_GOAL, calendar, conceptMastery, milestones, perDay, streak } from "../src/review/days.ts";
 
 const DAY = 86_400_000;
 const T0 = new Date(2026, 9, 7, 10, 0).getTime();       // a Wednesday, 10 am
@@ -66,7 +66,7 @@ test("a concept takes the mean stability of its cards; unseen cards pull it down
   assert.equal(m.get("j").tier, "new");
   assert.equal(m.get("k").seen, 1);
   assert.equal(m.get("k").stability, e.mastery("a").stability / 2);
-  assert.equal(m.get("k").tier, tierOfStability(e.mastery("a").stability / 2));
+  assert.equal(m.get("k").tier, tierOf(e.mastery("a").stability / 2));
 });
 
 test("milestones come from memory and days, not from one sitting", () => {
@@ -78,4 +78,23 @@ test("milestones come from memory and days, not from one sitting", () => {
   assert.equal(reached.gold, false);
   assert.equal(reached.week, false);
   assert.equal(reached.thousand, false);
+});
+
+test("a gap longer than the freezes held spends none and breaks the run", () => {
+  const twoWeeks = Array.from({ length: 14 }, (_, i) => day(20 - i, DAY_GOAL)).flat();   // days 20..7 ago: 2 freezes
+  const log = [...twoWeeks, ...day(3, DAY_GOAL), ...day(2, DAY_GOAL), ...day(1, DAY_GOAL)]; // days 6..4 missed: 3 > 2
+  const s = streak(log, [], T0);
+  assert.deepEqual(s.frozen, []);
+  assert.equal(s.current, 3);
+  assert.equal(s.freezes, 2);                                  // too few to bridge 3 days: none spent, both kept
+  assert.equal(s.best, 14);
+});
+
+test("a card back in its relearning steps counts 0 days for its concept", () => {
+  const e = new Engine();
+  let now = T0;
+  for (let i = 0; i < 8; i++) { e.grade("a", 3, { now, ms: 1, hash: "h", device: "d" }); now = e.state("a").due + 60_000; }
+  e.grade("a", 1, { now, ms: 1, hash: "h", device: "d" });     // forgotten: relearning, stability still high
+  assert.equal(e.mastery("a").tier, "learning");
+  assert.equal(conceptMastery(e, [{ id: "a", concepts: ["k"] }]).get("k").tier, "learning");
 });

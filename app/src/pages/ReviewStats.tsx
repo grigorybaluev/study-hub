@@ -10,7 +10,7 @@ import { prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
 import { TIER_NAME } from "../review/rewards";
 import { clearedDays, useReviewData } from "../review/useDeck";
 
-const TIERS: Tier[] = ["new", "learning", "bronze", "silver", "gold", "diamond"];
+const TIERS = (Object.keys(TIER_RANK) as Tier[]).sort((a, b) => TIER_RANK[a] - TIER_RANK[b]);
 
 export default function ReviewStats() {
   const d = useData();
@@ -99,7 +99,7 @@ export default function ReviewStats() {
       <section>
         <h2>Settings</h2>
         <SettingsForm settings={st.engine.settings} onSave={async (x) => { st.engine.setSettings(x); await st.store.saveSettings(x); redraw((n) => n + 1); }} />
-        <FeedbackForm />
+        <FeedbackForm leftToday={() => { const q = st.engine.queue(st.cards.map((c) => c.id), Date.now()); return q.due.length + q.fresh.length + q.later.length; }} />
       </section>
     </div>
   );
@@ -110,17 +110,33 @@ function level(n: number): number {
 }
 
 function SettingsForm({ settings, onSave }: { settings: Settings; onSave(s: Settings): Promise<void> }) {
-  const [s, setS] = useState(settings);
+  // the fields keep what is typed; values are brought into range when a field is left and on Save
+  const [raw, setRaw] = useState({ newPerDay: String(settings.newPerDay), reviewsPerDay: String(settings.reviewsPerDay) });
+  const [retention, setRetention] = useState(settings.retention);
   const [saved, setSaved] = useState(false);
-  const changed = s.newPerDay !== settings.newPerDay || s.reviewsPerDay !== settings.reviewsPerDay || s.retention !== settings.retention;
-  const num = (v: string, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(Number(v) || 0)));
+  const num = (v: string, lo: number, hi: number, fallback: number) => {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) && v.trim() !== "" ? Math.max(lo, Math.min(hi, n)) : fallback;
+  };
+  const parsed: Settings = {
+    newPerDay: num(raw.newPerDay, 0, 200, settings.newPerDay),
+    reviewsPerDay: num(raw.reviewsPerDay, 10, 2000, settings.reviewsPerDay),
+    retention,
+  };
+  const changed = parsed.newPerDay !== settings.newPerDay || parsed.reviewsPerDay !== settings.reviewsPerDay || retention !== settings.retention;
+  const field = (k: "newPerDay" | "reviewsPerDay") => ({
+    value: raw[k],
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => { setSaved(false); setRaw({ ...raw, [k]: e.target.value }); },
+    onBlur: () => setRaw({ ...raw, [k]: String(parsed[k]) }),
+  });
+  const options = [...new Set([0.8, 0.85, 0.9, 0.95, settings.retention])].sort();     // a synced value off the list shows too
   return (
-    <form className="settings" onSubmit={async (e) => { e.preventDefault(); await onSave(s); setSaved(true); }}>
-      <label>New cards a day <input type="number" inputMode="numeric" min={0} max={200} value={s.newPerDay} onChange={(e) => { setSaved(false); setS({ ...s, newPerDay: num(e.target.value, 0, 200) }); }} /></label>
-      <label>Reviews a day, at most <input type="number" inputMode="numeric" min={10} max={2000} value={s.reviewsPerDay} onChange={(e) => { setSaved(false); setS({ ...s, reviewsPerDay: num(e.target.value, 10, 2000) }); }} /></label>
+    <form className="settings" onSubmit={async (e) => { e.preventDefault(); setRaw({ newPerDay: String(parsed.newPerDay), reviewsPerDay: String(parsed.reviewsPerDay) }); await onSave(parsed); setSaved(true); }}>
+      <label>New cards a day <input type="number" inputMode="numeric" min={0} max={200} {...field("newPerDay")} /></label>
+      <label>Reviews a day, at most <input type="number" inputMode="numeric" min={10} max={2000} {...field("reviewsPerDay")} /></label>
       <label>Recall to aim for
-        <select value={s.retention} onChange={(e) => { setSaved(false); setS({ ...s, retention: Number(e.target.value) }); }}>
-          {[0.8, 0.85, 0.9, 0.95].map((r) => <option key={r} value={r}>{Math.round(r * 100)}%{r === 0.9 ? " (Anki's default)" : ""}</option>)}
+        <select value={retention} onChange={(e) => { setSaved(false); setRetention(Number(e.target.value)); }}>
+          {options.map((r) => <option key={r} value={r}>{Math.round(r * 100)}%{r === 0.9 ? " (Anki's default)" : ""}</option>)}
         </select>
       </label>
       <p className="small muted">Higher recall means shorter intervals and more reviews. Settings travel with Sync; the newer ones win.</p>
@@ -129,13 +145,14 @@ function SettingsForm({ settings, onSave }: { settings: Settings; onSave(s: Sett
   );
 }
 
-function FeedbackForm() {
+function FeedbackForm({ leftToday }: { leftToday(): number }) {
   const [p, setP] = useState<FeedbackPrefs>(prefs);
   const set = async (k: keyof FeedbackPrefs, v: boolean) => {
     if (k === "badge" && v && "Notification" in window && Notification.permission === "default") {
       try { await Notification.requestPermission(); } catch { /* the badge may stay hidden */ }
     }
     if (k === "badge" && !v && "clearAppBadge" in navigator) navigator.clearAppBadge().catch(() => {});
+    if (k === "badge" && v && "setAppBadge" in navigator) navigator.setAppBadge(leftToday()).catch(() => {});
     const next = { ...p, [k]: v };
     setPrefs(next);
     setP(next);

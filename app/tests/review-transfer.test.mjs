@@ -91,3 +91,10 @@ test("after a send, the grades sent can no longer be undone", () => {
   assert.equal(e.canUndo(), false);
   assert.equal(e.undo(), undefined);
 });
+
+test("days the deck was cleared travel with the progress; older files without them still read", async () => {
+  const file = makeFile("phone", [], DEFAULT_SETTINGS, 0, T0, [T0 - 86_400_000, T0]);
+  assert.deepEqual((await decode(await encode(file))).cleared, [T0 - 86_400_000, T0]);
+  const { cleared, ...old } = file;
+  assert.deepEqual((await decode(JSON.stringify(old))).cleared, []);
+});
