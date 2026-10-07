@@ -736,3 +736,15 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .grade.suggested { box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 35%, transparent); font-weight: 800; }
 /* the verification banner belongs to the unit and gallery pages, where its checks are done; not to a card */
 .review-back .sim-verify { display: none; }
+
+/* ---------------------------------------------------------------- review scopes (#197) */
+.deck-scope-row { display: flex; align-items: baseline; gap: 0.8rem; margin-top: -0.3rem; }
+.deck-scope { font: inherit; font-size: 0.88rem; font-weight: 600; padding: 0.2rem 0.7rem; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--fg); cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scope-body { padding: 0.6rem 1.1rem 1.1rem; overflow-y: auto; }
+.scope-body h4 { margin: 0.9rem 0 0.3rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.scope-body ul { list-style: none; margin: 0; padding: 0; }
+.scope-body button { display: flex; justify-content: space-between; gap: 1rem; width: 100%; text-align: left; font: inherit; padding: 0.55rem 0.7rem; border: 0; border-radius: 10px; background: transparent; color: var(--fg); cursor: pointer; }
+.scope-body button:hover { background: var(--bg-sunken); }
+.scope-body button.current { background: var(--accent-soft); color: var(--accent-dk); }
+.review-this { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.86rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 999px; border: 1.5px solid var(--accent); color: var(--accent-dk); }
+.review-this:hover { background: var(--accent-soft); text-decoration: none; }

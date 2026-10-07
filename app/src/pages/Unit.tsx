@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Badge, ConceptChip, UnitLink } from "../components/Chips";
 import Markdown from "../components/Markdown";
 import PartsNav from "../components/PartsNav";
+import ReviewThis from "../components/ReviewThis";
 import { edgesOut, href, node, useData, useUnitBody } from "../data/load";
 import type { ConceptNode, CourseNode, UnitNode } from "../data/types";
 
@@ -47,6 +48,7 @@ function UnitPage({ unit }: { unit: UnitNode }) {
           {unit.sims.total > 0 && <span title="interactive examples whose interface and content have been checked">{unit.sims.verified}/{unit.sims.total} examples verified</span>}
           {unit.kind === "review" && <Badge kind="review" />}
           {unit.weeks.length > 0 && <span>week{unit.weeks.length > 1 ? "s" : ""} {unit.weeks.join(", ")}</span>}
+          <ReviewThis scope={{ kind: "unit", id: unit.id }} what="unit" />
         </div>
         {unit.kind === "review" && (
           <p className="muted">Review unit: recaps material introduced elsewhere. See the concepts in the sidebar for where they are taught.</p>

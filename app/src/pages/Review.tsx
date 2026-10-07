@@ -1,7 +1,7 @@
 // /review (#194): the swipe deck. Tap (or Space) shows the answer; then swipe left for Again, right for
 // Good, or use the four buttons (keys 1-4), each labelled with when the card comes back. Z undoes.
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ConceptChip } from "../components/Chips";
 import { href, node, useData } from "../data/load";
 import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
@@ -11,6 +11,8 @@ import { dayStart, type Rating } from "../review/engine";
 import { haptic, motionOn, tick } from "../review/feedback";
 import { TIER_NAME, quarterCrossed, type GradeReward } from "../review/rewards";
 import { useDeck, type Deck } from "../review/useDeck";
+import { ALL, inScope, parseScope, scopeCards, scopeQuery, type Scope } from "../review/scope";
+import { scopes, type Scopes } from "../review/scopeContext";
 
 const GRADES: { r: Rating; label: string; cls: string }[] = [
   { r: 1, label: "Again", cls: "again" }, { r: 2, label: "Hard", cls: "hard" },
@@ -28,7 +30,18 @@ export function interval(ms: number): string {
 }
 
 export default function Review() {
-  const deck = useDeck();
+  // the scope of the session (#197): all cards, a course or term (exam prep), a unit, a concept, an area
+  const d = useData();
+  const [params] = useSearchParams();
+  const scope = parseScope(params);
+  const key = scopeQuery(scope);
+  const sc = useMemo(() => scopes(d), [d]);
+  const select = useMemo(() => {
+    const weight = scope.kind === "course" || scope.kind === "term" ? sc.weight(sc.courses(scope)) : undefined;
+    return (cards: Card[]) => scopeCards(cards, scope, sc, weight);
+  }, [key, sc]);   // the scope is the query string: recomputed when it changes
+  const deck = useDeck(select);
+  const [picking, setPicking] = useState(false);
   const [flipped, setFlipped] = useState(false);
   // a grade button's flight belongs to the card it was pressed for: the next card must never inherit it
   const [exit, setExit] = useState<{ card: string; dir: -1 | 1; r: Rating } | null>(null);
@@ -119,6 +132,11 @@ export default function Review() {
         <button className="deck-undo" onClick={undo} disabled={!deck.canUndo || !!exit} title="Undo the last grade (Z)" aria-label="Undo">↶<span className="lbl"> Undo</span></button>
         <button className={`deck-undo${deck.sync?.remind ? " remind" : ""}`} onClick={() => setSyncing(true)} title="Move progress to or from another device" aria-label="Sync">⇅<span className="lbl"> Sync</span></button>
       </div>
+      <div className="deck-scope-row">
+        <button className="deck-scope" onClick={() => setPicking(true)} title="Choose what to review">{sc.label(scope)} <span aria-hidden="true">▾</span></button>
+        {scope.kind !== "all" && <Link className="small" to="/review">all cards</Link>}
+      </div>
+      {picking && <ScopePicker deck={deck} sc={sc} current={scope} onClose={() => setPicking(false)} />}
       {deck.sync?.remind && (
         <p className="deck-warn">{deck.sync.since} reviews on this device have not been sent to your other device for over 3 days. <button className="linkish" onClick={() => setSyncing(true)}>Sync now</button></p>
       )}
@@ -201,6 +219,45 @@ function CardDetails({ card }: { card: Card }) {
           Builds on: {builds.map((c) => <ConceptChip key={c.id} id={c.id} />)}
         </div>
       )}
+    </>
+  );
+}
+
+/** Choose what to review: everything, a course or a term (exam prep), or a roadmap area across courses
+ *  (interview prep); each with how many cards it holds. Units and concepts start from their pages. */
+function ScopePicker({ deck, sc, current, onClose }: { deck: Deck; sc: Scopes; current: Scope; onClose(): void }) {
+  const nav = useNavigate();
+  const d = useData();
+  const count = (s: Scope) => deck.cards.filter((c) => inScope(c, s, sc)).length;
+  const go = (s: Scope) => { onClose(); nav(`/review${scopeQuery(s)}`, { replace: true }); };
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", esc);
+    document.documentElement.classList.add("sheet-open");
+    return () => { document.removeEventListener("keydown", esc); document.documentElement.classList.remove("sheet-open"); };
+  }, [onClose]);
+  const courseCodes = [...new Set(deck.cards.map((c) => c.course))].map((id) => d.courses.find((x) => x.id === id)?.code).filter((x): x is string => !!x);
+  const row = (s: Scope, label: string, n = count(s)) => n > 0 && (
+    <li key={scopeQuery(s) || "all"}><button className={scopeQuery(s) === scopeQuery(current) ? "current" : ""} onClick={() => go(s)}>
+      <span>{label}</span><span className="small muted">{n} card{n === 1 ? "" : "s"}</span>
+    </button></li>
+  );
+  return (
+    <>
+      <div className="sheet-backdrop" onClick={onClose} />
+      <div className="sheet scope-sheet" role="dialog" aria-label="What to review">
+        <div className="sheet-head"><span>What to review</span><button onClick={onClose} aria-label="Close">✕</button></div>
+        <div className="scope-body">
+          <ul>{row(ALL, "Everything due, every course (daily review)")}</ul>
+          <h4>Exam prep: a course</h4>
+          <ul>{courseCodes.map((code) => row({ kind: "course", code }, sc.label({ kind: "course", code })))}</ul>
+          <h4>Exam prep: a term</h4>
+          <ul>{sc.terms.map((t) => row({ kind: "term", index: t.index }, t.label))}</ul>
+          <h4>Interview prep: a topic across courses</h4>
+          <ul>{sc.areas.map((a) => row({ kind: "area", id: a.id }, a.title))}</ul>
+          <p className="small muted">A unit or a concept: start from its page (“Review this unit”). New cards in exam prep come first when the course's later units rely on their concepts most.</p>
+        </div>
+      </div>
     </>
   );
 }

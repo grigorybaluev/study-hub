@@ -55,6 +55,8 @@ export interface Deck {
   canExtend: boolean;
   /** five more new cards today, at most the daily limit again (session only, never saved) */
   extendNew(): void;
+  /** every card, whatever the scope (the scope picker counts them) */
+  cards: Card[];
   /** days in a row (#195), computed only once the deck is done */
   streak: Streak | null;
   /** learning steps still to come back today */
@@ -95,7 +97,8 @@ export function clearedDays(store: Store): number[] {
   return Array.isArray(store.meta.cleared) ? (store.meta.cleared as number[]) : [];
 }
 
-export function useDeck(): Deck {
+/** `select` narrows and orders the cards of the session (a review scope, #197); keep it stable (useMemo). */
+export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
   const { st, error } = useReviewData();
   const [tick, setTick] = useState(0);
   const [forced, setForced] = useState<string | null>(null);     // an undone card comes back first
@@ -116,7 +119,8 @@ export function useDeck(): Deck {
     if (!st) return null;
     const now = Date.now();
     const byId = new Map(st.cards.map((c) => [c.id, c]));
-    const ids = st.cards.map((c) => c.id);
+    const pool = select ? select(st.cards) : st.cards;
+    const ids = pool.map((c) => c.id);
     const extraToday = extra.day === dayStart(now) ? extra.n : 0;
     const q = st.engine.queue(ids, now, extraToday);
     let order = [...q.due, ...q.fresh];
@@ -147,7 +151,7 @@ export function useDeck(): Deck {
       learning: q.later.length,
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
-  }, [st, tick, forced, extra]);
+  }, [st, tick, forced, extra, select]);
 
   // the clock that starts when a card is shown
   useEffect(() => { shownAt.current = Date.now(); }, [tick]);
@@ -238,7 +242,7 @@ export function useDeck(): Deck {
   if (error) return { ...EMPTY, status: "error", error };
   if (!st || !view) return EMPTY;
   return {
-    status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), showing: tick,
+    status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), showing: tick, cards: st.cards,
     tally, extendNew, markCleared, exportProgress, markSent, importProgress, grade, undo,
   };
 }
@@ -247,7 +251,7 @@ const EMPTY: Deck = {
   status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0,
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
   day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
-  streak: null, learning: 0, markCleared: () => {},
+  streak: null, learning: 0, markCleared: () => {}, cards: [],
   sync: null, exportProgress: () => Promise.reject(new Error("loading")), markSent: async () => {},
   importProgress: () => Promise.reject(new Error("loading")),
 };
