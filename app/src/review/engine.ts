@@ -145,6 +145,11 @@ export class Engine {
     return r;
   }
 
+  /** Whether this session has a grade to take back. */
+  canUndo(): boolean {
+    return this.mine.length > 0;
+  }
+
   /** Take back the last grade made in this session (never one merged from another device); returns it
    *  so storage.ts can delete it too. */
   undo(): Review | undefined {

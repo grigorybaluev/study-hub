@@ -60,7 +60,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
 .footer .version { font-family: var(--mono); color: var(--fg-faint); }
 .update-toast {
   position: fixed; z-index: 50; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 2rem);
-  bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
+  top: calc(env(safe-area-inset-top) + 0.6rem);   /* at the top: at the bottom it would cover the deck's grade buttons (#194) */
   display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.6rem 0.55rem 1rem;
   background: var(--header-bg); color: var(--header-fg); border: 1px solid var(--header-line); border-radius: 999px; box-shadow: var(--shadow); font-size: 0.9rem;
 }
@@ -496,4 +496,102 @@ html.sheet-open { overflow: hidden; }
   .search.open input { flex: 1; width: auto; }
   .search .results { left: 0; right: 0; width: auto; top: calc(100% + 6px); }
   .unit-body .math-nowrap { white-space: normal; }   /* a glued formula may still be wider than the screen */
+}
+/* a narrow phone: Program, Explore, Review and the two icons need the whole row; Program is the home page */
+@media (max-width: 420px) {
+  .topbar .brand { display: none; }
+}
+
+/* ---------------------------------------------------------------- review deck (#194) */
+/* the deck fills the screen: no page scroll, the card takes what the header and buttons leave */
+.shell.fixed { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+.shell.fixed .main.deck-main { min-height: 0; display: flex; flex-direction: column; max-width: 640px; padding-top: 0.5rem; padding-bottom: 0; }
+.deck { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.deck-head { display: flex; align-items: baseline; gap: 0.8rem; }
+.deck-head h1 { margin: 0; font-size: 1.25rem; }
+.deck-counts { flex: 1; font-size: 0.86rem; color: var(--fg-muted); }
+.deck-counts .c-due { color: var(--info); }
+.deck-counts .c-new { color: var(--ok); }
+.deck-undo { font: inherit; font-size: 0.85rem; padding: 0.3em 0.7em; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--fg); cursor: pointer; }
+.deck-undo:disabled { opacity: 0.4; cursor: default; }
+.deck-warn { margin: 0; padding: 0.5rem 0.8rem; border-radius: var(--radius); background: var(--warn-soft); color: var(--warn); font-size: 0.85rem; }
+
+.deck-stack { position: relative; flex: 1; min-height: 260px; perspective: 1400px; }
+.review-card {
+  position: absolute; inset: 0; cursor: pointer; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  will-change: transform; --swipe: 0; z-index: 2;
+}
+.review-card.peek { z-index: 1; transform: translateY(10px) scale(0.965); opacity: 0.85; pointer-events: none; transition: transform 0.2s ease-out, opacity 0.2s; }
+.review-card.flipped { cursor: grab; }
+.review-card-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.38s cubic-bezier(.3,.7,.3,1); }
+.review-card.flipped .review-card-inner { transform: rotateY(180deg); }
+.review-face {
+  position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; flex-direction: column; padding: 1.1rem 1.2rem; overflow: hidden auto; overscroll-behavior: contain;
+  background: var(--bg-elev); border: 1.5px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
+}
+.review-face.back { transform: rotateY(180deg); }
+.review-face.front { justify-content: center; text-align: center; }
+.review-kind { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
+.review-kind.k-definition, .review-kind.k-theorem, .review-kind.k-lemma, .review-kind.k-proposition, .review-kind.k-corollary { color: var(--blk-stmt-line); }
+.review-kind.k-caution { color: var(--bad); }
+.review-kind.k-insight { color: var(--info); }
+.review-kind.k-steps, .review-kind.k-eq { color: var(--ok); }
+.review-front { font-size: 1.35rem; font-weight: 650; line-height: 1.35; margin: 0.8rem auto; max-width: 30rem; }
+.review-front p, .review-back-front p { margin: 0; }
+.review-context { font-size: 0.82rem; color: var(--fg-faint); }
+.review-hint { margin-top: 1.4rem; font-size: 0.8rem; color: var(--fg-faint); }
+.review-back-head { display: flex; align-items: center; gap: 0.6rem; }
+.review-updated { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 0 0.45em; border-radius: 4px; background: var(--warn-soft); color: var(--warn); }
+.review-back-front { font-weight: 650; margin: 0.35rem 0 0.6rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--line); }
+.review-back { font-size: 0.98rem; }
+.review-back > :first-child { margin-top: 0; }
+.review-details { margin-top: auto; padding-top: 0.9rem; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.86rem; }
+.review-where { font-weight: 600; }
+.review-concept .chip { white-space: normal; }
+
+/* the swipe: a tint and a label grow with the drag; past the commit point the label pops (.armed) */
+.swipe-label {
+  position: absolute; top: 1.1rem; z-index: 3; padding: 0.15em 0.6em; border-radius: 8px; border: 2.5px solid currentColor;
+  font-weight: 800; font-size: 1.05rem; letter-spacing: 0.06em; text-transform: uppercase; pointer-events: none;
+  background: var(--bg-elev); box-shadow: var(--shadow); opacity: 0; transition: transform 0.12s ease-out;
+}
+.swipe-label.again { right: 1.1rem; color: var(--bad); opacity: max(0, calc(var(--swipe) * -1)); transform: rotate(8deg); }
+.swipe-label.good { left: 1.1rem; color: var(--ok); opacity: max(0, var(--swipe)); transform: rotate(-8deg); }
+.review-card.armed .swipe-label.again { transform: rotate(8deg) scale(1.15); }
+.review-card.armed .swipe-label.good { transform: rotate(-8deg) scale(1.15); }
+.review-card::after {
+  content: ""; position: absolute; inset: 0; border-radius: 18px; pointer-events: none; z-index: 2;
+  background: var(--ok); opacity: max(0, calc(var(--swipe) * 0.12));
+}
+.review-card::before {
+  content: ""; position: absolute; inset: 0; border-radius: 18px; pointer-events: none; z-index: 2;
+  background: var(--bad); opacity: max(0, calc(var(--swipe) * -0.12));
+}
+
+.deck-actions { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+.deck-show {
+  width: 100%; font: inherit; font-weight: 700; font-size: 1rem; padding: 0.85rem; border: 0; border-radius: 14px;
+  background: var(--accent); color: #fff; cursor: pointer;
+}
+.deck-grades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem; }
+.grade {
+  display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.55rem 0.2rem; cursor: pointer;
+  font: inherit; border-radius: 14px; border: 1.5px solid var(--line); background: var(--bg-elev); color: var(--fg);
+}
+.grade:disabled { opacity: 0.6; cursor: default; }
+.grade-label { font-weight: 700; font-size: 0.95rem; }
+.grade-ivl { font-size: 0.78rem; color: var(--fg-muted); }
+.grade.again { border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); color: var(--bad); }
+.grade.hard { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); color: var(--warn); }
+.grade.good { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); color: var(--ok); }
+.grade.easy { border-color: color-mix(in srgb, var(--info) 45%, var(--line)); color: var(--info); }
+.deck-done { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.deck-done h2 { border: 0; margin: 0 0 0.4rem; }
+@media (prefers-reduced-motion: reduce) {
+  .review-card-inner { transition: none; }
+  .review-card.flipped .review-card-inner { transform: none; }
+  .review-card.flipped .review-face.front { visibility: hidden; }
+  .review-face.back { transform: none; }
+  .review-card:not(.flipped) .review-face.back { visibility: hidden; }
 }
