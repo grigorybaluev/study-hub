@@ -12,12 +12,15 @@ const LEARN_AHEAD = 20 * 60_000;
 const MAX_MS = 60_000;          // time on a card counts up to a minute, as in Anki
 const REMIND_AFTER = 3 * 24 * 3_600_000;
 
-/** The last exchange with another device (#193), kept in the store's meta. */
-export interface LastSync { at: number; dir: "in" | "out"; with?: string }
+/** Exchanges with another device (#193), kept in the store's meta: sending and receiving separately,
+ *  because receiving says nothing about whether this device's own grades went out. */
+export interface Sent { at: number }
+export interface Received { at: number; with: string }
 export interface SyncStatus {
   device: string;
-  last: LastSync | null;
-  /** grades made on this device since the last exchange */
+  sent: Sent | null;
+  received: Received | null;
+  /** grades made on this device since its progress was last sent */
   since: number;
   /** time to send them: some, and more than 3 days old */
   remind: boolean;
@@ -95,6 +98,7 @@ export function useDeck(): Deck {
       preview: current ? st.engine.preview(current.id, now) : null,
       updated: !!state && !!state.hash && state.hash !== current!.hash,
       laterAt,
+      sync: syncStatus(st.store, st.engine, now),
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
   }, [st, tick, forced]);
@@ -137,7 +141,8 @@ export function useDeck(): Deck {
 
   const markSent = useCallback(async () => {
     if (!st) return;
-    await st.store.setMeta("sync", { at: Date.now(), dir: "out" } satisfies LastSync);
+    await st.store.setMeta("sent", { at: Date.now() } satisfies Sent);
+    st.engine.forgetUndo();
     bump();
   }, [st, bump]);
 
@@ -149,24 +154,18 @@ export function useDeck(): Deck {
     // the newer settings win; settings that do not look like settings are ignored
     if (file.settingsAt > (Number(st.store.meta.settingsAt) || 0) && validSettings(file.settings)) {
       st.engine.setSettings(file.settings);
-      await st.store.saveSettings(file.settings);
-      await st.store.setMeta("settingsAt", file.settingsAt);
+      await st.store.saveSettings(file.settings, file.settingsAt);
     }
-    if (file.device !== st.store.device) await st.store.setMeta("sync", { at: Date.now(), dir: "in", with: file.device } satisfies LastSync);
+    if (file.device !== st.store.device) await st.store.setMeta("received", { at: Date.now(), with: file.device } satisfies Received);
     bump();
     return { added: add.length, total: st.engine.log.length };
   }, [st, bump]);
 
   if (error) return { ...EMPTY, status: "error", error };
   if (!st || !view) return EMPTY;
-  const last = (st.store.meta.sync as LastSync | undefined) ?? null;
-  const mine = `${st.store.device}-`;
-  const since = st.engine.log.filter((r) => r.id.startsWith(mine) && r.ts > (last?.at ?? 0)).length;
-  const oldest = st.engine.log.find((r) => r.id.startsWith(mine) && r.ts > (last?.at ?? 0))?.ts ?? Date.now();
-  const sync: SyncStatus = { device: st.store.device, last, since, remind: since > 0 && Date.now() - Math.max(last?.at ?? 0, oldest) > REMIND_AFTER };
   return {
     status: "ready", persistent: st.store.persistent, ...view, canUndo: st.engine.canUndo(), showing: tick,
-    sync, exportProgress, markSent, importProgress, grade, undo,
+    exportProgress, markSent, importProgress, grade, undo,
   };
 }
 
@@ -176,6 +175,18 @@ const EMPTY: Deck = {
   sync: null, exportProgress: () => Promise.reject(new Error("loading")), markSent: async () => {},
   importProgress: () => Promise.reject(new Error("loading")),
 };
+
+/** One pass over the log: this device's grades since its progress was last sent, and the oldest of them. */
+function syncStatus(store: Store, engine: Engine, now: number): SyncStatus {
+  const sent = (store.meta.sent as Sent | undefined) ?? null;
+  const received = (store.meta.received as Received | undefined) ?? null;
+  const mine = `${store.device}-`, after = sent?.at ?? 0;
+  let since = 0, oldest = now;
+  for (const r of engine.log) {
+    if (r.ts > after && r.id.startsWith(mine)) { since++; if (r.ts < oldest) oldest = r.ts; }
+  }
+  return { device: store.device, sent, received, since, remind: since > 0 && now - oldest > REMIND_AFTER };
+}
 
 function validSettings(s: Settings | undefined): s is Settings {
   return !!s && [s.newPerDay, s.reviewsPerDay].every((n) => Number.isInteger(n) && n >= 0 && n <= 9999)

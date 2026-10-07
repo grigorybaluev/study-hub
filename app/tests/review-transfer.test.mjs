@@ -75,3 +75,19 @@ test("a 5,000-review export stays small enough for the clipboard", async () => {
 test("a saved file is named by device and day", () => {
   assert.equal(fileName(makeFile("phone1", [], DEFAULT_SETTINGS, 0, new Date(2026, 9, 7, 9).getTime())), "study-hub-progress-phone1-2026-10-07.json");
 });
+
+test("a review repeated inside one file is imported once", () => {
+  const phone = device("phone", ["a"], T0);
+  const file = makeFile("phone", [...phone.log, ...phone.log.slice(0, 3)], DEFAULT_SETTINGS, 0, T0);
+  const mac = new Engine();
+  assert.equal(importInto(mac, file), 12);
+  assert.deepEqual(mac.state("a"), phone.state("a"));
+});
+
+test("after a send, the grades sent can no longer be undone", () => {
+  const e = device("phone", ["a"], T0);
+  assert.ok(e.canUndo());
+  e.forgetUndo();
+  assert.equal(e.canUndo(), false);
+  assert.equal(e.undo(), undefined);
+});

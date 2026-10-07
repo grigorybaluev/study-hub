@@ -96,10 +96,10 @@ function validate(d: unknown): ProgressFile {
   };
 }
 
-/** The reviews of `file` this log does not have yet. */
+/** The reviews of `file` this log does not have yet, each id once (a hand-joined file may repeat one). */
 export function missing(have: Review[], file: ProgressFile): Review[] {
   const ids = new Set(have.map((r) => r.id));
-  return file.reviews.filter((r) => !ids.has(r.id));
+  return file.reviews.filter((r) => !ids.has(r.id) && (ids.add(r.id), true));
 }
 
 /** File name of a saved export: study-hub-progress-<device>-<yyyy-mm-dd>.json */

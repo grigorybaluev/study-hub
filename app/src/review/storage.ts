@@ -15,7 +15,8 @@ export interface Store {
   remove(id: string): Promise<void>;
   /** many at once (an import, #193) */
   addAll(rs: Review[]): Promise<void>;
-  saveSettings(s: Settings): Promise<void>;
+  /** `at` stamps the change (default now), so that on import the newer settings win (#193) */
+  saveSettings(s: Settings, at?: number): Promise<void>;
   /** small values kept with the log (the last sync, when the settings changed), read at open */
   meta: Record<string, unknown>;
   setMeta(key: string, value: unknown): Promise<void>;
@@ -62,7 +63,12 @@ function tracked(s: Store): Store {
     add: async (r) => { s.reviews.push(r); await s.add(r); },
     remove: async (id) => { const i = s.reviews.findIndex((r) => r.id === id); if (i >= 0) s.reviews.splice(i, 1); await s.remove(id); },
     addAll: async (rs) => { s.reviews.push(...rs); await s.addAll(rs); },
-    saveSettings: async (x) => { s.settings = { ...x }; await s.saveSettings(x); },
+    saveSettings: async (x, at = Date.now()) => {
+      s.settings = { ...x };
+      s.meta.settingsAt = at;
+      await s.saveSettings(x);
+      await s.setMeta("settingsAt", at);
+    },
     setMeta: async (k, v) => { s.meta[k] = v; await s.setMeta(k, v); },
     get reviews() { return s.reviews; },
     get settings() { return s.settings; },

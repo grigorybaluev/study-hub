@@ -617,4 +617,3 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .sync-note.bad { background: var(--bad-soft); color: var(--bad); }
 .sync-sheet.dropping { outline: 3px dashed var(--accent); outline-offset: -6px; }
 .deck-undo.remind { border-color: var(--warn); color: var(--warn); }
-.linkish { font: inherit; border: 0; padding: 0; background: none; color: var(--link); text-decoration: underline; cursor: pointer; }
