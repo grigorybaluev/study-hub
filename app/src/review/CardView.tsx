@@ -5,7 +5,7 @@ import { memo, useEffect, useRef, type ReactNode } from "react";
 import Markdown from "../components/Markdown";
 import type { Card } from "../data/types";
 import type { Rating } from "./engine";
-import { haptic, tick } from "./feedback";
+import { haptic, motionOn, tick } from "./feedback";
 
 const COMMIT = 0.28;          // share of the card's width that commits a swipe
 const FLICK = 0.5;            // px/ms: a fast flick commits a shorter swipe
@@ -16,7 +16,6 @@ export const KIND_LABEL: Record<Card["kind"], string> = {
   steps: "Method", caution: "Caution", insight: "Key idea", eq: "Formula",
 };
 
-const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 interface Props {
   card: Card;
@@ -58,7 +57,7 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
   // fly the way the grade points, then report; a new exit or an unmount cancels the report
   useEffect(() => {
     if (!exit || peek) return;
-    if (reducedMotion()) { onExited?.(); return; }
+    if (!motionOn()) { onExited?.(); return; }
     place(exit * (el.current?.offsetWidth ?? 400) * 1.4, true);
     timer.current = setTimeout(() => onExited?.(), FLY_MS);
     return () => clearTimeout(timer.current);

@@ -5,11 +5,18 @@ export interface FeedbackPrefs { motion: boolean; haptics: boolean; sound: boole
 const KEY = "study-hub-feedback";
 const DEFAULTS: FeedbackPrefs = { motion: true, haptics: true, sound: false };
 
+let cached: FeedbackPrefs | null = null;
+
 export function prefs(): FeedbackPrefs {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") }; } catch { return { ...DEFAULTS }; }
+  if (!cached) {
+    try { cached = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") }; } catch { cached = { ...DEFAULTS }; }
+  }
+  return cached!;
 }
 
+/** The settings toggles on the stats page (#195) write here. */
 export function setPrefs(p: FeedbackPrefs) {
+  cached = { ...p };
   try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* not kept: the defaults return next time */ }
 }
 

@@ -77,10 +77,27 @@ test("the ring pulses once per quarter crossed", () => {
   assert.equal(quarterCrossed(5, 6, 20), 0);
 });
 
-test("the session tally counts grades, level-ups and comebacks", () => {
+test("the session tally counts level-ups and comebacks", () => {
   let t = EMPTY_TALLY;
-  t = tally(t, { point: 1, levelUp: null, comeback: false }, T0);
-  t = tally(t, { point: 1, levelUp: "bronze", comeback: false }, T0 + 1);
-  t = tally(t, { point: 1, levelUp: null, comeback: true }, T0 + 2);
-  assert.deepEqual(t, { graded: 3, levelUps: 1, comebacks: 1, started: T0 });
+  t = tally(t, { point: 1, levelUp: null, comeback: false });
+  t = tally(t, { point: 1, levelUp: "bronze", comeback: false });
+  t = tally(t, { point: 1, levelUp: null, comeback: true });
+  assert.deepEqual(t, { levelUps: 1, comebacks: 1 });
+});
+
+test("a lapsed card recalled with Hard is a comeback too: any recall counts, not the button", () => {
+  const e = new Engine();
+  let now = T0;
+  for (const r of [3, 3, 3]) { graded(e, "c", r, now); now = e.state("c").due + MIN; }
+  graded(e, "c", 1, now);
+  now = e.state("c").due + MIN;
+  assert.equal(graded(e, "c", 2, now).comeback, true);
+});
+
+test("five more new cards are an allowance for the day, not a change of settings", () => {
+  const cards = Array.from({ length: 30 }, (_, i) => `n${i}`);
+  const e = new Engine();
+  assert.equal(e.queue(cards, T0).fresh.length, 15);
+  assert.equal(e.queue(cards, T0, 5).fresh.length, 20);
+  assert.equal(e.settings.newPerDay, 15);
 });

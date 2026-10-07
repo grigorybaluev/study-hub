@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadCards } from "../data/load";
 import type { Card } from "../data/types";
-import { Engine, dayStart, type Rating, type Settings } from "./engine";
+import { Engine, dayStart, nextDay, type Rating, type Settings } from "./engine";
 import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTally } from "./rewards";
 import { openStore, type Store } from "./storage";
 import { makeFile, missing, type ProgressFile } from "./transfer";
@@ -45,7 +45,7 @@ export interface Deck {
   laterAt: number | null;
   /** today's work, from the log: grades, minutes, review-type grades and how many were recalls */
   day: { graded: number; ms: number; reviewed: number; recalled: number };
-  /** cards due by the end of tomorrow's review day */
+  /** cards that fall due during tomorrow's review day */
   tomorrow: number;
   /** this session's tally of the rewards (#195) */
   tally: SessionTally;
@@ -76,7 +76,8 @@ export function useDeck(): Deck {
   const [tick, setTick] = useState(0);
   const [forced, setForced] = useState<string | null>(null);     // an undone card comes back first
   const [tally, setTally] = useState<SessionTally>(EMPTY_TALLY);
-  const extended = useRef(0);
+  // "5 more new cards": an allowance for one review day, apart from the settings, never saved or sent
+  const [extra, setExtra] = useState({ day: 0, n: 0 });
   const shownAt = useRef(Date.now());
   const bump = useCallback(() => setTick((t) => t + 1), []);
 
@@ -97,7 +98,9 @@ export function useDeck(): Deck {
     if (!st) return null;
     const now = Date.now();
     const byId = new Map(st.cards.map((c) => [c.id, c]));
-    const q = st.engine.queue(st.cards.map((c) => c.id), now);
+    const ids = st.cards.map((c) => c.id);
+    const extraToday = extra.day === dayStart(now) ? extra.n : 0;
+    const q = st.engine.queue(ids, now, extraToday);
     let order = [...q.due, ...q.fresh];
     if (forced && byId.has(forced)) order = [forced, ...order.filter((id) => id !== forced)];
     let laterAt: number | null = null;
@@ -108,8 +111,8 @@ export function useDeck(): Deck {
     const current = order.length ? byId.get(order[0])! : null;
     const state = current ? st.engine.state(current.id) : null;
     const today = st.engine.today(now);
-    const unseen = st.cards.reduce((n, c) => n + (st.engine.state(c.id) ? 0 : 1), 0);
-    const base = st.engine.settings.newPerDay - extended.current;
+    const unseen = ids.reduce((n, id) => n + (st.engine.seen(id) ? 0 : 1), 0);
+    const tomorrow = nextDay(now);
     return {
       current, next: order.length > 1 ? byId.get(order[1])! : null,
       left: { due: q.due.length, fresh: q.fresh.length },
@@ -119,11 +122,11 @@ export function useDeck(): Deck {
       laterAt,
       sync: syncStatus(st.store, st.engine, now),
       day: { graded: today.graded, ms: today.ms, reviewed: today.reviewed, recalled: today.recalled },
-      tomorrow: st.engine.dueBy(st.cards.map((c) => c.id), dayStart(dayStart(dayStart(now) + 36 * 3_600_000) + 36 * 3_600_000)),
-      canExtend: !q.fresh.length && unseen > 0 && extended.current + EXTEND_BY <= base,
+      tomorrow: st.engine.dueBetween(ids, tomorrow, nextDay(tomorrow)),
+      canExtend: !q.fresh.length && unseen > 0 && extraToday + EXTEND_BY <= st.engine.settings.newPerDay,
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
-  }, [st, tick, forced]);
+  }, [st, tick, forced, extra]);
 
   // the clock that starts when a card is shown
   useEffect(() => { shownAt.current = Date.now(); }, [tick]);
@@ -144,18 +147,16 @@ export function useDeck(): Deck {
     });
     st.store.add(r).catch((e) => console.warn("review not saved", e));
     const reward = rewardOf(before, { tier: st.engine.mastery(id).tier }, rating);
-    setTally((t) => addTo(t, reward, now));
+    setTally((t) => addTo(t, reward));
     setForced(null);
     bump();
     return reward;
   }, [st, view, bump]);
 
   const extendNew = useCallback(() => {
-    if (!st) return;
-    extended.current += EXTEND_BY;
-    st.engine.setSettings({ ...st.engine.settings, newPerDay: st.engine.settings.newPerDay + EXTEND_BY });
-    bump();
-  }, [st, bump]);
+    const day = dayStart(Date.now());
+    setExtra((x) => ({ day, n: (x.day === day ? x.n : 0) + EXTEND_BY }));
+  }, []);
 
   const undo = useCallback(() => {
     if (!st) return;

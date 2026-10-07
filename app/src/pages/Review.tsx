@@ -37,7 +37,7 @@ export default function Review() {
   const [bursts, setBursts] = useState(0);
   const [pulse, setPulse] = useState(0);
   const [moment, setMoment] = useState<{ id: number; reward: GradeReward } | null>(null);
-  const prevDone = useRef(deck.doneToday);
+  const prevDone = useRef<number | null>(null);         // null until the deck has loaded: no pulse on opening
   const currentId = deck.current?.id;
 
   useEffect(() => { setFlipped(false); setExit(null); }, [currentId, deck.showing]);
@@ -70,10 +70,11 @@ export default function Review() {
   // the day's ring pulses as it passes a quarter
   const total = deck.doneToday + deck.left.due + deck.left.fresh;
   useEffect(() => {
-    const q = quarterCrossed(prevDone.current, deck.doneToday, total);
+    if (deck.status !== "ready") return;
+    const prev = prevDone.current;
     prevDone.current = deck.doneToday;
-    if (q) setPulse((n) => n + 1);
-  }, [deck.doneToday, total]);
+    if (prev !== null && prev < deck.doneToday && quarterCrossed(prev, deck.doneToday, total)) setPulse((n) => n + 1);
+  }, [deck.status, deck.doneToday, total]);
 
   useEffect(() => {
     if (!moment) return;
@@ -226,12 +227,15 @@ const CONFETTI_KEY = "study-hub-confetti";
 function DeckDone({ deck }: { deck: Deck }) {
   const { day, tally, laterAt } = deck;
   const at = laterAt ? new Date(laterAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
-  const [confetti] = useState(() => {
-    if (!day.graded || !motionOn()) return false;
+  // confetti once a day, for the deck really cleared (no learning step still to come back)
+  const cleared = day.graded > 0 && !laterAt;
+  const [confetti, setConfetti] = useState(false);
+  useEffect(() => {
+    if (!cleared || !motionOn()) return;
     const today = String(dayStart(Date.now()));
-    try { if (localStorage.getItem(CONFETTI_KEY) === today) return false; localStorage.setItem(CONFETTI_KEY, today); } catch { /* shown */ }
-    return true;
-  });
+    try { if (localStorage.getItem(CONFETTI_KEY) === today) return; localStorage.setItem(CONFETTI_KEY, today); } catch { /* shown anyway */ }
+    setConfetti(true);
+  }, [cleared]);
   if (!day.graded) {
     return (
       <div className="deck-done">

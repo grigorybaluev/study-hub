@@ -47,9 +47,16 @@ export interface CardState {
 /** Mastery tiers by FSRS stability (days a memory lasts at 90 % recall); names and rewards are #195's. */
 export type Tier = "new" | "learning" | "bronze" | "silver" | "gold" | "diamond";
 const TIERS: [Tier, number][] = [["diamond", 365], ["gold", 90], ["silver", 30], ["bronze", 7]];
+/** The tiers in order, lowest first (the rewards compare them, #195). */
+export const TIER_RANK: Record<Tier, number> = { new: 0, learning: 1, bronze: 2, silver: 3, gold: 4, diamond: 5 };
 
 const DAY_TURNS_AT = 4;   // a review day starts at 4 am, as in Anki
 const HOUR = 3_600_000;
+
+/** Start of the review day after the one `now` falls in (calendar arithmetic: a DST day is 23 or 25 h). */
+export function nextDay(now: number): number {
+  return dayStart(dayStart(now) + 36 * HOUR);
+}
 
 /** Start of the review day that `now` falls in. */
 export function dayStart(now: number): number {
@@ -179,8 +186,9 @@ export class Engine {
   }
 
   /** What to review now among `cards` (in their given order for new ones), within the daily limits. */
-  queue(cards: string[], now: number): { due: string[]; fresh: string[]; later: { card: string; due: number }[] } {
-    const tomorrow = dayStart(dayStart(now) + 36 * HOUR);   // calendar arithmetic: a DST day is 23 or 25 h
+  /** `extraNew`: new cards allowed today beyond the daily limit (the deck's "5 more", never saved). */
+  queue(cards: string[], now: number, extraNew = 0): { due: string[]; fresh: string[]; later: { card: string; due: number }[] } {
+    const tomorrow = nextDay(now);
     const { newToday, reviewsToday } = this.today(now);
     const due: { card: string; due: number; learning: boolean }[] = [];
     const later: { card: string; due: number }[] = [];
@@ -198,7 +206,7 @@ export class Engine {
     let room = Math.max(0, this.settings.reviewsPerDay - reviewsToday);
     const shown = due.filter((d) => d.learning || room-- > 0).map((d) => d.card);
     later.sort((a, b) => a.due - b.due);
-    return { due: shown, fresh: fresh.slice(0, Math.max(0, this.settings.newPerDay - newToday)), later };
+    return { due: shown, fresh: fresh.slice(0, Math.max(0, this._settings.newPerDay + extraNew - newToday)), later };
   }
 
   /** Counts for the current review day: new cards started, review cards seen, grades, time spent, and how
@@ -217,16 +225,15 @@ export class Engine {
     };
   }
 
-  /** The card's latest grade, or null if it was never graded. */
-  lastRating(card: string): Rating | null {
-    for (let i = this.log.length - 1; i >= 0; i--) if (this.log[i].card === card) return this.log[i].rating;
-    return null;
+  /** Whether a card has been graded at all. */
+  seen(card: string): boolean {
+    return this.cards.has(card);
   }
 
-  /** How many of `cards` that have been seen fall due before `until` (the forecast on the done screen). */
-  dueBy(cards: string[], until: number): number {
+  /** How many of `cards` fall due in [from, until) (the forecast on the done screen). */
+  dueBetween(cards: string[], from: number, until: number): number {
     let n = 0;
-    for (const id of cards) { const c = this.cards.get(id); if (c && c.due.getTime() < until) n++; }
+    for (const id of cards) { const t = this.cards.get(id)?.due.getTime(); if (t !== undefined && t >= from && t < until) n++; }
     return n;
   }
 
