@@ -129,13 +129,15 @@ Parentheses ensure that `:`, `*` and `+` are carried out in the order we want. W
 R first built `5:2`, then multiplied each number by 3 and added 10.
 
 :::definition[Order of operations]
-(computed left to right within a level):
+R evaluates operators in this order, from first to last, and left to right within a level:
+
 1. `( )`
 2. `^`
 3. `*` and `/`
 4. `+` and `-`
-The parentheses in `(7:10) + pi` were not required. We used them anyway: they help others read the code quickly, and it is easy to forget one of R's precedence rules. **Recommendation: use parentheses whenever you are unsure (or even when you think you are right!).**
 :::
+
+The parentheses in `(7:10) + pi` were not required. We used them anyway: they help others read the code quickly, and it is easy to forget one of R's precedence rules. **Recommendation: use parentheses whenever you are unsure (or even when you think you are right!).**
 
 ### Integer division and remainder
 
