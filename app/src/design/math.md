@@ -72,6 +72,23 @@ Lint rejects any other name.
   starts a line on its own; the renderer keeps it on the line with the formula.
 - Never a bare `$` in prose (write "75 dollars").
 
+### On a phone
+
+These hold for every page kind (math, theory, programming); check a page at 390 px wide.
+
+- **The top bar is one row** — Study Hub, Program, Explore, and search and theme as round icons.
+  Search opens its own row under the bar. On a single-column page (900 px or less) the bar scrolls away
+  instead of staying on screen.
+- **The parts bar** stays at the top of a unit while it is read and names the current part; a tap
+  opens the outline (`##` parts, `###` sub-parts indented) to jump to. Every `##` and `###` has an
+  id from its text (`## Data frames` → `data-frames`, numbered if repeated), and `?part=<id>` opens
+  the unit at that part, so give each heading a distinct, stable name.
+- **Interactive examples are collapsed** to an "Interactive example · tap to load" row (640 px or
+  less) and load only when opened; their code stays under them.
+- **No formula pushes the page sideways.** Display math breaks, shrinks or scrolls in its own box
+  (above). Long inline math wraps at its relations; inline math that cannot break at all, such as
+  a long subscript, belongs in a display formula instead.
+
 ## Specimens
 
 ### Definition
@@ -208,6 +225,8 @@ print(round(riemann(lambda x: x * x, 0, 2, 6), 4))   # 2.037 (left endpoints)
 
 ## Change log
 
+- 2026-10-07: the phone rules (#190): one-row top bar, the parts bar and `?part=` links,
+  interactive examples collapsed, inline math glued to its punctuation may wrap on a phone.
 - 2026-09-24: a table wider than the column scrolls inside its own box instead of widening the
   page (the MAST 218 smiley table on a phone) (#89).
 - 2026-09-24: `\to`, `\rightarrow`, `\mapsto` are break points too (a circle's "equation → centre, radius"

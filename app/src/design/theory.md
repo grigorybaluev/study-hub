@@ -210,6 +210,7 @@ $$
 
 ## Change log
 
+- 2026-10-07: the phone rules of every page kind are in the math design, "On a phone" (#190).
 - 2026-09-24: a table next to an ```` ```automaton ```` diagram renders as two views — side by
   side on desktop, a Table | Diagram switch on a phone — in machine, example and exercise blocks.
 - 2026-09-24: first version (#111): `pages: theory` inherits the math design and adds `machine`,

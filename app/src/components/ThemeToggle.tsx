@@ -16,7 +16,7 @@ export default function ThemeToggle() {
   }, [theme]);
   return (
     <button className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} title="Switch theme">
-      {theme === "light" ? "\u263D Dark" : "\u2600 Light"}
+      {theme === "light" ? "\u263D" : "\u2600"}<span className="label">{theme === "light" ? " Dark" : " Light"}</span>
     </button>
   );
 }

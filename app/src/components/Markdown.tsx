@@ -3,7 +3,7 @@
 // ```sim fenced blocks as interactive simulations, ```solution-map blocks as stepped solutions beside
 // their method graph (#91), a code block (any language) placed right after a sim as that sim's code,
 // collapsed under it, and an ```output block right after a code block as that code's output (#131).
-import { Children, isValidElement, lazy, type ReactNode } from "react";
+import { Children, isValidElement, lazy, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -145,6 +145,27 @@ function remarkMathPunct() {
   return (tree: Root) => walk(tree);
 }
 
+/** `##` and `###` headings get ids from their text (unique in the page): the parts sheet on a phone and
+ *  `?part=<id>` links to a part go through them (#190). */
+export function slugify(text: string): string {
+  return text.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "part";
+}
+
+function remarkHeadingIds() {
+  const text = (n: Nodes): string => n.type === "text" || n.type === "inlineCode" ? n.value
+    : "children" in n ? (n.children as Nodes[]).map(text).join("") : "";
+  return (tree: Root) => {
+    const seen = new Map<string, number>();
+    for (const n of tree.children) {
+      if (n.type !== "heading" || (n.depth !== 2 && n.depth !== 3)) continue;
+      const base = slugify(text(n));
+      const k = (seen.get(base) ?? 0) + 1;
+      seen.set(base, k);
+      n.data = { ...n.data, hProperties: { ...n.data?.hProperties, id: k === 1 ? base : `${base}-${k}` } };
+    }
+  };
+}
+
 /** Inline math that is taller than a line (fractions, sums, integrals, nested scripts). */
 const TALL = /\\(?:d?frac|tfrac|sum|prod|int|iint|oint|lim|sqrt|binom|displaystyle|begin|overbrace|underbrace)(?![A-Za-z])|[\^_]\{[^}]*[\^_]/;
 
@@ -226,7 +247,7 @@ function textOf(children: ReactNode): string {
 export default function Markdown({ source }: { source: string }) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkBlocks, remarkMathFit, remarkMathDense, remarkMathPunct, remarkViews, remarkSimCode]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkHeadingIds, remarkBlocks, remarkMathFit, remarkMathDense, remarkMathPunct, remarkViews, remarkSimCode]}
       rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim", "automaton", "solution-map", "output"] }]]}
       components={{
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,
@@ -241,7 +262,7 @@ export default function Markdown({ source }: { source: string }) {
             let cfg: Record<string, unknown> | null = null;
             try { cfg = YAML.parse(textOf(children)); } catch { cfg = null; }
             return cfg && typeof cfg.id === "string"
-              ? <LazyBlock fallback={<div className="sim-box"><div className="sim-note">Loading simulation…</div></div>}><Sim cfg={cfg as never} /></LazyBlock>
+              ? <SimSlot cfg={cfg} />
               : <pre><code>{children}</code></pre>;
           }
           return <code className={className} {...rest}>{children}</code>;
@@ -274,5 +295,23 @@ export default function Markdown({ source }: { source: string }) {
     >
       {source}
     </ReactMarkdown>
+  );
+}
+
+/** On a phone a sim is a collapsed row and loads only when opened (#190); elsewhere it loads at once. */
+function SimSlot({ cfg }: { cfg: Record<string, unknown> }) {
+  const [open, setOpen] = useState(() => !matchMedia("(max-width: 640px)").matches);
+  if (!open) {
+    return (
+      <button className="sim-collapsed" onClick={() => setOpen(true)}>
+        <span className="sim-collapsed-label">Interactive example</span>
+        <span className="small muted">tap to load</span>
+      </button>
+    );
+  }
+  return (
+    <LazyBlock fallback={<div className="sim-box"><div className="sim-note">Loading simulation…</div></div>}>
+      <Sim cfg={cfg as never} />
+    </LazyBlock>
   );
 }

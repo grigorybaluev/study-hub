@@ -17,7 +17,11 @@ import Analytics from "./pages/Analytics";
 export default function App() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const full = useLocation().pathname.startsWith("/explore");
+  const { pathname } = useLocation();
+  const full = pathname.startsWith("/explore");
+
+  // a new page opens at its top (a ?part= link then scrolls to its part, #190)
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   useEffect(() => {
     loadData().then(setData).catch((e) => setError(String(e)));

@@ -1,6 +1,8 @@
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Badge, ConceptChip, UnitLink } from "../components/Chips";
 import Markdown from "../components/Markdown";
+import PartsNav from "../components/PartsNav";
 import { edgesOut, href, node, useData, useUnitBody } from "../data/load";
 import type { ConceptNode, CourseNode, UnitNode } from "../data/types";
 
@@ -15,6 +17,14 @@ export default function Unit() {
 function UnitPage({ unit }: { unit: UnitNode }) {
   const d = useData();
   const body = useUnitBody(unit);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  // ?part=<heading id> opens the unit at that part (#190; review cards link here)
+  const part = useSearchParams()[0].get("part");
+  useEffect(() => {
+    if (typeof body !== "string" || !part) return;
+    const raf = requestAnimationFrame(() => document.getElementById(part)?.scrollIntoView({ block: "start" }));
+    return () => cancelAnimationFrame(raf);
+  }, [body, part]);
   const course = node<CourseNode>(d, unit.course)!;
   const siblings = d.unitsOf.get(unit.course) ?? [];
   const i = siblings.findIndex((u) => u.id === unit.id);
@@ -41,7 +51,8 @@ function UnitPage({ unit }: { unit: UnitNode }) {
         {unit.kind === "review" && (
           <p className="muted">Review unit: recaps material introduced elsewhere. See the concepts in the sidebar for where they are taught.</p>
         )}
-        <div className={`unit-body prose${course.pages ? ` pages-${course.pages}` : ""}`}>
+        <PartsNav key={unit.id} root={bodyRef} version={body} title={unit.title} />
+        <div ref={bodyRef} className={`unit-body prose${course.pages ? ` pages-${course.pages}` : ""}`}>
           {body === undefined ? <p className="muted">Loading…</p>
             : body instanceof Error ? <p className="muted">Could not load this unit: {body.message}</p>
             : <Markdown key={unit.id} source={body} />}
