@@ -107,8 +107,9 @@ export function clearedDays(store: Store): number[] {
 }
 
 /** Exam plans (#221) reshape the session at each look: which new cards come first, and how many new cards
- *  the session may still start today (in place of the daily setting). */
-export type Shape = (pool: Card[], engine: Engine, now: number) => { cards: Card[]; newLeft?: number; plans?: ExamPlan[] };
+ *  the session may still start today (in place of the daily setting), and seen cards to review before
+ *  they fall due (an exam's weakest, served after the due and new ones). */
+export type Shape = (pool: Card[], engine: Engine, now: number) => { cards: Card[]; newLeft?: number; plans?: ExamPlan[]; early?: string[] };
 
 /** `select` narrows and orders the cards of the session (a review scope, #197); `shape` applies exam plans;
  *  keep both stable (useMemo). */
@@ -143,7 +144,9 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape): Deck
     // the queue allows newPerDay + extra - newToday new cards: a plan's own count replaces the setting's
     const planned = shaped.newLeft === undefined ? 0 : shaped.newLeft - st.engine.settings.newPerDay + st.engine.today(now).newToday;
     const q = st.engine.queue(ids, now, extraToday + planned);
-    let order = [...q.due, ...q.fresh];
+    const listed = new Set([...q.due, ...q.later.map((l) => l.card)]);
+    const early = (shaped.early ?? []).filter((id) => inPool.has(id) && !listed.has(id));
+    let order = [...q.due, ...q.fresh, ...early];
     if (forced && inPool.has(forced)) order = [forced, ...order.filter((id) => id !== forced)];   // an undone card, if in scope
     let laterAt: number | null = null;
     if (!order.length && q.later.length) {
@@ -157,7 +160,7 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape): Deck
     const tomorrow = nextDay(now);
     return {
       current, next: order.length > 1 ? byId.get(order[1])! : null,
-      left: { due: q.due.length, fresh: q.fresh.length },
+      left: { due: q.due.length + early.length, fresh: q.fresh.length },
       doneToday: today.graded,
       // this scope's grades today (the ring of a scoped session counts these with its cards left)
       doneHere: select ? st.engine.log.slice(-today.graded).filter((r) => inPool.has(r.card)).length : today.graded,

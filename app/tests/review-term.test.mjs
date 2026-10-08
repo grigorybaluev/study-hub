@@ -1,7 +1,8 @@
 // The term (#221) in node: `npm test`. Teaching weeks as dates, taught units, exam plans, the daily deck.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { covers, daysUntil, examDaily, examPlans, introWindow, localDate, taught, weekStart } from "../src/review/term.ts";
+import { covers, daysUntil, examDaily, examPlans, introWindow, localDate, taught, weakAt, weekStart } from "../src/review/term.ts";
+import { Engine } from "../src/review/engine.ts";
 import { parseScope, scopeQuery } from "../src/review/scope.ts";
 
 const FALL = { start: "2026-09-07", breaks: ["2026-10-12"] };
@@ -96,4 +97,17 @@ test("an exam is over once its date has passed, even before the review day turns
 test("an exam scope round-trips through the query string", () => {
   const s = { kind: "exam", course: "concordia/MAST218", index: 0 };
   assert.deepEqual(parseScope(new URLSearchParams(scopeQuery(s).slice(1))), s);
+});
+
+test("an exam's weakest cards: those FSRS expects below 90 % on its morning, weakest first", () => {
+  const e = new Engine(), t0 = at("2026-10-08");
+  e.grade("easy", 4, { now: t0, ms: 1000, hash: "h", device: "d" });                 // Easy: days of stability
+  e.grade("hard", 3, { now: t0, ms: 1000, hash: "h", device: "d" });
+  e.grade("hard", 1, { now: t0 + 60_000, ms: 1000, hash: "h", device: "d" });       // a lapse in learning: weak
+  const exam = localDate("2026-10-19");
+  assert.ok(e.recallAt("hard", exam) < e.recallAt("easy", exam));
+  assert.equal(e.recallAt("new", exam), 0);
+  const weak = weakAt(["easy", "hard", "new"], exam, (id, t) => e.recallAt(id, t), (id) => e.seen(id));
+  assert.equal(weak[0], "hard");                    // weakest first; a new card is not "weak", it is new
+  assert.ok(!weak.includes("new"));
 });
