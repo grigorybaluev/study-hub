@@ -95,7 +95,7 @@ Column $j$ of $AB$ is $A$ times column $j$ of $B$, and $A\mathbf c_j$ is a linea
 columns of $A$ with the entries of $\mathbf c_j$ as coefficients. Likewise row $i$ of $AB$ is a
 combination of the rows of $B$.
 
-:::definition[Column space, row space]
+:::remark[Recall: column space, row space]
 The **column space** $\mathrm{col}(A)$ is the span of the columns of $A$; the **row space**
 $\mathrm{row}(A)$ is the span of its rows.
 :::
@@ -285,7 +285,7 @@ The last sum is row $i$ of $B^{\mathrm T}$ dotted with column $j$ of $A^{\mathrm
 :::
 ::::
 
-:::caution
+:::caution[The transpose of a product reverses the order]
 The order reverses. $A^{\mathrm T} B^{\mathrm T}$ is usually not even defined: for the $2 \times 3$ matrix $A$ and
 $3 \times 2$ matrix $B$ above, $A^{\mathrm T}B^{\mathrm T}$ is $3 \times 3$, while $(AB)^{\mathrm T}$ is $2 \times 2$.
 :::
@@ -484,7 +484,7 @@ matrix: are the rows (equivalently, the columns) independent? Cofactor expansion
 triangular matrices make it easy, and row operations change it in three predictable ways.
 :::
 
-:::equations
+:::equations{#det}
 - *Cofactor expansion along row $i$*: $\det(A) = \sum_{j} a_{i,j}\,(-1)^{i+j}\det(A_{ij})$; along a column, the same with the roles of $i$ and $j$ exchanged.
 - *$2 \times 2$*: $\det\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc$.
 - *Triangular*: $\det(A) = a_{0,0}\,a_{1,1} \cdots a_{n-1,n-1}$.
