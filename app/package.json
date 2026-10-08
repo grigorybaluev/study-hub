@@ -28,8 +28,11 @@
     "remark-directive": "^3.0.1",
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
     "sql.js": "^1.14.2",
     "ts-fsrs": "^5.4.2",
+    "unified": "^11.0.5",
     "yaml": "^2.6.0"
   },
   "devDependencies": {

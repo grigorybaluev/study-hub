@@ -1,10 +1,11 @@
 // Export to Anki (#198) in node: `npm test`. The full import into Anki itself is checked by hand with
 // Anki's python library (see the PR); here, the .apkg's shape and contents.
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { test } from "node:test";
 import initSqlJs from "sql.js";
 import { Engine } from "../src/review/engine.ts";
-import { buildApkg, fields, stableId, toHtml } from "../src/review/anki.ts";
+import { buildApkg, fieldChecksum, fields, sha1, stableId, stripHtml, toHtml } from "../src/review/anki.ts";
 
 const T0 = new Date(2026, 9, 7, 9).getTime();
 const card = (id, kind, front, back, extra = {}) => ({ id: `concordia/STAT280/${kind}/${id}`, kind, front, back, course: "concordia/STAT280", unit: "concordia/STAT280/u", order: 1, part: null, part_title: "Part", concepts: ["c"], hash: "h", ...extra });
@@ -25,7 +26,18 @@ test("markdown becomes HTML with MathJax delimiters Anki renders", () => {
   assert.match(toHtml("If $x < 0$ then"), /^<p>If \\\(x (&lt;|&#x3C;) 0\\\) then<\/p>$/);   // < escaped; MathJax reads the text
   assert.match(toHtml("$$\nE = mc^2\n$$"), /\\\[E = mc\^2\\\]/);
   assert.match(toHtml("```r\nx <- 1\n```"), /<pre><code class="language-r">x (&lt;|&#x3C;)- 1\n<\/code><\/pre>/);
-  assert.match(toHtml(":::note[Aside]\nText\n:::"), /<div class="blk blk-note">/);
+  assert.match(toHtml(":::note[Aside]\nText\n:::"), /<div class="blk blk-note"><p class="blk-head"><strong>Note<\/strong> <em>Aside<\/em><\/p>/);
+  assert.match(toHtml("$$E = mc^2$$"), /\\\[E = mc\^2\\\]/);                       // a one-line $$ is a display
+  assert.equal(toHtml("At 10:30:45 sharp"), "<p>At 10:30:45 sharp</p>");             // not a directive
+  assert.equal(toHtml("::not-a-block"), "<p>::not-a-block</p>");
+});
+
+test("SHA-1, the sort field and the checksum as Anki computes them", () => {
+  for (const s of ["", "abc", "x".repeat(55), "x".repeat(56), "x".repeat(64), "é ∑ 漢".repeat(40)]) {
+    assert.equal(Buffer.from(sha1(new TextEncoder().encode(s))).toString("hex"), createHash("sha1").update(s).digest("hex"));
+  }
+  assert.equal(stripHtml("<p>If \\(x &lt; 0\\) &amp; <b>y</b>&#x3C;&#60;</p>"), "If \\(x < 0\\) & y<<");
+  assert.equal(fieldChecksum("<p>A</p>"), parseInt(createHash("sha1").update("A").digest("hex").slice(0, 8), 16));
 });
 
 test("a method quiz becomes its options and its worked steps", () => {
@@ -49,12 +61,16 @@ test("the .apkg holds the notes, cards with their schedule, and every review", a
   e.grade(cards[1].id, 1, { now: T0 + 1000, ms: 90_000, hash: "h", device: "d" });
   e.grade("concordia/STAT280/definition/gone", 3, { now: T0 + 2000, ms: 1, hash: "h", device: "d" });   // a card no longer exported
   const SQL = await initSqlJs();
-  const files = unzip(await buildApkg(SQL, { cards, engine: e, now, courseCode: () => "STAT280", where: () => "STAT280 › u" }));
+  const { bytes, reviews } = buildApkg(SQL, { cards, engine: e, now, courseCode: () => "STAT280", where: () => "STAT280 › u" });
+  assert.equal(reviews, 5);
+  const files = unzip(bytes);
   assert.deepEqual(Object.keys(files).sort(), ["collection.anki2", "media"]);
   const db = new SQL.Database(files["collection.anki2"]);
   const one = (sql) => db.exec(sql)[0].values;
   assert.equal(one("select count(*) from notes")[0][0], 3);
   assert.deepEqual(one("select type, queue from cards order by id").map(String).sort(), ["0,0", "1,1", "2,2"]);   // new, learning, review
+  assert.ok(one("select left from cards where type = 1")[0][0] > 0);                                           // learning steps to go
+  assert.equal(JSON.parse(one("select conf from col")[0][0]).schedVer, 2);
   assert.equal(one("select count(*) from revlog")[0][0], 5);                                                    // the gone card's grade left out
   assert.equal(one("select max(time) from revlog")[0][0], 60_000);                                              // time capped as Anki does
   assert.deepEqual(one("select ease from revlog order by id").map((r) => r[0]), [3, 1, 3, 3, 3]);
