@@ -5,6 +5,7 @@ exit 0. The rules are numbered to match the design discussion; see CLAUDE.md.
 """
 from __future__ import annotations
 
+import datetime
 import re
 import sys
 from collections import Counter
@@ -137,6 +138,46 @@ def lint_concepts(c: Content, rep: Report, roadmap_targets: set[str] = frozenset
             rep.warn(doc.path, "empty definition")
 
 
+# --------------------------------------------------------------------------- term calendars (#221)
+def lint_terms(path, terms, rep: Report):
+    """university.yaml `terms`: name -> {start: a Monday, breaks: [Mondays of weeks with no teaching]}."""
+    if not isinstance(terms, dict):
+        rep.error(path, "terms must map a term name to {start, breaks}")
+        return
+    for name, t in terms.items():
+        if not SLUG_RE.match(str(name)) or not isinstance(t, dict) or not isinstance(t.get("start"), datetime.date):
+            rep.error(path, f"terms: {name!r} needs a slug name and a start date")
+            continue
+        for d in [t["start"], *(t.get("breaks") or [])]:
+            if not isinstance(d, datetime.date) or d.weekday() != 0:
+                rep.error(path, f"terms: {name}: {d} is not a Monday (weeks start on Mondays)")
+        if any(b <= t["start"] for b in t.get("breaks") or [] if isinstance(b, datetime.date)):
+            rep.error(path, f"terms: {name}: a break before the first week")
+
+
+def lint_course_term(doc: Doc, terms: dict, rep: Report):
+    """A course's `term` names a calendar of its university; each exam has a name, a date in the term and
+    the teaching weeks it covers."""
+    term, exams = doc.meta.get("term"), doc.meta.get("exams")
+    if term is not None and term not in terms:
+        rep.error(doc.path, f"term: unknown term {term!r} (university.yaml terms)")
+    if exams is None:
+        return
+    if term is None:
+        rep.error(doc.path, "exams need a term, to count their weeks in")
+    if not isinstance(exams, list):
+        rep.error(doc.path, "exams must be a list of {name, date, weeks: [from, to]}")
+        return
+    start = (terms.get(term) or {}).get("start")
+    for e in exams:
+        ok = isinstance(e, dict) and isinstance(e.get("name"), str) and isinstance(e.get("date"), datetime.date)
+        w = e.get("weeks") if isinstance(e, dict) else None
+        if not ok or not (isinstance(w, list) and len(w) == 2 and all(isinstance(x, int) for x in w) and 1 <= w[0] <= w[1]):
+            rep.error(doc.path, f"exams: {e!r} needs name, date and weeks: [from, to]")
+        elif isinstance(start, datetime.date) and e["date"] < start:
+            rep.error(doc.path, f"exams: {e['name']} is dated before the term starts")
+
+
 # --------------------------------------------------------------------------- references (4-11)
 def lint_university(c: Content, uni, rep: Report):
     courses = uni.courses
@@ -150,6 +191,7 @@ def lint_university(c: Content, uni, rep: Report):
         check_enum(doc, "pages", PAGE_KINDS, rep)
         if "cards" in doc.meta and not isinstance(doc.meta["cards"], bool):
             rep.error(doc.path, "cards must be true or false")
+        lint_course_term(doc, uni.meta.get("terms") or {}, rep)
         for key in ("prereqs", "coreqs"):
             groups = prereq_groups(doc.meta.get(key)) if key == "prereqs" else [[x] for x in doc.meta.get(key) or []]
             for group in groups:
@@ -159,6 +201,8 @@ def lint_university(c: Content, uni, rep: Report):
                     elif target == code:
                         rep.error(doc.path, f"{key}: course refers to itself")
 
+    if "terms" in uni.meta:
+        lint_terms(uni.path / "university.yaml", uni.meta["terms"], rep)
     for code in uni.meta.get("assumed_prior") or []:
         if code not in courses:
             rep.error(uni.path / "university.yaml", f"assumed_prior: unknown course {code!r}")

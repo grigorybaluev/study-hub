@@ -5,6 +5,9 @@ credits: 3
 kind: core
 pages: math
 cards: true
+term: fall-2026
+exams:
+  - {name: Midterm, date: 2026-10-28, weeks: [1, 6]}
 prereqs: [[MATH204], [MATH205]]
 coreqs: [MAST218]
 requirements: []

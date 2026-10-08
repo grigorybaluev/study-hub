@@ -5,6 +5,9 @@ credits: 3
 kind: core
 pages: theory
 cards: true
+term: fall-2026
+exams:
+  - {name: Midterm, date: 2026-10-25, weeks: [1, 6]}   # Sunday 10:30, all sections (course outline)
 prereqs: [[COMP232, COEN231], [COMP249, COEN244]]
 coreqs: []
 requirements: []

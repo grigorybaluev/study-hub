@@ -55,9 +55,10 @@ OPTIONAL = {
     # a knowledge edge only, never counted as concept debt
     "concept": {"aliases", "generalizes", "part_of", "requires", "maps_to", "short", "wikipedia", "wikidata"},
     "unit": {"kind", "review", "weeks", "introduces", "requires", "reinforces"},
-    "course": {"prereqs", "coreqs", "requirements", "source", "pages", "cards"},   # cards: true -> review cards (#191)
+    "course": {"prereqs", "coreqs", "requirements", "source", "pages", "cards",   # cards: true -> review cards (#191)
+               "term", "exams"},   # the offering its units' weeks count in, and its exams (#221)
     "program": {"source"},
-    "university": {"faculty", "department", "assumed_prior", "sources"},
+    "university": {"faculty", "department", "assumed_prior", "sources", "terms"},   # terms: calendars (#221)
 }
 
 
