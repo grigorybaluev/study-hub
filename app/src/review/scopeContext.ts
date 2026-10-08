@@ -2,8 +2,9 @@
 // area's concepts (mapped to the area or to one of its skills), how many units of a course require a
 // concept (exam prep's order), and a scope's name.
 import { defaultVariantId, edgesIn, edgesOut, node, type Data } from "../data/load";
-import type { ConceptNode, CourseNode, RoadmapSkillNode, UnitNode } from "../data/types";
+import type { Card, ConceptNode, CourseNode, RoadmapSkillNode, UniversityNode, UnitNode } from "../data/types";
 import type { Scope, ScopeContext, Weight } from "./scope";
+import { covers, localDate, taught, type Calendar, type Exam } from "./term";
 
 export interface Scopes extends ScopeContext {
   /** units of these courses that require a concept (hard), later than a given unit order */
@@ -13,6 +14,12 @@ export interface Scopes extends ScopeContext {
   courses(s: Scope): string[];
   terms: { index: number; label: string; courses: string[] }[];
   areas: RoadmapSkillNode[];
+  /** every exam of every course with a term (#221) */
+  exams: Exam[];
+  /** a unit's teaching weeks */
+  unitWeeks(unit: string): number[];
+  /** whether a card's unit has been taught by `now` (always, without a calendar) */
+  isTaught(card: Card, now: number): boolean;
 }
 
 export function scopes(d: Data): Scopes {
@@ -40,9 +47,22 @@ export function scopes(d: Data): Scopes {
     if (!requiresCache.has(index)) requiresCache.set(index, new Set(hardRequires(termCourses(index)).map((r) => r.concept)));
     return requiresCache.get(index)!;
   };
+  // the term calendar (#221): a course's `term` in its university's `terms`
+  const calendarOf = (course: string): Calendar | null => {
+    const c = node<CourseNode>(d, course);
+    return (c?.term && node<UniversityNode>(d, c.university)?.terms?.[c.term]) || null;
+  };
+  const unitWeeks = (unit: string) => node<UnitNode>(d, unit)?.weeks ?? [];
+  const exams: Exam[] = d.courses.filter((c) => c.exams?.length)
+    .flatMap((c) => c.exams.map((e, index) => ({ course: c.id, index, name: e.name, date: localDate(e.date), weeks: e.weeks })));
+  const examCovers = (course: string, index: number, unit: string) => {
+    const e = exams.find((x) => x.course === course && x.index === index);
+    return !!e && covers(e, unitWeeks(unit));
+  };
   return {
-    termCourses, areaConcepts, termRequires, earlierCourses, terms, areas,
-    courses: (s) => s.kind === "course" ? [s.id] : s.kind === "term" ? termCourses(s.index) : [],
+    termCourses, areaConcepts, termRequires, earlierCourses, terms, areas, exams, unitWeeks, examCovers,
+    isTaught: (card, now) => !card.unit || taught(calendarOf(card.course), unitWeeks(card.unit), now),
+    courses: (s) => s.kind === "course" ? [s.id] : s.kind === "term" ? termCourses(s.index) : s.kind === "exam" ? [s.course] : [],
     weight(courses) {
       const orders = new Map<string, number[]>();             // concept -> orders of the units requiring it
       for (const r of hardRequires(courses)) orders.set(r.concept, [...(orders.get(r.concept) ?? []), r.order]);
@@ -57,6 +77,10 @@ export function scopes(d: Data): Scopes {
         case "concept": return node<ConceptNode>(d, s.id)?.title ?? s.id;
         case "area": return `Interview prep · ${node<RoadmapSkillNode>(d, s.id)?.title ?? s.id}`;
         case "before": return `Before ${terms.find((t) => t.index === s.index)?.label ?? `term ${s.index + 1}`}`;
+        case "exam": {
+          const c = node<CourseNode>(d, s.course), e = c?.exams?.[s.index];
+          return e ? `${c!.code} · ${e.name} · ${new Date(localDate(e.date)).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })}` : s.course;
+        }
       }
     },
   };

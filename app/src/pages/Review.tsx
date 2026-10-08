@@ -10,7 +10,8 @@ import SyncPanel from "../review/SyncPanel";
 import { dayStart, type Rating } from "../review/engine";
 import { haptic, motionOn, tick } from "../review/feedback";
 import { TIER_NAME, quarterCrossed, type GradeReward } from "../review/rewards";
-import { useDeck, type Deck } from "../review/useDeck";
+import { useDeck, type Deck, type Shape } from "../review/useDeck";
+import { examDaily, examPlans, upcoming, type ExamPlan } from "../review/term";
 import { ALL, inScope, parseScope, scopeCards, scopeQuery, type Scope } from "../review/scope";
 import { scopes, type Scopes } from "../review/scopeContext";
 import { useSheet } from "../components/useSheet";
@@ -41,7 +42,19 @@ export default function Review() {
     const weight = scope.kind === "course" || scope.kind === "term" ? sc.weight(sc.courses(scope)) : undefined;
     return (cards: Card[]) => scopeCards(cards, scope, sc, weight);
   }, [key, sc]);   // the scope is the query string: recomputed when it changes
-  const deck = useDeck(select);
+  // exam plans (#221): the daily deck and an exam's deck bring each exam's new cards in early
+  const shape = useMemo<Shape | undefined>(() => {
+    if (scope.kind !== "all" && scope.kind !== "exam") return undefined;
+    const exams = scope.kind === "exam" ? sc.exams.filter((e) => e.course === scope.course && e.index === scope.index) : sc.exams;
+    return (pool, engine, now) => {
+      const plans = examPlans({ cards: pool, exams, unitWeeks: sc.unitWeeks, firstSeen: (id) => engine.firstSeen(id), now });
+      const r = examDaily(pool, plans, (c) => sc.isTaught(c, now), (id) => engine.seen(id));
+      // an exam's deck: what its plan still needs today; the daily deck: that or the setting, whichever is more
+      const setting = Math.max(0, engine.settings.newPerDay - engine.today(now).newToday);
+      return { cards: r.cards, plans, newLeft: scope.kind === "exam" ? r.newLeft : Math.max(setting, r.newLeft) };
+    };
+  }, [key, sc]);
+  const deck = useDeck(select, shape);
   const [picking, setPicking] = useState(false);
   const closePicker = useCallback(() => setPicking(false), []);
   const [flipped, setFlipped] = useState(false);
@@ -138,6 +151,7 @@ export default function Review() {
         <button className="deck-scope" onClick={() => setPicking(true)} disabled={!!exit} title="Choose what to review">{sc.label(scope)} <span aria-hidden="true">▾</span></button>
         {scope.kind !== "all" && <Link className="small" to="/review" onClick={(e) => { if (exit) e.preventDefault(); }}>all cards</Link>}
       </div>
+      {scope.kind === "all" && deck.plans.length > 0 && <ExamStrip plans={deck.plans} />}
       {picking && <ScopePicker deck={deck} sc={sc} current={scope} onClose={closePicker} />}
       {deck.sync?.remind && (
         <p className="deck-warn">{deck.sync.since} reviews on this device have not been sent to your other device for over 3 days. <button className="linkish" onClick={() => setSyncing(true)}>Sync now</button></p>
@@ -234,6 +248,7 @@ function ScopePicker({ deck, sc, current, onClose }: { deck: Deck; sc: Scopes; c
   const go = (s: Scope) => { onClose(); nav(`/review${scopeQuery(s)}`, { replace: true }); };
   useSheet(true, onClose);
   const courseIds = [...new Set(deck.cards.map((c) => c.course))].filter((id) => d.courses.some((x) => x.id === id));
+  const ahead = upcoming(sc.exams, Date.now());
   const row = (s: Scope, label: string, n = count(s)) => n > 0 && (
     <li key={scopeQuery(s) || "all"}><button className={scopeQuery(s) === scopeQuery(current) ? "current" : ""} onClick={() => go(s)}>
       <span>{label}</span><span className="small muted">{n} card{n === 1 ? "" : "s"}</span>
@@ -246,6 +261,8 @@ function ScopePicker({ deck, sc, current, onClose }: { deck: Deck; sc: Scopes; c
         <div className="sheet-head"><span>What to review</span><button onClick={onClose} aria-label="Close">✕</button></div>
         <div className="scope-body">
           <ul>{row(ALL, "Everything due, every course (daily review)")}</ul>
+          {ahead.length > 0 && <><h4>Exams ahead</h4>
+            <ul>{ahead.map((e) => row({ kind: "exam", course: e.course, index: e.index }, sc.label({ kind: "exam", course: e.course, index: e.index })))}</ul></>}
           <h4>Exam prep: a course</h4>
           <ul>{courseIds.map((id) => row({ kind: "course", id }, sc.label({ kind: "course", id })))}</ul>
           <h4>Exam prep: a term</h4>
@@ -256,6 +273,29 @@ function ScopePicker({ deck, sc, current, onClose }: { deck: Deck; sc: Scopes; c
         </div>
       </div>
     </>
+  );
+}
+
+/** The exams ahead (#221): days left, how many of each exam's cards are started, and today's new ones;
+ *  a tap opens that exam's deck. */
+function ExamStrip({ plans }: { plans: ExamPlan[] }) {
+  const d = useData();
+  return (
+    <div className="exam-strip" role="list">
+      {plans.map((p) => {
+        const started = p.cards.length - p.fresh.length + p.startedToday, left = Math.max(0, p.perDay - p.startedToday);
+        const code = node<CourseNode>(d, p.course)?.code ?? p.course;
+        return (
+          <Link key={`${p.course}:${p.index}`} role="listitem" className={`exam-pill${p.days <= 3 ? " soon" : ""}`}
+            to={`/review${scopeQuery({ kind: "exam", course: p.course, index: p.index })}`}
+            title={`${p.name}: ${started} of ${p.cards.length} cards started; ${left} new today`}>
+            <span className="exam-pill-head"><b>{code}</b> {p.days === 0 ? "today" : `${p.days}d`}</span>
+            <span className="exam-pill-sub">{left ? `${left} new today` : started >= p.cards.length ? "all started" : "done today"}</span>
+            <span className="exam-pill-bar" style={{ ["--p" as string]: p.cards.length ? started / p.cards.length : 1 }} />
+          </Link>
+        );
+      })}
+    </div>
   );
 }
 

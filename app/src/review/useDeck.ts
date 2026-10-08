@@ -9,6 +9,7 @@ import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTa
 import { streak, type Streak } from "./days";
 import { prefs } from "./feedback";
 import { openStore, type Store } from "./storage";
+import type { ExamPlan } from "./term";
 import { makeFile, missing, type ProgressFile } from "./transfer";
 
 const LEARN_AHEAD = 20 * 60_000;
@@ -42,6 +43,8 @@ export interface Deck {
   /** grades today on this scope's cards (doneToday when the scope is everything) */
   doneHere: number;
   leftAll: number;
+  /** the exam plans behind this session (#221), nearest first */
+  plans: ExamPlan[];
   /** when each grade would bring the current card back */
   preview: Record<Rating, number> | null;
   /** the current card's text changed since it was last graded */
@@ -103,8 +106,13 @@ export function clearedDays(store: Store): number[] {
   return Array.isArray(store.meta.cleared) ? (store.meta.cleared as number[]) : [];
 }
 
-/** `select` narrows and orders the cards of the session (a review scope, #197); keep it stable (useMemo). */
-export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
+/** Exam plans (#221) reshape the session at each look: which new cards come first, and how many new cards
+ *  the session may still start today (in place of the daily setting). */
+export type Shape = (pool: Card[], engine: Engine, now: number) => { cards: Card[]; newLeft?: number; plans?: ExamPlan[] };
+
+/** `select` narrows and orders the cards of the session (a review scope, #197); `shape` applies exam plans;
+ *  keep both stable (useMemo). */
+export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape): Deck {
   const { st, error } = useReviewData();
   const [tick, setTick] = useState(0);
   const [forced, setForced] = useState<string | null>(null);     // an undone card comes back first
@@ -126,11 +134,15 @@ export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
     if (!st) return null;
     const now = Date.now();
     const byId = new Map(st.cards.map((c) => [c.id, c]));
-    const pool = select ? select(st.cards) : st.cards;
+    const selected = select ? select(st.cards) : st.cards;
+    const shaped: ReturnType<Shape> = shape ? shape(selected, st.engine, now) : { cards: selected };
+    const pool = shaped.cards;
     const ids = pool.map((c) => c.id);
     const inPool = new Set(ids);
     const extraToday = extra.day === dayStart(now) ? extra.n : 0;
-    const q = st.engine.queue(ids, now, extraToday);
+    // the queue allows newPerDay + extra - newToday new cards: a plan's own count replaces the setting's
+    const planned = shaped.newLeft === undefined ? 0 : shaped.newLeft - st.engine.settings.newPerDay + st.engine.today(now).newToday;
+    const q = st.engine.queue(ids, now, extraToday + planned);
     let order = [...q.due, ...q.fresh];
     if (forced && inPool.has(forced)) order = [forced, ...order.filter((id) => id !== forced)];   // an undone card, if in scope
     let laterAt: number | null = null;
@@ -161,9 +173,10 @@ export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
       // only the done screen shows it: no walk over the whole log on every swipe
       streak: current ? null : streak(st.engine.log, clearedDays(st.store), now),
       learning: q.later.length,
+      plans: shaped.plans ?? [],
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
-  }, [st, tick, forced, extra, select]);
+  }, [st, tick, forced, extra, select, shape]);
 
   // the clock that starts when a card is shown
   useEffect(() => { shownAt.current = Date.now(); }, [tick]);
@@ -260,7 +273,7 @@ export function useDeck(select?: (cards: Card[]) => Card[]): Deck {
 }
 
 const EMPTY: Deck = {
-  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, leftAll: 0,
+  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, leftAll: 0, plans: [],
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
   day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
   streak: null, learning: 0, markCleared: () => {}, cards: [],

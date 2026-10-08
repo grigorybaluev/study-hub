@@ -10,11 +10,14 @@ export type Scope =
   | { kind: "unit"; id: string }            // concordia/STAT280/vectors
   | { kind: "concept"; id: string }
   | { kind: "area"; id: string }            // a roadmap area, study-hub/ds-core/<area>
-  | { kind: "before"; index: number };      // what a term's units require: review before it starts
+  | { kind: "before"; index: number }       // what a term's units require: review before it starts
+  | { kind: "exam"; course: string; index: number };   // an exam of a course (#221): the weeks it covers
 
 export const ALL: Scope = { kind: "all" };
 
 export function parseScope(q: URLSearchParams): Scope {
+  const exam = q.get("exam")?.match(/^(.+):(\d+)$/);
+  if (exam) return { kind: "exam", course: exam[1], index: Number(exam[2]) };
   const course = q.get("course"), term = q.get("term"), unit = q.get("unit"), concept = q.get("concept"), area = q.get("area"), before = q.get("before");
   if (course) return { kind: "course", id: course };
   if (term !== null && /^\d+$/.test(term)) return { kind: "term", index: Number(term) };
@@ -34,6 +37,7 @@ export function scopeQuery(s: Scope): string {
     case "concept": return `?concept=${encodeURIComponent(s.id)}`;
     case "area": return `?area=${encodeURIComponent(s.id)}`;
     case "before": return `?before=${s.index}`;
+    case "exam": return `?exam=${encodeURIComponent(`${s.course}:${s.index}`)}`;
     default: return "";
   }
 }
@@ -46,6 +50,8 @@ export interface ScopeContext {
   termRequires(index: number): Set<string>;
   /** courses of the terms before a term: before it, review only what was already taught */
   earlierCourses(index: number): string[];
+  /** whether an exam covers a unit (#221) */
+  examCovers(course: string, index: number, unit: string): boolean;
 }
 
 export function inScope(card: Card, s: Scope, ctx: ScopeContext): boolean {
@@ -61,6 +67,7 @@ export function inScope(card: Card, s: Scope, ctx: ScopeContext): boolean {
       const k = ctx.termRequires(s.index);
       return card.concepts.some((c) => k.has(c));
     }
+    case "exam": return card.course === s.course && !!card.unit && ctx.examCovers(s.course, s.index, card.unit);
   }
 }
 

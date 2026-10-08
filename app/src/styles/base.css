@@ -751,3 +751,16 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .mastery-ring { vertical-align: -3px; }
 .mastery-ring .ring-track, .mastery-ring .ring-fill { stroke-width: 3; }
 .review-before { display: inline-block; margin: -0.2rem 0 0.4rem; font-weight: 600; }
+
+/* the exams ahead (#221): one pill per exam above the daily deck, scrolling sideways on a phone */
+.exam-strip { display: flex; gap: 0.45rem; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.exam-strip::-webkit-scrollbar { display: none; }
+.exam-pill {
+  position: relative; flex: none; display: flex; flex-direction: column; gap: 0.05rem; padding: 0.35rem 0.7rem 0.45rem;
+  border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg-elev); color: var(--fg); text-decoration: none; overflow: hidden;
+}
+.exam-pill.soon { border-color: color-mix(in srgb, var(--bad) 50%, var(--line)); }
+.exam-pill-head { font-size: 0.85rem; white-space: nowrap; }
+.exam-pill-head b { font-weight: 750; }
+.exam-pill-sub { font-size: 0.72rem; color: var(--fg-muted); white-space: nowrap; }
+.exam-pill-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--p) * 100%); background: var(--accent); }

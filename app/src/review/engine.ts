@@ -253,6 +253,11 @@ export class Engine {
     return this.log.map((r) => { const [ivl, lastIvl] = this.ivls.get(r.id) ?? [0, 0]; return { review: r, ivl, lastIvl }; });
   }
 
+  /** When a card was first graded, ms; undefined for a new card (exam plans, #221). */
+  firstSeen(card: string): number | undefined {
+    return this.first.get(card);
+  }
+
   /** Whether a card has been graded at all. */
   seen(card: string): boolean {
     return this.cards.has(card);
