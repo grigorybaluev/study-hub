@@ -79,7 +79,7 @@ $$
 :::
 ::::
 
-:::caution
+:::caution[The expected value may not exist]
 The expected value can fail to exist. For $f(x) = 1/x^2$ on $x > 1$ (a valid density), the
 integral $\int_1^\infty x \cdot x^{-2}\,dx = \int_1^\infty \frac{dx}{x}$ diverges: there is no
 mean. Heavy tails, where large values are too likely, are the reason.
@@ -189,7 +189,7 @@ the expected squared distance from the mean. Its square root $\sigma$ is the **s
 deviation**, measured in the same units as $X$.
 :::
 
-::::theorem[Computing formula]
+::::theorem[Computing formula for the variance]
 $$
 \sigma^2 = \mu'_2 - \mu^2 = E[X^2] - (E[X])^2 .
 $$
@@ -356,7 +356,7 @@ mu, sd = faces.mean(), faces.std()       # 3.5 and sqrt(35/12)
 print('die, k = 1.4:', np.mean(np.abs(faces - mu) >= 1.4 * sd))   # 1/3: the faces 1 and 6
 ```
 
-:::caution
+:::caution[When Chebyshev's bound is useful]
 Chebyshev's bound says nothing for $k \le 1$ (the bound is $\ge 1$), and for a known distribution
 it is usually far from the truth. Use it when only $\mu$ and $\sigma$ are known; when the
 distribution is known, compute the probability directly.

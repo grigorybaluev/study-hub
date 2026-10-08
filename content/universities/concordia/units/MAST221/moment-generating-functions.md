@@ -154,7 +154,7 @@ for name, M in mgfs.items():
 print(sp.series(1 / (1 - t), t, 0, 5))      # 1 + t + t**2 + t**3 + t**4: mu'_r = r!
 ```
 
-:::caution
+:::caution[Reading moments off an mgf: multiply by $r!$]
 The coefficient of $t^r$ in $M_X(t)$ is $\mu'_r / r!$, not $\mu'_r$: read off $E[X^3]$ from the
 $t^3$ coefficient and multiply by $3! = 6$. And the moments are about the origin; subtract
 $\mu^2$ to get the variance.
@@ -226,7 +226,7 @@ same as $2E[X] + 1$.
 :::
 ::::
 
-:::equations
+:::equations{#mgf}
 - *Definition*: $M_X(t) = E[e^{tX}]$, with $M_X(0) = 1$.
 - *Moments*: $M_X(t) = \sum_r \mu'_r\,t^r/r!$ and $\mu'_r = M_X^{(r)}(0)$.
 - *Mean and variance*: $\mu = M'_X(0)$ and $\sigma^2 = M''_X(0) - M'_X(0)^2$.
@@ -234,7 +234,7 @@ same as $2E[X] + 1$.
 - *Independent sum*: $M_{X + Y}(t) = M_X(t)\,M_Y(t)$.
 :::
 
-:::caution
+:::caution[Not every distribution has an mgf]
 Not every distribution has an mgf. For $f(x) = 1/x^2$ on $x > 1$, $E[e^{tX}] = \infty$ for every
 $t > 0$ — it has no mean either. The uniqueness theorem needs the mgf to exist on an interval
 around $0$, not just at $t = 0$.

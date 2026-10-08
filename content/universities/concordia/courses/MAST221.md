@@ -4,6 +4,7 @@ title: Applied Probability
 credits: 3
 kind: core
 pages: math
+cards: true
 prereqs: [[MATH204], [MATH205]]
 coreqs: [MAST218]
 requirements: []

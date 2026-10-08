@@ -209,7 +209,7 @@ $f_Y(y) = y + \frac12$.
 :::
 ::::
 
-:::caution
+:::caution[The marginals do not determine the joint distribution]
 The marginals do not determine the joint distribution. The table of two fair coins tossed
 separately and the table of one coin whose result is copied twice have the same marginals
 ($\frac12, \frac12$ each) but different joint pmfs. Going from joint to marginal loses information.

@@ -118,7 +118,7 @@ $$
 :::
 ::::
 
-:::caution
+:::caution[A density is not a probability]
 $f(x)$ is **not** a probability, and it can be larger than 1: the uniform density on
 $(0, \frac12)$ is $f(x) = 2$ there. Only areas under $f$ are probabilities. Near a point,
 $P(x < X \le x + \Delta x) \approx f(x)\,\Delta x$: the density is probability *per unit length*.
@@ -210,7 +210,7 @@ the mass piles up near $x = 1$. The density's peak grows with $n$ while the tota
 :::
 ::::
 
-:::equations
+:::equations{#continuous}
 - *Density*: $P(a < X \le b) = \int_a^b f(x)\,dx$, with $f \ge 0$ and $\int_{-\infty}^{\infty} f = 1$.
 - *Points*: $P(X = a) = 0$, so the endpoints of an interval do not matter.
 - *Distribution function*: $F(x) = \int_{-\infty}^{x} f(t)\,dt$ and $f = F'$.

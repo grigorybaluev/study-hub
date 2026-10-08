@@ -49,7 +49,7 @@ The product $(x - \mu_X)(y - \mu_Y)$ is positive when both values are above thei
 below, and negative when one is above and the other below. So $\sigma_{XY} > 0$ when large values
 of $X$ tend to come with large values of $Y$, and $\sigma_{XY} < 0$ when they come with small ones.
 
-::::theorem[Computing formula]
+::::theorem[Computing formula for the covariance]
 $$
 \sigma_{XY} = E[XY] - \mu_X\,\mu_Y .
 $$
@@ -127,7 +127,7 @@ $$
 :::
 ::::
 
-:::caution
+:::caution[Zero covariance does not mean independence]
 $\sigma_{XY} = 0$ does **not** imply independence: covariance detects only a *linear* tendency.
 Independence implies zero covariance, not the other way round.
 :::
@@ -269,7 +269,7 @@ x, y = pts.T
 print('cov of the plus sign:', np.mean(x * y) - x.mean() * y.mean())       # 0.0
 ```
 
-:::caution
+:::caution[The variance of a difference adds]
 $\operatorname{Var}(X - Y)$ is $\operatorname{Var}(X) + \operatorname{Var}(Y) - 2\sigma_{XY}$, with a plus
 between the variances: subtracting a random quantity adds uncertainty, it never cancels it.
 :::
