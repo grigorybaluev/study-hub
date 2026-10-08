@@ -128,3 +128,11 @@ export function examDaily(pool: Card[], plans: ExamPlan[], isTaught: (c: Card) =
 export function upcoming<E extends { date: number }>(exams: E[], now: number): E[] {
   return exams.filter((e) => e.date >= today(now)).sort((a, b) => a.date - b.date);
 }
+
+/** An exam's cards worth reviewing before they fall due: seen cards whose recall on the exam's morning
+ *  FSRS predicts below `target`, weakest first. An exam's deck serves them after the due and new ones. */
+export function weakAt(cards: string[], exam: number, recallAt: (id: string, at: number) => number, seen: (id: string) => boolean, target = 0.9): string[] {
+  const morning = exam + 9 * 3_600_000;
+  return cards.filter(seen).map((id) => ({ id, r: recallAt(id, morning) })).filter((x) => x.r < target)
+    .sort((a, b) => a.r - b.r).map((x) => x.id);
+}

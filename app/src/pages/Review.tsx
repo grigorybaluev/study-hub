@@ -11,7 +11,7 @@ import { dayStart, type Rating } from "../review/engine";
 import { haptic, motionOn, tick } from "../review/feedback";
 import { TIER_NAME, quarterCrossed, type GradeReward } from "../review/rewards";
 import { useDeck, type Deck, type Shape } from "../review/useDeck";
-import { examDaily, examPlans, upcoming, type ExamPlan } from "../review/term";
+import { examDaily, examPlans, upcoming, weakAt, type ExamPlan } from "../review/term";
 import { ALL, inScope, parseScope, scopeCards, scopeQuery, type Scope } from "../review/scope";
 import { scopes, type Scopes } from "../review/scopeContext";
 import { useSheet } from "../components/useSheet";
@@ -51,7 +51,10 @@ export default function Review() {
       const r = examDaily(pool, plans, (c) => sc.isTaught(c, now), (id) => engine.seen(id));
       // an exam's deck: what its plan still needs today; the daily deck: that or the setting, whichever is more
       const setting = Math.max(0, engine.settings.newPerDay - engine.today(now).newToday);
-      return { cards: r.cards, plans, newLeft: scope.kind === "exam" ? r.newLeft : Math.max(setting, r.newLeft) };
+      if (scope.kind !== "exam") return { cards: r.cards, plans, newLeft: Math.max(setting, r.newLeft) };
+      // an exam's deck also serves, weakest first, the cards FSRS expects to be forgotten by its morning
+      const early = plans[0] ? weakAt(plans[0].cards, plans[0].date, (id, t) => engine.recallAt(id, t), (id) => engine.seen(id)) : [];
+      return { cards: r.cards, plans, newLeft: r.newLeft, early };
     };
   }, [key, sc]);
   const deck = useDeck(select, shape);

@@ -253,6 +253,12 @@ export class Engine {
     return this.log.map((r) => { const [ivl, lastIvl] = this.ivls.get(r.id) ?? [0, 0]; return { review: r, ivl, lastIvl }; });
   }
 
+  /** The chance of recalling a card at a time (FSRS retrievability); 0 for a new card (exam decks, #221). */
+  recallAt(card: string, at: number): number {
+    const c = this.cards.get(card);
+    return c ? this.f.get_retrievability(c, new Date(at), false) : 0;
+  }
+
   /** When a card was first graded, ms; undefined for a new card (exam plans, #221). */
   firstSeen(card: string): number | undefined {
     return this.first.get(card);
