@@ -2,6 +2,7 @@
 // per concept, milestones, totals, and the settings (daily limits, retention, feedback).
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { BUILD_LABEL } from "../build";
 import { node, useData } from "../data/load";
 import type { CourseNode } from "../data/types";
 import { calendar, milestones, streak } from "../review/days";
@@ -92,6 +93,7 @@ export default function ReviewStats() {
         <h2>Settings</h2>
         <SettingsForm settings={st.engine.settings} onSave={async (x) => { st.engine.setSettings(x); await st.store.saveSettings(x); redraw((n) => n + 1); }} />
         <FeedbackForm leftToday={() => { const q = st.engine.queue(st.cards.map((c) => c.id), Date.now()); return q.due.length + q.fresh.length + q.later.length; }} />
+        <p className="small muted build-label">Build {BUILD_LABEL}</p>
       </section>
     </div>
   );
