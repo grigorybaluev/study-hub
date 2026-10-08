@@ -147,7 +147,7 @@ export default function Review() {
         <p className="deck-warn">This browser does not keep data for this site, so these grades last only until the page is closed.</p>
       )}
 
-      <div className="deck-stack" data-depth={Math.min(3, Math.max(0, deck.left.due + deck.left.fresh - 1))}>
+      <div className="deck-stack">
         {moment && <Moment key={moment.id} reward={moment.reward} />}
         {stack.length ? stack.map((c) => {
           const top = c.id === deck.current?.id;

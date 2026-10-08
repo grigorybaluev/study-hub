@@ -53,6 +53,7 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
     e.style.transform = dx ? `translateX(${dx}px) rotate(${dx / 24}deg)` : "";
     const ratio = Math.max(-1.5, Math.min(1.5, dx / (w * COMMIT)));
     e.style.setProperty("--swipe", String(ratio));
+    e.parentElement?.style.setProperty("--drag", String(Math.min(1, Math.abs(ratio))));   // the next card comes up
     const armed = Math.abs(ratio) >= 1;
     if (armed && !e.classList.contains("armed") && !animate) { haptic(); tick(880); }   // the snap: past the commit point
     e.classList.toggle("armed", armed);
