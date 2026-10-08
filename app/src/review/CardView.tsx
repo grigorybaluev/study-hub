@@ -70,6 +70,17 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
   // the top card starts centred: when a peeking card comes up, and when a card comes straight back
   useEffect(() => { if (!peek) place(0, false); }, [peek, showing]);
 
+  // a second guard for iOS (#214): once a drag is sideways, the touch must not start a scroll, or Safari
+  // cancels the pointer and the card snaps back. React's touch listeners are passive, so a native one.
+  useEffect(() => {
+    const e = el.current;
+    if (!e || peek) return;
+    // only once the drag is judged sideways: a prevented first move would stop a vertical scroll too
+    const stop = (t: TouchEvent) => { if (drag.current?.axis === "x" && t.cancelable) t.preventDefault(); };
+    e.addEventListener("touchmove", stop, { passive: false });
+    return () => e.removeEventListener("touchmove", stop);
+  }, [peek]);
+
   const down = (e: React.PointerEvent) => {
     if (peek || !flipped || exit || e.button !== 0) return;     // no new drag while the card flies
     drag.current = { x0: e.clientX, y0: e.clientY, t0: e.timeStamp, dx: 0, axis: null };

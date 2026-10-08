@@ -540,6 +540,11 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
   background: var(--bg-elev); border: 1.5px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
 }
 .review-face.back { transform: rotateY(180deg); }
+/* #214: iOS reads touch-action only up to the nearest scroll container, and each face is one (so is a
+   code block): the card's pan-y never reached a touch. Every box in a card says it again, so a vertical
+   drag scrolls the face and a horizontal one stays the swipe; code wraps, since it cannot scroll sideways. */
+.review-face, .review-face * { touch-action: pan-y; }
+.review-face pre { white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: hidden; }
 .review-face.front { justify-content: center; text-align: center; }
 .review-kind { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
 .review-kind.k-definition, .review-kind.k-theorem, .review-kind.k-lemma, .review-kind.k-proposition, .review-kind.k-corollary { color: var(--blk-stmt-line); }
