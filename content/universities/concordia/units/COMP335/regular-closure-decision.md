@@ -415,7 +415,7 @@ A cycle on the way from $q_0$ to a final state can be taken any number of times,
 gives a new, longer accepted string. Without such a cycle every accepting walk visits each state
 at most once, so accepted strings are shorter than $|Q|$, and there are finitely many of them.
 
-:::caution
+:::caution[Finiteness: only reachable, useful cycles count]
 Step 2 matters. A cycle in a trap state, or in a part of the machine that is never reached,
 repeats nothing that gets accepted: the complete DFA for $\{ab\}$ has a loop on its trap, yet the
 language has one string.
@@ -505,7 +505,7 @@ contradiction.
 :::
 ::::
 
-:::caution
+:::caution[Arden's rule needs $\lambda \notin L(\alpha)$]
 The condition $\lambda \notin L(\alpha)$ is what makes the solution unique. With $\alpha = \lambda$
 the equation $X = X + \beta$ holds for every $X \supseteq L(\beta)$; $\alpha^*\beta$ is then only
 the smallest solution. This result is also known as **Arden's rule**.

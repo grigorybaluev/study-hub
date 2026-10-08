@@ -346,7 +346,7 @@ In some references (including our book), the transition function of a DFA is req
 L(M) is the set of strings whose walk from q₀ ends in F. "Regular" just means "some DFA accepts it". Design DFAs by asking what the state must remember (e.g. the longest suffix matching a prefix of 001), and always add a trap state to keep δ total.
 :::
 
-:::caution
+:::caution[A DFA cannot count]
 A DFA can only remember finitely many things. {aⁿbⁿ : n ≥ 0} needs to remember how many a's were read — unboundedly many possibilities — so no DFA accepts it (the proof comes later via the pigeonhole principle).
 :::
 
@@ -488,7 +488,7 @@ for w in ['a', 'aa', 'ab', 'abaa', 'aba', '']:
 An NFA accepts w if SOME computation consumes all of w and ends in F; it rejects only if EVERY computation fails (ends non-final or hangs). The simulator tracks all computations at once as a set of states — that set is δ*(q₀, prefix), and it is exactly what the subset construction turns into a single DFA state.
 :::
 
-:::caution
+:::caution[Non-determinism is not randomness]
 Non-determinism is not randomness: the machine does not "pick" a branch. To decide acceptance you must consider every branch, and one accepting branch is enough. Also, δ*(q, w) for an NFA is a set — it may be empty (all branches hung).
 :::
 
