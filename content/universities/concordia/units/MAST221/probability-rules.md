@@ -414,7 +414,7 @@ $$
 \frac{n(A)}{n(S)} + \frac{n(A' \cap B)}{n(S)} = \frac{n(A \cup B)}{n(S)}
 $$
 
-:::lemma
+:::lemma[Splitting a union with a complement]
 $$
 P(A) + P(A' \cap B) = P(A \cup B)
 $$
@@ -511,7 +511,7 @@ print('P(A)+P(A\'∩B)    =', P(A) + P(B - A))               # disjoint decompos
 print('C ⊂ D:', C <= D, ' P(C) =', P(C), '<= P(D) =', P(D))  # Theorem 1
 ```
 
-:::caution
+:::caution[The addition rule for overlapping events]
 $P(A \cup B) = P(A) + P(B)$ is only true when $A$ and $B$ are mutually exclusive. For overlapping events you must subtract $P(A \cap B)$ — forgetting this can even give a "probability" greater than 1.
 :::
 

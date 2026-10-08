@@ -127,7 +127,7 @@ With $r = \sqrt{x^2 + y^2} \ge 0$ the angle is $\theta = \tan^{-1}(y/x) + n\pi$:
 (first or fourth quadrant, where $\tan^{-1}$ lands), $n = 1$ when $x < 0$.
 :::
 
-:::caution
+:::caution[$\tan^{-1}$ and the quadrant of $\theta$]
 $\tan^{-1}$ only returns angles in $(-\tfrac{\pi}{2}, \tfrac{\pi}{2})$ — the right half-plane. For
 a point with $x < 0$, add $\pi$ (or keep the angle and make $r$ negative). Always check the
 quadrant against a sketch.
@@ -160,9 +160,9 @@ the angle and flip the sign, $(-\sqrt5, \tan^{-1}2)$.
 ::::
 
 :::equations
-- $x = r\cos\theta$, $y = r\sin\theta$ — valid for every $r$, including negative.
-- $r^2 = x^2 + y^2$, $\tan\theta = y/x$ — then fix the quadrant.
-- $(r, \theta) = (r, \theta + 2n\pi) = (-r, \theta + (2n+1)\pi)$.
+- *Polar to Cartesian*: $x = r\cos\theta$, $y = r\sin\theta$ — valid for every $r$, including negative.
+- *Cartesian to polar*: $r^2 = x^2 + y^2$, $\tan\theta = y/x$ — then fix the quadrant.
+- *Same point, other coordinates*: $(r, \theta) = (r, \theta + 2n\pi) = (-r, \theta + (2n+1)\pi)$.
 :::
 
 ## Polar curves
@@ -328,9 +328,9 @@ formula simplifies to $\sqrt{r^2 + r'^2}$ because the cross terms cancel.
 :::
 
 :::equations
-- $\dfrac{dy}{dx} = \dfrac{f'\sin\theta + f\cos\theta}{f'\cos\theta - f\sin\theta}$ — horizontal tangent: numerator $0$; vertical: denominator $0$.
-- $L = \displaystyle\int_a^b \sqrt{r^2 + r'^2}\,d\theta$ — the curve traced once.
-- $\theta = k$: a line through the pole; $r = a$: a circle about the pole, radius $|a|$.
+- *Slope of $r = f(\theta)$*: $\dfrac{dy}{dx} = \dfrac{f'\sin\theta + f\cos\theta}{f'\cos\theta - f\sin\theta}$ — horizontal tangent: numerator $0$; vertical: denominator $0$.
+- *Arc length in polar*: $L = \displaystyle\int_a^b \sqrt{r^2 + r'^2}\,d\theta$ — the curve traced once.
+- *Lines and circles*: $\theta = k$ is a line through the pole; $r = a$ is a circle about the pole, radius $|a|$.
 :::
 
 ## Further reading

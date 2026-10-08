@@ -4,6 +4,7 @@ title: Introduction to Theoretical Computer Science
 credits: 3
 kind: core
 pages: theory
+cards: true
 prereqs: [[COMP232, COEN231], [COMP249, COEN244]]
 coreqs: []
 requirements: []

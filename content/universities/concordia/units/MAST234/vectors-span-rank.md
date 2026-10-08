@@ -169,7 +169,7 @@ becomes a question about span: consistency means $\mathbf b$ lies in the column 
 rank counts how many directions the columns actually contribute — the rest are free variables.
 :::
 
-:::equations
+:::equations{#rank}
 - *Dot product*: $\mathbf u \cdot \mathbf v = \sum_i u_i v_i$ — scalar output.
 - *Column reading*: $A\mathbf x = \sum_j x_j \mathbf c_j$ — a linear combination of the columns.
 - *Consistency*: $A\mathbf x = \mathbf b$ solvable $\iff \mathbf b \in \operatorname{col}(A)$.

@@ -143,7 +143,7 @@ The centre is $\left(-2, \frac52, -4\right)$ and the radius $r = \sqrt{\frac{115
 :::
 ::::
 
-:::caution
+:::caution[Completing the square with a factor in front]
 Each completed square adds a number on the left that has to be paid for: $2(x^2 + 4x + 4)$ adds
 $2 \cdot 4 = 8$, not $4$, because of the factor in front. And the right-hand side must come out
 positive at the end; if it is $0$ the "sphere" is a single point, and if it is negative no point
@@ -356,7 +356,7 @@ $\frac{1}{\sqrt{26}}\langle -4, 1, 3 \rangle$.
 :::
 ::::
 
-:::caution
+:::caution[A scalar multiplies every component]
 $-3\mathbf{b}$ multiplies *every* component by $-3$, signs included: $-3 \cdot 3 = -9$. Writing
 $-3\mathbf{b}$ as $\langle 12, -3, 9 \rangle$ changes only some signs and produces a vector that is
 not parallel to $\mathbf{b}$ at all.
@@ -368,9 +368,9 @@ list of numbers, added entry by entry. The position vector $\overrightarrow{OP}$
 and $\mathbf{i}, \mathbf{j}, \mathbf{k}$ turn the list back into a sum of arrows.
 :::
 
-:::equations
+:::equations{#vector}
 - *Scalar multiple*: $|c\mathbf{v}| = |c|\,|\mathbf{v}|$; same direction if $c > 0$, opposite if $c < 0$.
-- *Unit vectors along* $\mathbf{u}$: $\pm\dfrac{\mathbf{u}}{|\mathbf{u}|}$.
+- *Unit vectors along $\mathbf{u}$*: $\pm\dfrac{\mathbf{u}}{|\mathbf{u}|}$.
 - *Triangle law*: $\overrightarrow{AB} + \overrightarrow{BC} = \overrightarrow{AC}$.
 - *Components*: $\overrightarrow{AB} = \langle x_2 - x_1, y_2 - y_1, z_2 - z_1 \rangle$; operations entry by entry.
 - *Length*: $|\mathbf{a}| = \sqrt{a_1^2 + \dots + a_n^2}$.

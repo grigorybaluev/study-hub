@@ -275,7 +275,7 @@ for x in [-1, 0, 1.5, 2, 4]:
 print('P(0 < X <= 2) =', F(2) - F(0))                          # 3/4
 ```
 
-:::caution
+:::caution[$<$ and $\le$ differ for a discrete variable]
 For a discrete variable, "$<$" and "$\le$" are different events: $P(X < b) = F(b) - p(b)$, and
 $P(a \le X \le b) = F(b) - F(a) + p(a)$. Before subtracting two values of $F$, check which
 endpoints the question includes.

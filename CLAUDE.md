@@ -161,7 +161,9 @@ Courses and programs
   `<course>/<kind>/<slug of title>`, without the unit, so units stay renameable; a block's
   `{#x}` replaces the slug (to keep a card's review history across a title change; on an
   `equations` block it goes before each line's name, `eq/x-<name>`) and `{concept=a,b}` names
-  its concepts (else a concept whose title is the card's title, else the unit's `introduces`). Lint: duplicate card ids are errors, untitled card blocks
+  its concepts (else a concept whose title is the card's title, else the unit's `introduces`). An `equations` line's front is
+  its name and the block's title or `##` heading ("Shifted · The ellipse"); a line about an example, an
+  exercise or a simulation makes no card. Lint: duplicate card ids are errors, untitled card blocks
   warnings. Cards are never authored separately; examples are quiz material (#196).
 
 ## Workflow

@@ -8,7 +8,8 @@ becomes a card, and each line of an `equations` block becomes one:
     steps                               front: "How: <title>"                 back: the steps
     caution                             front: "<title> — why, and what …"    back: the body
     insight                             front: "Key idea: <title or part>"    back: the body
-    equations line `- *Name*: formula`  front: the name                       back: the formula
+    equations line `- *Name*: formula`  front: "<name> · <block title or ## part>"  back: the formula
+    (a line about an example, an exercise or a simulation makes no card: they are quiz material, #196)
 
 and two kinds of quiz (#196):
 
@@ -51,6 +52,7 @@ QUIZ_RE = re.compile(r"^\s*```r\s+quiz(?:\s+(\S+))?\s*$")     # ```r quiz <slug>
 OUTPUT_LINE_RE = re.compile(r"^\s*##(\s|$)")                     # R's printed output (knitr style), blank lines too
 COMMENT_RE = re.compile(r"""^\s*#.*$|\s{2,}#[^'"]*$""")         # a whole-line or trailing comment (outside quotes)
 GALLERY = ROOT / "app" / "src" / "design" / "solution-map.md"
+EXAMPLE_LINE_RE = re.compile(r"\bexamples?\b|^exercise|\bsimulation\b", re.I)   # an equations line about an example
 EQ_ITEM_RE = re.compile(r"^[-*]\s+\*(?P<name>[^*]+)\*\s*:\s*(?P<rest>.*)$")
 SPAN_RE = re.compile(r"(`+)(.+?)\1|\$([^$]+)\$")
 
@@ -284,8 +286,13 @@ def course_cards(c: Content, uni_id: str, code: str, docs: list[Doc], names: dic
                         cur[1] += " " + line.strip()
                     elif line.strip():
                         problems.append((doc, f"{where}: line {line.strip()[:40]!r} is not `- *Name*: formula`", False))
+                # the block's title, else its ## heading, names what a line is about: "Shifted · The ellipse"
+                about = title or b.section
                 for name, rest in items:     # one card per line; a block {#id} would not tell them apart
-                    card("eq", plain(name), name, rest.strip(), plain(name), name, line_of_block=True)
+                    if EXAMPLE_LINE_RE.search(plain(name)):
+                        continue             # an example's summary is quiz material (#196), not a fact to recall
+                    front = f"{name} · {about}" if about and plain(about).lower() != plain(name).lower() else name
+                    card("eq", plain(name), front, rest.strip(), plain(name), name, line_of_block=True)
                 continue
             if b.kind == "insight":
                 name = title or b.section

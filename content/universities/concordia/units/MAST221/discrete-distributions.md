@@ -280,7 +280,7 @@ for x in range(n + 1):
 print('variances:', h.var(), b.var(), 'ratio', h.var() / b.var(), '= (N-n)/(N-1) =', (N - n) / (N - 1))
 ```
 
-:::caution
+:::caution[When the binomial applies]
 The binomial needs independent trials with a constant $\theta$. Drawing without replacement
 violates both; use the hypergeometric, or the binomial only as an approximation when $n$ is a small
 fraction of $N$ (a common rule: $n \le N/20$).

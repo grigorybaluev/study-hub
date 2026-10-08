@@ -168,7 +168,7 @@ It accepts $\lambda$, $b$, $ab$, $abb$, $aabab$, …: any sequence of blocks $a^
 :::
 ::::
 
-:::caution
+:::caution[Star closure needs a new initial and final state]
 The new states $s$ and $f$ are not decoration. Making the old initial state final instead, to
 accept $\lambda$, can accept too much: if $M_1$ has transitions back into its initial state, a
 string that stops half-way through a block would then be accepted.
@@ -208,7 +208,7 @@ $$L_1^R = \{b a^n : n \ge 0\}.$$
 1. Make every final state non-final and every non-final state final.
 :::
 
-:::caution
+:::caution[Complement by swapping final states: complete DFAs only]
 This works for a **DFA** only. In an NFA a string can have one computation ending in a final
 state and another ending in a non-final one; swapping would accept it in both automata. And the
 DFA must be complete: a string on which it hangs is in $\overline{L_1}$, so the missing
@@ -257,7 +257,7 @@ state; complement needs a complete DFA; intersection comes for free from De Morg
 direct construction also exists: run both DFAs in parallel on pairs of states.)
 :::
 
-:::equations
+:::equations{#closure}
 - *Closure*: $L_1, L_2$ regular $\Rightarrow$ $L_1 \cup L_2,\; L_1 L_2,\; L_1^*,\; L_1^R,\; \overline{L_1},\; L_1 \cap L_2$ regular.
 - *De Morgan*: $L_1 \cap L_2 = \overline{\overline{L_1} \cup \overline{L_2}}$.
 - *Running examples*: $\begin{gathered} \{a^n b\}\{ba\} = \{a^n bba\}, \qquad \{a^n b\}^R = \{b a^n\} \\[4pt] \{a^n b\} \cap \{ab, ba\} = \{ab\} \end{gathered}$
@@ -344,7 +344,7 @@ $$r_1 = (1 + 01)^*(0 + \lambda) \qquad \text{and} \qquad r_2 = (1^*011^*)^*(0 + 
 
 are equivalent: $L(r_1) = L(r_2)$.
 
-:::caution
+:::caution[Showing two regular expressions are (not) equivalent]
 Equivalence is a statement about languages, so it cannot be settled by looking at the symbols.
 To show $r_1 \not\equiv r_2$, one string in one language and not the other is enough. To show
 $r_1 \equiv r_2$, argue both inclusions (or, later in the course, compare minimal DFAs).
@@ -401,7 +401,7 @@ print(compare('(1+01)*(0+λ)', '(1*011*)*(0+λ)+1*(0+λ)', '01', 10))
 print(compare('(1+01)*(0+λ)', '(1+01)*', '01', 10))
 ```
 
-:::equations
+:::equations{#regex}
 - *Language of a regular expression*: $\begin{gathered} L(r_1 + r_2) = L(r_1) \cup L(r_2), \qquad L(r_1 r_2) = L(r_1)L(r_2) \\[4pt] L(r_1^*) = (L(r_1))^*, \qquad L(\varnothing) = \varnothing, \qquad L(\lambda) = \{\lambda\} \end{gathered}$
 - *Equivalence*: $r_1 \equiv r_2 \iff L(r_1) = L(r_2)$.
 :::
@@ -632,7 +632,7 @@ $S \to Aab,\ A \to Aab \mid B,\ B \to a$ is left-linear.
 A **regular grammar** is a grammar that is right-linear or left-linear.
 :::
 
-:::caution
+:::caution[Linear is not the same as regular]
 Every regular grammar is linear, but not every linear grammar is regular.
 $S \to A,\ A \to aB \mid \lambda,\ B \to Ab$ is linear, yet it mixes $A \to aB$ (variable on the
 right) with $B \to Ab$ (variable on the left), and its language $\{a^n b^n\}$ is not regular. A

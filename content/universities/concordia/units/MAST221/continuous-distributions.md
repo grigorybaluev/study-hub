@@ -363,7 +363,7 @@ for k in (1, 2, 3):                        # the 68-95-99.7 rule, against Chebys
     print(f'within {k} sigma: {2 * Phi(k) - 1:.4f}   (Chebyshev guarantees {1 - 1 / k**2:.4f})')
 ```
 
-:::caution
+:::caution[Standardise before using the normal table]
 Standardise before looking anything up: $P(X \le 3)$ for $\mu = 1.5$, $\sigma = 2.5$ is
 $\Phi(0.6)$, not $\Phi(3)$. And the second parameter is the **standard deviation** here; some books
 and software write $N(\mu, \sigma^2)$ with the variance instead.

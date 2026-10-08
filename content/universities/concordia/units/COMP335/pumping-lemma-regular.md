@@ -99,7 +99,7 @@ a loop. Going round it zero times, or twice, or a hundred times, ends in the sam
 whole pumping lemma is this one observation.
 :::
 
-:::equations
+:::equations{#dfa-walk}
 - *Pigeonhole*: $|w| \ge m$ states $\Rightarrow$ the walk of $w$ visits $|w| + 1 > m$ states $\Rightarrow$ one repeats.
 - *Worked example*: $abaa$ walks $q_0\, q_1\, q_0\, q_1\, q_2$; the loop at $q_0$ reads $ab$.
 :::
@@ -141,7 +141,7 @@ string, and there is no $w$ to check. And if it holds with some $m$, it holds wi
 $m$, since the same splits still satisfy $|xy| \le m$.
 :::
 
-:::caution
+:::caution[The pumping lemma cannot prove a language regular]
 The pumping lemma is a **necessary** condition, not a sufficient one. Every regular language
 satisfies it, but some non-regular languages satisfy it too. It can prove that a language is not
 regular; it can never prove that a language is regular.
@@ -253,7 +253,7 @@ regular.
 :::
 ::::
 
-:::caution
+:::caution[The factorial proof needs $m \ge 2$]
 The bound needs $m \ge 2$. With $m = 1$ and $k = 1$, $m! + k = 2 = 2!$, and $a^2$ **is** in $L$.
 This does not break the proof: the opponent's $m$ can always be replaced by a larger one, so the
 proof may assume $m \ge 2$ — but it has to say so.

@@ -182,7 +182,7 @@ $P(A' \cap B') \le P(A') + P(B')$ by the addition rule. Bounds of this kind (Bon
 are what you reach for when $P(A \cap B)$ is unknown.
 :::
 
-:::caution
+:::caution[Conditioning on $A$ and on $A'$ does not add to 1]
 Rules about the *condition* do not carry over. Does $P(B \mid A) + P(B \mid A') = 1$? Only by
 accident: if the four regions $A \cap B$, $A \cap B'$, $A' \cap B$, $A' \cap B'$ have
 probabilities $0.3, 0.2, 0.3, 0.2$, then $P(B \mid A) + P(B \mid A') = 0.6 + 0.6 = 1.2$. The
@@ -603,7 +603,7 @@ def ppv(prev, sens=0.95, spec=0.98):
 print(round(ppv(0.05), 3), round(ppv(0.002, spec=0.999), 3))  # 0.714 0.656 — higher base rate or specificity
 ```
 
-:::equations
+:::equations{#partition}
 - *Conditional probability*: $P(B \mid A) = P(A \cap B)/P(A)$, $P(A) \neq 0$; $P(\,\cdot \mid B)$ satisfies the postulates.
 - *Multiplication rule*: $P(A \cap B) = P(A)P(B \mid A) = P(B)P(A \mid B)$; $P(A \cap B \cap C) = P(A)P(B \mid A)P(C \mid A \cap B)$.
 - *Independence*: $P(A \cap B) = P(A)P(B)$ ⟺ $P(B \mid A) = P(B)$ ⟺ $P(A \mid B) = P(A)$; then $A, B'$ and $A', B$ and $A', B'$ are independent too. For $k$ events, every sub-collection must multiply.
@@ -611,7 +611,7 @@ print(round(ppv(0.05), 3), round(ppv(0.002, spec=0.999), 3))  # 0.714 0.656 — 
 - *Bayes*: $P(B_r \mid A) = P(B_r)P(A \mid B_r) \big/ \sum_i P(B_i)P(A \mid B_i)$.
 :::
 
-:::caution
+:::caution[Bayes' theorem is only as good as its priors]
 Bayes' theorem itself is two lines from the definition and beyond dispute. What it consumes
 is a set of **prior** probabilities $P(B_i)$, and those are an input: the base rate of the
 condition, the mills' shares. Reasoning backwards from an effect to its cause is only as

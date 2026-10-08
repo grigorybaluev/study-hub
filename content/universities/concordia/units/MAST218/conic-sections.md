@@ -193,7 +193,7 @@ and foci $(\pm\sqrt2, 0)$. Shifting by $(-1, 2)$:
 :::
 ::::
 
-:::caution
+:::caution[Check the right-hand side after completing the square]
 Completing the square can leave a right-hand side that is zero or negative. With $+15$ instead
 of $+10$ above, the same steps give $(x + 1)^2 + 3(y - 2)^2 = -2$: no point satisfies it, since
 the left side is never negative. With $+13$ the right side is $0$ and the "ellipse" is the single
@@ -250,7 +250,7 @@ axis, $c^2 = a^2 - b^2$ places the foci on it, and the centre is wherever the sq
 completed. The sum of the focal distances is the length of the major axis.
 :::
 
-:::equations
+:::equations{#ellipse}
 - *Definition*: $|PF_1| + |PF_2| = 2a$, with $a > c$ where $|F_1F_2| = 2c$.
 - *Standard form*: $\dfrac{x^2}{a^2} + \dfrac{y^2}{b^2} = 1$ with $b^2 = a^2 - c^2$; foci $(\pm c, 0)$, vertices $(\pm a, 0)$, co-vertices $(0, \pm b)$.
 - *Parametric form*: $x = a\cos t$, $y = b\sin t$, $0 \le t \le 2\pi$.
@@ -476,7 +476,7 @@ print(f"(x − {h})²/{A2:g} − (y + {-k})²/{B2:g} = 1, foci ({h} ± {sqrt(A2 
 #   (x − 1)²/9 − (y + 2)²/4 = 1, foci (1 ± 3.6056, -2), asymptote slopes ±0.6667
 ```
 
-:::caution
+:::caution[Ellipse or hyperbola: which length is largest]
 The two curves are easy to mix up. For an ellipse $a$ is the largest length and $c^2 = a^2 - b^2$;
 for a hyperbola $c$ is the largest and $c^2 = a^2 + b^2$. For an ellipse the larger denominator
 names the major axis; for a hyperbola the positive term names the transverse axis, whatever the
@@ -489,7 +489,7 @@ $-$ instead of $+$ in the equation, $c^2 = a^2 + b^2$ instead of $a^2 - b^2$. Th
 carries the whole sketch: its diagonals are the asymptotes and its half-diagonal is $c$.
 :::
 
-:::equations
+:::equations{#hyperbola}
 - *Definition*: $\big|\, |PF_1| - |PF_2| \,\big| = 2a$, with $a < c$ where $|F_1F_2| = 2c$.
 - *Standard form*: $\dfrac{x^2}{a^2} - \dfrac{y^2}{b^2} = 1$ with $c^2 = a^2 + b^2$; vertices $(\pm a, 0)$, foci $(\pm c, 0)$.
 - *Asymptotes*: $y = \pm\dfrac{b}{a}x$; for $\dfrac{y^2}{a^2} - \dfrac{x^2}{b^2} = 1$, $y = \pm\dfrac{a}{b}x$.
@@ -668,14 +668,14 @@ print(f"(x − 2)² = {4 * p}(y − 3), directrix {letter} = {c}: {P} on it: {(P
 #   (x − 2)² = -16(y − 3), directrix y = 7: (10, -1) on it: True, |PF| = 8, dist = 8
 ```
 
-:::caution
+:::caution[The sign of $p$ in a parabola]
 $p$ is a signed distance, from the vertex *to* the focus. If the focus is below or to the left of
 the vertex, $p$ is negative; writing $p = 4$ in the last example gives the parabola that opens
 upward, with its focus at $(2, 7)$. A sketch with the vertex, the focus and the directrix catches
 the sign at once: the curve always bends around the focus, away from the directrix.
 :::
 
-:::equations
+:::equations{#parabola}
 - *Definition*: $|PF| = \operatorname{dist}(P, \ell)$, focus $F$, directrix $\ell$.
 - *Vertical axis*: $x^2 = 4py$, focus $(0, p)$, directrix $y = -p$.
 - *Horizontal axis*: $y^2 = 4px$, focus $(p, 0)$, directrix $x = -p$.
@@ -940,7 +940,7 @@ for e in (0.5, 0.1, 0.01, 0):
 #   e = 0   : 1.5000 ≤ r ≤ 1.5000  (circle)
 ```
 
-:::caution
+:::caution[Polar hyperbola: the asymptote angles]
 The angles where $r \to \infty$ come from solving $\sin\theta = -\frac12$, which has its solutions
 in the third and fourth quadrants, $\frac{7\pi}{6}$ and $\frac{11\pi}{6}$, not at $\frac{\pi}{6}$.
 They give the *directions* of the asymptotes; the asymptotes themselves go through the centre of
