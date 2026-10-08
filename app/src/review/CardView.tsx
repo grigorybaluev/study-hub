@@ -5,7 +5,7 @@ import { memo, useEffect, useRef, type ReactNode } from "react";
 import Markdown from "../components/Markdown";
 import type { Card } from "../data/types";
 import type { Rating } from "./engine";
-import { haptic, motionOn, tick } from "./feedback";
+import { haptic, motionOn, warmUp } from "./feedback";
 
 const COMMIT = 0.28;          // share of the card's width that commits a swipe
 const FLICK = 0.5;            // px/ms: a fast flick commits a shorter swipe
@@ -55,7 +55,6 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
     e.style.setProperty("--swipe", String(ratio));
     e.parentElement?.style.setProperty("--drag", String(Math.min(1, Math.abs(ratio))));   // the next card comes up
     const armed = Math.abs(ratio) >= 1;
-    if (armed && !e.classList.contains("armed") && !animate) { haptic(); tick(880); }   // the snap: past the commit point
     e.classList.toggle("armed", armed);
   };
 
@@ -83,7 +82,9 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
   }, [peek]);
 
   const down = (e: React.PointerEvent) => {
-    if (peek || !flipped || exit || e.button !== 0) return;     // no new drag while the card flies
+    if (peek || exit || e.button !== 0) return;     // no new drag while the card flies
+    warmUp();
+    if (!flipped) { if (!card.options) haptic("touch"); return; }   // a tap that turns the card (a quiz turns by choosing)
     drag.current = { x0: e.clientX, y0: e.clientY, t0: e.timeStamp, dx: 0, axis: null };
   };
   const move = (e: React.PointerEvent) => {
@@ -93,7 +94,7 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
     const dx = e.clientX - d.x0, dy = e.clientY - d.y0;
     if (!d.axis && Math.hypot(dx, dy) > 8) {
       d.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";      // vertical: the back scrolls, no swipe
-      if (d.axis === "x") el.current?.setPointerCapture(e.pointerId);
+      if (d.axis === "x") { el.current?.setPointerCapture(e.pointerId); haptic("touch"); }   // the first phase: it moves
     }
     if (d.axis === "x") { d.dx = dx; place(dx, false); }
   };

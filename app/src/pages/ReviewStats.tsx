@@ -157,8 +157,8 @@ function FeedbackForm({ leftToday }: { leftToday(): number }) {
   return (
     <div className="settings">
       {row("motion", "Animations", "card flights, the +1, confetti (reduced motion in the system turns them off too)")}
-      {row("haptics", "Haptic tick", "on a phone, as a swipe passes its point and on each grade")}
-      {row("sound", "Sound", "a soft tick; the mute switch silences it")}
+      {row("haptics", "Vibration", "on a phone: a light tap as you touch a card or a button, then one more as you let go (two for Good and Easy); in silent mode if the system's Sounds & Haptics allows it")}
+      {row("sound", "Sound", "a short click on each grade, lower for Again, brighter for Good; the mute switch silences it")}
       {row("badge", "Count on the app icon", "the cards left today on the installed app's icon (asks for permission on an iPhone)")}
     </div>
   );

@@ -8,7 +8,7 @@ import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
 import CardView, { isRight } from "../review/CardView";
 import SyncPanel from "../review/SyncPanel";
 import { dayStart, type Rating } from "../review/engine";
-import { haptic, motionOn, tick } from "../review/feedback";
+import { GRADE_PITCH, chime, haptic, motionOn, tick, warmUp } from "../review/feedback";
 import { TIER_NAME, quarterCrossed, type GradeReward } from "../review/rewards";
 import { useDeck, type Deck, type Shape } from "../review/useDeck";
 import { examDaily, examPlans, upcoming, weakAt, type ExamPlan } from "../review/term";
@@ -86,6 +86,10 @@ export default function Review() {
   const press = useCallback((r: Rating) => {
     if (!flipped || exit || !currentId) return;
     setExit({ card: currentId, dir: r <= 2 ? -1 : 1, r });     // Again and Hard fly left, Good and Easy right
+    // the second phase, as the grade is let go (#223): no wait for the card's flight
+    haptic(r >= 3 ? "long" : "short");
+    tick(GRADE_PITCH[r]);
+    setBursts((n) => n + 1);
   }, [flipped, exit, currentId]);
 
   const undo = useCallback(() => { if (!exit) deck.undo(); }, [exit, deck]);   // not while a card flies
@@ -95,11 +99,7 @@ export default function Review() {
     setExit(null);
     setFlipped(false);
     const reward = deck.grade(r);
-    if (!reward) return;
-    haptic();
-    tick(reward.levelUp || reward.comeback ? 990 : 660);
-    setBursts((n) => n + 1);
-    if (reward.levelUp || reward.comeback) setMoment({ id: Date.now(), reward });
+    if (reward && (reward.levelUp || reward.comeback)) { chime(); setMoment({ id: Date.now(), reward }); }
   }, [deck]);
 
   // the day's ring pulses as it passes a quarter
@@ -186,11 +186,12 @@ export default function Review() {
       {deck.current && (
         <div className="deck-actions">
           {!flipped ? (
-            <button className="deck-show" onClick={() => setFlipped(true)}>Show answer</button>
+            <button className="deck-show" onClick={() => setFlipped(true)} onPointerDown={() => { warmUp(); haptic("touch"); }}>Show answer</button>
           ) : (
             <div className="deck-grades">
               {GRADES.map((g) => (
-                <button key={g.r} className={`grade ${g.cls}${suggested === g.r ? " suggested" : ""}`} onClick={() => press(g.r)} disabled={!!exit}>
+                <button key={g.r} className={`grade ${g.cls}${suggested === g.r ? " suggested" : ""}`} onClick={() => press(g.r)} disabled={!!exit}
+                  onPointerDown={() => { warmUp(); haptic("touch"); }}>
                   <span className="grade-label">{g.label}</span>
                   <span className="grade-ivl">{deck.preview ? interval(deck.preview[g.r] - now) : ""}</span>
                 </button>
