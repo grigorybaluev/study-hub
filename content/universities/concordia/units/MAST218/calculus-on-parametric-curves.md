@@ -89,7 +89,7 @@ print('t0 = 0.8: point', (x.subs(t, t0), y.subs(t, t0)),
       ' slope', dydx.subs(t, t0), ' d²y/dx²', d2ydx2.subs(t, t0))   # (23/5, -36/125)  slope 23/50  d²y/dx² 6/5 → concave up
 ```
 
-:::caution
+:::caution[The second derivative is not $y''/x''$]
 Both divisions are by $x'(t)$. Students who write $y''(t)/x''(t)$ get
 $6t/0$ here — undefined — when the true answer is the perfectly finite $3t/2$.
 :::
@@ -211,7 +211,7 @@ S_y = sp.integrate(2*sp.pi * x * speed, (t, -sp.pi/2, sp.pi/2))    # right semic
 print('about the y-axis:', S_y)                         # 36π again
 ```
 
-:::caution
+:::caution[Surface of revolution: revolve half the curve]
 Using the full circle $0 \le t \le 2\pi$ about the $x$-axis is wrong
 twice over: $y(t)$ is negative on half of it, and the lower half sweeps out the same
 sphere again. Choose the half of the curve on the non-negative side of the axis.
@@ -230,7 +230,7 @@ sphere again. Choose the half of the curve on the non-negative side of the axis.
 A second method is the procedure to sketch a curve when eliminating
 the parameter is impossible or unhelpful:
 
-:::steps
+:::steps[Sketching a parametric curve with calculus]
 **S1 — Table of values.** Tabulate $t \mid x \mid y$ for the special values of $t$:
 the endpoints of $I$ (or $t \to \pm\infty$, the *limiting values*), the $t$ where
 $x = 0$ and where $y = 0$ (intercepts), and any $t$ found in S2. Check for

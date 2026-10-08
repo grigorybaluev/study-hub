@@ -50,7 +50,7 @@ The region swept by the outer curve minus the region swept by the inner one.
 :::
 ::::
 
-:::caution
+:::caution[Area between polar curves: $f^2 - g^2$, not $(f - g)^2$]
 It is $\tfrac12\int(f^2 - g^2)$, **not** $\tfrac12\int(f - g)^2$ — the difference of two sector areas,
 not the area of one sector of radius $f - g$.
 :::
@@ -377,10 +377,10 @@ for n in range(1, 7):
 ```
 
 :::equations
-- $A = \tfrac12\displaystyle\int_a^b r^2\,d\theta$; between two curves $A = \tfrac12\displaystyle\int_a^b\big(r_{\text{out}}^2 - r_{\text{in}}^2\big)\,d\theta$.
-- Symmetry: $\theta \to -\theta$ (polar axis), $\theta \to \pi - \theta$ (vertical axis), $\theta \to \theta + \pi$ or $r \to -r$ (pole).
-- $r = a\cos\theta$: centre $(\tfrac{a}{2}, 0)$; $r = a\sin\theta$: centre $(0, \tfrac{a}{2})$; radius $\tfrac{|a|}{2}$.
-- Limaçon $r = a \pm b\cos\theta$: inner loop iff $a < b$; rose $r = k\cos n\theta$: $n$ petals ($n$ odd), $2n$ ($n$ even).
+- *Polar area*: $A = \tfrac12\displaystyle\int_a^b r^2\,d\theta$; between two curves $A = \tfrac12\displaystyle\int_a^b\big(r_{\text{out}}^2 - r_{\text{in}}^2\big)\,d\theta$.
+- *Symmetry tests*: $\theta \to -\theta$ (polar axis), $\theta \to \pi - \theta$ (vertical axis), $\theta \to \theta + \pi$ or $r \to -r$ (pole).
+- *Circles through the pole*: $r = a\cos\theta$ has centre $(\tfrac{a}{2}, 0)$; $r = a\sin\theta$: centre $(0, \tfrac{a}{2})$; radius $\tfrac{|a|}{2}$.
+- *Limaçons and roses*: the limaçon $r = a \pm b\cos\theta$ has an inner loop iff $a < b$; the rose $r = k\cos n\theta$: $n$ petals ($n$ odd), $2n$ ($n$ even).
 :::
 
 ## Further reading

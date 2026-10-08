@@ -124,13 +124,13 @@ The component formula is easy to compute, and the geometric formula says what th
 the dot product is positive when the angle is acute, zero when it is a right angle, and negative
 when it is obtuse.
 
-:::caution
+:::caution[The angle between two vectors is at most $\pi$]
 The angle between two vectors is never more than $\pi$. $\cos\theta$ is decreasing on $[0, \pi]$,
 so the sign and size of $\mathbf{a} \cdot \mathbf{b}$ pin $\theta$ down exactly; an angle such as
 $\frac{3\pi}{2}$ would make the formula ambiguous.
 :::
 
-:::equations
+:::equations{#dot}
 - *Definition*: $\mathbf{a} \cdot \mathbf{b} = a_1b_1 + \dots + a_nb_n$, a scalar.
 - *Length*: $\mathbf{a} \cdot \mathbf{a} = |\mathbf{a}|^2$.
 - *Parallelogram identity*: $|\mathbf{a} + \mathbf{b}|^2 + |\mathbf{a} - \mathbf{b}|^2 = 2|\mathbf{a}|^2 + 2|\mathbf{b}|^2$.

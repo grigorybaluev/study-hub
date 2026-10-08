@@ -95,7 +95,7 @@ A parametric curve is the set of points (f(t), g(t)) traced out as t runs throug
 
 ### The two-step recipe
 
-:::steps
+:::steps[Sketching a parametric curve]
 **S1 — Cartesian equation.** When possible, a Cartesian (or *rectangular*) equation can be obtained by **eliminating the parameter** from the pair of parametric equations. Solve one equation for $t$ and substitute into the other (or use an identity that removes $t$, e.g. $\sin^2 t + \cos^2 t = 1$ for circles).
 **S2 — Direction of motion.** Find how the curve is traced as $t$ increases: compute the initial/terminal points (or the limiting values as $t \to \pm\infty$) and mark the direction with an arrow.
 :::
@@ -534,7 +534,7 @@ Sometimes it is not easy (or not possible) to find the Cartesian equation — th
 dy/dx = y′(t)/x′(t): differentiate each coordinate with respect to t, then divide. To use it at a point, first solve for the t₀ that produces that point. Horizontal tangent ⇔ y′ = 0 (with x′ ≠ 0); vertical tangent ⇔ x′ = 0 (with y′ ≠ 0).
 :::
 
-:::caution
+:::caution[A horizontal tangent needs $x'(t) \ne 0$]
 A common mistake is to declare a horizontal tangent whenever y′(t) = 0. You must also check x′(t) ≠ 0 — if both derivatives vanish, the quotient is 0/0 and you need the limit of y′(t)/x′(t) as t → t₀ to decide.
 :::
 
