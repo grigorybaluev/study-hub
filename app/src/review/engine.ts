@@ -40,6 +40,8 @@ export interface CardState {
   reps: number;
   lapses: number;
   last: number;
+  /** learning steps still to go (0 in review), for Anki's `left` (#198) */
+  stepsLeft: number;
   /** hash of the content last graded */
   hash: string;
 }
@@ -82,6 +84,8 @@ export class Engine {
   private cards = new Map<string, FsrsCard>();
   private hashes = new Map<string, string>();
   private first = new Map<string, number>();   // ts of each card's first grade
+  private ivls = new Map<string, [number, number]>();   // review id -> [interval it set, the one before] (#198)
+  private cardIvl = new Map<string, number>();           // card -> the interval its last grade set
   private ids = new Set<string>();
   private mine: string[] = [];                 // ids graded in this session, latest last: what undo takes back
 
@@ -91,6 +95,9 @@ export class Engine {
     this.log = [...log].sort(byTime);
     this.replay();
   }
+
+  private get learnSteps() { return this.f.parameters.learning_steps.length; }
+  private get relearnSteps() { return this.f.parameters.relearning_steps.length; }
 
   private static scheduler(s: Settings): FSRS {
     return fsrs(generatorParameters({ request_retention: s.retention, enable_fuzz: false }));
@@ -109,6 +116,8 @@ export class Engine {
     this.cards.clear();
     this.hashes.clear();
     this.first.clear();
+    this.ivls.clear();
+    this.cardIvl.clear();
     this.ids = new Set(this.log.map((r) => r.id));
     for (const r of this.log) this.apply(r);
   }
@@ -117,7 +126,13 @@ export class Engine {
     const before = this.cards.get(r.card) ?? createEmptyCard<FsrsCard>(new Date(r.ts));
     // the type is the card's state at this grade's time, whatever order records arrived in (merge, clock)
     r.type = TYPE_OF[before.state];
-    this.cards.set(r.card, this.f.next(before, new Date(r.ts), r.rating as Grade).card);
+    const after = this.f.next(before, new Date(r.ts), r.rating as Grade).card;
+    this.cards.set(r.card, after);
+    // Anki's revlog interval: days once in review, else negative seconds (a learning step)
+    const secs = Math.max(0, Math.round((after.due.getTime() - r.ts) / 1000));
+    const ivl = after.state === State.Review ? Math.max(1, Math.round(secs / 86_400)) : -secs;
+    this.ivls.set(r.id, [ivl, this.cardIvl.get(r.card) ?? 0]);
+    this.cardIvl.set(r.card, ivl);
     this.hashes.set(r.card, r.hash);
     if (!this.first.has(r.card)) this.first.set(r.card, r.ts);
   }
@@ -129,7 +144,9 @@ export class Engine {
     return {
       due: c.due.getTime(), state: STATE_NAMES[c.state as keyof typeof STATE_NAMES] ?? "learning",
       stability: c.stability, difficulty: c.difficulty, reps: c.reps, lapses: c.lapses,
-      last: c.last_review?.getTime() ?? 0, hash: this.hashes.get(card) ?? "",
+      last: c.last_review?.getTime() ?? 0,
+      stepsLeft: c.state === State.Review ? 0 : Math.max(1, (c.state === State.Relearning ? this.relearnSteps : this.learnSteps) - c.learning_steps),
+      hash: this.hashes.get(card) ?? "",
     };
   }
 
@@ -228,6 +245,12 @@ export class Engine {
       newToday, reviewsToday: new Set(graded.filter((r) => r.type !== "learn").map((r) => r.card)).size, graded: graded.length,
       ms: graded.reduce((s, r) => s + r.ms, 0), reviewed: reviews.length, recalled: reviews.filter((r) => r.rating > 1).length,
     };
+  }
+
+  /** The log as Anki's revlog (#198): each grade with the interval it set (days once in review, else
+   *  negative seconds, as Anki writes learning steps) and the card's interval before it. */
+  revlog(): { review: Review; ivl: number; lastIvl: number }[] {
+    return this.log.map((r) => { const [ivl, lastIvl] = this.ivls.get(r.id) ?? [0, 0]; return { review: r, ivl, lastIvl }; });
   }
 
   /** Whether a card has been graded at all. */

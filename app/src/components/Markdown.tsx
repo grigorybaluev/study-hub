@@ -17,6 +17,7 @@ import type {} from "mdast-util-math";
 import LazyBlock from "./LazyBlock";
 import MathFit from "./MathFit";
 import { splitSpacers } from "./mathSplit";
+import { BLOCKS } from "./blocks";
 import type { VFile } from "vfile";
 
 // Plotly + the engines are heavy; load them only when a page actually contains a simulation.
@@ -28,15 +29,6 @@ import Views from "./Views";
 const CALLOUTS: Record<string, string> = {
   definition: "def", example: "example", note: "note", steps: "steps", "key insight": "insight", caution: "caution",
   theorem: "def", lemma: "def", rule: "def", proposition: "def",
-};
-
-/** Container names and their labels; build/schema.py BLOCKS has the same names (lint checks them). */
-const BLOCKS: Record<string, string> = {
-  definition: "Definition", theorem: "Theorem", lemma: "Lemma", proposition: "Proposition", corollary: "Corollary",
-  proof: "Proof", example: "Example", solution: "Solution", note: "Note", remark: "Remark", caution: "Caution",
-  insight: "Key insight", steps: "Steps", equations: "Equations",
-  algorithm: "Algorithm", machine: "Machine", trace: "Trace", exercise: "Exercise",
-  syntax: "Syntax",
 };
 
 /**

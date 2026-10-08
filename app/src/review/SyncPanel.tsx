@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Deck } from "./useDeck";
 import { useSheet } from "../components/useSheet";
 import { ProgressError, decode, encode, fileName, type ProgressFile } from "./transfer";
+import { download, shareOrDownload } from "./share";
 
 type Note = { ok: boolean; text: string } | null;
 
@@ -85,22 +86,11 @@ export default function SyncPanel({ deck, onClose }: { deck: Deck; onClose(): vo
       return;
     }
     const blob = new File([JSON.stringify(file)], fileName(file), { type: "application/json" });
-    try {
-      if (navigator.canShare?.({ files: [blob] })) {
-        await navigator.share({ files: [blob], title: "Study Hub progress" });
-        await deck.markSent();
-        setNote({ ok: true, text: "Shared the progress file." });
-        return;
-      }
-    } catch (e) {
-      if ((e as Error).name === "AbortError") return;      // the share sheet was closed
-    }
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = blob.name;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    let how = await shareOrDownload(blob, "Study Hub progress");
+    if (how === "cancelled") return;
+    if (how === "blocked") { download(blob); how = "saved"; }   // prepared ahead, so rare: save it instead
     await deck.markSent();
+    if (how === "shared") { setNote({ ok: true, text: "Shared the progress file." }); return; }
     setNote({ ok: true, text: `Saved ${blob.name}.` });
   };
 

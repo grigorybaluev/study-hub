@@ -6,6 +6,7 @@ import { node, useData } from "../data/load";
 import type { CourseNode } from "../data/types";
 import { calendar, milestones, streak } from "../review/days";
 import MasteryBar, { TIERS } from "../components/MasteryBar";
+import AnkiExport from "../review/AnkiExport";
 import { TIER_COLOR, memoryOf } from "../review/memory";
 import type { Settings } from "../review/engine";
 import { prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
@@ -86,6 +87,8 @@ export default function ReviewStats() {
       </section>
 
       <section>
+        <h2>Anki</h2>
+        <AnkiExport cards={st.cards} engine={st.engine} />
         <h2>Settings</h2>
         <SettingsForm settings={st.engine.settings} onSave={async (x) => { st.engine.setSettings(x); await st.store.saveSettings(x); redraw((n) => n + 1); }} />
         <FeedbackForm leftToday={() => { const q = st.engine.queue(st.cards.map((c) => c.id), Date.now()); return q.due.length + q.fresh.length + q.later.length; }} />
