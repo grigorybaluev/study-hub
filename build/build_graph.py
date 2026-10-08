@@ -77,6 +77,9 @@ def build(c: Content) -> dict:
             "id": U, "type": "university", "name": uni.meta["name"],
             "assumed_prior": [cid(x) for x in uni.meta.get("assumed_prior") or []],
             "sources": uni.meta.get("sources") or [],
+            # term calendars (#221): the first Monday and the Mondays of break weeks, ISO dates
+            "terms": {name: {"start": str(t["start"]), "breaks": [str(b) for b in t.get("breaks") or []]}
+                      for name, t in (uni.meta.get("terms") or {}).items()},
         })
 
         for code, doc in uni.courses.items():
@@ -86,6 +89,8 @@ def build(c: Content) -> dict:
                 "title": m["title"], "credits": m["credits"], "kind": m["kind"],
                 "requirements": m.get("requirements") or [], "source": m.get("source"),
                 "pages": m.get("pages"), "body": doc.body,
+                "term": m.get("term"),
+                "exams": [{"name": e["name"], "date": str(e["date"]), "weeks": e["weeks"]} for e in m.get("exams") or []],
             })
             for gi, group in enumerate(prereq_groups(m.get("prereqs"))):
                 for alt in group:

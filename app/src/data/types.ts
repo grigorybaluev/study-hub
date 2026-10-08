@@ -28,6 +28,10 @@ export interface CourseNode {
   /** Which unit-page design applies (#89); null until the course is assigned one. */
   pages: "math" | "theory" | "programming" | "systems" | "data" | null;
   body: string;
+  /** The term calendar its units' `weeks` count in (#221), a key of its university's `terms`. */
+  term: string | null;
+  /** Its exams in that term (#221): the teaching weeks each covers, from and to. */
+  exams: { name: string; date: string; weeks: [number, number] }[];
 }
 
 export interface UnitNode {
@@ -80,6 +84,8 @@ export interface UniversityNode {
   name: string;
   assumed_prior: string[];
   sources: { id: string; title: string; url: string; retrieved?: string }[];
+  /** Term calendars (#221): the Monday of week 1 and the Mondays of break weeks, ISO dates. */
+  terms: Record<string, { start: string; breaks: string[] }>;
 }
 
 export interface RoadmapNode {

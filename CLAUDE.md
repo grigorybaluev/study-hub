@@ -155,6 +155,10 @@ Courses and programs
 - Prereqs are OR-groups (`[[COMP232, COEN231], [COMP249, COEN244]]`); coreqs mean
   "prior or concurrent"; free-text requirements go in `requirements:` (not edges).
 - Variants hold term placements only; prereqs live in `courses/`.
+- Term calendars (#221): `university.yaml` `terms: {fall-2026: {start, breaks}}` gives the Monday of
+  teaching week 1 and the Mondays of break weeks (not counted). A course's `term: fall-2026` says which
+  calendar its units' `weeks` count in, and `exams: [{name, date, weeks: [from, to]}]` lists the exams
+  of that offering from the course outline. The review app uses them for taught units and exam plans.
 - `cards: true` makes a course's units a source of review cards (#191): every titled `definition`,
   `theorem` (lemma, proposition, corollary), `steps` and `caution`, every `insight` (named by its
   title or its `##` part) and every `equations` line becomes a card in `cards.json`. Card ids are

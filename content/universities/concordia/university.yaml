@@ -5,6 +5,10 @@ department: Computer Science and Software Engineering
 # Courses the program assumes as prior knowledge (CEGEP or Extended Credit Program).
 # They exist as `kind: assumed_prior` stubs under courses/ so prerequisite edges resolve.
 assumed_prior: [MATH203, MATH204, MATH205]
+# Term calendars (#221): the Monday of teaching week 1, and the Mondays of break weeks, which are not
+# counted. A course's `term` says which calendar its units' `weeks` count in.
+terms:
+  fall-2026: {start: 2026-09-07, breaks: [2026-10-12]}   # mid-term break 12-16 Oct: week 6 starts 19 Oct
 sources:
   - id: concordia-cs-ds-sequence-v3
     title: Computer Science – Data Science Course Sequence (V3)
