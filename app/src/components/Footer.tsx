@@ -1,6 +1,6 @@
+import { BUILD_LABEL, VERSION } from "../build";
+
 const REPO = "https://github.com/grigorybaluev/study-hub";
-// Set by deploy.yml from the release tag; unset in local builds.
-const VERSION = import.meta.env.VITE_APP_VERSION || "dev";
 
 export default function Footer() {
   return (
@@ -15,7 +15,7 @@ export default function Footer() {
       <span>
         <a href={REPO}>Source on GitHub</a>
       </span>
-      <span className="version">
+      <span className="version" title={BUILD_LABEL}>
         {VERSION.startsWith("v") ? <a href={`${REPO}/releases/tag/${VERSION}`}>{VERSION}</a> : VERSION}
       </span>
     </footer>

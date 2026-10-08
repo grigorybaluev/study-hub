@@ -1,6 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import { execSync } from "node:child_process";
+
+// Which build this is (#215), shown on the review stats page: "v0.6.0" on a release, "v0.5.1-12-g7a96544"
+// between releases, "-dirty" for uncommitted changes; "dev" without git.
+const describe = (() => {
+  try { return execSync("git describe --tags --always --dirty", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); }
+  catch { return "dev"; }
+})();
 
 export default defineConfig({
   plugins: [
@@ -43,4 +51,5 @@ export default defineConfig({
     }),
   ],
   base: "./",
+  define: { __BUILD__: JSON.stringify({ version: describe, built: new Date().toISOString() }) },
 });
