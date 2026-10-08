@@ -530,7 +530,9 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
   position: absolute; inset: 0; cursor: pointer; touch-action: pan-y; user-select: none; -webkit-user-select: none;
   will-change: transform; --swipe: 0; z-index: 2;
 }
-.review-card.peek { z-index: 1; transform: translateY(10px) scale(0.965); opacity: 0.85; pointer-events: none; transition: transform 0.2s ease-out, opacity 0.2s; }
+/* the next card waits right behind, a little smaller, so nothing of it shows; dragging the top card
+   (--drag on the stack, 0 to 1 at the commit point) brings it up to full size (#218) */
+.review-card.peek { z-index: 1; transform: scale(calc(0.94 + 0.06 * var(--drag, 0))); pointer-events: none; transition: transform 0.15s ease-out; }
 .review-card.flipped { cursor: grab; }
 .review-card-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.38s cubic-bezier(.3,.7,.3,1); }
 .review-card.flipped .review-card-inner { transform: rotateY(180deg); }
@@ -635,14 +637,7 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .deck-burst { position: absolute; left: 50%; top: -4px; font-weight: 800; font-size: 0.85rem; color: var(--accent); pointer-events: none; animation: burst 0.9s ease-out forwards; }
 @keyframes burst { 0% { opacity: 0; transform: translate(-50%, 6px) scale(0.8); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -22px) scale(1.15); } }
 
-/* the cards left, as a stack under the top card (up to three edges) */
-.deck-stack[data-depth="1"]::before, .deck-stack[data-depth="2"]::before, .deck-stack[data-depth="3"]::before,
-.deck-stack[data-depth="2"]::after, .deck-stack[data-depth="3"]::after {
-  content: ""; position: absolute; left: 6%; right: 6%; bottom: -8px; height: 40px; border-radius: 0 0 18px 18px;
-  background: var(--bg-elev); border: 1.5px solid var(--line); border-top: 0; z-index: 0;
-}
-.deck-stack[data-depth="2"]::after, .deck-stack[data-depth="3"]::after { left: 11%; right: 11%; bottom: -15px; opacity: 0.6; }
-.deck-stack { margin-bottom: 14px; }
+.deck-stack { margin-bottom: 6px; }
 
 /* a level-up or a comeback, over the deck for a moment */
 .deck-moment {
