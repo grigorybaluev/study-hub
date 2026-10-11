@@ -11,8 +11,10 @@ becomes a card, and each line of an `equations` block becomes one:
     equations line `- *Name*: formula`  front: "<name> · <block title or ## part>"  back: the formula
     (a line about an example, an exercise or a simulation makes no card: they are quiz material, #196)
 
-and two kinds of quiz (#196):
+and three kinds of quiz (#196):
 
+    exercise (titled, with a nested     front: the exercise                    back: its solution
+    solution block)
     ```r quiz <slug> code block          front: the code without its ## output  back: the code with its output
     solution map in the gallery          front: the task, the method graph's     back: the worked solution map
     (app/src/design/solution-map.md,     method nodes as options
@@ -43,7 +45,7 @@ from schema import OPEN_RE, QUOTE_RE, ROOT, SLUG_RE, SOLMAP_BLOCK_RE, Content, D
 OUT = ROOT / "cards.json"
 
 TITLED_KINDS = {"definition", "theorem", "lemma", "proposition", "corollary", "steps", "caution"}
-CARD_KINDS = TITLED_KINDS | {"insight", "equations"}
+CARD_KINDS = TITLED_KINDS | {"insight", "equations", "exercise"}
 
 CLOSE_RE = re.compile(r"^(:{3,})\s*$")
 FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
@@ -201,6 +203,41 @@ def without_proofs(lines: list[str]) -> list[str]:
     return out
 
 
+def split_solution(lines: list[str]) -> tuple[list[str], list[str]]:
+    """An exercise's body: (the question, the inside of its own solution blocks, in order). Only solutions
+    directly in the exercise count: one inside a nested example belongs to that example, and a line in a
+    code fence is code."""
+    question, solution = [], []
+    depth, inside, fence = 0, False, None       # depth: containers open inside the exercise
+    for line in lines:
+        if fence is not None:
+            if line.strip().startswith(fence) and not line.strip().strip(fence[0]):
+                fence = None
+            (solution if inside else question).append(line)
+            continue
+        f = FENCE_RE.match(line)
+        if f:
+            fence = f.group(1)
+            (solution if inside else question).append(line)
+            continue
+        bare = QUOTE_RE.sub("", line, count=1)
+        o, c = OPEN_RE.match(bare), CLOSE_RE.match(bare)
+        if o:
+            if depth == 0 and o.group(2) == "solution":
+                depth, inside = 1, True
+                if solution:
+                    solution.append("")         # parts (a), (b): their solutions one after another
+                continue
+            depth += 1
+        elif c and depth:
+            depth -= 1
+            if inside and depth == 0:
+                inside = False
+                continue
+        (solution if inside else question).append(line)
+    return question, solution
+
+
 def text_of(lines: list[str]) -> str:
     return "\n".join(lines).strip()
 
@@ -303,6 +340,16 @@ def course_cards(c: Content, uni_id: str, code: str, docs: list[Doc], names: dic
                 continue
             if not title:
                 problems.append((doc, f"{where} has no title, so it makes no review card (#191)", False))
+                continue
+            if b.kind == "exercise":
+                question, solution = split_solution(b.body)
+                if not text_of(solution):
+                    problems.append((doc, f"{where} has no :::solution inside, so it makes no review card (#196)", False))
+                    continue
+                # the title leads the front: it often says what to answer ("True or false?"); an edit to the
+                # question changes the hash, so the deck marks the card updated
+                front = f"**{b.title}**\n\n{text_of(question)}".rstrip()
+                card("exercise", title, front, text_of(solution), title, f"{b.title}\n{text_of(question)}")
                 continue
             back = text_of(without_proofs(b.body) if b.kind in {"theorem", "lemma", "proposition", "corollary"} else b.body)
             front = {"steps": f"How: {b.title}", "caution": f"{b.title} — why, and what instead?"}.get(b.kind, b.title)

@@ -6,16 +6,12 @@ import Markdown from "../components/Markdown";
 import type { Card } from "../data/types";
 import type { Rating } from "./engine";
 import { haptic, motionOn, warmUp } from "./feedback";
+import { KIND_LABEL } from "./kinds";
 
 const COMMIT = 0.28;          // share of the card's width that commits a swipe
 const FLICK = 0.5;            // px/ms: a fast flick commits a shorter swipe
 const FLY_MS = 220;
 
-export const KIND_LABEL: Record<Card["kind"], string> = {
-  definition: "Definition", theorem: "Theorem", lemma: "Lemma", proposition: "Proposition", corollary: "Corollary",
-  steps: "Method", caution: "Caution", insight: "Key idea", eq: "Formula",
-  output: "What does this print?", method: "Which method?",
-};
 
 
 interface Props {

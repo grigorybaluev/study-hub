@@ -15,6 +15,7 @@ import YAML from "yaml";
 import { BLOCKS } from "../components/blocks.ts";
 import type { Card } from "../data/types";
 import { dayStart, type Engine } from "./engine.ts";
+import { KIND_LABEL } from "./kinds.ts";
 
 const DAY = 86_400_000;
 
@@ -78,10 +79,6 @@ const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").rep
 
 export interface NoteFields { front: string; back: string; where: string; kind: string }
 
-const KIND: Record<Card["kind"], string> = {
-  definition: "Definition", theorem: "Theorem", lemma: "Lemma", proposition: "Proposition", corollary: "Corollary",
-  steps: "Method", caution: "Caution", insight: "Key idea", eq: "Formula", output: "What does this print?", method: "Which method?",
-};
 
 /** A card's four fields. A method quiz becomes a plain question: its options on the front, the method and
  *  the worked steps on the back (the interactive map has no place in Anki). */
@@ -92,10 +89,10 @@ export function fields(card: Card, where: string): NoteFields {
     return {
       front: toHtml(card.front) + `<ol class="options">${card.options.map((o) => `<li>${escape(o)}</li>`).join("")}</ol>`,
       back: `<p><b>${escape(card.options[card.answer])}</b></p>` + (steps.length ? `<ol>${steps.map((t) => `<li>${toHtml(t)}</li>`).join("")}</ol>` : ""),
-      where: escape(where), kind: KIND[card.kind],
+      where: escape(where), kind: KIND_LABEL[card.kind],
     };
   }
-  return { front: toHtml(card.front), back: toHtml(card.back), where: escape(where), kind: KIND[card.kind] };
+  return { front: toHtml(card.front), back: toHtml(card.back), where: escape(where), kind: KIND_LABEL[card.kind] };
 }
 
 // ---------------------------------------------------------------- ids

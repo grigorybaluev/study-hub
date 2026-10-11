@@ -96,5 +96,6 @@ function DayList({ log, day, view, code, swatch }: {
 function Front({ card }: { card: Card | undefined }) {
   if (!card) return <span className="muted">a card no longer in the deck</span>;
   if (card.kind === "output") return <>What does this print? <span className="muted">· {card.part_title ?? "R"}</span></>;
+  if (card.kind === "exercise") return <>Exercise <span className="muted">· {card.front.split("\n")[0].replace(/\*\*/g, "")}</span></>;   // the title line
   return <Markdown source={card.front} />;
 }
