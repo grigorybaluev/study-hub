@@ -32,7 +32,7 @@ export default function ReviewStats() {
     return {
       streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: m.concepts.size, silverPlus: m.silverPlus },
       milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(now),
-      standing: standingFor(scopes(d))(st.cards, st.engine, now),
+      standing: standingFor(scopes(d), false)(st.cards, st.engine, now),
     };
   }, [st, d]);
 

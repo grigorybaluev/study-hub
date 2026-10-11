@@ -13,7 +13,7 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 export function detail(u: UnitCoverage, weeks: number[] = []): string {
   switch (u.status) {
     case "untaught": return weeks.length ? `week ${Math.min(...weeks)}` : "";
-    case "start": return `${u.unstarted} of ${u.cards} not started`;
+    case "start": return [`${u.unstarted} of ${u.cards} not started`, u.due && `${u.due} due`].filter(Boolean).join(" · ");
     case "weak": case "solid": return [u.due && `${u.due} due`, u.recall !== null && `${pct(u.recall)} recall`].filter(Boolean).join(" · ");
   }
 }
@@ -37,8 +37,9 @@ export function UnitTag({ u }: { u: UnitCoverage }) {
     : <Link className="unit-tag" to={deckOf(u.unit)} title={`Review this unit's ${u.cards} cards`}>{body}</Link>;
 }
 
-/** The units most worth a session now. `row`: one line of chips that scrolls sideways (over the deck). */
-export default function NextUnits({ units, row = false }: { units: UnitCoverage[]; row?: boolean }) {
+/** The units most worth a session now. `row`: one line of chips that scrolls sideways (over the deck);
+ *  `busy`: a graded card is still flying off, and leaving now would lose its grade. */
+export default function NextUnits({ units, row = false, busy = false }: { units: UnitCoverage[]; row?: boolean; busy?: boolean }) {
   const d = useData();
   const next = suggestions(units);
   if (!next.length) return null;
@@ -55,7 +56,7 @@ export default function NextUnits({ units, row = false }: { units: UnitCoverage[
           const unit = node<UnitNode>(d, u.unit);
           return (
             <li key={u.unit}>
-              <Link to={deckOf(u.unit)} title={`${code(u)} · ${unit?.title ?? u.unit}: ${STATUS[u.status]}, ${detail(u)}${exam(u)}`}>
+              <Link to={deckOf(u.unit)} onClick={(e) => { if (busy) e.preventDefault(); }} title={`${code(u)} · ${unit?.title ?? u.unit}: ${STATUS[u.status]}, ${detail(u)}${exam(u)}`}>
                 <i className={`unit-dot s-${u.status}`} aria-hidden="true" />
                 {!row && <b>{code(u)}</b>}
                 <span className="next-title">{unit?.title ?? u.unit}</span>

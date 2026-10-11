@@ -39,7 +39,7 @@ export interface CoverageInput extends StandingInput {
 export function coverage(i: CoverageInput): UnitCoverage[] {
   const today = dayStart(i.now), tomorrow = nextDay(i.now);
   const byUnit = new Map<string, Card[]>();
-  for (const c of i.cards) if (c.unit) byUnit.set(c.unit, [...(byUnit.get(c.unit) ?? []), c]);
+  for (const c of i.cards) if (c.unit) { const l = byUnit.get(c.unit); if (l) l.push(c); else byUnit.set(c.unit, [c]); }
   const next = upcoming(i.exams, i.now);
   return [...byUnit].map(([unit, cards]): UnitCoverage => {
     const course = cards[0].course;

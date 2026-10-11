@@ -39,7 +39,7 @@ export interface StandingInput {
 export function standing(i: StandingInput): CourseStanding[] {
   const today = dayStart(i.now);
   const byCourse = new Map<string, Card[]>();
-  for (const c of i.cards) byCourse.set(c.course, [...(byCourse.get(c.course) ?? []), c]);
+  for (const c of i.cards) { const l = byCourse.get(c.course); if (l) l.push(c); else byCourse.set(c.course, [c]); }
   const next = upcoming(i.exams, i.now);
   const rows = [...byCourse].map(([course, cards]): CourseStanding => {
     let taught = 0, seen = 0, overdue = 0, unstarted = 0, recall = 0;

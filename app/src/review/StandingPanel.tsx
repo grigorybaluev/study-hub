@@ -26,11 +26,11 @@ export function standingInput(sc: Scopes, cards: Card[], engine: Engine, now: nu
   };
 }
 
-/** The standing of every course (#231) and unit (#222). */
-export function standingFor(sc: Scopes): StandingOf {
+/** The standing of every course (#231) and, with `units`, every unit (#222). */
+export function standingFor(sc: Scopes, units = true): StandingOf {
   return (cards, engine, now) => {
     const i = standingInput(sc, cards, engine, now);
-    return { courses: standing(i), units: coverage({ ...i, target: engine.settings.retention }) };
+    return { courses: standing(i), units: units ? coverage({ ...i, target: engine.settings.retention }) : [] };
   };
 }
 

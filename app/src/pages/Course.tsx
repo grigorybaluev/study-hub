@@ -17,10 +17,11 @@ export default function Course() {
   const { memory, st } = useMemory();              // hooks before the early return below
   // each unit's status (#222): what to start, what is weak, what is solid
   const status = useMemo(() => {
-    if (!st) return new Map<string, UnitCoverage>();
-    const i = standingInput(scopes(d), st.cards, st.engine, Date.now());
+    const id = d.courses.find((c) => c.code === code)?.id;
+    if (!st || !id) return new Map<string, UnitCoverage>();
+    const i = standingInput(scopes(d), st.cards.filter((c) => c.course === id), st.engine, Date.now());
     return new Map(coverage({ ...i, target: st.engine.settings.retention }).map((u) => [u.unit, u]));
-  }, [st, d]);
+  }, [st, d, code]);
   const course = d.courses.find((c) => c.code === code);
   if (!course) return <p>Unknown course {code}.</p>;
   const units = d.unitsOf.get(course.id) ?? [];
