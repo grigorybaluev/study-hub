@@ -33,7 +33,7 @@ export default function ReviewStats() {
     const courses = [...m.courses].map(([id, tiers]) => ({ id, code: node<CourseNode>(d, id)?.code ?? id, tiers }));
     return {
       streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: m.concepts.size, silverPlus: m.silverPlus },
-      milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(now),
+      milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(),
       standing: standingFor(scopes(d), false)(st.cards, st.engine, now),
     };
   }, [st, d]);

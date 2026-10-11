@@ -1,7 +1,7 @@
 // The stats page's Anki sections (#225) in node: `npm test`. Each number as Anki computes it.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buttons, counts, daysBack, forecast, today, trueRetention } from "../src/review/ankiStats.ts";
+import { buttons, counts, daysBack, forecast, retentionByCourse, today, trueRetention } from "../src/review/ankiStats.ts";
 import { Engine, dayStart, nextDay } from "../src/review/engine.ts";
 import { localDate } from "../src/review/term.ts";
 
@@ -83,4 +83,18 @@ test("from a real engine: the replay's intervals make the young/mature split", (
   assert.equal(all.all.total, log.filter((x) => x.review.type === "review").length);
   assert.ok(all.mature.total >= 1, "the interval passes 21 days within six good reviews");
   assert.equal(counts(["a"], (id) => e.state(id)).mature, 1);
+});
+
+test("true retention by course: last month only, review grades only, one row per course", () => {
+  const now = at("2026-10-10", 15);
+  const log = [
+    entry("A/1", at("2026-10-10", 9), 3, "review", 5), entry("A/2", at("2026-10-01", 9), 1, "review", 30),
+    entry("B/1", at("2026-10-05", 9), 3, "review", 40), entry("B/1", at("2026-10-05", 9), 1, "learn"),
+    entry("B/2", at("2026-08-01", 9), 3, "review", 40),       // older than a month
+  ];
+  const by = retentionByCourse(log, now, (id) => id.split("/")[0]);
+  assert.deepEqual([...by.keys()], ["A", "B"]);
+  assert.deepEqual(by.get("A"), { young: { passed: 1, total: 1 }, mature: { passed: 0, total: 1 }, all: { passed: 1, total: 2 } });
+  assert.deepEqual(by.get("B").all, { passed: 1, total: 1 });
+  assert.deepEqual(by.get("B").all, trueRetention(log, now, (c) => c.startsWith("B/"))[3].all);   // the same as the "Last month" row
 });

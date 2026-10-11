@@ -1,10 +1,9 @@
 // The stats page in Anki's structure (#225): today, the future-due forecast, card counts, true retention
 // (overall and per course) and the answer buttons, each number as Anki computes it (ankiStats.ts).
-import { useMemo } from "react";
 import { node, useData } from "../data/load";
 import type { Card, CourseNode } from "../data/types";
-import { OTHER, courseColours } from "./Activity";
-import { MATURE_DAYS, buttons, counts, forecast, today, trueRetention, type ButtonGroup, type Counts, type Pass } from "./ankiStats";
+import { MATURE_DAYS, buttons, counts, forecast, retentionByCourse, today, trueRetention, type ButtonGroup, type Counts, type Pass } from "./ankiStats";
+import { OTHER, courseColours } from "./colours";
 import type { Engine, Rating } from "./engine";
 
 const pct = (p: Pass) => (p.total ? `${Math.round((100 * p.passed) / p.total)}%` : "–");
@@ -14,20 +13,20 @@ const BUTTON_NAMES: [Rating, string][] = [[1, "Again"], [2, "Hard"], [3, "Good"]
 
 export default function AnkiSections({ engine, cards }: { engine: Engine; cards: Card[] }) {
   const d = useData();
-  const v = useMemo(() => {
-    const now = Date.now(), log = engine.revlog(), ids = cards.map((c) => c.id), state = (id: string) => engine.state(id);
-    const colours = courseColours(cards);
-    const courses = [...colours.slot.keys()];
-    const due = forecast(ids, state, colours.courseOf, now);
-    return {
-      today: today(log, now), counts: counts(ids, state), due, colours,
-      dueMax: Math.max(1, ...due.map((x) => x.total)),
-      retention: trueRetention(log, now),
-      perCourse: courses.map((c) => ({ course: c, row: trueRetention(log, now, (id) => colours.courseOf(id) === c)[3] }))   // last month
-        .filter((x) => x.row.all.total),
-      buttons: buttons(log, now),
-    };
-  }, [engine, cards, engine.log.length]);     // eslint-disable-line react-hooks/exhaustive-deps -- the log grows in place
+  // computed on each render, not memoized: the page re-renders after a settings change replays the engine
+  // (new due dates and intervals), and the review day may have turned since the last render
+  const now = Date.now(), log = engine.revlog(), ids = cards.map((c) => c.id), state = (id: string) => engine.state(id);
+  const colours = courseColours(cards);
+  const due = forecast(ids, state, colours.courseOf, now);
+  const byCourse = retentionByCourse(log, now, colours.courseOf);
+  const v = {
+    today: today(log, now), counts: counts(ids, state), due, colours,
+    dueMax: Math.max(1, ...due.map((x) => x.total)),
+    retention: trueRetention(log, now),
+    perCourse: [...colours.slot.keys(), OTHER].filter((c) => byCourse.has(c)).map((c) => ({ course: c, row: byCourse.get(c)! })),
+    buttons: buttons(log, now),
+  };
+  const bySlot = (a: string, b: string) => (colours.slot.get(a) ?? 99) - (colours.slot.get(b) ?? 99);
 
   const code = (c: string) => (c === OTHER ? "Other" : node<CourseNode>(d, c)?.code ?? c);
   const swatch = (c: string) => `activity-s${v.colours.slot.get(c) ?? 0}`;
@@ -59,12 +58,11 @@ export default function AnkiSections({ engine, cards }: { engine: Engine; cards:
           <ol className="activity-days">
             {v.due.map((x, i) => (
               <li key={x.day}>
-                <div className="activity-row" title={x.total ? Object.entries(x.courses).map(([c, n]) => `${code(c)} ${n}`).join(" · ") : "nothing due"}>
+                <div className={`activity-row${x.total ? "" : " empty"}`} title={x.total ? Object.keys(x.courses).sort(bySlot).map((c) => `${code(c)} ${x.courses[c]}`).join(" · ") : "nothing due"}>
                   <span className="activity-day">{dayName(x.day, i)}</span>
                   <span className="activity-track">
                     <span className="activity-bar" style={{ width: `${(x.total / v.dueMax) * 100}%` }}>
-                      {Object.entries(x.courses).sort(([a], [b]) => (v.colours.slot.get(a) ?? 99) - (v.colours.slot.get(b) ?? 99))
-                        .map(([c, n]) => <i key={c} className={swatch(c)} style={{ flexGrow: n }} />)}
+                      {Object.keys(x.courses).sort(bySlot).map((c) => <i key={c} className={swatch(c)} style={{ flexGrow: x.courses[c] }} />)}
                     </span>
                   </span>
                   <span className="activity-total">{x.total || ""}</span>

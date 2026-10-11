@@ -277,12 +277,8 @@ export class Engine {
   }
 
   /** Lifetime counts and true retention: share of review-type grades in the last 30 days that were not Again. */
-  stats(now: number): { reviews: number; cards: number; retention30: number | null; ms: number } {
-    const recent = this.log.filter((r) => r.type === "review" && r.ts >= now - 30 * 24 * HOUR);
-    return {
-      reviews: this.log.length, cards: this.cards.size, ms: this.log.reduce((s, r) => s + r.ms, 0),
-      retention30: recent.length ? recent.filter((r) => r.rating > 1).length / recent.length : null,
-    };
+  stats(): { reviews: number; cards: number; ms: number } {
+    return { reviews: this.log.length, cards: this.cards.size, ms: this.log.reduce((s, r) => s + r.ms, 0) };
   }
 
   /** A card's mastery: its stability in days and the tier that reaches. */

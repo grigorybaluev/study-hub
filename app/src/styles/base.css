@@ -858,11 +858,13 @@ a.unit-tag:hover b { text-decoration: underline; }
 .anki-counts i, .anki-legend i { display: block; }
 .anki-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0.5rem 0 0; padding: 0; list-style: none; }
 .anki-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; }
-.anki-counts .c-new, .anki-legend .c-new { background: #4a90d9; }
-.anki-counts .c-learning, .anki-legend .c-learning { background: #e0912f; }
-.anki-counts .c-relearning, .anki-legend .c-relearning { background: #d8504a; }
-.anki-counts .c-young, .anki-legend .c-young { background: #7bc67e; }
-.anki-counts .c-mature, .anki-legend .c-mature { background: #2e7d32; }
+/* card states (checked with the dataviz validator, light and dark, in this order): new is a neutral grey,
+   like "other"; the rest are course-palette slots */
+.anki { --c-new: #8a8f98; --c-learning: #eda100; --c-relearning: #4a3aa7; --c-young: #1baf7a; --c-mature: #2a78d6; }
+:root[data-theme="dark"] .anki { --c-learning: #c98500; --c-relearning: #9085e9; --c-young: #199e70; --c-mature: #3987e5; }
+.anki .c-new { background: var(--c-new); } .anki .c-learning { background: var(--c-learning); }
+.anki .c-relearning { background: var(--c-relearning); } .anki .c-young { background: var(--c-young); }
+.anki .c-mature { background: var(--c-mature); }
 .anki-table { border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; margin: 0.2rem 0 0.4rem; }
 .anki-table th, .anki-table td { padding: 0.2rem 0.6rem; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 .anki-table th:first-child { text-align: left; font-weight: 600; padding-left: 0; }
@@ -871,3 +873,5 @@ a.unit-tag:hover b { text-decoration: underline; }
 .anki-sub { font-size: 0.9rem; margin: 0.8rem 0 0.2rem; }
 .anki-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
 .anki .activity-row { cursor: default; }
+.anki .activity-row:hover .activity-track { background: none; }
+.anki .activity-row.empty { color: var(--fg-muted); }

@@ -104,6 +104,20 @@ export function trueRetention(log: Entry[], now: number, keep: (card: string) =>
   return rows;
 }
 
+/** True retention per course over the last `days` review days, in one pass: course -> young, mature, all. */
+export function retentionByCourse(log: Entry[], now: number, courseOf: (card: string) => string, days = 30): Map<string, Omit<RetentionRow, "label">> {
+  const from = daysBack(now, days - 1), out = new Map<string, Omit<RetentionRow, "label">>();
+  for (const { review: r, lastIvl } of log) {
+    if (r.type !== "review" || r.ts < from) continue;
+    const c = courseOf(r.card);
+    let row = out.get(c);
+    if (!row) out.set(c, row = { young: { passed: 0, total: 0 }, mature: { passed: 0, total: 0 }, all: { passed: 0, total: 0 } });
+    const pass = r.rating > 1 ? 1 : 0;
+    for (const p of [row[lastIvl >= MATURE_DAYS ? "mature" : "young"], row.all]) { p.total++; p.passed += pass; }
+  }
+  return out;
+}
+
 export type ButtonGroup = "learning" | "young" | "mature";
 export type Buttons = Record<ButtonGroup, Record<Rating, number>>;
 
