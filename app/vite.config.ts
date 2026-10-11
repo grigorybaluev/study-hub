@@ -33,6 +33,7 @@ export default defineConfig({
         background_color: "#0f0e23",
       },
       workbox: {
+        importScripts: ["push-sw.js"],      // review reminders (#224)
         globPatterns: ["**/*.{html,js,css,woff2,svg,png,ico,json}"],
         globIgnores: ["**/assets/Sim-*.js"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

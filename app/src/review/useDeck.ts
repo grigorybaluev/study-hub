@@ -8,6 +8,7 @@ import { Engine, dayStart, nextDay, type Rating, type Settings } from "./engine"
 import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTally } from "./rewards";
 import { streak, type Streak } from "./days";
 import { prefs } from "./feedback";
+import { saveLeft } from "./push";
 import type { UnitCoverage } from "./coverage";
 import type { CourseStanding } from "./standing";
 import { openStore, type Store } from "./storage";
@@ -216,10 +217,13 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
     return reward;
   }, [st, view, bump]);
 
-  // the cards left today on the app icon (learning steps included, every scope), where allowed and switched on
+  // the cards left today on the app icon (learning steps included, every scope), where allowed and switched on,
+  // and for the text of a reminder (#224)
   const left = view ? view.leftAll : 0;
   useEffect(() => {
-    if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;
+    if (!view) return;
+    saveLeft(left, nextDay(Date.now()));
+    if (!prefs().badge || !("setAppBadge" in navigator)) return;
     (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => { /* not allowed here */ });
   }, [view, left]);
 
