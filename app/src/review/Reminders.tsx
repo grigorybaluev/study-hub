@@ -10,12 +10,16 @@ export default function Reminders() {
   useEffect(() => { pushState().then(setSt).catch(() => setSt({ state: "unsupported", subscription: null })); }, []);
   if (!st) return null;
 
+  const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
+  const refresh = () => pushState().then(setSt).catch(fail);
   const on = async () => {
     setError(null);
-    try { setSt({ state: "on", subscription: await subscribe() }); } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    try { setSt({ state: "on", subscription: await subscribe() }); } catch (e) { fail(e); await refresh(); }   // declined: "denied"
   };
   const off = async () => {
-    try { await unsubscribe(); } finally { setSt(await pushState()); }
+    setError(null);
+    try { await unsubscribe(); } catch (e) { fail(e); }
+    await refresh();
   };
   const copy = async () => {
     try { await navigator.clipboard.writeText(st.subscription ?? ""); setCopied(true); } catch { setError("Could not copy: select the text and copy it."); }
@@ -24,10 +28,11 @@ export default function Reminders() {
   return (
     <div className="reminders">
       <h3>Reminders</h3>
-      <p className="small muted">A notification at {REMIND_AT} (up to half an hour late), with the cards left today as this phone last saw them.</p>
+      <p className="small muted">A notification at {REMIND_AT} (GitHub may send one late or skip it), with the cards left today as this phone last saw them.</p>
       {st.state === "install" && <p className="small">On an iPhone, reminders reach only the app added to the home screen: Share › Add to Home Screen, then open it from there.</p>}
       {st.state === "unsupported" && <p className="small muted">This browser cannot receive them.</p>}
       {st.state === "denied" && <p className="small">Notifications are blocked for this app: allow them in iOS Settings › Notifications › Study Hub.</p>}
+      {st.state === "update" && <p className="small">An update of the app is waiting: tap Reload in its banner (or close and reopen the app) first.</p>}
       {st.state === "off" && <button type="button" onClick={on}>Enable reminders</button>}
       {st.state === "on" && st.subscription && (
         <>
@@ -36,7 +41,7 @@ export default function Reminders() {
           <textarea className="reminders-sub" readOnly rows={3} value={st.subscription} onFocus={(e) => e.currentTarget.select()} />
           <div className="reminders-actions">
             <button type="button" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
-            <button type="button" className="linkish" onClick={off}>Turn off</button>
+            <button type="button" className="linkish" onClick={off} title="the repo secret stays until it is replaced or removed">Turn off</button>
           </div>
         </>
       )}

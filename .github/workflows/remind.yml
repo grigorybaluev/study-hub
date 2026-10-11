@@ -1,7 +1,9 @@
 # Review reminders (#224): a push to the owner's phone at 9:00 and 20:00 Montreal time. The phone's
 # subscription is the repo secret PUSH_SUBSCRIPTION (copied from the stats page), the VAPID pair the
 # secrets VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY. The push is empty: the app's service worker writes the
-# text (public/push-sw.js). Run it by hand ("Run workflow") to send one now.
+# text (public/push-sw.js). Run it by hand ("Run workflow") to send one now. A failed send (a subscription
+# that is gone, a malformed secret) fails the run, so GitHub mails the owner. GitHub may start a scheduled
+# run late or skip it, and turns schedules off in a repo with no commits for 60 days.
 name: Review reminder
 
 on:
@@ -43,10 +45,12 @@ jobs:
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
         run: |
           if [ -z "$SUBSCRIPTION" ]; then echo "::warning::No PUSH_SUBSCRIPTION secret yet: enable reminders on the phone and store it."; exit 0; fi
-          npx --yes web-push@3.6.7 send-notification \
-            --endpoint="$(jq -r .endpoint <<< "$SUBSCRIPTION")" \
-            --key="$(jq -r .keys.p256dh <<< "$SUBSCRIPTION")" \
-            --auth="$(jq -r .keys.auth <<< "$SUBSCRIPTION")" \
-            --payload=remind --ttl=3600 \
-            --vapid-subject=https://grigorybaluev.github.io/study-hub/ \
-            --vapid-pubkey="$VAPID_PUBLIC_KEY" --vapid-pvtkey="$VAPID_PRIVATE_KEY"
+          cd "$RUNNER_TEMP" && npm install --silent --no-audit --no-fund web-push@3.6.7
+          node --input-type=module -e '
+            import webpush from "web-push";
+            const sub = JSON.parse(process.env.SUBSCRIPTION);
+            if (!sub.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) throw new Error("PUSH_SUBSCRIPTION is not a push subscription");
+            webpush.setVapidDetails("https://grigorybaluev.github.io/study-hub/", process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+            const r = await webpush.sendNotification(sub, "remind", { TTL: 3600 });   // throws on a refused push (410: gone)
+            console.log("sent:", r.statusCode);
+          '

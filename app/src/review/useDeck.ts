@@ -220,10 +220,10 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
   // the cards left today on the app icon (learning steps included, every scope), where allowed and switched on,
   // and for the text of a reminder (#224)
   const left = view ? view.leftAll : 0;
+  const until = view ? nextDay(Date.now()) : 0;
+  useEffect(() => { if (until) saveLeft(left, until); }, [left, until]);     // once per change, not per grade
   useEffect(() => {
-    if (!view) return;
-    saveLeft(left, nextDay(Date.now()));
-    if (!prefs().badge || !("setAppBadge" in navigator)) return;
+    if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;
     (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => { /* not allowed here */ });
   }, [view, left]);
 

@@ -4,9 +4,9 @@
 
 /** The public half of the VAPID pair (the private half is the repo secret VAPID_PRIVATE_KEY). */
 const VAPID_PUBLIC_KEY = "BNOftj9zYlisgH2J90WpoiXWgnU1ov0L5d-pO-cUcaHUVCtUyEZPB1huwUabLCB9Q07n1t5XhBgWI20IVy6Okh8";
-export const REMIND_AT = "9:00 and 20:00, Montreal time";
+export const REMIND_AT = "around 9:00 and 20:00, Montreal time";
 
-const STATE_CACHE = "study-hub-state";
+const STATE_CACHE = "study-hub-state";        // the same names in public/push-sw.js
 const LEFT_URL = "reminder-state.json";      // next to sw.js, where push-sw.js looks for it
 
 /** Keep the cards left today where the service worker can read them when a reminder arrives;
@@ -18,9 +18,11 @@ export function saveLeft(left: number, until: number) {
     .catch(() => { /* the reminder says "Cards are due" */ });
 }
 
-export type PushState = "on" | "off" | "denied" | "install" | "unsupported";
+/** `update`: the service worker with the push handler is installed but waits for a reload. */
+export type PushState = "on" | "off" | "denied" | "install" | "update" | "unsupported";
 
-const iOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent);
+// iPadOS Safari says Macintosh; a touch screen gives it away
+const iOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
 /** The service worker, if this page has one (none in the dev server). */
 async function worker(): Promise<ServiceWorkerRegistration | null> {
@@ -35,7 +37,9 @@ export async function pushState(): Promise<{ state: PushState; subscription: str
   const reg = await worker();
   if (!reg) return { state: "unsupported", subscription: null };
   const sub = await reg.pushManager.getSubscription();
-  return sub ? { state: "on", subscription: JSON.stringify(sub) } : { state: "off", subscription: null };
+  if (sub) return { state: "on", subscription: JSON.stringify(sub) };
+  // a subscription made under the old worker would get pushes it cannot show, and iOS drops such a one
+  return { state: reg.waiting ? "update" : "off", subscription: null };
 }
 
 /** Ask for permission and subscribe; the subscription (JSON) goes to the repo secret PUSH_SUBSCRIPTION. */

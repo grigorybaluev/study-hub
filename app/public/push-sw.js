@@ -1,7 +1,7 @@
 // Review reminders (#224), imported into the service worker (vite.config.ts, workbox importScripts).
 // A scheduled workflow sends an empty push at the owner's hours; the text comes from the cards left
 // today, which the app writes to a cache each time the deck changes (src/review/push.ts).
-const STATE_CACHE = "study-hub-state";
+const STATE_CACHE = "study-hub-state";              // the same names in src/review/push.ts
 const LEFT_URL = "./reminder-state.json";
 
 async function message() {
@@ -29,7 +29,11 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil((async () => {
     const open = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     const client = open.find((c) => c.url.startsWith(self.registration.scope));
-    if (client) { await client.focus(); return client.navigate ? client.navigate(url) : undefined; }
+    if (client) {
+      await client.focus();
+      // navigate() works only on a window this worker controls (not a first load or a hard reload)
+      try { return await client.navigate(url); } catch { /* opened below */ }
+    }
     return self.clients.openWindow(url);
   })());
 });
