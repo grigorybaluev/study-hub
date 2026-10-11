@@ -12,7 +12,10 @@ test("the phone's value: the date and its busy blocks, past midnight to the day'
   assert.deepEqual(parseDay("2026-10-12 09:45-11:00,18:30-21:30"), { date: "2026-10-12", busy: [[hm("09:45"), hm("11:00")], [hm("18:30"), hm("21:30")]] });
   assert.deepEqual(parseDay("2026-10-12 9:00 – 10:15\n23:00-01:00"), { date: "2026-10-12", busy: [[540, 615], [1380, 1440]] });
   assert.deepEqual(parseDay("2026-10-12"), { date: "2026-10-12", busy: [] });
+  assert.deepEqual(parseDay("2026-10-12 00:00-00:00,10:00-10:00,12:00-13:00"), { date: "2026-10-12", busy: [[720, 780]] });   // moments take no time
   assert.equal(parseDay("2026-10-12 lunch"), null);
+  assert.equal(parseDay("2026-10-12 09:00-10:00,25:70-26:00"), null);       // one bad block: not the phone's day
+  assert.equal(parseDay("2026-10-12 9:45 AM-11:00 AM"), null);
   assert.equal(parseDay(""), null);
   assert.equal(parseDay(undefined), null);
 });
