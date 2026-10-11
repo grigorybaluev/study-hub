@@ -25,11 +25,11 @@ export function motionOn(): boolean {
   return prefs().motion && !matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-// iOS has no Vibration API. Since iOS 17.4 a click on the label of an <input type="checkbox" switch> plays
-// the system haptic, so a fresh hidden one per tap gives a tap (the way cobalt.tools and ios-haptics do it,
-// #223: a switch kept on the page and clicked again never vibrated on the owner's iPhone). One fixed
-// strength, so a longer buzz is two taps. Android gets navigator.vibrate with real lengths. Whether taps
-// play in silent mode is the system's Sounds & Haptics setting.
+// iOS has no Vibration API. A tap on a button or the card is felt through HapticTap (a real tap on a
+// hidden switch). tap() is the fallback for the rest (a swipe, a key): a script click on a fresh hidden
+// switch, which plays the system haptic on older WebKit and nothing on newer (the owner's iPhone, #223).
+// One fixed strength, so a longer buzz is two taps. Android gets navigator.vibrate with real lengths.
+// Whether taps play in silent mode is the system's Sounds & Haptics setting.
 function tap() {
   const label = document.createElement("label");
   label.ariaHidden = "true";
@@ -43,12 +43,27 @@ function tap() {
   label.remove();
 }
 
+let ios: boolean | null = null;
+/** An iPhone or iPad (iPadOS Safari says Macintosh; a touch screen gives it away); read once. */
+export function onIOS(): boolean {
+  ios ??= /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  return ios;
+}
+
+/** A tap's action on iOS waits for the next task: the hidden switch under the finger gets the tap's click
+ *  after the click's handlers, and a re-render first would remove or disable it (no vibration). */
+export function afterTap(f: () => void) {
+  if (onIOS()) setTimeout(f, 0); else f();
+}
+
 /** Two phases (#223): "touch" as a finger lands on a grade button or a card starts to move; "short" as
  *  Again or Hard is let go; "long" for Good and Easy. */
 export type Buzz = "touch" | "short" | "long";
 const ANDROID_MS: Record<Buzz, number> = { touch: 4, short: 14, long: 32 };
-/** `test`: the settings' test buttons, which play whatever the setting and the screen. */
-export function haptic(kind: Buzz = "short", test = false) {
+/** `test`: the settings' test buttons, which play whatever the setting and the screen. `tapped`: a finger's
+ *  tap on a HapticTap or HapticArea, already felt on iOS. */
+export function haptic(kind: Buzz = "short", { test = false, tapped = false } = {}) {
+  if (tapped && onIOS()) return;
   if (!test && (!prefs().haptics || !matchMedia("(pointer: coarse)").matches)) return;    // a phone or tablet only
   try {
     if ("vibrate" in navigator && /Android/i.test(navigator.userAgent)) { navigator.vibrate(ANDROID_MS[kind]); return; }
