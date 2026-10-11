@@ -844,3 +844,6 @@ a.unit-tag:hover b { text-decoration: underline; }
 .next-units.row .next-title { max-width: 8.5rem; }
 .next-units.row .muted { margin-left: 0; }
 .unit-tag .part { white-space: nowrap; }
+.vibration-test { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.5rem; margin-top: 0.4rem; }
+.settings .vibration-test button { font: inherit; font-weight: 500; align-self: auto; padding: 0.3rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-elev); color: var(--fg); }
+.settings .vibration-test button:disabled { opacity: 0.5; }

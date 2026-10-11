@@ -25,40 +25,35 @@ export function motionOn(): boolean {
   return prefs().motion && !matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-// iOS has no Vibration API. Since iOS 18, toggling an <input type="checkbox" switch> through its label
-// plays the system haptic, so a hidden one gives a tap: one fixed strength, so a longer buzz is two taps.
-// Android gets navigator.vibrate with real lengths. Whether taps play in silent mode is the system's
-// Sounds & Haptics setting.
-let toggle: HTMLLabelElement | null = null;
+// iOS has no Vibration API. Since iOS 17.4 a click on the label of an <input type="checkbox" switch> plays
+// the system haptic, so a fresh hidden one per tap gives a tap (the way cobalt.tools and ios-haptics do it,
+// #223: a switch kept on the page and clicked again never vibrated on the owner's iPhone). One fixed
+// strength, so a longer buzz is two taps. Android gets navigator.vibrate with real lengths. Whether taps
+// play in silent mode is the system's Sounds & Haptics setting.
 function tap() {
-  if (!toggle) {
-    toggle = document.createElement("label");
-    toggle.setAttribute("aria-hidden", "true");
-    toggle.style.cssText = "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;left:-10px;top:0";
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.setAttribute("switch", "");
-    input.tabIndex = -1;
-    toggle.appendChild(input);
-    document.body.appendChild(toggle);
-  }
-  // the click moves focus into the hidden checkbox; give it back, or keys would go to that input
-  const before = document.activeElement as HTMLElement | null;
-  toggle.click();
-  (toggle.firstChild as HTMLInputElement).blur();
-  before?.focus?.({ preventScroll: true });
+  const label = document.createElement("label");
+  label.ariaHidden = "true";
+  label.style.display = "none";
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.setAttribute("switch", "");
+  label.appendChild(input);
+  document.head.appendChild(label);
+  label.click();
+  label.remove();
 }
 
 /** Two phases (#223): "touch" as a finger lands on a grade button or a card starts to move; "short" as
  *  Again or Hard is let go; "long" for Good and Easy. */
 export type Buzz = "touch" | "short" | "long";
 const ANDROID_MS: Record<Buzz, number> = { touch: 4, short: 14, long: 32 };
-export function haptic(kind: Buzz = "short") {
-  if (!prefs().haptics || !matchMedia("(pointer: coarse)").matches) return;    // a phone or tablet only
+/** `test`: the settings' test buttons, which play whatever the setting and the screen. */
+export function haptic(kind: Buzz = "short", test = false) {
+  if (!test && (!prefs().haptics || !matchMedia("(pointer: coarse)").matches)) return;    // a phone or tablet only
   try {
     if ("vibrate" in navigator && /Android/i.test(navigator.userAgent)) { navigator.vibrate(ANDROID_MS[kind]); return; }
     tap();
-    if (kind === "long") setTimeout(() => { try { tap(); } catch { /* one tap, then */ } }, 70);
+    if (kind === "long") setTimeout(() => { try { tap(); } catch { /* one tap, then */ } }, 120);   // closer, iOS plays one
   } catch { /* no haptics here */ }
 }
 
@@ -67,7 +62,7 @@ function context(): AudioContext {
   const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
   if (session) session.type = "ambient";     // on iOS the mute switch silences it
   audio ??= new AudioContext({ latencyHint: "interactive" });
-  if (audio.state === "suspended") void audio.resume();
+  if (audio.state === "suspended") audio.resume().catch(() => { /* resumed by the next gesture */ });
   return audio;
 }
 
@@ -78,25 +73,60 @@ export function warmUp() {
   try { context(); } catch { /* no sound here */ }
 }
 
+/** A pitched blip: `from` to `to` Hz over `glide` s, gone by `len` s. */
+function blip(a: AudioContext, t: number, type: OscillatorType, from: number, to: number, glide: number, len: number, gain: number) {
+  const osc = a.createOscillator(), g = a.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(from, t);
+  osc.frequency.exponentialRampToValueAtTime(to, t + glide);
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  osc.connect(g).connect(a.destination);
+  osc.start(t);
+  osc.stop(t + len + 0.01);
+}
+
 /** A short percussive click (#223): no fade-in, a pitch that drops, gone in 60 ms. */
 export function tick(pitch = 660, at = 0) {
   if (!prefs().sound) return;
-  try {
-    const a = context(), t = a.currentTime + at;
-    const osc = a.createOscillator(), gain = a.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(pitch * 1.6, t);
-    osc.frequency.exponentialRampToValueAtTime(pitch, t + 0.025);
-    gain.gain.setValueAtTime(0.16, t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-    osc.connect(gain).connect(a.destination);
-    osc.start(t);
-    osc.stop(t + 0.07);
-  } catch { /* no sound here */ }
+  try { const a = context(); blip(a, a.currentTime + at, "triangle", pitch * 1.6, pitch, 0.025, 0.06, 0.16); } catch { /* no sound here */ }
 }
 
-/** Each grade's click: lower for Again, brighter for Good and Easy. */
-export const GRADE_PITCH: Record<1 | 2 | 3 | 4, number> = { 1: 300, 2: 470, 3: 760, 4: 1000 };
+// 20 ms of decaying noise, made once per audio context
+let noise: AudioBuffer | null = null;
+/** A burst of noise through a band-pass: the "snap" of Good and Easy. */
+function snap(a: AudioContext, t: number, freq = 3200, gain = 0.22) {
+  if (!noise || noise.sampleRate !== a.sampleRate) {
+    const n = Math.ceil(a.sampleRate * 0.02);
+    noise = a.createBuffer(1, n, a.sampleRate);
+    const data = noise.getChannelData(0);
+    for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 2;
+  }
+  const src = a.createBufferSource(), band = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = noise;
+  band.type = "bandpass";
+  band.frequency.value = freq;
+  band.Q.value = 1.2;
+  g.gain.value = gain;
+  src.connect(band).connect(g).connect(a.destination);
+  src.start(t);
+}
+
+/** Each grade's sound (#223): Again a low thock, Hard a click, Good a crisp snap, Easy the snap with a
+ *  rising chirp. All percussive, no fade-in, under 80 ms but Easy's chirp. `at`: seconds from now. */
+export function gradeSound(r: 1 | 2 | 3 | 4, at = 0) {
+  if (!prefs().sound) return;
+  try {
+    const a = context(), t = a.currentTime + at;
+    if (r === 1) blip(a, t, "sine", 210, 85, 0.04, 0.09, 0.42);
+    else if (r === 2) blip(a, t, "triangle", 760, 470, 0.025, 0.06, 0.16);
+    else {
+      snap(a, t);
+      blip(a, t, "triangle", 1250, 820, 0.02, 0.05, 0.12);
+      if (r === 4) blip(a, t + 0.035, "sine", 900, 1800, 0.08, 0.11, 0.1);
+    }
+  } catch { /* no sound here */ }
+}
 
 /** A level-up or a comeback: two quick rising clicks. */
 export function chime() {
