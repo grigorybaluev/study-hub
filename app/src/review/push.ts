@@ -1,7 +1,6 @@
 // Review reminders (#224): this phone's push subscription, and the day's progress for the reminder's text
 // (#242). A scheduled workflow (.github/workflows/remind.yml) sends an empty push at the owner's hours to
 // the subscription kept as the repo secret PUSH_SUBSCRIPTION; public/push-sw.js shows it.
-import { nextDay } from "./engine";
 import { onIOS } from "./feedback";
 import type { DayProgress } from "./progress";
 
@@ -15,9 +14,9 @@ const STATE_URL = "reminder-state.json";     // next to sw.js, where push-sw.js 
 /** Keep the day's progress where the service worker can read it when a reminder arrives (#242):
  *  `until`, the end of today's review day, after which `done` and `left` say nothing; `nextUntil`, the
  *  end of the next one, until which `next` is the morning's count. */
-export function saveProgress(p: DayProgress, until: number) {
+export function saveProgress(p: DayProgress, until: number, nextUntil: number) {
   if (!("caches" in window)) return;
-  const state = { ...p, until, nextUntil: nextDay(until) };
+  const state = { ...p, until, nextUntil };
   caches.open(STATE_CACHE)
     .then((c) => c.put(new URL(STATE_URL, document.baseURI).href, new Response(JSON.stringify(state), { headers: { "content-type": "application/json" } })))
     .catch(() => { /* the reminder says "Cards are due" */ });

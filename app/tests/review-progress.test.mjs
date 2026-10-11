@@ -5,16 +5,20 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import vm from "node:vm";
 import { DEFAULT_SETTINGS, Engine, nextDay } from "../src/review/engine.ts";
-import { dayProgress } from "../src/review/progress.ts";
+import { dayProgress, nextDayCards } from "../src/review/progress.ts";
 
 const MIN = 60_000, HOUR = 60 * MIN;
 const T0 = new Date(2026, 9, 7, 9, 0).getTime();            // 9 am local, well inside a review day
 const opts = (now) => ({ now, ms: 4000, hash: "h", device: "dev1" });
 const ids = (n) => Array.from({ length: n }, (_, i) => `c${i}`);
 
-test("a fresh morning: nothing done, the day's new cards left, tomorrow's as many", () => {
+// the daily deck as useDeck gives it: these cards, this many new beyond the setting
+const deck = (cards, extraNew = 0) => () => ({ cards, extraNew });
+
+test("a fresh morning: nothing done, the day's new cards left, the next day's as many", () => {
   const e = new Engine([], { ...DEFAULT_SETTINGS, newPerDay: 5 });
-  assert.deepEqual(dayProgress(e, ids(20), T0), { done: 0, left: 5, next: 5 });
+  assert.deepEqual(dayProgress(e, deck(ids(20)), T0), { done: 0, left: 5 });
+  assert.equal(nextDayCards(e, deck(ids(20)), T0), 5);
 });
 
 test("a card is done once it leaves today's queue; a failed one is still left", () => {
@@ -22,11 +26,16 @@ test("a card is done once it leaves today's queue; a failed one is still left", 
   const cards = ids(10);
   e.grade("c0", 4, opts(T0));                 // Easy: out of today
   e.grade("c1", 1, opts(T0 + MIN));           // Again: a learning step later today
-  const p = dayProgress(e, cards, T0 + 2 * MIN);
-  assert.equal(p.done, 1);
-  assert.equal(p.left, 2);                     // c1's step and c2, the third new card
+  assert.deepEqual(dayProgress(e, deck(cards), T0 + 2 * MIN), { done: 1, left: 2 });   // left: c1's step and c2, the third new card
   // the next day: c1, unfinished, and three new cards (c2 has not been started, so it is one of them)
-  assert.equal(p.next, 4);
+  assert.equal(nextDayCards(e, deck(cards), T0 + 2 * MIN), 4);
+});
+
+test("the daily deck decides: an exam plan's extra new cards are left, a card outside it is not done", () => {
+  const e = new Engine([], { ...DEFAULT_SETTINGS, newPerDay: 3 });
+  e.grade("x", 4, opts(T0));                  // reviewed in another scope, not on the daily deck (an untaught unit)
+  // 3 + 4 new, less the one started today elsewhere (the limit counts every new card, as the deck does)
+  assert.deepEqual(dayProgress(e, deck(ids(10), 4), T0 + MIN), { done: 0, left: 6 });
 });
 
 test("the next day counts today's leftovers once they are due", () => {
@@ -34,9 +43,9 @@ test("the next day counts today's leftovers once they are due", () => {
   e.grade("a", 3, opts(T0 - 10 * 24 * HOUR));
   e.grade("a", 3, opts(T0 - 10 * 24 * HOUR + 10 * MIN));   // graduated: due in a few days
   const due = e.state("a").due;
-  const p = dayProgress(e, ["a"], due - 24 * HOUR);       // the day before it is due
-  assert.deepEqual(p, { done: 0, left: 0, next: 1 });
-  assert.equal(dayProgress(e, ["a"], due).left, 1);
+  assert.deepEqual(dayProgress(e, deck(["a"]), due - 24 * HOUR), { done: 0, left: 0 });   // the day before it is due
+  assert.equal(nextDayCards(e, deck(["a"]), due - 24 * HOUR), 1);
+  assert.equal(dayProgress(e, deck(["a"]), due).left, 1);
 });
 
 // the service worker's functions, run as the worker would with caches holding `state`
@@ -54,6 +63,7 @@ test("the words: a count in the morning, done out of the total, what is left in 
   assert.equal(words({ done: 20, left: 50 }, 13).title, "20 / 70 done · 50 to go");
   assert.equal(words({ done: 55, left: 15 }, 20).title, "Just 15 cards left to close today");
   assert.equal(words({ done: 20, left: 50 }, 20).title, "50 cards left to close today");
+  assert.deepEqual({ ...words({ done: 0, left: 30 }, 20) }, { title: "30 cards left to close today", body: "None done yet: 5–10 now make a start." });
   assert.equal(words({ done: 70, left: 0 }, 21).title, "Done for today ✓");
   assert.equal(words({ done: 0, left: 1 }, 15).title, "1 card today");
   assert.equal(words({ done: 0, left: 0 }, 9).title, "Nothing to review today");

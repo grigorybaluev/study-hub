@@ -9,7 +9,7 @@ import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTa
 import { streak, type Streak } from "./days";
 import { prefs } from "./feedback";
 import { saveProgress } from "./push";
-import { dayProgress, type DayProgress } from "./progress";
+import { dayProgress, nextDayCards, type DailyAt, type DayProgress } from "./progress";
 import type { UnitCoverage } from "./coverage";
 import type { CourseStanding } from "./standing";
 import { openStore, type Store } from "./storage";
@@ -46,8 +46,8 @@ export interface Deck {
   doneToday: number;
   /** grades today on this scope's cards (doneToday when the scope is everything) */
   doneHere: number;
-  /** every card's progress today, whatever the scope: the badge and the reminders (#242) */
-  all: DayProgress;
+  /** the daily deck's progress today, whatever the scope: the badge and the reminders (#242) */
+  all: Omit<DayProgress, "next">;
   /** the exam plans behind this session (#221), nearest first */
   plans: ExamPlan[];
   /** where each course and unit stands (#231, #222), when the session asked for it */
@@ -123,9 +123,15 @@ export interface Standing { courses: CourseStanding[]; units: UnitCoverage[] }
 export type StandingOf = (cards: Card[], engine: Engine, now: number) => Standing;
 const NO_STANDING: Standing = { courses: [], units: [] };
 
+/** The new cards a shaped deck may start today beyond the daily setting: a plan's own count replaces the setting's. */
+function beyondSetting(shaped: ReturnType<Shape>, engine: Engine, now: number): number {
+  return shaped.newLeft === undefined ? 0 : shaped.newLeft - engine.settings.newPerDay + engine.today(now).newToday;
+}
+
 /** `select` narrows and orders the cards of the session (a review scope, #197); `shape` applies exam plans;
- *  `standingOf` measures every course; keep all three stable (useMemo). */
-export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, standingOf?: StandingOf): Deck {
+ *  `standingOf` measures every course; `daily`, the daily deck's shape, which the badge and the reminders
+ *  count whatever the scope (#242); keep all four stable (useMemo). */
+export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, standingOf?: StandingOf, daily?: Shape): Deck {
   const { st, error } = useReviewData();
   const [tick, setTick] = useState(0);
   const [forced, setForced] = useState<string | null>(null);     // an undone card comes back first
@@ -143,6 +149,14 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
     return () => document.removeEventListener("visibilitychange", vis);
   }, [bump]);
 
+  // the daily deck at a time, for the badge and the reminders (#242); the "5 more" counts on its own day
+  const dailyAt = useCallback<DailyAt>((at) => {
+    if (!st) return { cards: [], extraNew: 0 };
+    const shaped: ReturnType<Shape> = daily ? daily(st.cards, st.engine, at) : { cards: st.cards };
+    const more = extra.day === dayStart(at) ? extra.n : 0;
+    return { cards: shaped.cards.map((c) => c.id), extraNew: more + beyondSetting(shaped, st.engine, at) };
+  }, [st, daily, extra]);
+
   const view = useMemo(() => {
     if (!st) return null;
     const now = Date.now();
@@ -153,9 +167,8 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
     const ids = pool.map((c) => c.id);
     const inPool = new Set(ids);
     const extraToday = extra.day === dayStart(now) ? extra.n : 0;
-    // the queue allows newPerDay + extra - newToday new cards: a plan's own count replaces the setting's
-    const planned = shaped.newLeft === undefined ? 0 : shaped.newLeft - st.engine.settings.newPerDay + st.engine.today(now).newToday;
-    const q = st.engine.queue(ids, now, extraToday + planned);
+    // the queue allows newPerDay + extra - newToday new cards
+    const q = st.engine.queue(ids, now, extraToday + beyondSetting(shaped, st.engine, now));
     const listed = new Set([...q.due, ...q.later.map((l) => l.card)]);
     const early = (shaped.early ?? []).filter((id) => inPool.has(id) && !listed.has(id));
     let order = [...q.due, ...q.fresh, ...early];
@@ -175,9 +188,8 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
       left: { due: q.due.length + early.length, fresh: q.fresh.length },
       doneToday: today.graded,
       // this scope's grades today (the ring of a scoped session counts these with its cards left)
-      doneHere: select ? st.engine.log.slice(st.engine.log.length - today.graded).filter((r) => inPool.has(r.card)).length : today.graded,
-      // the badge and the reminders count every card, whatever the scope
-      all: dayProgress(st.engine, st.cards.map((c) => c.id), now, extraToday),
+      doneHere: select ? st.engine.todayLog(now).filter((r) => inPool.has(r.card)).length : today.graded,
+      all: dayProgress(st.engine, dailyAt, now),
       preview: current ? st.engine.preview(current.id, now) : null,
       updated: !!state && !!state.hash && state.hash !== current!.hash,
       laterAt,
@@ -192,7 +204,7 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
       standing: standingOf ? standingOf(st.cards, st.engine, now) : NO_STANDING,
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
-  }, [st, tick, forced, extra, select, shape, standingOf]);
+  }, [st, tick, forced, extra, select, shape, standingOf, dailyAt]);
 
   // the clock that starts when a card is shown
   useEffect(() => { shownAt.current = Date.now(); }, [tick]);
@@ -219,11 +231,15 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
     return reward;
   }, [st, view, bump]);
 
-  // the cards left today on the app icon (learning steps included, every scope), where allowed and switched on,
+  // the daily deck's cards left today on the app icon (learning steps included), where allowed and switched on,
   // and the day's progress for the text of a reminder (#224, #242)
-  const left = view ? view.all.left : 0, done = view ? view.all.done : 0, ahead = view ? view.all.next : 0;
+  const left = view ? view.all.left : 0, done = view ? view.all.done : 0;
   const until = view ? nextDay(Date.now()) : 0;
-  useEffect(() => { if (until) saveProgress({ done, left, next: ahead }, until); }, [done, left, ahead, until]);     // once per change, not per grade
+  useEffect(() => {
+    if (!until || !st) return;
+    // the next day's count (the plans at its start) is worked out here, once per change, not per look at the deck
+    saveProgress({ done, left, next: nextDayCards(st.engine, dailyAt, Date.now()) }, until, nextDay(until));
+  }, [done, left, until, st, dailyAt]);
   useEffect(() => {
     if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;
     (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => { /* not allowed here */ });
@@ -292,7 +308,7 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
 }
 
 const EMPTY: Deck = {
-  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, all: { done: 0, left: 0, next: 0 }, plans: [], standing: NO_STANDING,
+  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, all: { done: 0, left: 0 }, plans: [], standing: NO_STANDING,
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
   day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
   streak: null, learning: 0, markCleared: () => {}, cards: [],

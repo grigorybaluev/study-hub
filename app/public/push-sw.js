@@ -21,8 +21,8 @@ function words({ done, left }, hour) {
   const total = done + left, n = (k) => `${k} card${k === 1 ? "" : "s"}`;
   if (!total) return { title: "Nothing to review today", body: "No cards are due. Enjoy the day." };
   if (!left) return { title: "Done for today ✓", body: `All ${n(total)} reviewed. See you tomorrow.` };
+  if (hour >= 18) return { title: `${left <= 20 ? "Just " : ""}${n(left)} left to close today`, body: done ? `${done} / ${total} done.` : "None done yet: 5–10 now make a start." };
   if (!done) return { title: `${n(total)} today`, body: hour < 12 ? "5–10 in each break and they are done by evening." : "None done yet: 5–10 in this break make a start." };
-  if (hour >= 18) return { title: `${left <= 20 ? "Just " : ""}${n(left)} left to close today`, body: `${done} / ${total} done.` };
   return { title: `${done} / ${total} done · ${left} to go`, body: "5–10 cards in this break." };
 }
 
