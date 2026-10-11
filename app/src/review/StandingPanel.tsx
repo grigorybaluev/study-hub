@@ -3,11 +3,13 @@
 // line; the stats page shows it open.
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { node, useData } from "../data/load";
-import type { CourseNode } from "../data/types";
+import { href, node, useData } from "../data/load";
+import type { Card, CourseNode } from "../data/types";
+import { coverage } from "./coverage";
+import type { Engine } from "./engine";
 import { scopeQuery } from "./scope";
 import type { Scopes } from "./scopeContext";
-import { standing, summary, type CourseStanding } from "./standing";
+import { standing, summary, type CourseStanding, type StandingInput } from "./standing";
 import type { ExamPlan } from "./term";
 import type { StandingOf } from "./useDeck";
 
@@ -16,12 +18,20 @@ const pct = (x: number | null) => (x === null ? "–" : `${Math.round(x * 100)}%
 const day = (t: number) => new Date(t).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
 const inDays = (n: number) => (n === 0 ? "today" : `${n}d`);
 
-/** The standing of every course from the graph's exams and term calendars. */
-export function standingFor(sc: Scopes): StandingOf {
-  return (cards, engine, now) => standing({
+/** What the standing of courses and units reads: the graph's exams and term calendars, and the engine. */
+export function standingInput(sc: Scopes, cards: Card[], engine: Engine, now: number): StandingInput {
+  return {
     cards, exams: sc.exams, isTaught: (c) => sc.isTaught(c, now), unitWeeks: sc.unitWeeks,
     due: (id) => engine.state(id)?.due, recallAt: (id, t) => engine.recallAt(id, t), now,
-  });
+  };
+}
+
+/** The standing of every course (#231) and unit (#222). */
+export function standingFor(sc: Scopes): StandingOf {
+  return (cards, engine, now) => {
+    const i = standingInput(sc, cards, engine, now);
+    return { courses: standing(i), units: coverage({ ...i, target: engine.settings.retention }) };
+  };
 }
 
 /** `plans` (the daily deck's) add each exam's new cards for today; `closable` starts it as one line. */
@@ -61,12 +71,14 @@ export default function StandingPanel({ rows, plans = [], closable = false }: { 
             const allStarted = !!plan && plan.cards.length - plan.fresh.length + plan.startedToday >= plan.cards.length;
             return (
               <div key={r.course} className="standing-row" role="row">
-                <Link role="cell" className="standing-course" to={`/review${scopeQuery({ kind: "course", id: r.course })}`} title={`Review ${code(r.course)}`}>{code(r.course)}</Link>
+                <Link role="cell" className="standing-course" to={href.course(r.course)} title={`${code(r.course)}, unit by unit`}>{code(r.course)}</Link>
                 <span role="cell" className="standing-seen" title={`${r.seen} of ${r.taught} taught cards seen`}>
                   <span className="standing-bar" style={{ ["--p" as string]: r.taught ? r.seen / r.taught : 1 }} />
                   <span>{r.seen}/{r.taught}</span>
                 </span>
-                <span role="cell" className={r.behind ? "standing-behind" : "standing-ok"} title={`${r.overdue} overdue, ${r.unstarted} not started`}>{r.behind || "✓"}</span>
+                {r.behind ? <Link role="cell" className="standing-behind" to={`/review${scopeQuery({ kind: "course", id: r.course })}`}
+                  title={`${r.overdue} overdue, ${r.unstarted} not started: review ${code(r.course)}`}>{r.behind}</Link>
+                  : <span role="cell" className="standing-ok" title="nothing overdue, every taught card started">✓</span>}
                 <span role="cell">{pct(r.recall)}</span>
                 {r.exam ? (
                   <Link role="cell" className={`standing-exam${r.exam.days <= 3 ? " soon" : ""}`} to={`/review${scopeQuery({ kind: "exam", course: r.course, index: r.exam.index })}`}

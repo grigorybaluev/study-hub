@@ -1,15 +1,26 @@
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Badge, ConceptChip, CourseChip } from "../components/Chips";
 import ReviewThis from "../components/ReviewThis";
 import MasteryBar from "../components/MasteryBar";
 import { useMemory } from "../review/memory";
+import { coverage, type UnitCoverage } from "../review/coverage";
+import { UnitTag } from "../review/NextUnits";
+import { standingInput } from "../review/StandingPanel";
+import { scopes } from "../review/scopeContext";
 import { edgesIn, edgesOut, href, useData } from "../data/load";
 import type { CourseNode, RoadmapSkillNode } from "../data/types";
 
 export default function Course() {
   const d = useData();
   const { code } = useParams();
-  const { memory } = useMemory();                  // hooks before the early return below
+  const { memory, st } = useMemory();              // hooks before the early return below
+  // each unit's status (#222): what to start, what is weak, what is solid
+  const status = useMemo(() => {
+    if (!st) return new Map<string, UnitCoverage>();
+    const i = standingInput(scopes(d), st.cards, st.engine, Date.now());
+    return new Map(coverage({ ...i, target: st.engine.settings.retention }).map((u) => [u.unit, u]));
+  }, [st, d]);
   const course = d.courses.find((c) => c.code === code);
   if (!course) return <p>Unknown course {code}.</p>;
   const units = d.unitsOf.get(course.id) ?? [];
@@ -54,6 +65,7 @@ export default function Course() {
                 <span>
                   <Link to={href.unit(u.id)}>{u.title}</Link>
                   {u.kind === "review" && <> <Badge kind="review" /></>}
+                  {status.has(u.id) && <div className="small"><UnitTag u={status.get(u.id)!} /></div>}
                   <div className="small muted">
                     {edgesOut(d, u.id, "introduces").map((e) => <ConceptChip key={e.to} id={e.to} note={e.perspective} />)}
                   </div>

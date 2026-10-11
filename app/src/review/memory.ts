@@ -38,8 +38,9 @@ export function memoryOf(engine: Engine, cards: Card[]): Memory {
 // one replay per state of the log, shared by the pages that show memory
 let cached: { key: string; memory: Memory } | null = null;
 
-/** This device's memory (null while loading); `enabled: false` loads nothing (a map in domain colours). */
-export function useMemory(enabled = true): { memory: Memory | null; error?: string } {
+/** This device's memory (null while loading); `enabled: false` loads nothing (a map in domain colours).
+ *  `st`: the review data it was read from, for a page that needs more of it (the course page's units, #222). */
+export function useMemory(enabled = true): { memory: Memory | null; error?: string; st: ReturnType<typeof useReviewData>["st"] } {
   const { st, error } = useReviewData(enabled);
   const memory = useMemo(() => {
     if (!st) return null;
@@ -48,5 +49,5 @@ export function useMemory(enabled = true): { memory: Memory | null; error?: stri
     if (cached?.key !== key) cached = { key, memory: memoryOf(st.engine, st.cards) };
     return cached.memory;
   }, [st]);
-  return { memory, error };
+  return { memory, error, st };
 }

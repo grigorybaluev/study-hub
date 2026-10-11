@@ -8,6 +8,7 @@ import { Engine, dayStart, nextDay, type Rating, type Settings } from "./engine"
 import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTally } from "./rewards";
 import { streak, type Streak } from "./days";
 import { prefs } from "./feedback";
+import type { UnitCoverage } from "./coverage";
 import type { CourseStanding } from "./standing";
 import { openStore, type Store } from "./storage";
 import type { ExamPlan } from "./term";
@@ -46,8 +47,8 @@ export interface Deck {
   leftAll: number;
   /** the exam plans behind this session (#221), nearest first */
   plans: ExamPlan[];
-  /** where each course stands (#231), when the session asked for it */
-  standing: CourseStanding[];
+  /** where each course and unit stands (#231, #222), when the session asked for it */
+  standing: Standing;
   /** when each grade would bring the current card back */
   preview: Record<Rating, number> | null;
   /** the current card's text changed since it was last graded */
@@ -114,8 +115,10 @@ export function clearedDays(store: Store): number[] {
  *  they fall due (an exam's weakest, served after the due and new ones). */
 export type Shape = (pool: Card[], engine: Engine, now: number) => { cards: Card[]; newLeft?: number; plans?: ExamPlan[]; early?: string[] };
 
-/** Where every course stands (#231), from all the cards, recomputed with the deck after each grade. */
-export type StandingOf = (cards: Card[], engine: Engine, now: number) => CourseStanding[];
+/** Where every course (#231) and unit (#222) stands, from all the cards, recomputed with the deck after each grade. */
+export interface Standing { courses: CourseStanding[]; units: UnitCoverage[] }
+export type StandingOf = (cards: Card[], engine: Engine, now: number) => Standing;
+const NO_STANDING: Standing = { courses: [], units: [] };
 
 /** `select` narrows and orders the cards of the session (a review scope, #197); `shape` applies exam plans;
  *  `standingOf` measures every course; keep all three stable (useMemo). */
@@ -183,7 +186,7 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
       streak: current ? null : streak(st.engine.log, clearedDays(st.store), now),
       learning: q.later.length,
       plans: shaped.plans ?? [],
-      standing: standingOf ? standingOf(st.cards, st.engine, now) : [],
+      standing: standingOf ? standingOf(st.cards, st.engine, now) : NO_STANDING,
     };
     // tick: recomputed after a grade, an undo, a timer or a return to the app
   }, [st, tick, forced, extra, select, shape, standingOf]);
@@ -283,7 +286,7 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
 }
 
 const EMPTY: Deck = {
-  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, leftAll: 0, plans: [], standing: [],
+  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, leftAll: 0, plans: [], standing: NO_STANDING,
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
   day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
   streak: null, learning: 0, markCleared: () => {}, cards: [],
