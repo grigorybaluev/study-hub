@@ -237,14 +237,20 @@ export class Engine {
     const start = dayStart(now);
     let newToday = 0;
     for (const ts of this.first.values()) if (ts >= start) newToday++;
-    let lo = 0, hi = this.log.length;                          // the log is sorted: find today's first grade
-    while (lo < hi) { const mid = (lo + hi) >> 1; if (this.log[mid].ts < start) lo = mid + 1; else hi = mid; }
-    const graded = this.log.slice(lo);
+    const graded = this.todayLog(now);
     const reviews = graded.filter((r) => r.type === "review");
     return {
       newToday, reviewsToday: new Set(graded.filter((r) => r.type !== "learn").map((r) => r.card)).size, graded: graded.length,
       ms: graded.reduce((s, r) => s + r.ms, 0), reviewed: reviews.length, recalled: reviews.filter((r) => r.rating > 1).length,
     };
+  }
+
+  /** The grades of the current review day, oldest first. */
+  todayLog(now: number): Review[] {
+    const start = dayStart(now);
+    let lo = 0, hi = this.log.length;                          // the log is sorted: find today's first grade
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (this.log[mid].ts < start) lo = mid + 1; else hi = mid; }
+    return this.log.slice(lo);
   }
 
   /** The log as Anki's revlog (#198): each grade with the interval it set (days once in review, else

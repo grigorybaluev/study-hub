@@ -34,6 +34,21 @@ export function interval(ms: number): string {
   return `${(d / 365).toFixed(1)}y`;
 }
 
+/** The shape of a deck with exam plans (#221): each exam's new cards early, untaught units' new cards left
+ *  out. `own`: an exam's own deck, which takes only what its plan still needs today and serves, weakest
+ *  first, the cards FSRS expects to be forgotten by its morning; else the daily deck. */
+function examShape(sc: Scopes, exams: Scopes["exams"], own: boolean): Shape {
+  return (pool, engine, now) => {
+    const plans = examPlans({ cards: pool, exams, unitWeeks: sc.unitWeeks, firstSeen: (id) => engine.firstSeen(id), now });
+    const r = examDaily(pool, plans, (c) => sc.isTaught(c, now), (id) => engine.seen(id));
+    // the daily deck: what the plans still need today or the setting, whichever is more
+    const setting = Math.max(0, engine.settings.newPerDay - engine.today(now).newToday);
+    if (!own) return { cards: r.cards, plans, newLeft: Math.max(setting, r.newLeft) };
+    const early = plans[0] ? weakAt(plans[0].cards, plans[0].date, (id, t) => engine.recallAt(id, t), (id) => engine.seen(id)) : [];
+    return { cards: r.cards, plans, newLeft: r.newLeft, early };
+  };
+}
+
 export default function Review() {
   // the scope of the session (#197): all cards, a course or term (exam prep), a unit, a concept, an area
   const d = useData();
@@ -45,7 +60,9 @@ export default function Review() {
     const weight = scope.kind === "course" || scope.kind === "term" ? sc.weight(sc.courses(scope)) : undefined;
     return (cards: Card[]) => scopeCards(cards, scope, sc, weight);
   }, [key, sc]);   // the scope is the query string: recomputed when it changes
-  // exam plans (#221): the daily deck and an exam's deck bring each exam's new cards in early
+  // exam plans (#221): the daily deck and an exam's deck bring each exam's new cards in early; the badge and
+  // the reminders count the daily deck in every scope (#242)
+  const daily = useMemo(() => examShape(sc, sc.exams, false), [sc]);
   const shape = useMemo<Shape | undefined>(() => {
     // a unit's deck (#222), chosen to work on it: all its new cards, past the daily limit, and its seen cards
     // below the retention target, weakest first, before they fall due
@@ -55,22 +72,13 @@ export default function Review() {
         .filter((x) => x.r < target).sort((a, b) => a.r - b.r).map((x) => x.id);
       return { cards: pool, newLeft: pool.filter((c) => !engine.seen(c.id)).length, early };
     };
-    if (scope.kind !== "all" && scope.kind !== "exam") return undefined;
-    const exams = scope.kind === "exam" ? sc.exams.filter((e) => e.course === scope.course && e.index === scope.index) : sc.exams;
-    return (pool, engine, now) => {
-      const plans = examPlans({ cards: pool, exams, unitWeeks: sc.unitWeeks, firstSeen: (id) => engine.firstSeen(id), now });
-      const r = examDaily(pool, plans, (c) => sc.isTaught(c, now), (id) => engine.seen(id));
-      // an exam's deck: what its plan still needs today; the daily deck: that or the setting, whichever is more
-      const setting = Math.max(0, engine.settings.newPerDay - engine.today(now).newToday);
-      if (scope.kind !== "exam") return { cards: r.cards, plans, newLeft: Math.max(setting, r.newLeft) };
-      // an exam's deck also serves, weakest first, the cards FSRS expects to be forgotten by its morning
-      const early = plans[0] ? weakAt(plans[0].cards, plans[0].date, (id, t) => engine.recallAt(id, t), (id) => engine.seen(id)) : [];
-      return { cards: r.cards, plans, newLeft: r.newLeft, early };
-    };
-  }, [key, sc]);
+    if (scope.kind === "all") return daily;
+    if (scope.kind !== "exam") return undefined;
+    return examShape(sc, sc.exams.filter((e) => e.course === scope.course && e.index === scope.index), true);
+  }, [key, sc, daily]);
   // where each course and unit stands (#231, #222), on the daily deck
   const standingOf = useMemo(() => (scope.kind === "all" ? standingFor(sc) : undefined), [key, sc]);
-  const deck = useDeck(select, shape, standingOf);
+  const deck = useDeck(select, shape, standingOf, daily);
   const [picking, setPicking] = useState(false);
   const closePicker = useCallback(() => setPicking(false), []);
   const [flipped, setFlipped] = useState(false);
