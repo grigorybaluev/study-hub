@@ -161,7 +161,8 @@ Courses and programs
   of that offering from the course outline. The review app uses them for taught units and exam plans.
 - `cards: true` makes a course's units a source of review cards (#191): every titled `definition`,
   `theorem` (lemma, proposition, corollary), `steps` and `caution`, every `insight` (named by its
-  title or its `##` part) and every `equations` line becomes a card in `cards.json`. Card ids are
+  title or its `##` part), every `equations` line and every titled `exercise` with a nested `solution`
+  (front: the exercise, back: its solution) becomes a card in `cards.json`. Card ids are
   `<course>/<kind>/<slug of title>`, without the unit, so units stay renameable; a block's
   `{#x}` replaces the slug (to keep a card's review history across a title change; on an
   `equations` block it goes before each line's name, `eq/x-<name>`) and `{concept=a,b}` names
