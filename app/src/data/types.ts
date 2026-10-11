@@ -310,10 +310,10 @@ export interface Card {
   /** `<course>/<kind>/<slug>`, e.g. `concordia/STAT280/definition/data-frame` */
   id: string;
   kind: "definition" | "theorem" | "lemma" | "proposition" | "corollary" | "steps" | "caution" | "insight" | "eq"
-    | "output" | "method";   // quizzes (#196): "what does this print?" and "which method?"
-  /** markdown: the prompt ("Data frame", "How: Rejection sampling", "Key idea: Lists") */
+    | "output" | "method" | "exercise";   // quizzes (#196): "what does this print?", "which method?", an exercise
+  /** markdown: the prompt ("Data frame", "How: Rejection sampling", "Key idea: Lists"; an exercise's question) */
   front: string;
-  /** markdown: the block body (a statement without its proof; an equation line's formula) */
+  /** markdown: the block body (a statement without its proof; an equation line's formula; an exercise's solution) */
   back: string;
   course: string;
   /** the unit it comes from; "" for a quiz from the solution-map gallery (see `link`) */

@@ -81,6 +81,7 @@ export interface NoteFields { front: string; back: string; where: string; kind: 
 const KIND: Record<Card["kind"], string> = {
   definition: "Definition", theorem: "Theorem", lemma: "Lemma", proposition: "Proposition", corollary: "Corollary",
   steps: "Method", caution: "Caution", insight: "Key idea", eq: "Formula", output: "What does this print?", method: "Which method?",
+  exercise: "Exercise",
 };
 
 /** A card's four fields. A method quiz becomes a plain question: its options on the front, the method and

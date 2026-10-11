@@ -759,7 +759,7 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .review-verdict.right { background: var(--ok-soft); color: var(--ok); }
 .review-verdict.wrong { background: var(--bad-soft); color: var(--bad); }
 .review-verdict b { color: var(--fg); }
-.review-kind.k-output, .review-kind.k-method { color: var(--accent-dk); }
+.review-kind.k-output, .review-kind.k-method, .review-kind.k-exercise { color: var(--accent-dk); }
 .grade.suggested { box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 35%, transparent); font-weight: 800; }
 /* the verification banner belongs to the unit and gallery pages, where its checks are done; not to a card */
 .review-back .sim-verify { display: none; }
