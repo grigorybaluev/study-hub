@@ -14,8 +14,7 @@ export function detail(u: UnitCoverage, weeks: number[] = []): string {
   switch (u.status) {
     case "untaught": return weeks.length ? `week ${Math.min(...weeks)}` : "";
     case "start": return `${u.unstarted} of ${u.cards} not started`;
-    case "weak": return [u.due && `${u.due} due`, u.recall !== null && `${pct(u.recall)} recall`].filter(Boolean).join(" · ");
-    case "solid": return u.recall === null ? "" : `${pct(u.recall)} recall`;
+    case "weak": case "solid": return [u.due && `${u.due} due`, u.recall !== null && `${pct(u.recall)} recall`].filter(Boolean).join(" · ");
   }
 }
 
