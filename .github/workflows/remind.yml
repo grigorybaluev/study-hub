@@ -1,0 +1,56 @@
+# Review reminders (#224): a push to the owner's phone at 9:00 and 20:00 Montreal time. The phone's
+# subscription is the repo secret PUSH_SUBSCRIPTION (copied from the stats page), the VAPID pair the
+# secrets VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY. The push is empty: the app's service worker writes the
+# text (public/push-sw.js). Run it by hand ("Run workflow") to send one now. A failed send (a subscription
+# that is gone, a malformed secret) fails the run, so GitHub mails the owner. GitHub may start a scheduled
+# run late or skip it, and turns schedules off in a repo with no commits for 60 days.
+name: Review reminder
+
+on:
+  schedule:
+    # ten minutes early, as scheduled runs start late; one pair for summer time (UTC-4), one for winter (UTC-5)
+    - cron: "50 12 * * *"
+    - cron: "50 23 * * *"
+    - cron: "50 13 * * *"
+    - cron: "50 0 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Is it reminder time in Montreal?
+        id: when
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          offset=$(TZ=America/Toronto date +%z)
+          case "$EVENT/$offset/$SCHEDULE" in
+            workflow_dispatch/*|"schedule/-0400/50 12 * * *"|"schedule/-0400/50 23 * * *"|"schedule/-0500/50 13 * * *"|"schedule/-0500/50 0 * * *")
+              echo "send=1" >> "$GITHUB_OUTPUT" ;;
+            *) echo "Not this run: $offset, $SCHEDULE" ;;
+          esac
+      - uses: actions/setup-node@v4
+        if: steps.when.outputs.send == '1'
+        with:
+          node-version: 24
+      - name: Send the push
+        if: steps.when.outputs.send == '1'
+        env:
+          SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SUBSCRIPTION" ]; then echo "::warning::No PUSH_SUBSCRIPTION secret yet: enable reminders on the phone and store it."; exit 0; fi
+          cd "$RUNNER_TEMP" && npm install --silent --no-audit --no-fund web-push@3.6.7
+          node --input-type=module -e '
+            import webpush from "web-push";
+            const sub = JSON.parse(process.env.SUBSCRIPTION);
+            if (!sub.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) throw new Error("PUSH_SUBSCRIPTION is not a push subscription");
+            webpush.setVapidDetails("https://grigorybaluev.github.io/study-hub/", process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+            const r = await webpush.sendNotification(sub, "remind", { TTL: 3600 });   // throws on a refused push (410: gone)
+            console.log("sent:", r.statusCode);
+          '
