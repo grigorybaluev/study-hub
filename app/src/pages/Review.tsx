@@ -6,12 +6,13 @@ import { ConceptChip } from "../components/Chips";
 import { href, node, useData } from "../data/load";
 import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
 import CardView, { isRight } from "../review/CardView";
+import StandingPanel, { standingFor } from "../review/StandingPanel";
 import SyncPanel from "../review/SyncPanel";
 import { dayStart, type Rating } from "../review/engine";
 import { GRADE_PITCH, chime, haptic, motionOn, tick, warmUp } from "../review/feedback";
 import { TIER_NAME, quarterCrossed, type GradeReward } from "../review/rewards";
 import { useDeck, type Deck, type Shape } from "../review/useDeck";
-import { examDaily, examPlans, upcoming, weakAt, type ExamPlan } from "../review/term";
+import { examDaily, examPlans, upcoming, weakAt } from "../review/term";
 import { ALL, inScope, parseScope, scopeCards, scopeQuery, type Scope } from "../review/scope";
 import { scopes, type Scopes } from "../review/scopeContext";
 import { useSheet } from "../components/useSheet";
@@ -57,7 +58,9 @@ export default function Review() {
       return { cards: r.cards, plans, newLeft: r.newLeft, early };
     };
   }, [key, sc]);
-  const deck = useDeck(select, shape);
+  // where each course stands (#231), on the daily deck
+  const standingOf = useMemo(() => (scope.kind === "all" ? standingFor(sc) : undefined), [key, sc]);
+  const deck = useDeck(select, shape, standingOf);
   const [picking, setPicking] = useState(false);
   const closePicker = useCallback(() => setPicking(false), []);
   const [flipped, setFlipped] = useState(false);
@@ -154,7 +157,7 @@ export default function Review() {
         <button className="deck-scope" onClick={() => setPicking(true)} disabled={!!exit} title="Choose what to review">{sc.label(scope)} <span aria-hidden="true">▾</span></button>
         {scope.kind !== "all" && <Link className="small" to="/review" onClick={(e) => { if (exit) e.preventDefault(); }}>all cards</Link>}
       </div>
-      {scope.kind === "all" && deck.plans.length > 0 && <ExamStrip plans={deck.plans} />}
+      {scope.kind === "all" && <StandingPanel rows={deck.standing} plans={deck.plans} closable />}
       {picking && <ScopePicker deck={deck} sc={sc} current={scope} onClose={closePicker} />}
       {deck.sync?.remind && (
         <p className="deck-warn">{deck.sync.since} reviews on this device have not been sent to your other device for over 3 days. <button className="linkish" onClick={() => setSyncing(true)}>Sync now</button></p>
@@ -277,29 +280,6 @@ function ScopePicker({ deck, sc, current, onClose }: { deck: Deck; sc: Scopes; c
         </div>
       </div>
     </>
-  );
-}
-
-/** The exams ahead (#221): days left, how many of each exam's cards are started, and today's new ones;
- *  a tap opens that exam's deck. */
-function ExamStrip({ plans }: { plans: ExamPlan[] }) {
-  const d = useData();
-  return (
-    <div className="exam-strip" role="list">
-      {plans.map((p) => {
-        const started = p.cards.length - p.fresh.length + p.startedToday, left = Math.max(0, p.perDay - p.startedToday);
-        const code = node<CourseNode>(d, p.course)?.code ?? p.course;
-        return (
-          <Link key={`${p.course}:${p.index}`} role="listitem" className={`exam-pill${p.days <= 3 ? " soon" : ""}`}
-            to={`/review${scopeQuery({ kind: "exam", course: p.course, index: p.index })}`}
-            title={`${p.name}: ${started} of ${p.cards.length} cards started; ${left} new today`}>
-            <span className="exam-pill-head"><b>{code}</b> {p.days === 0 ? "today" : `${p.days}d`}</span>
-            <span className="exam-pill-sub">{left ? `${left} new today` : started >= p.cards.length ? "all started" : "done today"}</span>
-            <span className="exam-pill-bar" style={{ ["--p" as string]: p.cards.length ? started / p.cards.length : 1 }} />
-          </Link>
-        );
-      })}
-    </div>
   );
 }
 

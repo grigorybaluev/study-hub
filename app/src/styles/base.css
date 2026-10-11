@@ -752,15 +752,35 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .mastery-ring .ring-track, .mastery-ring .ring-fill { stroke-width: 3; }
 .review-before { display: inline-block; margin: -0.2rem 0 0.4rem; font-weight: 600; }
 
-/* the exams ahead (#221): one pill per exam above the daily deck, scrolling sideways on a phone */
-.exam-strip { display: flex; gap: 0.45rem; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
-.exam-strip::-webkit-scrollbar { display: none; }
-.exam-pill {
-  position: relative; flex: none; display: flex; flex-direction: column; gap: 0.05rem; padding: 0.35rem 0.7rem 0.45rem;
-  border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg-elev); color: var(--fg); text-decoration: none; overflow: hidden;
+/* where each course stands (#231): one line above the daily deck that opens to a row per course */
+.standing { font-size: 0.85rem; }
+.standing.closable { border: 1px solid var(--line); border-radius: 12px; background: var(--bg-elev); }
+.standing-line {
+  display: flex; align-items: baseline; gap: 0.25rem; width: 100%; padding: 0.45rem 0.75rem; text-align: left;
+  font: inherit; color: var(--fg); background: none; border: 0; cursor: pointer;
 }
-.exam-pill.soon { border-color: color-mix(in srgb, var(--bad) 50%, var(--line)); }
-.exam-pill-head { font-size: 0.85rem; white-space: nowrap; }
-.exam-pill-head b { font-weight: 750; }
-.exam-pill-sub { font-size: 0.72rem; color: var(--fg-muted); white-space: nowrap; }
-.exam-pill-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--p) * 100%); background: var(--accent); }
+.standing-line .muted { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.standing-caret { margin-left: auto; color: var(--fg-muted); }
+.standing-behind { color: var(--bad); font-weight: 650; }
+.standing-ok { color: var(--ok); font-weight: 650; }
+/* one grid for every row (subgrid), so the columns fit their widest value and stay aligned */
+.standing-table { display: grid; grid-template-columns: max-content minmax(3.5rem, 1fr) repeat(3, max-content); column-gap: 0.85rem; }
+.standing.closable .standing-table { padding: 0 0.75rem 0.5rem; border-top: 1px solid var(--line); }
+.standing-row {
+  grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center;
+  padding: 0.3rem 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums;
+}
+.standing-row:last-child { border-bottom: 0; }
+.standing-row > :nth-child(n + 3) { text-align: right; }
+.standing-head { font-size: 0.72rem; color: var(--fg-muted); padding-top: 0.45rem; }
+.standing-head > span { cursor: help; }
+.standing-course { font-weight: 700; color: var(--fg); text-decoration: none; white-space: nowrap; }
+.standing-seen { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+.standing-seen > span:last-child { white-space: nowrap; font-size: 0.78rem; color: var(--fg-muted); }
+.standing-bar {
+  flex: 1; min-width: 1.5rem; height: 6px; border-radius: 3px;
+  background: linear-gradient(to right, var(--accent) calc(var(--p) * 100%), var(--bg-sunken) 0);
+}
+.standing-exam { display: flex; flex-direction: column; align-items: flex-end; color: var(--fg); text-decoration: none; white-space: nowrap; }
+.standing-exam.soon { color: var(--bad); }
+.standing-sub { font-size: 0.7rem; color: var(--fg-muted); }
