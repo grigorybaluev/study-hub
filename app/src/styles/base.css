@@ -678,8 +678,8 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .stats h2 { font-size: 1.1rem; }
 /* the last 14 days per course (#231): categorical slots in a fixed course order, validated for both themes
    (dataviz validator: light on #fff, dark on #1a1d22); every bar carries its number, so colour is never alone */
-.activity { --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948; --s0: #8a8f98; }
-:root[data-theme="dark"] .activity { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767; --s0: #6b7079; }
+.activity, .anki { --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948; --s0: #8a8f98; }
+:root[data-theme="dark"] .activity, :root[data-theme="dark"] .anki { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767; --s0: #6b7079; }
 .activity i[class^="activity-s"] { display: inline-block; }
 .activity-s0 { background: var(--s0); } .activity-s1 { background: var(--s1); } .activity-s2 { background: var(--s2); }
 .activity-s3 { background: var(--s3); } .activity-s4 { background: var(--s4); } .activity-s5 { background: var(--s5); }
@@ -851,3 +851,23 @@ a.unit-tag:hover b { text-decoration: underline; }
 .reminders h3 { margin: 0 0 0.3rem; font-size: 1rem; }
 .reminders-sub { width: 100%; box-sizing: border-box; font: 0.72rem/1.35 var(--mono, ui-monospace, monospace); color: var(--fg-muted); background: var(--bg-elev); border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem; resize: vertical; }
 .reminders-actions { display: flex; gap: 0.8rem; align-items: center; margin-top: 0.3rem; }
+
+/* ---------------------------------------------------------------- Anki's sections of the stats page (#225) */
+.anki-today { margin: 0; padding-left: 1.1rem; font-size: 0.9rem; line-height: 1.6; }
+.anki-counts { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; background: var(--bg-sunken); }
+.anki-counts i, .anki-legend i { display: block; }
+.anki-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: 0.5rem 0 0; padding: 0; list-style: none; }
+.anki-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; }
+.anki-counts .c-new, .anki-legend .c-new { background: #4a90d9; }
+.anki-counts .c-learning, .anki-legend .c-learning { background: #e0912f; }
+.anki-counts .c-relearning, .anki-legend .c-relearning { background: #d8504a; }
+.anki-counts .c-young, .anki-legend .c-young { background: #7bc67e; }
+.anki-counts .c-mature, .anki-legend .c-mature { background: #2e7d32; }
+.anki-table { border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; margin: 0.2rem 0 0.4rem; }
+.anki-table th, .anki-table td { padding: 0.2rem 0.6rem; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.anki-table th:first-child { text-align: left; font-weight: 600; padding-left: 0; }
+.anki-table thead th { font-size: 0.72rem; font-weight: 600; color: var(--fg-muted); }
+.anki-table td .muted { font-size: 0.72rem; }
+.anki-sub { font-size: 0.9rem; margin: 0.8rem 0 0.2rem; }
+.anki-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+.anki .activity-row { cursor: default; }

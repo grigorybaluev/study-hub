@@ -13,20 +13,27 @@ const SLOTS = 8;
 const GRADE: Record<Rating, { letter: string; name: string }> = {
   1: { letter: "A", name: "Again" }, 2: { letter: "H", name: "Hard" }, 3: { letter: "G", name: "Good" }, 4: { letter: "E", name: "Easy" },
 };
-const OTHER = "other";
+export const OTHER = "other";
+
+/** Each course's colour slot (1-8), the same in every chart of the stats page (the 14 days, the forecast,
+ *  #225): its first place in the cards, the ninth course on folding into "other". `courseOf` gives a
+ *  card's course, or "other". */
+export function courseColours(cards: Card[]) {
+  const byId = new Map(cards.map((c) => [c.id, c]));
+  const order = [...new Set(cards.map((c) => c.course))];
+  const slot = new Map(order.slice(0, SLOTS).map((c, i) => [c, i + 1]));
+  const courseOf = (id: string) => {
+    const c = byId.get(id)?.course ?? id.split("/").slice(0, 2).join("/");     // a card removed since: its id starts with its course
+    return slot.has(c) ? c : OTHER;
+  };
+  return { byId, slot, courseOf };
+}
 
 export default function Activity({ log, cards }: { log: Review[]; cards: Card[] }) {
   const d = useData();
   const [open, setOpen] = useState<number | null>(null);
   const view = useMemo(() => {
-    const byId = new Map(cards.map((c) => [c.id, c]));
-    // colour follows the course: its first place in the cards, the ninth course on folding into "other"
-    const order = [...new Set(cards.map((c) => c.course))];
-    const slot = new Map(order.slice(0, SLOTS).map((c, i) => [c, i + 1]));
-    const courseOf = (id: string) => {
-      const c = byId.get(id)?.course ?? id.split("/").slice(0, 2).join("/");     // a card removed since: its id starts with its course
-      return slot.has(c) ? c : OTHER;
-    };
+    const { byId, slot, courseOf } = courseColours(cards);
     const days = activity(log, courseOf, Date.now());
     const totals = new Map<string, number>();
     for (const x of days) for (const [c, n] of Object.entries(x.courses)) totals.set(c, (totals.get(c) ?? 0) + n);

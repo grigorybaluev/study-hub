@@ -1,4 +1,4 @@
-// /review/stats (#195): where each course stands (#231), days in a row and freezes, the calendar of review days, mastery per course and
+// /review/stats (#195): where each course stands (#231), the last 14 days, Anki's sections (#225), days in a row and freezes, the calendar of review days, mastery per course and
 // per concept, milestones, totals, and the settings (daily limits, retention, feedback).
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -10,6 +10,7 @@ import MasteryBar, { TIERS } from "../components/MasteryBar";
 import Activity from "../review/Activity";
 import AnkiExport from "../review/AnkiExport";
 import Reminders from "../review/Reminders";
+import AnkiSections from "../review/AnkiSections";
 import StandingPanel, { standingFor } from "../review/StandingPanel";
 import { scopes } from "../review/scopeContext";
 import { TIER_COLOR, memoryOf } from "../review/memory";
@@ -62,6 +63,8 @@ export default function ReviewStats() {
         <p className="small muted">Grades per review day (the day turns at 4 am), by course. Tap a day to see what you graded.</p>
       </section>
 
+      <AnkiSections engine={st.engine} cards={st.cards} />
+
       <section className="stats-streak">
         <div className="stats-big"><b>{s.current}</b><span>day{s.current === 1 ? "" : "s"} in a row</span></div>
         <div className="stats-big"><b>{s.best}</b><span>best</span></div>
@@ -84,7 +87,7 @@ export default function ReviewStats() {
             </div>
           ))}
         </div>
-        <p className="small muted">{stats.reviews} grades in all, {Math.round(stats.ms / 60_000)} minutes{stats.retention30 !== null ? `; ${Math.round(stats.retention30 * 100)}% of reviews recalled in the last 30 days` : ""}.</p>
+        <p className="small muted">{stats.reviews} grades in all, {Math.round(stats.ms / 60_000)} minutes.</p>
       </section>
 
       <section>
