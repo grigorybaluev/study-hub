@@ -72,7 +72,7 @@ function DayList({ log, day, view, code, swatch }: {
   const d = useData();
   // courses in the legend's order (a stable sort keeps the units of each in the order they were graded)
   const rank = (c: string) => view.slot.get(c) ?? SLOTS + 1;     // "other" last
-  const groups = useMemo(() => dayDetail(log, day, (id) => ({ course: view.courseOf(id), unit: view.byId.get(id)?.unit ?? null }))
+  const groups = useMemo(() => dayDetail(log, day, (id) => ({ course: view.courseOf(id), unit: view.byId.has(id) ? view.byId.get(id)!.unit ?? "" : null }))
     .sort((a, b) => rank(a.course) - rank(b.course)), [log, day, view]);
   return (
     <div className="activity-detail">
@@ -81,7 +81,7 @@ function DayList({ log, day, view, code, swatch }: {
         return (
           <div key={`${g.course} ${g.unit}`}>
             <div className="activity-unit">
-              <i className={swatch(g.course)} /> <b>{code(g.course)}</b> · {unit ? <Link to={href.unit(unit.id)}>{unit.title}</Link> : g.unit ? g.unit : "Solution maps"}
+              <i className={swatch(g.course)} /> <b>{code(g.course)}</b> · {unit ? <Link to={href.unit(unit.id)}>{unit.title}</Link> : g.unit === null ? "Cards no longer in the deck" : g.unit || "Solution maps"}
               <span className="muted"> · {g.cards.length}</span>
             </div>
             <ul>

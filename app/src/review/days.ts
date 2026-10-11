@@ -100,7 +100,8 @@ export function activity(log: Review[], courseOf: (card: string) => string, now:
 }
 
 /** What was graded on one review day (#231): per course, per unit, each card with its grades in order.
- *  Courses, units and cards come in the order they were first graded that day. */
+ *  Courses, units and cards come in the order they were first graded that day. A unit of null groups the
+ *  cards no longer in the deck, apart from cards with no unit (""). */
 export interface DayGroup { course: string; unit: string | null; cards: { card: string; ratings: Review["rating"][] }[] }
 export function dayDetail(log: Review[], day: number, where: (card: string) => { course: string; unit: string | null }): DayGroup[] {
   const groups: DayGroup[] = [], byKey = new Map<string, DayGroup>(), byCard = new Map<string, DayGroup["cards"][number]>();
@@ -108,7 +109,7 @@ export function dayDetail(log: Review[], day: number, where: (card: string) => {
     if (dayStart(r.ts) !== day) continue;
     let c = byCard.get(r.card);
     if (!c) {
-      const w = where(r.card), key = `${w.course}\n${w.unit ?? ""}`;
+      const w = where(r.card), key = JSON.stringify([w.course, w.unit]);
       let g = byKey.get(key);
       if (!g) { g = { course: w.course, unit: w.unit, cards: [] }; byKey.set(key, g); groups.push(g); }
       c = { card: r.card, ratings: [] };

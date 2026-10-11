@@ -124,4 +124,7 @@ test("a day's detail: per course and unit, each card once with its grades in ord
     { course: "B", unit: "u2", cards: [{ card: "B/b2", ratings: [4] }] },
     { course: "A", unit: "u1", cards: [{ card: "A/a1", ratings: [1, 3] }] },
   ]);
+  // a card gone from the deck (null) never joins the cards with no unit ("")
+  const gone = [g("1", "A/m", T0, 3), g("2", "A/old", T0 + 1000, 3)];
+  assert.deepEqual(dayDetail(gone, dayStart(T0), (c) => ({ course: "A", unit: c === "A/old" ? null : "" })).map((x) => x.unit), ["", null]);
 });
