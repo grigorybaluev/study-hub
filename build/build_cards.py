@@ -203,29 +203,38 @@ def without_proofs(lines: list[str]) -> list[str]:
     return out
 
 
-def split_solution(lines: list[str]) -> tuple[list[str], list[str] | None]:
-    """An exercise's body: (the question, the inside of its first nested solution block, or None)."""
-    question, solution, depth, inside = [], None, 0, False
+def split_solution(lines: list[str]) -> tuple[list[str], list[str]]:
+    """An exercise's body: (the question, the inside of its own solution blocks, in order). Only solutions
+    directly in the exercise count: one inside a nested example belongs to that example, and a line in a
+    code fence is code."""
+    question, solution = [], []
+    depth, inside, fence = 0, False, None       # depth: containers open inside the exercise
     for line in lines:
+        if fence is not None:
+            if line.strip().startswith(fence) and not line.strip().strip(fence[0]):
+                fence = None
+            (solution if inside else question).append(line)
+            continue
+        f = FENCE_RE.match(line)
+        if f:
+            fence = f.group(1)
+            (solution if inside else question).append(line)
+            continue
         bare = QUOTE_RE.sub("", line, count=1)
         o, c = OPEN_RE.match(bare), CLOSE_RE.match(bare)
-        if depth:
-            if o:
-                depth += 1
-            elif c:
-                depth -= 1
-                if not depth:
-                    inside = False
-                    continue
-            if inside:
-                solution.append(line)
-            continue
-        if o and o.group(2) == "solution":
-            depth, inside = 1, solution is None
-            if inside:
-                solution = []
-            continue
-        question.append(line)
+        if o:
+            if depth == 0 and o.group(2) == "solution":
+                depth, inside = 1, True
+                if solution:
+                    solution.append("")         # parts (a), (b): their solutions one after another
+                continue
+            depth += 1
+        elif c and depth:
+            depth -= 1
+            if inside and depth == 0:
+                inside = False
+                continue
+        (solution if inside else question).append(line)
     return question, solution
 
 
@@ -334,10 +343,13 @@ def course_cards(c: Content, uni_id: str, code: str, docs: list[Doc], names: dic
                 continue
             if b.kind == "exercise":
                 question, solution = split_solution(b.body)
-                if not solution or not text_of(solution):
+                if not text_of(solution):
                     problems.append((doc, f"{where} has no :::solution inside, so it makes no review card (#196)", False))
                     continue
-                card("exercise", title, text_of(question), text_of(solution), title, b.title)
+                # the title leads the front: it often says what to answer ("True or false?"); an edit to the
+                # question changes the hash, so the deck marks the card updated
+                front = f"**{b.title}**\n\n{text_of(question)}".rstrip()
+                card("exercise", title, front, text_of(solution), title, f"{b.title}\n{text_of(question)}")
                 continue
             back = text_of(without_proofs(b.body) if b.kind in {"theorem", "lemma", "proposition", "corollary"} else b.body)
             front = {"steps": f"How: {b.title}", "caution": f"{b.title} — why, and what instead?"}.get(b.kind, b.title)
