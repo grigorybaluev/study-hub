@@ -1,0 +1,52 @@
+# Review reminders (#224): a push to the owner's phone at 9:00 and 20:00 Montreal time. The phone's
+# subscription is the repo secret PUSH_SUBSCRIPTION (copied from the stats page), the VAPID pair the
+# secrets VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY. The push is empty: the app's service worker writes the
+# text (public/push-sw.js). Run it by hand ("Run workflow") to send one now.
+name: Review reminder
+
+on:
+  schedule:
+    # ten minutes early, as scheduled runs start late; one pair for summer time (UTC-4), one for winter (UTC-5)
+    - cron: "50 12 * * *"
+    - cron: "50 23 * * *"
+    - cron: "50 13 * * *"
+    - cron: "50 0 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Is it reminder time in Montreal?
+        id: when
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          offset=$(TZ=America/Toronto date +%z)
+          case "$EVENT/$offset/$SCHEDULE" in
+            workflow_dispatch/*|"schedule/-0400/50 12 * * *"|"schedule/-0400/50 23 * * *"|"schedule/-0500/50 13 * * *"|"schedule/-0500/50 0 * * *")
+              echo "send=1" >> "$GITHUB_OUTPUT" ;;
+            *) echo "Not this run: $offset, $SCHEDULE" ;;
+          esac
+      - uses: actions/setup-node@v4
+        if: steps.when.outputs.send == '1'
+        with:
+          node-version: 24
+      - name: Send the push
+        if: steps.when.outputs.send == '1'
+        env:
+          SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SUBSCRIPTION" ]; then echo "::warning::No PUSH_SUBSCRIPTION secret yet: enable reminders on the phone and store it."; exit 0; fi
+          npx --yes web-push@3.6.7 send-notification \
+            --endpoint="$(jq -r .endpoint <<< "$SUBSCRIPTION")" \
+            --key="$(jq -r .keys.p256dh <<< "$SUBSCRIPTION")" \
+            --auth="$(jq -r .keys.auth <<< "$SUBSCRIPTION")" \
+            --payload=remind --ttl=3600 \
+            --vapid-subject=https://grigorybaluev.github.io/study-hub/ \
+            --vapid-pubkey="$VAPID_PUBLIC_KEY" --vapid-pvtkey="$VAPID_PRIVATE_KEY"
