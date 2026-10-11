@@ -1,6 +1,6 @@
-// Days and the long run (#195): the streak with its freezes, the calendar of review days, milestones,
-// and the mastery of a concept (what the map will colour, #197). Pure, from the log and the engine;
-// tests/review-days.test.mjs runs it in node.
+// Days and the long run (#195): the streak with its freezes, the calendar of review days, what was
+// graded each day per course (#231), milestones, and the mastery of a concept (what the map will colour,
+// #197). Pure, from the log and the engine; tests/review-days.test.mjs runs it in node.
 import { TIER_RANK, dayStart, nextDay, tierOf, type Engine, type Review, type Tier } from "./engine.ts";
 
 /** A day counts for the streak when the deck was cleared that day, or when this many cards were graded. */
@@ -79,6 +79,48 @@ export function calendar(log: Review[], now: number, weeks = 26): { day: number;
     cols.push(col);
   }
   return cols;
+}
+
+/** One review day's grades per course (#231). */
+export interface DayActivity { day: number; total: number; courses: Record<string, number> }
+
+/** The last `days` review days, today first, with their grades counted per course. */
+export function activity(log: Review[], courseOf: (card: string) => string, now: number, days = 14): DayActivity[] {
+  const out: DayActivity[] = [];
+  for (let d = dayStart(now), i = 0; i < days; i++, d = dayStart(d - 12 * 3_600_000)) out.push({ day: d, total: 0, courses: {} });
+  const at = new Map(out.map((x) => [x.day, x]));
+  for (const r of log) {
+    const x = at.get(dayStart(r.ts));
+    if (!x) continue;
+    const c = courseOf(r.card);
+    x.total++;
+    x.courses[c] = (x.courses[c] ?? 0) + 1;
+  }
+  return out;
+}
+
+/** What was graded on one review day (#231): per course, per unit, each card with its grades in order.
+ *  Courses, units and cards come in the order they were first graded that day. A unit of null groups the
+ *  cards no longer in the deck, apart from cards with no unit (""). */
+export interface DayGroup { course: string; unit: string | null; cards: { card: string; ratings: Review["rating"][] }[] }
+export function dayDetail(log: Review[], day: number, where: (card: string) => { course: string; unit: string | null }): DayGroup[] {
+  const groups: DayGroup[] = [], byKey = new Map<string, DayGroup>(), byCard = new Map<string, DayGroup["cards"][number]>();
+  for (const r of log) {
+    if (dayStart(r.ts) !== day) continue;
+    let c = byCard.get(r.card);
+    if (!c) {
+      const w = where(r.card), key = JSON.stringify([w.course, w.unit]);
+      let g = byKey.get(key);
+      if (!g) { g = { course: w.course, unit: w.unit, cards: [] }; byKey.set(key, g); groups.push(g); }
+      c = { card: r.card, ratings: [] };
+      g.cards.push(c);
+      byCard.set(r.card, c);
+    }
+    c.ratings.push(r.rating);
+  }
+  const first = new Map<string, number>();
+  groups.forEach((g, i) => { if (!first.has(g.course)) first.set(g.course, i); });
+  return groups.map((g, i) => ({ g, i })).sort((a, b) => first.get(a.g.course)! - first.get(b.g.course)! || a.i - b.i).map((x) => x.g);
 }
 
 /** A concept's mastery: the mean stability of its cards, unseen cards counting 0 days, read on the same

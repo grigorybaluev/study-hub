@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Engine, dayStart, tierOf } from "../src/review/engine.ts";
-import { DAY_GOAL, calendar, conceptMastery, milestones, perDay, streak } from "../src/review/days.ts";
+import { DAY_GOAL, activity, calendar, conceptMastery, dayDetail, milestones, perDay, streak } from "../src/review/days.ts";
 
 const DAY = 86_400_000;
 const T0 = new Date(2026, 9, 7, 10, 0).getTime();       // a Wednesday, 10 am
@@ -97,4 +97,34 @@ test("a card back in its relearning steps counts 0 days for its concept", () => 
   e.grade("a", 1, { now, ms: 1, hash: "h", device: "d" });     // forgotten: relearning, stability still high
   assert.equal(e.mastery("a").tier, "learning");
   assert.equal(conceptMastery(e, [{ id: "a", concepts: ["k"] }]).get("k").tier, "learning");
+});
+
+test("activity: the last days, today first, grades counted per course; older grades left out", () => {
+  const g = (id, card, ts, rating = 3) => ({ id, card, ts, rating, ms: 1, type: "learn", hash: "h" });
+  const log = [
+    g("1", "A/x", T0 - 20 * DAY), g("2", "A/x", T0 - DAY), g("3", "B/y", T0 - DAY), g("4", "A/z", T0 - DAY),
+    g("5", "A/x", T0 - 3 * 3_600_000),    // 7 am today
+    g("6", "B/y", T0 - 7 * 3_600_000),    // 3 am today: still yesterday's review day
+  ];
+  const days = activity(log, (c) => c.split("/")[0], T0, 14);
+  assert.equal(days.length, 14);
+  assert.equal(days[0].day, dayStart(T0));
+  assert.deepEqual(days[0], { day: dayStart(T0), total: 1, courses: { A: 1 } });
+  assert.deepEqual(days[1].courses, { A: 2, B: 2 });
+  assert.equal(days.reduce((n, d) => n + d.total, 0), 5);
+  assert.ok(days.every((d, i) => i === 0 || d.day < days[i - 1].day));
+});
+
+test("a day's detail: per course and unit, each card once with its grades in order", () => {
+  const g = (id, card, ts, rating) => ({ id, card, ts, rating, ms: 1, type: "learn", hash: "h" });
+  const log = [g("1", "B/b1", T0, 3), g("2", "A/a1", T0 + 1000, 1), g("3", "B/b2", T0 + 2000, 4), g("4", "A/a1", T0 + 9000, 3), g("5", "A/a1", T0 - DAY, 3)];
+  const where = (c) => ({ course: c.split("/")[0], unit: c === "B/b2" ? "u2" : "u1" });
+  assert.deepEqual(dayDetail(log, dayStart(T0), where), [
+    { course: "B", unit: "u1", cards: [{ card: "B/b1", ratings: [3] }] },
+    { course: "B", unit: "u2", cards: [{ card: "B/b2", ratings: [4] }] },
+    { course: "A", unit: "u1", cards: [{ card: "A/a1", ratings: [1, 3] }] },
+  ]);
+  // a card gone from the deck (null) never joins the cards with no unit ("")
+  const gone = [g("1", "A/m", T0, 3), g("2", "A/old", T0 + 1000, 3)];
+  assert.deepEqual(dayDetail(gone, dayStart(T0), (c) => ({ course: "A", unit: c === "A/old" ? null : "" })).map((x) => x.unit), ["", null]);
 });
