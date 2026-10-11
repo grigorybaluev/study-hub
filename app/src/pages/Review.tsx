@@ -10,7 +10,7 @@ import NextUnits from "../review/NextUnits";
 import StandingPanel, { standingFor } from "../review/StandingPanel";
 import SyncPanel from "../review/SyncPanel";
 import { dayStart, type Rating } from "../review/engine";
-import { GRADE_PITCH, chime, haptic, motionOn, tick, warmUp } from "../review/feedback";
+import { chime, gradeSound, haptic, motionOn, warmUp } from "../review/feedback";
 import { TIER_NAME, quarterCrossed, type GradeReward } from "../review/rewards";
 import { useDeck, type Deck, type Shape } from "../review/useDeck";
 import { examDaily, examPlans, upcoming, weakAt } from "../review/term";
@@ -100,7 +100,7 @@ export default function Review() {
     setExit({ card: currentId, dir: r <= 2 ? -1 : 1, r });     // Again and Hard fly left, Good and Easy right
     // the second phase, as the grade is let go (#223): no wait for the card's flight
     haptic(r >= 3 ? "long" : "short");
-    tick(GRADE_PITCH[r]);
+    gradeSound(r);
     setBursts((n) => n + 1);
   }, [flipped, exit, currentId]);
 

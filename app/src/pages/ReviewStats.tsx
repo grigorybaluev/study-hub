@@ -13,7 +13,7 @@ import StandingPanel, { standingFor } from "../review/StandingPanel";
 import { scopes } from "../review/scopeContext";
 import { TIER_COLOR, memoryOf } from "../review/memory";
 import type { Settings } from "../review/engine";
-import { prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
+import { gradeSound, prefs, setPrefs, tap, type FeedbackPrefs } from "../review/feedback";
 import { TIER_NAME } from "../review/rewards";
 import { clearedDays, useReviewData } from "../review/useDeck";
 
@@ -172,14 +172,36 @@ function FeedbackForm({ leftToday }: { leftToday(): number }) {
     setP(next);
   };
   const row = (k: keyof FeedbackPrefs, label: string, note: string) => (
-    <label className="toggle"><input type="checkbox" checked={p[k]} onChange={(e) => set(k, e.target.checked)} /> <span>{label}<span className="small muted"> — {note}</span></span></label>
+    <label className="toggle"><input type="checkbox" {...SWITCH} checked={p[k]} onChange={(e) => set(k, e.target.checked)} /> <span>{label}<span className="small muted"> — {note}</span></span></label>
   );
   return (
     <div className="settings">
       {row("motion", "Animations", "card flights, the +1, confetti (reduced motion in the system turns them off too)")}
       {row("haptics", "Vibration", "on a phone: a light tap as you touch a card or a button, then one more as you let go (two for Good and Easy); in silent mode if the system's Sounds & Haptics allows it")}
-      {row("sound", "Sound", "a short click on each grade, lower for Again, brighter for Good; the mute switch silences it")}
+      {row("sound", "Sound", "one per grade: a low thock for Again, a click for Hard, a snap for Good, a snap and a chirp for Easy; the mute switch silences it")}
       {row("badge", "Count on the app icon", "the cards left today on the installed app's icon (asks for permission on an iPhone)")}
+      <VibrationTest />
+    </div>
+  );
+}
+
+// a switch (Safari 17.4+): on an iPhone, flipping one by hand plays the system haptic
+const SWITCH = { switch: "" } as object;
+
+/** Which way of vibrating this phone answers to (#223): the deck's tap as a finger lifts, two taps, and a
+ *  tap as a finger lands (not a user gesture on a touch screen, which iOS may ignore). */
+function VibrationTest() {
+  const [felt, setFelt] = useState<string | null>(null);
+  const run = (name: string, f: () => void) => { try { f(); } catch { /* nothing to feel */ } setFelt(name); };
+  return (
+    <div className="vibration-test small">
+      <span className="muted">Test vibration:</span>
+      <button type="button" onClick={() => run("one tap", tap)}>Tap</button>
+      <button type="button" onClick={() => run("two taps", () => { tap(); setTimeout(tap, 120); })}>Two taps</button>
+      <button type="button" onPointerDown={() => run("on touch", tap)}>On touch</button>
+      <button type="button" onClick={() => run("grade sounds", () => ([1, 2, 3, 4] as const).forEach((r, i) => setTimeout(() => gradeSound(r), i * 350)))}
+        disabled={!prefs().sound}>Grade sounds</button>
+      {felt && <span className="muted">sent: {felt}. Felt nothing at all? Flip one of the switches above by hand: if that is silent too, System Haptics is off in iOS Settings › Sounds &amp; Haptics.</span>}
     </div>
   );
 }
