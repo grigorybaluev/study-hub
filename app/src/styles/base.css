@@ -875,3 +875,9 @@ a.unit-tag:hover b { text-decoration: underline; }
 .anki .activity-row { cursor: default; }
 .anki .activity-row:hover .activity-track { background: none; }
 .anki .activity-row.empty { color: var(--fg-muted); }
+/* vibration from a real tap on a hidden switch (#223) */
+.haptic-tap { position: absolute; inset: 0; z-index: 1; border-radius: inherit; -webkit-tap-highlight-color: transparent; }
+.haptic-area { display: contents; }
+.haptic-switch { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.deck-show, .grade { position: relative; }
+.vibration-test button { position: relative; }

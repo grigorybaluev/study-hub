@@ -1,6 +1,7 @@
 // Review reminders (#224): this phone's push subscription, and the cards left today for the reminder's
 // text. A scheduled workflow (.github/workflows/remind.yml) sends an empty push at the owner's hours to the
 // subscription kept as the repo secret PUSH_SUBSCRIPTION; public/push-sw.js shows it.
+import { onIOS } from "./feedback";
 
 /** The public half of the VAPID pair (the private half is the repo secret VAPID_PRIVATE_KEY). */
 const VAPID_PUBLIC_KEY = "BNOftj9zYlisgH2J90WpoiXWgnU1ov0L5d-pO-cUcaHUVCtUyEZPB1huwUabLCB9Q07n1t5XhBgWI20IVy6Okh8";
@@ -21,8 +22,6 @@ export function saveLeft(left: number, until: number) {
 /** `update`: the service worker with the push handler is installed but waits for a reload. */
 export type PushState = "on" | "off" | "denied" | "install" | "update" | "unsupported";
 
-// iPadOS Safari says Macintosh; a touch screen gives it away
-const iOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
 /** The service worker, if this page has one (none in the dev server). */
 async function worker(): Promise<ServiceWorkerRegistration | null> {
@@ -32,7 +31,7 @@ async function worker(): Promise<ServiceWorkerRegistration | null> {
 
 /** Where reminders stand on this device: on an iPhone only the app added to the home screen can get them. */
 export async function pushState(): Promise<{ state: PushState; subscription: string | null }> {
-  if (!("PushManager" in window) || !("Notification" in window)) return { state: iOS() ? "install" : "unsupported", subscription: null };
+  if (!("PushManager" in window) || !("Notification" in window)) return { state: onIOS() ? "install" : "unsupported", subscription: null };
   if (Notification.permission === "denied") return { state: "denied", subscription: null };
   const reg = await worker();
   if (!reg) return { state: "unsupported", subscription: null };

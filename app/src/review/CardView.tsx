@@ -5,7 +5,8 @@ import { memo, useEffect, useRef, type ReactNode } from "react";
 import Markdown from "../components/Markdown";
 import type { Card } from "../data/types";
 import type { Rating } from "./engine";
-import { haptic, motionOn, warmUp } from "./feedback";
+import { haptic, motionOn, onIOS, warmUp } from "./feedback";
+import { HapticArea } from "./HapticTap";
 import { KIND_LABEL } from "./kinds";
 
 const COMMIT = 0.28;          // share of the card's width that commits a swipe
@@ -80,7 +81,8 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
   const down = (e: React.PointerEvent) => {
     if (peek || exit || e.button !== 0) return;     // no new drag while the card flies
     warmUp();
-    if (!flipped) { if (!card.options) haptic("touch"); return; }   // a tap that turns the card (a quiz turns by choosing)
+    // a tap that turns the card (a quiz turns by choosing); an iPhone feels it through the front's HapticArea
+    if (!flipped) { if (!card.options && !onIOS()) haptic("touch"); return; }
     drag.current = { x0: e.clientX, y0: e.clientY, t0: e.timeStamp, dx: 0, axis: null };
   };
   const move = (e: React.PointerEvent) => {
@@ -117,9 +119,11 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
       onClick={() => { if (!peek && !flipped && !card.options) onFlip(); }}     // a method quiz turns by choosing
       aria-hidden={peek || undefined}
     >
-      <div className="review-card-inner">
-        <Faces card={card} context={context} details={details} updated={updated} chosen={chosen ?? null} onChoose={peek ? undefined : onChoose} />
-      </div>
+      <HapticArea on={!peek && !flipped && !card.options}>
+        <div className="review-card-inner">
+          <Faces card={card} context={context} details={details} updated={updated} chosen={chosen ?? null} onChoose={peek ? undefined : onChoose} />
+        </div>
+      </HapticArea>
       <div className="swipe-label again" aria-hidden="true">Again</div>
       <div className="swipe-label good" aria-hidden="true">Good</div>
     </div>

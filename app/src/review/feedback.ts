@@ -25,7 +25,8 @@ export function motionOn(): boolean {
   return prefs().motion && !matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-// iOS has no Vibration API. Since iOS 17.4 a click on the label of an <input type="checkbox" switch> plays
+// iOS has no Vibration API. A tap on a button or the card is felt through HapticTap (a real tap on a
+// hidden switch); what is left here is for gestures, where newer WebKit stays silent. Since iOS 17.4 a click on the label of an <input type="checkbox" switch> plays
 // the system haptic, so a fresh hidden one per tap gives a tap (the way cobalt.tools and ios-haptics do it,
 // #223: a switch kept on the page and clicked again never vibrated on the owner's iPhone). One fixed
 // strength, so a longer buzz is two taps. Android gets navigator.vibrate with real lengths. Whether taps
@@ -41,6 +42,11 @@ function tap() {
   document.head.appendChild(label);
   label.click();
   label.remove();
+}
+
+/** An iPhone or iPad (iPadOS Safari says Macintosh; a touch screen gives it away). */
+export function onIOS(): boolean {
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 }
 
 /** Two phases (#223): "touch" as a finger lands on a grade button or a card starts to move; "short" as
