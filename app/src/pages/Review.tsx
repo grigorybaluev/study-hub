@@ -6,6 +6,7 @@ import { ConceptChip } from "../components/Chips";
 import { href, node, useData } from "../data/load";
 import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
 import CardView, { isRight } from "../review/CardView";
+import NextUnits from "../review/NextUnits";
 import StandingPanel, { standingFor } from "../review/StandingPanel";
 import SyncPanel from "../review/SyncPanel";
 import { dayStart, type Rating } from "../review/engine";
@@ -45,6 +46,14 @@ export default function Review() {
   }, [key, sc]);   // the scope is the query string: recomputed when it changes
   // exam plans (#221): the daily deck and an exam's deck bring each exam's new cards in early
   const shape = useMemo<Shape | undefined>(() => {
+    // a unit's deck (#222), chosen to work on it: all its new cards, past the daily limit, and its seen cards
+    // below the retention target, weakest first, before they fall due
+    if (scope.kind === "unit") return (pool, engine, now) => {
+      const target = engine.settings.retention;
+      const early = pool.filter((c) => engine.seen(c.id)).map((c) => ({ id: c.id, r: engine.recallAt(c.id, now) }))
+        .filter((x) => x.r < target).sort((a, b) => a.r - b.r).map((x) => x.id);
+      return { cards: pool, newLeft: pool.filter((c) => !engine.seen(c.id)).length, early };
+    };
     if (scope.kind !== "all" && scope.kind !== "exam") return undefined;
     const exams = scope.kind === "exam" ? sc.exams.filter((e) => e.course === scope.course && e.index === scope.index) : sc.exams;
     return (pool, engine, now) => {
@@ -58,7 +67,7 @@ export default function Review() {
       return { cards: r.cards, plans, newLeft: r.newLeft, early };
     };
   }, [key, sc]);
-  // where each course stands (#231), on the daily deck
+  // where each course and unit stands (#231, #222), on the daily deck
   const standingOf = useMemo(() => (scope.kind === "all" ? standingFor(sc) : undefined), [key, sc]);
   const deck = useDeck(select, shape, standingOf);
   const [picking, setPicking] = useState(false);
@@ -157,7 +166,8 @@ export default function Review() {
         <button className="deck-scope" onClick={() => setPicking(true)} disabled={!!exit} title="Choose what to review">{sc.label(scope)} <span aria-hidden="true">▾</span></button>
         {scope.kind !== "all" && <Link className="small" to="/review" onClick={(e) => { if (exit) e.preventDefault(); }}>all cards</Link>}
       </div>
-      {scope.kind === "all" && <StandingPanel rows={deck.standing} plans={deck.plans} closable />}
+      {scope.kind === "all" && <StandingPanel rows={deck.standing.courses} plans={deck.plans} closable />}
+      {scope.kind === "all" && deck.current && <NextUnits units={deck.standing.units} row busy={!!exit} />}
       {picking && <ScopePicker deck={deck} sc={sc} current={scope} onClose={closePicker} />}
       {deck.sync?.remind && (
         <p className="deck-warn">{deck.sync.since} reviews on this device have not been sent to your other device for over 3 days. <button className="linkish" onClick={() => setSyncing(true)}>Sync now</button></p>
@@ -329,6 +339,7 @@ function DeckDone({ deck, daily }: { deck: Deck; daily: boolean }) {
       <div className="deck-done">
         <h2>Nothing to review yet</h2>
         <p className="muted">{at ? `The next card in its learning steps comes back at ${at}.` : "No cards are due."}</p>
+        {daily && <NextUnits units={deck.standing.units} />}
       </div>
     );
   }
@@ -354,6 +365,7 @@ function DeckDone({ deck, daily }: { deck: Deck; daily: boolean }) {
         {at ? `The next card in its learning steps comes back at ${at}. ` : ""}
         {deck.tomorrow ? `Tomorrow: ${deck.tomorrow} card${deck.tomorrow === 1 ? "" : "s"} due.` : "Nothing due tomorrow yet."}
       </p>
+      {daily && <NextUnits units={deck.standing.units} />}
       <Link to="/review/stats" className="small">Streak, calendar and stats →</Link>
       {deck.canExtend && <button className="deck-more" onClick={deck.extendNew}>5 more new cards</button>}
     </div>

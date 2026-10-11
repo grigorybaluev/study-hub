@@ -817,3 +817,30 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .standing-exam { display: flex; flex-direction: column; align-items: flex-end; color: var(--fg); text-decoration: none; white-space: nowrap; }
 .standing-exam.soon { color: var(--bad); }
 .standing-sub { font-size: 0.7rem; color: var(--fg-muted); }
+
+/* ---------------------------------------------------------------- what to study next (#222) */
+.unit-dot { display: inline-block; width: 0.6em; height: 0.6em; border-radius: 50%; margin-right: 0.4em; vertical-align: 0.05em; flex: none; }
+.unit-dot.s-start { background: var(--bad); }
+.unit-dot.s-weak { background: var(--warn); }
+.unit-dot.s-solid { background: var(--ok); }
+.unit-dot.s-untaught { background: transparent; box-shadow: inset 0 0 0 1.5px var(--fg-faint); }
+.unit-tag { color: var(--fg); text-decoration: none; }
+.unit-tag b { font-weight: 600; }
+a.unit-tag:hover b { text-decoration: underline; }
+.next-units { font-size: 0.85rem; }
+.next-units ul { list-style: none; margin: 0.3rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.next-units a { display: flex; align-items: baseline; gap: 0.4em; padding: 0.45rem 0.7rem; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-elev); color: var(--fg); text-decoration: none; }
+.next-units a:hover { border-color: var(--accent); }
+.next-units .next-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.next-units .muted { margin-left: auto; white-space: nowrap; font-size: 0.78rem; }
+.next-head { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg-muted); }
+.deck-done .next-units { width: 100%; max-width: 26rem; text-align: left; }
+/* over the deck: one line of chips that scrolls sideways, the head before them */
+.next-units.row { display: flex; align-items: center; gap: 0.5rem; min-width: 0; margin-top: -0.2rem; }
+.next-units.row ul { flex-direction: row; margin: 0; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.next-units.row ul::-webkit-scrollbar { display: none; }
+.next-units.row li { flex: none; }
+.next-units.row a { padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 0.8rem; }
+.next-units.row .next-title { max-width: 8.5rem; }
+.next-units.row .muted { margin-left: 0; }
+.unit-tag .part { white-space: nowrap; }

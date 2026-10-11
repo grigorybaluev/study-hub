@@ -32,7 +32,7 @@ export default function ReviewStats() {
     return {
       streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: m.concepts.size, silverPlus: m.silverPlus },
       milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(now),
-      standing: standingFor(scopes(d))(st.cards, st.engine, now),
+      standing: standingFor(scopes(d), false)(st.cards, st.engine, now),
     };
   }, [st, d]);
 
@@ -47,7 +47,7 @@ export default function ReviewStats() {
 
       <section>
         <h2>Where you stand</h2>
-        <StandingPanel rows={view.standing} />
+        <StandingPanel rows={view.standing.courses} />
         <p className="small muted">
           Behind: reviews overdue from an earlier day, plus cards of units already taught that you have not started. Recall: the
           chance of remembering a seen card right now. Exam: days to the next exam, and the share of its cards you would recall on
