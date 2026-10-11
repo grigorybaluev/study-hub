@@ -847,3 +847,7 @@ a.unit-tag:hover b { text-decoration: underline; }
 .vibration-test { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.5rem; margin-top: 0.4rem; }
 .settings .vibration-test button { font: inherit; font-weight: 500; align-self: auto; padding: 0.3rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-elev); color: var(--fg); }
 .settings .vibration-test button:disabled { opacity: 0.5; }
+.reminders { margin-top: 1rem; }
+.reminders h3 { margin: 0 0 0.3rem; font-size: 1rem; }
+.reminders-sub { width: 100%; box-sizing: border-box; font: 0.72rem/1.35 var(--mono, ui-monospace, monospace); color: var(--fg-muted); background: var(--bg-elev); border: 1px solid var(--line); border-radius: 8px; padding: 0.4rem; resize: vertical; }
+.reminders-actions { display: flex; gap: 0.8rem; align-items: center; margin-top: 0.3rem; }

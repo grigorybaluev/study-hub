@@ -9,6 +9,7 @@ import { calendar, milestones, streak } from "../review/days";
 import MasteryBar, { TIERS } from "../components/MasteryBar";
 import Activity from "../review/Activity";
 import AnkiExport from "../review/AnkiExport";
+import Reminders from "../review/Reminders";
 import StandingPanel, { standingFor } from "../review/StandingPanel";
 import { scopes } from "../review/scopeContext";
 import { TIER_COLOR, memoryOf } from "../review/memory";
@@ -113,6 +114,7 @@ export default function ReviewStats() {
         <h2>Settings</h2>
         <SettingsForm settings={st.engine.settings} onSave={async (x) => { st.engine.setSettings(x); await st.store.saveSettings(x); redraw((n) => n + 1); }} />
         <FeedbackForm leftToday={() => { const q = st.engine.queue(st.cards.map((c) => c.id), Date.now()); return q.due.length + q.fresh.length + q.later.length; }} />
+        <Reminders />
         <p className="small muted build-label">Build {BUILD_LABEL}</p>
       </section>
     </div>
