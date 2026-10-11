@@ -10,7 +10,7 @@ import NextUnits from "../review/NextUnits";
 import StandingPanel, { standingFor } from "../review/StandingPanel";
 import SyncPanel from "../review/SyncPanel";
 import { dayStart, type Rating } from "../review/engine";
-import { chime, gradeSound, haptic, motionOn, onIOS, warmUp } from "../review/feedback";
+import { afterTap, chime, gradeSound, haptic, motionOn, warmUp } from "../review/feedback";
 import { HapticTap } from "../review/HapticTap";
 import { TIER_NAME, quarterCrossed, type GradeReward } from "../review/rewards";
 import { useDeck, type Deck, type Shape } from "../review/useDeck";
@@ -96,12 +96,12 @@ export default function Review() {
     return () => document.documentElement.classList.remove("deck-open");
   }, []);
 
-  /** `tapped`: a grade button, which an iPhone feels through its HapticTap; a swipe or a key is not. */
+  /** `tapped`: a finger on a grade button, which an iPhone feels through its HapticTap; a swipe or a key is not. */
   const press = useCallback((r: Rating, tapped = false) => {
     if (!flipped || exit || !currentId) return;
     setExit({ card: currentId, dir: r <= 2 ? -1 : 1, r });     // Again and Hard fly left, Good and Easy right
     // the second phase, as the grade is let go (#223): no wait for the card's flight
-    if (!(tapped && onIOS())) haptic(r >= 3 ? "long" : "short");
+    haptic(r >= 3 ? "long" : "short", { tapped });
     gradeSound(r);
     setBursts((n) => n + 1);
   }, [flipped, exit, currentId]);
@@ -201,14 +201,15 @@ export default function Review() {
       {deck.current && (
         <div className="deck-actions">
           {!flipped ? (
-            <button className="deck-show" onClick={() => setFlipped(true)} onPointerDown={() => { warmUp(); if (!onIOS()) haptic("touch"); }}>
+            <button className="deck-show" onClick={() => afterTap(() => setFlipped(true))}
+              onPointerDown={() => { warmUp(); haptic("touch", { tapped: true }); }}>
               <HapticTap />Show answer
             </button>
           ) : (
             <div className="deck-grades">
               {GRADES.map((g) => (
-                <button key={g.r} className={`grade ${g.cls}${suggested === g.r ? " suggested" : ""}`} onClick={() => press(g.r, true)} disabled={!!exit}
-                  onPointerDown={() => { warmUp(); if (!onIOS()) haptic("touch"); }}>
+                <button key={g.r} className={`grade ${g.cls}${suggested === g.r ? " suggested" : ""}`} onClick={(e) => { const tapped = e.detail > 0; afterTap(() => press(g.r, tapped)); }} disabled={!!exit}
+                  onPointerDown={() => { warmUp(); haptic("touch", { tapped: true }); }}>
                   <HapticTap />
                   <span className="grade-label">{g.label}</span>
                   <span className="grade-ivl">{deck.preview ? interval(deck.preview[g.r] - now) : ""}</span>

@@ -5,7 +5,7 @@ import { memo, useEffect, useRef, type ReactNode } from "react";
 import Markdown from "../components/Markdown";
 import type { Card } from "../data/types";
 import type { Rating } from "./engine";
-import { haptic, motionOn, onIOS, warmUp } from "./feedback";
+import { afterTap, haptic, motionOn, warmUp } from "./feedback";
 import { HapticArea } from "./HapticTap";
 import { KIND_LABEL } from "./kinds";
 
@@ -82,7 +82,7 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
     if (peek || exit || e.button !== 0) return;     // no new drag while the card flies
     warmUp();
     // a tap that turns the card (a quiz turns by choosing); an iPhone feels it through the front's HapticArea
-    if (!flipped) { if (!card.options && !onIOS()) haptic("touch"); return; }
+    if (!flipped) { if (!card.options) haptic("touch", { tapped: true }); return; }
     drag.current = { x0: e.clientX, y0: e.clientY, t0: e.timeStamp, dx: 0, axis: null };
   };
   const move = (e: React.PointerEvent) => {
@@ -116,7 +116,7 @@ export default function CardView({ card, peek, flipped, onFlip, onSwipe, exit, o
       className={`review-card${peek ? " peek" : ""}${flipped ? " flipped" : ""}`}
       onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
       onPointerLeave={() => { if (drag.current && !drag.current.axis) cancel(); }}
-      onClick={() => { if (!peek && !flipped && !card.options) onFlip(); }}     // a method quiz turns by choosing
+      onClick={() => { if (!peek && !flipped && !card.options) afterTap(onFlip); }}     // a method quiz turns by choosing
       aria-hidden={peek || undefined}
     >
       <HapticArea on={!peek && !flipped && !card.options}>

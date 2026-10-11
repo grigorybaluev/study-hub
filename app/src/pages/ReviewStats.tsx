@@ -15,8 +15,8 @@ import StandingPanel, { standingFor } from "../review/StandingPanel";
 import { scopes } from "../review/scopeContext";
 import { TIER_COLOR, memoryOf } from "../review/memory";
 import type { Settings } from "../review/engine";
-import { gradeSound, haptic, onIOS, prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
-import { HapticTap } from "../review/HapticTap";
+import { gradeSound, haptic, prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
+import { HapticTap, SWITCH } from "../review/HapticTap";
 import { TIER_NAME } from "../review/rewards";
 import { clearedDays, useReviewData } from "../review/useDeck";
 
@@ -191,8 +191,6 @@ function FeedbackForm({ leftToday }: { leftToday(): number }) {
   );
 }
 
-// a switch (Safari 17.4+): on an iPhone, flipping one by hand plays the system haptic
-const SWITCH: Record<string, string> = { switch: "" };
 
 /** Whether this phone vibrates (#223): "Tap" as the deck's buttons do on an iPhone (a real tap on a hidden
  *  switch), "Script tap" the way a swipe tries (newer WebKit ignores it), and the four grade sounds. */
@@ -206,10 +204,10 @@ function VibrationTest() {
   return (
     <div className="vibration-test small">
       <span className="muted">Test:</span>
-      <button type="button" onClick={() => { if (!onIOS()) haptic("short", true); setSaid("Tap: as a grade button or Show answer vibrates."); }}>
+      <button type="button" onClick={() => { haptic("short", { test: true, tapped: true }); setSaid("Tap: as a grade button or Show answer vibrates."); }}>
         <HapticTap force />Tap
       </button>
-      <button type="button" onClick={() => { haptic("short", true); setSaid("Script tap: how a swipe tries to vibrate; newer iPhones ignore it."); }}>Script tap</button>
+      <button type="button" onClick={() => { haptic("short", { test: true }); setSaid("Script tap: how a swipe tries to vibrate; newer iPhones ignore it."); }}>Script tap</button>
       <button type="button" onClick={sounds} disabled={!prefs().sound} title={prefs().sound ? undefined : "switch Sound on first"}>Grade sounds</button>
       {said && <span className="muted">{said}</span>}
     </div>
