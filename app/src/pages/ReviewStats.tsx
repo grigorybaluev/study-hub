@@ -1,4 +1,4 @@
-// /review/stats (#195): days in a row and freezes, the calendar of review days, mastery per course and
+// /review/stats (#195): where each course stands (#231), days in a row and freezes, the calendar of review days, mastery per course and
 // per concept, milestones, totals, and the settings (daily limits, retention, feedback).
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -8,6 +8,8 @@ import type { CourseNode } from "../data/types";
 import { calendar, milestones, streak } from "../review/days";
 import MasteryBar, { TIERS } from "../components/MasteryBar";
 import AnkiExport from "../review/AnkiExport";
+import StandingPanel, { standingFor } from "../review/StandingPanel";
+import { scopes } from "../review/scopeContext";
 import { TIER_COLOR, memoryOf } from "../review/memory";
 import type { Settings } from "../review/engine";
 import { prefs, setPrefs, type FeedbackPrefs } from "../review/feedback";
@@ -29,6 +31,7 @@ export default function ReviewStats() {
     return {
       streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: m.concepts.size, silverPlus: m.silverPlus },
       milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(now),
+      standing: standingFor(scopes(d))(st.cards, st.engine, now),
     };
   }, [st, d]);
 
@@ -40,6 +43,16 @@ export default function ReviewStats() {
     <div className="stats">
       <div className="crumbs"><Link to="/review">Review</Link> › stats</div>
       <h1>Streak and stats</h1>
+
+      <section>
+        <h2>Where you stand</h2>
+        <StandingPanel rows={view.standing} />
+        <p className="small muted">
+          Behind: reviews overdue from an earlier day, plus cards of units already taught that you have not started. Recall: the
+          chance of remembering a seen card right now. Exam: days to the next exam, and the share of its cards you would recall on
+          its morning if you stopped reviewing now (cards not started count as forgotten).
+        </p>
+      </section>
 
       <section className="stats-streak">
         <div className="stats-big"><b>{s.current}</b><span>day{s.current === 1 ? "" : "s"} in a row</span></div>
