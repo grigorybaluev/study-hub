@@ -1,21 +1,25 @@
-// Review reminders (#224): this phone's push subscription, and the cards left today for the reminder's
-// text. A scheduled workflow (.github/workflows/remind.yml) sends an empty push at the owner's hours to the
-// subscription kept as the repo secret PUSH_SUBSCRIPTION; public/push-sw.js shows it.
+// Review reminders (#224): this phone's push subscription, and the day's progress for the reminder's text
+// (#242). A scheduled workflow (.github/workflows/remind.yml) sends an empty push at the owner's hours to
+// the subscription kept as the repo secret PUSH_SUBSCRIPTION; public/push-sw.js shows it.
+import { nextDay } from "./engine";
 import { onIOS } from "./feedback";
+import type { DayProgress } from "./progress";
 
 /** The public half of the VAPID pair (the private half is the repo secret VAPID_PRIVATE_KEY). */
 const VAPID_PUBLIC_KEY = "BNOftj9zYlisgH2J90WpoiXWgnU1ov0L5d-pO-cUcaHUVCtUyEZPB1huwUabLCB9Q07n1t5XhBgWI20IVy6Okh8";
 export const REMIND_AT = "around 9:00 and 20:00, Montreal time";
 
 const STATE_CACHE = "study-hub-state";        // the same names in public/push-sw.js
-const LEFT_URL = "reminder-state.json";      // next to sw.js, where push-sw.js looks for it
+const STATE_URL = "reminder-state.json";     // next to sw.js, where push-sw.js looks for it
 
-/** Keep the cards left today where the service worker can read them when a reminder arrives;
- *  `until`: the end of today's review day, after which the count says nothing. */
-export function saveLeft(left: number, until: number) {
+/** Keep the day's progress where the service worker can read it when a reminder arrives (#242):
+ *  `until`, the end of today's review day, after which `done` and `left` say nothing; `nextUntil`, the
+ *  end of the next one, until which `next` is the morning's count. */
+export function saveProgress(p: DayProgress, until: number) {
   if (!("caches" in window)) return;
+  const state = { ...p, until, nextUntil: nextDay(until) };
   caches.open(STATE_CACHE)
-    .then((c) => c.put(new URL(LEFT_URL, document.baseURI).href, new Response(JSON.stringify({ left, until }), { headers: { "content-type": "application/json" } })))
+    .then((c) => c.put(new URL(STATE_URL, document.baseURI).href, new Response(JSON.stringify(state), { headers: { "content-type": "application/json" } })))
     .catch(() => { /* the reminder says "Cards are due" */ });
 }
 

@@ -8,7 +8,8 @@ import { Engine, dayStart, nextDay, type Rating, type Settings } from "./engine"
 import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTally } from "./rewards";
 import { streak, type Streak } from "./days";
 import { prefs } from "./feedback";
-import { saveLeft } from "./push";
+import { saveProgress } from "./push";
+import { dayProgress, type DayProgress } from "./progress";
 import type { UnitCoverage } from "./coverage";
 import type { CourseStanding } from "./standing";
 import { openStore, type Store } from "./storage";
@@ -45,7 +46,8 @@ export interface Deck {
   doneToday: number;
   /** grades today on this scope's cards (doneToday when the scope is everything) */
   doneHere: number;
-  leftAll: number;
+  /** every card's progress today, whatever the scope: the badge and the reminders (#242) */
+  all: DayProgress;
   /** the exam plans behind this session (#221), nearest first */
   plans: ExamPlan[];
   /** where each course and unit stands (#231, #222), when the session asked for it */
@@ -173,9 +175,9 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
       left: { due: q.due.length + early.length, fresh: q.fresh.length },
       doneToday: today.graded,
       // this scope's grades today (the ring of a scoped session counts these with its cards left)
-      doneHere: select ? st.engine.log.slice(-today.graded).filter((r) => inPool.has(r.card)).length : today.graded,
-      // the badge counts every card left today, whatever the scope
-      leftAll: (() => { if (!select) return q.due.length + q.fresh.length + q.later.length; const a = st.engine.queue(st.cards.map((c) => c.id), now, extraToday); return a.due.length + a.fresh.length + a.later.length; })(),
+      doneHere: select ? st.engine.log.slice(st.engine.log.length - today.graded).filter((r) => inPool.has(r.card)).length : today.graded,
+      // the badge and the reminders count every card, whatever the scope
+      all: dayProgress(st.engine, st.cards.map((c) => c.id), now, extraToday),
       preview: current ? st.engine.preview(current.id, now) : null,
       updated: !!state && !!state.hash && state.hash !== current!.hash,
       laterAt,
@@ -218,10 +220,10 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
   }, [st, view, bump]);
 
   // the cards left today on the app icon (learning steps included, every scope), where allowed and switched on,
-  // and for the text of a reminder (#224)
-  const left = view ? view.leftAll : 0;
+  // and the day's progress for the text of a reminder (#224, #242)
+  const left = view ? view.all.left : 0, done = view ? view.all.done : 0, ahead = view ? view.all.next : 0;
   const until = view ? nextDay(Date.now()) : 0;
-  useEffect(() => { if (until) saveLeft(left, until); }, [left, until]);     // once per change, not per grade
+  useEffect(() => { if (until) saveProgress({ done, left, next: ahead }, until); }, [done, left, ahead, until]);     // once per change, not per grade
   useEffect(() => {
     if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;
     (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => { /* not allowed here */ });
@@ -290,7 +292,7 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
 }
 
 const EMPTY: Deck = {
-  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, leftAll: 0, plans: [], standing: NO_STANDING,
+  status: "loading", persistent: true, current: null, next: null, left: { due: 0, fresh: 0 }, doneToday: 0, doneHere: 0, all: { done: 0, left: 0, next: 0 }, plans: [], standing: NO_STANDING,
   preview: null, updated: false, laterAt: null, canUndo: false, showing: 0, grade: () => null, undo: () => {},
   day: { graded: 0, ms: 0, reviewed: 0, recalled: 0 }, tomorrow: 0, tally: EMPTY_TALLY, canExtend: false, extendNew: () => {},
   streak: null, learning: 0, markCleared: () => {}, cards: [],
