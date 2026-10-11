@@ -7,6 +7,7 @@ import { node, useData } from "../data/load";
 import type { CourseNode } from "../data/types";
 import { calendar, milestones, streak } from "../review/days";
 import MasteryBar, { TIERS } from "../components/MasteryBar";
+import Activity from "../review/Activity";
 import AnkiExport from "../review/AnkiExport";
 import StandingPanel, { standingFor } from "../review/StandingPanel";
 import { scopes } from "../review/scopeContext";
@@ -52,6 +53,12 @@ export default function ReviewStats() {
           chance of remembering a seen card right now. Exam: days to the next exam, and the share of its cards you would recall on
           its morning if you stopped reviewing now (cards not started count as forgotten).
         </p>
+      </section>
+
+      <section>
+        <h2>The last 14 days</h2>
+        <Activity log={st.engine.log} cards={st.cards} />
+        <p className="small muted">Grades per review day (the day turns at 4 am), by course. Tap a day to see what you graded.</p>
       </section>
 
       <section className="stats-streak">
