@@ -28,7 +28,7 @@ export default function Reminders() {
   return (
     <div className="reminders">
       <h3>Reminders</h3>
-      <p className="small muted">A notification at {REMIND_AT} (GitHub may send one late or skip it), with the day's progress as this phone last saw it: the morning's count, then cards done and left.</p>
+      <p className="small muted">A notification {REMIND_AT} (GitHub may send one up to half an hour late), with the day's progress as this phone last saw it: the morning's count, then cards done and left.</p>
       {st.state === "install" && <p className="small">On an iPhone, reminders reach only the app added to the home screen: Share › Add to Home Screen, then open it from there.</p>}
       {st.state === "unsupported" && <p className="small muted">This browser cannot receive them.</p>}
       {st.state === "denied" && <p className="small">Notifications are blocked for this app: allow them in iOS Settings › Notifications › Study Hub.</p>}

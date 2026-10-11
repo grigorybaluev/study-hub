@@ -6,7 +6,8 @@ import type { DayProgress } from "./progress";
 
 /** The public half of the VAPID pair (the private half is the repo secret VAPID_PRIVATE_KEY). */
 const VAPID_PUBLIC_KEY = "BNOftj9zYlisgH2J90WpoiXWgnU1ov0L5d-pO-cUcaHUVCtUyEZPB1huwUabLCB9Q07n1t5XhBgWI20IVy6Okh8";
-export const REMIND_AT = "around 9:00 and 20:00, Montreal time";
+/** When reminders come (#235): the phone's morning Shortcut sends the day's calendar, see remind.yml. */
+export const REMIND_AT = "in each break between the day's calendar events (the phone's morning Shortcut sends them), or at 9:00 and 20:00 on a day it sent none";
 
 const STATE_CACHE = "study-hub-state";        // the same names in public/push-sw.js
 const STATE_URL = "reminder-state.json";     // next to sw.js, where push-sw.js looks for it
