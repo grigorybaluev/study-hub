@@ -236,18 +236,18 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
   // and the day's progress for the text of a reminder (#224, #242)
   const left = view ? view.all.left : 0, done = view ? view.all.done : 0;
   const until = view ? nextDay(Date.now()) : 0;
-  const cleared = st ? clearedDays(st.store).length : 0;
+  const cleared = st ? clearedDays(st.store).at(-1) ?? 0 : 0;      // the last day cleared (the list is capped)
+  const saves = useRef(0);
   useEffect(() => {
     if (!until || !st) return;
-    let live = true;
     // the next day's count (the plans at its start) and the week (#243) are worked out here, once per
-    // change, not per look at the deck
+    // change, not per look at the deck; only the latest save writes, even after the page is left
+    const n = ++saves.current;
     reminderArrivals().then((arrivals) => {
-      if (!live) return;
-      const now = Date.now(), [week] = weeks(st.engine.log, clearedDays(st.store), arrivals, now, 1);
+      if (n !== saves.current) return;
+      const now = Date.now(), [week] = weeks(st.engine.log, clearedDays(st.store), arrivals, (id) => st.engine.firstSeen(id), now, 1);
       saveProgress({ done, left, next: nextDayCards(st.engine, dailyAt, now) }, until, nextDay(until), weekLine(week));
     });
-    return () => { live = false; };
   }, [done, left, until, st, dailyAt, cleared]);
   useEffect(() => {
     if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;

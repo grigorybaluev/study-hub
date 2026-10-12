@@ -78,10 +78,15 @@ export function due(value, from, to) {
   return dueIn(parseDay(value), from, to);
 }
 
-/** due() for a value already parsed. */
-export function dueIn(day, from, to) {
+/** due() for a value already parsed. `weekFrom`: the week's summary, sent once, may be later than a
+ *  reminder (which the next one soon replaces), so its span may start earlier. */
+export function dueIn(day, from, to, weekFrom = from) {
   const date = localDate(to), within = (m) => { const t = timeOf(date, m); return t > from && t <= to; };
-  if (new Date(timeOf(date, 0)).getDay() === WEEKLY.weekday && within(WEEKLY.at)) return "week";
+  // the last Sunday 23:00 up to `to`: today's or, after midnight, yesterday's
+  for (const d of [date, localDate(timeOf(date, 0) - 12 * 3_600_000)]) {
+    const t = timeOf(d, WEEKLY.at);
+    if (new Date(timeOf(d, 0)).getDay() === WEEKLY.weekday && t > weekFrom && t <= to) return "week";
+  }
   const times = day && day.date === date ? slots(day.busy) : FALLBACK;
   return times.some(within) ? "remind" : null;
 }

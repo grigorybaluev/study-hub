@@ -4,15 +4,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { nextDay, type Review } from "./engine";
 import { reminderArrivals } from "./push";
-import { weeks, type Session, type Week, type WeekDay } from "./week";
+import { duration, weeks, type FirstSeen, type Session, type Week, type WeekDay } from "./week";
 
-const MIN = 60_000, HOUR = 60 * MIN;
-
-/** "45 min", "3 h 12 min". */
-export function duration(ms: number): string {
-  const m = Math.round(Math.abs(ms) / MIN);
-  return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
-}
+const MIN = 60_000;
 const signed = (n: number, unit = "") => (n > 0 ? `+${n}${unit}` : n < 0 ? `−${-n}${unit}` : "same");
 const share = (p: { passed: number; total: number }) => (p.total ? Math.round((100 * p.passed) / p.total) : null);
 const clock = (t: number) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -21,24 +15,25 @@ const range = (w: Week) => {
   return `${a.toLocaleDateString([], { month: "short", day: "numeric" })} – ${b.toLocaleDateString([], { month: a.getMonth() === b.getMonth() ? undefined : "short", day: "numeric" })}`;
 };
 
-export default function WeekSection({ log, cleared }: { log: Review[]; cleared: number[] }) {
+export default function WeekSection({ log, cleared, firstSeen }: { log: Review[]; cleared: number[]; firstSeen: FirstSeen }) {
   const [arrivals, setArrivals] = useState<number[]>([]);
   useEffect(() => {
     let live = true;
     reminderArrivals().then((a) => { if (live) setArrivals(a); });
     return () => { live = false; };
   }, []);
-  const ws = useMemo(() => weeks(log, cleared, arrivals, Date.now(), 8), [log, cleared, arrivals]);
+  const ws = useMemo(() => weeks(log, cleared, arrivals, firstSeen, Date.now(), 8), [log, cleared, arrivals, firstSeen]);
   const w = ws[ws.length - 1], prev = ws[ws.length - 2];
   const now = Date.now();
 
   const recall = share(w.recall), recallBefore = share(prev.recall);
+  const mins = (x: Week) => Math.round(x.ms / MIN), dm = mins(w) - mins(prev);
   const acted = (x: Week) => (x.reminders.arrived ? Math.round((100 * x.reminders.acted) / x.reminders.arrived) : null);
   const rows: { label: string; value: ReactNode; delta: string }[] = [
     { label: "Days closed", value: <><Dots days={w.days} now={now} /> {w.closed} / 7</>, delta: signed(w.closed - prev.closed) },
     { label: "Cards reviewed", value: w.cards, delta: signed(w.cards - prev.cards) },
     { label: "New cards started", value: w.fresh, delta: signed(w.fresh - prev.fresh) },
-    { label: "Time", value: duration(w.ms), delta: duration(w.ms) === duration(prev.ms) ? "same" : `${w.ms > prev.ms ? "+" : "−"}${duration(w.ms - prev.ms)}` },
+    { label: "Time", value: duration(w.ms), delta: dm ? `${dm > 0 ? "+" : "−"}${duration(dm * MIN)}` : "same" },
     { label: "Sessions", value: w.sessions ? `${w.sessions} · typical ${w.typical} min` : 0, delta: signed(w.sessions - prev.sessions) },
     { label: "Recalled", value: recall === null ? "—" : `${recall} %`, delta: recall === null || recallBefore === null ? "" : signed(recall - recallBefore, " pts") },
     {
@@ -73,8 +68,11 @@ function Dots({ days, now }: { days: WeekDay[]; now: number }) {
 
 /** A row per day, 8:00 to 22:00 or wider when a session or a reminder fell outside: a bar per session, a tick per reminder. */
 function Timeline({ days, now }: { days: WeekDay[]; now: number }) {
-  // hours after the review day's start (4 am), shown as clock hours: 0:30 is 24.5
-  const hour = (d: WeekDay, t: number) => 4 + (t - d.day) / HOUR;
+  // the clock hour of a time on its review day (a day running past midnight: 0:30 is 24.5), true on DST days
+  const hour = (d: WeekDay, t: number) => {
+    const c = new Date(t), h = c.getHours() + c.getMinutes() / 60;
+    return c.getDate() === new Date(d.day).getDate() ? h : h + 24;
+  };
   const marks = days.flatMap((d) => [...d.sessions.flatMap((s) => [hour(d, s.start), hour(d, s.end)]), ...d.reminders.map((t) => hour(d, t))]);
   const lo = Math.min(8, ...marks.map(Math.floor)), hi = Math.max(22, ...marks.map(Math.ceil));
   const x = (h: number) => `${((h - lo) / (hi - lo)) * 100}%`;

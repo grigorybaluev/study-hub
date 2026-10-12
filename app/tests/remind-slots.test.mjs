@@ -66,3 +66,12 @@ test("Sunday at 23:00: the week's summary, whatever the day held", () => {
   assert.equal(due(undefined, at("22:55"), at("23:05")), "week");
   assert.equal(due(undefined, timeOf("2026-10-17", hm("22:55")), timeOf("2026-10-17", hm("23:05"))), null);   // a Saturday
 });
+
+test("a late run still sends the week's summary, after midnight too, within its own span", async () => {
+  const { dueIn, parseDay } = await import("../../scripts/remind-slots.mjs");
+  const sun = (s) => timeOf("2026-10-18", hm(s)), mon = (s) => timeOf("2026-10-19", hm(s));
+  // the runs from 22:50 stalled until 0:40: past a reminder's half hour, within the week's span
+  assert.equal(dueIn(null, mon("00:10"), mon("00:40"), sun("22:50")), "week");
+  assert.equal(dueIn(null, mon("00:10"), mon("00:40"), sun("23:30")), null);       // sent by the run that started 23:30's span
+  assert.equal(dueIn(parseDay("2026-10-19"), mon("08:20"), mon("08:40"), mon("08:20")), "remind");   // Monday 8:30: the week went out before
+});

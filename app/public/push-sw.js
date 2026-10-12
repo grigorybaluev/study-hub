@@ -29,16 +29,21 @@ function words({ done, left }, hour) {
   return { title: `${done} / ${total} done · ${left} to go`, body: "5–10 cards in this break." };
 }
 
-/** The week as the app last saved it, while it is the current week. */
+/** The week as the app last saved it, while it is the current week, with the reminders that arrived in it
+ *  counted here (some since the app last saved; acted on stays the app's count). */
 async function week(now) {
-  const res = await (await caches.open(STATE_CACHE)).match(STATE_URL);
+  const cache = await caches.open(STATE_CACHE);
+  const res = await cache.match(STATE_URL);
   const w = res && (await res.json())?.week;
-  return w && now < w.until ? w : null;
+  if (!w || now >= w.until) return null;
+  const log = await cache.match(ARRIVALS_URL);
+  const arrived = ((log && (await log.json())) || []).filter((t) => t >= w.from && t < w.until).length;
+  return { ...w, arrived: Math.max(arrived, w.arrived) };
 }
 
 /** The Sunday night summary: days closed, cards and time, recall and reminders acted on. */
 function weekWords(w) {
-  const m = Math.round(w.ms / 60_000), time = m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
+  const time = w.time;                                  // as the stats write it (src/review/week.ts duration)
   const recall = w.total ? `${Math.round((100 * w.passed) / w.total)} % recalled.` : "";
   const acted = w.arrived ? ` ${w.acted} of ${w.arrived} reminders led to a review.` : "";
   return { title: `Week: ${w.closed} / 7 days closed · ${w.cards} card${w.cards === 1 ? "" : "s"} · ${time}`, body: (recall + acted).trim() || "Open the stats for the week." };
@@ -69,10 +74,11 @@ async function message() {
 }
 
 self.addEventListener("push", (event) => {
-  const kind = event.data?.text() === "week" ? "week" : "remind";
+  // "week": the Sunday summary; "test": a manual run's reminder, not counted as one that arrived
+  const sent = event.data?.text(), kind = sent === "week" ? "week" : "remind";
   // iOS stops delivering to a subscription whose pushes show no notification, so every push shows one
   event.waitUntil((async () => {
-    if (kind === "remind") await logArrival(Date.now()).catch(() => { /* not counted */ });
+    if (sent === "remind") await logArrival(Date.now()).catch(() => { /* not counted */ });
     const { title, body } = await (kind === "week" ? weekMessage() : message());
     const page = kind === "week" ? "./#/review/stats" : "./#/review";
     await self.registration.showNotification(title, {

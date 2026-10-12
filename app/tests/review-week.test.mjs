@@ -3,19 +3,21 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { dayStart } from "../src/review/engine.ts";
 import { localDate } from "../src/review/term.ts";
-import { sessions, weekLine, weekStart, weeks } from "../src/review/week.ts";
+import { duration, sessions, weekLine, reviewWeekStart, weeks } from "../src/review/week.ts";
 
 const MIN = 60_000, H = 60 * MIN;
 const at = (iso, h) => localDate(iso) + h * H;
 let n = 0;
+// when each card was first graded, as Engine.firstSeen gives it
+const seenIn = (log) => { const m = new Map(); for (const r of log) if (!m.has(r.card)) m.set(r.card, r.ts); return (id) => m.get(id); };
 const grade = (card, ts, rating = 3, type = "review", ms = 10_000) => ({ id: `d-${n++}`, card, ts, rating, ms, type, hash: "h" });
 
 test("the review week starts on Monday's review day, 4 am", () => {
   const mon = dayStart(at("2026-10-12", 9));
-  assert.equal(weekStart(at("2026-10-12", 9)), mon);
-  assert.equal(weekStart(at("2026-10-18", 23)), mon);           // Sunday night
-  assert.equal(weekStart(at("2026-10-19", 2)), mon);            // Monday before 4 am: still Sunday's review day
-  assert.equal(weekStart(at("2026-10-19", 5)), dayStart(at("2026-10-19", 5)));
+  assert.equal(reviewWeekStart(at("2026-10-12", 9)), mon);
+  assert.equal(reviewWeekStart(at("2026-10-18", 23)), mon);           // Sunday night
+  assert.equal(reviewWeekStart(at("2026-10-19", 2)), mon);            // Monday before 4 am: still Sunday's review day
+  assert.equal(reviewWeekStart(at("2026-10-19", 5)), dayStart(at("2026-10-19", 5)));
 });
 
 test("grades less than five minutes apart are one session, from the first card shown", () => {
@@ -35,7 +37,7 @@ test("a week: days closed, cards, new cards, time, sessions, recall and reminder
     grade("b", tue, 4, "learn"), grade("old", tue + MIN, 3),
   ];
   const arrivals = [mon - 3 * MIN, tue - 40 * MIN, at("2026-10-14", 12)];   // acted on, not, not
-  const [last, w] = weeks(log, [dayStart(mon)], arrivals, at("2026-10-14", 13), 2);
+  const [last, w] = weeks(log, [dayStart(mon)], arrivals, seenIn(log), at("2026-10-14", 13), 2);
   assert.equal(last.cards, 1);
   assert.equal(w.closed, 1);
   assert.deepEqual(w.days.map((d) => d.closed), [true, false, false, false, false, false, false]);
@@ -49,10 +51,12 @@ test("a week: days closed, cards, new cards, time, sessions, recall and reminder
   assert.deepEqual(w.days[1].reminders, [tue - 40 * MIN]);
   assert.equal(w.days[0].sessions.length, 1);
   assert.equal(weekLine(w).until, w.to);
+  assert.equal(weekLine(w).time, "1 min");
+  assert.deepEqual([duration(45 * MIN), duration(192 * MIN)], ["45 min", "3 h 12 min"]);
 });
 
 test("the weeks run oldest first and cover empty weeks", () => {
-  const ws = weeks([], [], [], at("2026-10-14", 12), 8);
+  const ws = weeks([], [], [], () => undefined, at("2026-10-14", 12), 8);
   assert.equal(ws.length, 8);
   for (let i = 1; i < 8; i++) assert.equal(ws[i].from, ws[i - 1].to);
   assert.deepEqual([ws[7].cards, ws[7].sessions, ws[7].typical], [0, 0, 0]);

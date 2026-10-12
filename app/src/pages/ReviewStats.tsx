@@ -36,7 +36,7 @@ export default function ReviewStats() {
     return {
       streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: m.concepts.size, silverPlus: m.silverPlus },
       milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(),
-      standing: standingFor(scopes(d), false)(st.cards, st.engine, now), cleared: clearedDays(st.store),
+      standing: standingFor(scopes(d), false)(st.cards, st.engine, now), cleared: clearedDays(st.store), firstSeen: (id: string) => st.engine.firstSeen(id),
     };
   }, [st, d]);
 
@@ -51,7 +51,7 @@ export default function ReviewStats() {
 
       <section>
         <h2>This week</h2>
-        <WeekSection log={st.engine.log} cleared={view.cleared} />
+        <WeekSection log={st.engine.log} cleared={view.cleared} firstSeen={view.firstSeen} />
       </section>
 
       <section>
