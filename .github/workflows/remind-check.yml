@@ -1,0 +1,60 @@
+# Review reminders (#224, #235, #243): pushes to the owner's phone in the breaks of the day, and the week's
+# summary on Sunday at 23:00. Each morning an iOS Shortcut on the phone sends the day's busy blocks from
+# its calendar (times only, no titles) to the repo variable REMIND_DAY; each run of this workflow checks
+# whether one of the day's reminder times (scripts/remind-slots.mjs) came since the previous check, and
+# falls back to 9:00 and 20:00 Montreal time on a day the phone sent nothing.
+#
+# Who starts the checks (#247): GitHub's schedule ran hours late, so an external timer (cron-job.org)
+# starts this workflow every 10 minutes through the API ("Run workflow"), which GitHub starts within
+# seconds. Its token may start any workflow here: this one only checks (it has no "send now"), and
+# deploy.yml refuses a manual run of anything but a release tag. The schedule stays as a backup.
+#
+# Run logs are public, and a step's env is printed in them: the script reads REMIND_DAY through the API
+# with the secret REMIND_TOKEN (the phone's token: Variables, read and write, this repo only), never
+# vars.REMIND_DAY here, and every run takes the same steps and prints nothing about the times. The
+# phone's subscription is the secret PUSH_SUBSCRIPTION, the VAPID pair the secrets VAPID_PUBLIC_KEY and
+# VAPID_PRIVATE_KEY; the push carries only its kind, and the app's service worker writes the text
+# (public/push-sw.js). A failed send fails the run, so GitHub mails the owner. Sending one by hand:
+# remind-send.yml.
+name: Review reminder check
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read       # the previous check's start (scripts/remind.mjs)
+  contents: read
+
+# one run at a time, here and in remind-send.yml: each check covers the time since the previous one started
+concurrency: remind
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # web-push, kept between runs (whether a run sends or not, the steps are the same)
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: node_modules
+          key: web-push-3.6.7
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: npm install --silent --no-save --no-package-lock --no-audit --no-fund web-push@3.6.7
+      - name: Send the push if a reminder is due
+        env:
+          TZ: America/Toronto
+          MODE: check
+          GH_TOKEN: ${{ github.token }}
+          REMIND_TOKEN: ${{ secrets.REMIND_TOKEN }}
+          SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: node scripts/remind.mjs

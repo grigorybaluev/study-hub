@@ -1,0 +1,44 @@
+# A review reminder sent now, by hand ("Run workflow"): "remind", the day's progress (the phone shows it
+# as a test and does not count it as a reminder that arrived), or "week", the Sunday summary. The
+# scheduled checks and how the push works: remind-check.yml.
+name: Review reminder, sent now
+
+on:
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "remind: the day's progress; week: the Sunday summary"
+        type: choice
+        options: [remind, week]
+        default: remind
+
+permissions:
+  contents: read
+
+concurrency: remind
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: node_modules
+          key: web-push-3.6.7
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: npm install --silent --no-save --no-package-lock --no-audit --no-fund web-push@3.6.7
+      - name: Send the push
+        env:
+          MODE: send
+          KIND: ${{ inputs.kind }}
+          SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: node scripts/remind.mjs

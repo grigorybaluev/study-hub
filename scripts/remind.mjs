@@ -1,14 +1,16 @@
-// The review reminder's run (#224, #235), every 10 minutes from .github/workflows/remind.yml: a push when
-// one of the day's reminder times (remind-slots.mjs) fell since the previous scheduled run started. Runs
-// tile the day by their start times, so a late or skipped run is covered by the next one.
+// The review reminder's run (#224, #235, #243). MODE=check (remind-check.yml, every 10 minutes from an
+// external timer, #247, and GitHub's schedule as a backup): a push when one of the day's reminder times or
+// Sunday's week summary (remind-slots.mjs) fell since the previous check started. Checks tile the day by
+// their start times, so a late or skipped one is covered by the next. MODE=send (remind-send.yml, by
+// hand): the kind chosen there, now.
 // Run logs of a public repo are public, and the times would give away the owner's day: the day is read
 // here through the API (never a step's env, which the log prints), and nothing about it or the decision
-// is printed. A manual run ("Run workflow") always sends, the kind chosen there.
-import { dueIn, parseDay } from "./remind-slots.mjs";
+// is printed.
+import { dueIn, parseDay, previousCheck } from "./remind-slots.mjs";
 
 const LATE = 30 * 60_000;           // a reminder more than half an hour late is left out: the next one is near
 const WEEK_LATE = 6 * 3_600_000;    // the week's summary comes once, so it may come later
-const EVERY = 10 * 60_000;          // the schedule, when the previous run cannot be found
+const EVERY = 15 * 60_000;          // the backup schedule, when the previous check cannot be found
 
 const env = process.env;
 
@@ -20,15 +22,14 @@ async function api(path, token = env.GH_TOKEN) {
   return r.json();
 }
 
-/** Since when to look: the previous scheduled run that finished its look (succeeded). A manual run never
- *  looks, and a failed one may have failed before it did, so neither counts. */
+/** Since when to look: the start of the previous check (remind-check.yml) that looked. */
 async function span() {
   const to = Date.now();
   try {
-    const run = await api(`actions/runs/${env.GITHUB_RUN_ID}`);
-    const start = Date.parse(run.run_started_at);
-    const { workflow_runs } = await api(`actions/workflows/${run.workflow_id}/runs?event=schedule&status=success&per_page=5`);
-    const prev = workflow_runs.find((r) => r.id !== run.id && Date.parse(r.run_started_at) < start);
+    const [run, { workflow_runs }] = await Promise.all([
+      api(`actions/runs/${env.GITHUB_RUN_ID}`), api("actions/workflows/remind-check.yml/runs?per_page=10"),
+    ]);
+    const start = Date.parse(run.run_started_at), prev = previousCheck(workflow_runs, run.id, start);
     const since = prev ? Date.parse(prev.run_started_at) : 0;
     return { from: Math.max(since, start - LATE), weekFrom: Math.max(since, start - WEEK_LATE), to: start };
   } catch (e) {
@@ -52,8 +53,8 @@ async function day() {
   }
 }
 
-/** `kind`: "remind" (the day's progress), "test" (the same, from a manual run) or "week" (the week's
- *  summary), which the service worker reads. */
+/** `kind`: "remind" (the day's progress), "test" (the same, sent by hand) or "week" (the week's summary),
+ *  which the service worker reads. */
 async function send(kind) {
   if (!env.SUBSCRIPTION) { console.log("::warning::No PUSH_SUBSCRIPTION secret yet: enable reminders on the phone and store it."); return; }
   const { default: webpush } = await import("web-push");
@@ -64,11 +65,10 @@ async function send(kind) {
   await webpush.sendNotification(sub, kind, { TTL: 3600 });     // throws on a refused push (410: gone)
 }
 
-// a manual reminder is a "test": the phone shows it but does not count it as a reminder that arrived
-if (env.EVENT === "workflow_dispatch") await send(env.KIND === "week" ? "week" : "test");
-else {
+if (env.MODE === "send") await send(env.KIND === "week" ? "week" : "test");
+else if (env.MODE === "check") {
   const [d, { from, weekFrom, to }] = await Promise.all([day(), span()]);
   const kind = dueIn(d, from, to, weekFrom);
   if (kind) await send(kind);
-}
+} else throw new Error(`MODE is "${env.MODE}", not check or send`);
 console.log("done");
