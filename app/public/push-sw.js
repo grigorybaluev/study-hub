@@ -1,8 +1,11 @@
 // Review reminders (#224), imported into the service worker (vite.config.ts, workbox importScripts).
-// A scheduled workflow sends an empty push at the owner's hours; the text comes from the day's progress
-// (#242), which the app writes to a cache each time it changes (src/review/push.ts).
+// A scheduled workflow sends a push in the owner's breaks ("remind") and on Sunday night ("week"); the
+// text comes from the day's progress (#242) and the week (#243), which the app writes to a cache each time
+// they change (src/review/push.ts). Each reminder's arrival is recorded for the week's "acted on".
 const STATE_CACHE = "study-hub-state";              // the same names in src/review/push.ts
 const STATE_URL = "./reminder-state.json";
+const ARRIVALS_URL = "./reminder-arrivals.json";
+const KEEP_ARRIVALS = 400;                           // about ten weeks of reminders
 
 /** The day's progress as the app last saved it, or null when it says nothing about today. */
 async function progress(now) {
@@ -26,6 +29,37 @@ function words({ done, left }, hour) {
   return { title: `${done} / ${total} done · ${left} to go`, body: "5–10 cards in this break." };
 }
 
+/** The week as the app last saved it, while it is the current week. */
+async function week(now) {
+  const res = await (await caches.open(STATE_CACHE)).match(STATE_URL);
+  const w = res && (await res.json())?.week;
+  return w && now < w.until ? w : null;
+}
+
+/** The Sunday night summary: days closed, cards and time, recall and reminders acted on. */
+function weekWords(w) {
+  const m = Math.round(w.ms / 60_000), time = m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
+  const recall = w.total ? `${Math.round((100 * w.passed) / w.total)} % recalled.` : "";
+  const acted = w.arrived ? ` ${w.acted} of ${w.arrived} reminders led to a review.` : "";
+  return { title: `Week: ${w.closed} / 7 days closed · ${w.cards} card${w.cards === 1 ? "" : "s"} · ${time}`, body: (recall + acted).trim() || "Open the stats for the week." };
+}
+
+async function weekMessage() {
+  try {
+    const w = await week(Date.now());
+    if (w) return weekWords(w);
+  } catch { /* the generic one */ }
+  return { title: "Your week", body: "Open the stats for the week's summary." };
+}
+
+/** Keep when a reminder arrived (the app reads them back for the week). */
+async function logArrival(at) {
+  const cache = await caches.open(STATE_CACHE);
+  const res = await cache.match(ARRIVALS_URL);
+  const all = [...((res && (await res.json())) || []), at].slice(-KEEP_ARRIVALS);
+  await cache.put(ARRIVALS_URL, new Response(JSON.stringify(all), { headers: { "content-type": "application/json" } }));
+}
+
 async function message() {
   try {
     const now = new Date(), day = await progress(now.getTime());
@@ -35,14 +69,21 @@ async function message() {
 }
 
 self.addEventListener("push", (event) => {
+  const kind = event.data?.text() === "week" ? "week" : "remind";
   // iOS stops delivering to a subscription whose pushes show no notification, so every push shows one
-  event.waitUntil(message().then(({ title, body }) =>
-    self.registration.showNotification(title, { body, icon: "./pwa-192x192.png", badge: "./pwa-64x64.png", tag: "review-reminder" })));
+  event.waitUntil((async () => {
+    if (kind === "remind") await logArrival(Date.now()).catch(() => { /* not counted */ });
+    const { title, body } = await (kind === "week" ? weekMessage() : message());
+    const page = kind === "week" ? "./#/review/stats" : "./#/review";
+    await self.registration.showNotification(title, {
+      body, icon: "./pwa-192x192.png", badge: "./pwa-64x64.png", tag: kind === "week" ? "review-week" : "review-reminder", data: { page },
+    });
+  })());
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = new URL("./#/review", self.registration.scope).href;
+  const url = new URL(event.notification.data?.page ?? "./#/review", self.registration.scope).href;
   event.waitUntil((async () => {
     const open = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     const client = open.find((c) => c.url.startsWith(self.registration.scope));

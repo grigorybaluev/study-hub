@@ -3,6 +3,7 @@
 // the subscription kept as the repo secret PUSH_SUBSCRIPTION; public/push-sw.js shows it.
 import { onIOS } from "./feedback";
 import type { DayProgress } from "./progress";
+import type { WeekLine } from "./week";
 
 /** The public half of the VAPID pair (the private half is the repo secret VAPID_PRIVATE_KEY). */
 const VAPID_PUBLIC_KEY = "BNOftj9zYlisgH2J90WpoiXWgnU1ov0L5d-pO-cUcaHUVCtUyEZPB1huwUabLCB9Q07n1t5XhBgWI20IVy6Okh8";
@@ -11,16 +12,28 @@ export const REMIND_AT = "in each break between the day's calendar events (the p
 
 const STATE_CACHE = "study-hub-state";        // the same names in public/push-sw.js
 const STATE_URL = "reminder-state.json";     // next to sw.js, where push-sw.js looks for it
+const ARRIVALS_URL = "reminder-arrivals.json";   // written by push-sw.js
 
 /** Keep the day's progress where the service worker can read it when a reminder arrives (#242):
  *  `until`, the end of today's review day, after which `done` and `left` say nothing; `nextUntil`, the
- *  end of the next one, until which `next` is the morning's count. */
-export function saveProgress(p: DayProgress, until: number, nextUntil: number) {
+ *  end of the next one, until which `next` is the morning's count; `week`, for the Sunday push (#243). */
+export function saveProgress(p: DayProgress, until: number, nextUntil: number, week: WeekLine) {
   if (!("caches" in window)) return;
-  const state = { ...p, until, nextUntil };
+  const state = { ...p, until, nextUntil, week };
   caches.open(STATE_CACHE)
     .then((c) => c.put(new URL(STATE_URL, document.baseURI).href, new Response(JSON.stringify(state), { headers: { "content-type": "application/json" } })))
     .catch(() => { /* the reminder says "Cards are due" */ });
+}
+
+/** When reminders arrived on this phone (#243), oldest first; none where there is no cache. */
+export async function reminderArrivals(): Promise<number[]> {
+  try {
+    const res = await (await caches.open(STATE_CACHE)).match(new URL(ARRIVALS_URL, document.baseURI).href);
+    const all = res ? await res.json() : [];
+    return Array.isArray(all) ? all.filter((t) => typeof t === "number") : [];
+  } catch {
+    return [];
+  }
 }
 
 /** `update`: the service worker with the push handler is installed but waits for a reload. */

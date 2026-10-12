@@ -3,7 +3,7 @@
 // tile the day by their start times, so a late or skipped run is covered by the next one.
 // Run logs of a public repo are public, and the times would give away the owner's day: the day is read
 // here through the API (never a step's env, which the log prints), and nothing about it or the decision
-// is printed. A manual run ("Run workflow") always sends.
+// is printed. A manual run ("Run workflow") always sends, the kind chosen there.
 import { dueIn, parseDay } from "./remind-slots.mjs";
 
 const LATE = 30 * 60_000;           // a reminder more than half an hour late is left out: the next one is near
@@ -50,19 +50,21 @@ async function day() {
   }
 }
 
-async function send() {
+/** `kind`: "remind" (the day's progress) or "week" (the week's summary), which the service worker reads. */
+async function send(kind) {
   if (!env.SUBSCRIPTION) { console.log("::warning::No PUSH_SUBSCRIPTION secret yet: enable reminders on the phone and store it."); return; }
   const { default: webpush } = await import("web-push");
   let sub;
   try { sub = JSON.parse(env.SUBSCRIPTION); } catch { sub = null; }     // the parse error would quote the secret
   if (!sub?.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) throw new Error("PUSH_SUBSCRIPTION is not a push subscription");
   webpush.setVapidDetails("https://grigorybaluev.github.io/study-hub/", env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY);
-  await webpush.sendNotification(sub, "remind", { TTL: 3600 });     // throws on a refused push (410: gone)
+  await webpush.sendNotification(sub, kind, { TTL: 3600 });     // throws on a refused push (410: gone)
 }
 
-if (env.EVENT === "workflow_dispatch") await send();
+if (env.EVENT === "workflow_dispatch") await send(env.KIND === "week" ? "week" : "remind");
 else {
   const [d, { from, to }] = await Promise.all([day(), span()]);
-  if (dueIn(d, from, to)) await send();
+  const kind = dueIn(d, from, to);
+  if (kind) await send(kind);
 }
 console.log("done");

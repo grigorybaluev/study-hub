@@ -2,7 +2,7 @@
 // workflow runs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FALLBACK, RULE, due, parseDay, slots, timeOf } from "../../scripts/remind-slots.mjs";
+import { FALLBACK, RULE, WEEKLY, due, parseDay, slots, timeOf } from "../../scripts/remind-slots.mjs";
 
 const hm = (s) => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
 const show = (ts) => ts.map((t) => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`);
@@ -47,14 +47,22 @@ test("never two within an hour, never more than the most in a day", () => {
 test("due: a time in (from, to], from the phone's day or the fallback hours", () => {
   const value = "2026-10-12 09:45-11:00";
   const at = (s) => timeOf("2026-10-12", hm(s));
-  assert.equal(due(value, at("11:00"), at("11:10")), true);        // 11:05
-  assert.equal(due(value, at("11:05"), at("11:15")), false);       // 11:05 was the previous run's
-  assert.equal(due(value, at("08:59"), at("09:01")), false);       // the phone sent today: no 9:00
+  assert.equal(due(value, at("11:00"), at("11:10")), "remind");        // 11:05
+  assert.equal(due(value, at("11:05"), at("11:15")), null);       // 11:05 was the previous run's
+  assert.equal(due(value, at("08:59"), at("09:01")), null);       // the phone sent today: no 9:00
   // yesterday's value, a malformed one, none: 9:00 and 20:00
   for (const v of ["2026-10-11 09:45-11:00", "today", undefined]) {
-    assert.equal(due(v, at("08:55"), at("09:05")), true);
-    assert.equal(due(v, at("11:00"), at("11:10")), false);
+    assert.equal(due(v, at("08:55"), at("09:05")), "remind");
+    assert.equal(due(v, at("11:00"), at("11:10")), null);
   }
   assert.deepEqual(FALLBACK, [hm("09:00"), hm("20:00")]);
-  assert.equal(due(value, at("11:04") - MIN / 2, at("11:05")), true);       // the end of the span counts
+  assert.equal(due(value, at("11:04") - MIN / 2, at("11:05")), "remind");       // the end of the span counts
+});
+
+test("Sunday at 23:00: the week's summary, whatever the day held", () => {
+  const sunday = "2026-10-18", at = (s) => timeOf(sunday, hm(s));
+  assert.equal(new Date(timeOf(sunday, 0)).getDay(), WEEKLY.weekday);
+  assert.equal(due(`${sunday} 22:00-23:59`, at("22:55"), at("23:05")), "week");
+  assert.equal(due(undefined, at("22:55"), at("23:05")), "week");
+  assert.equal(due(undefined, timeOf("2026-10-17", hm("22:55")), timeOf("2026-10-17", hm("23:05"))), null);   // a Saturday
 });
