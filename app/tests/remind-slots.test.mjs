@@ -2,7 +2,7 @@
 // workflow runs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FALLBACK, RULE, WEEKLY, due, parseDay, slots, timeOf } from "../../scripts/remind-slots.mjs";
+import { FALLBACK, RULE, WEEKLY, due, parseDay, previousCheck, slots, timeOf } from "../../scripts/remind-slots.mjs";
 
 const hm = (s) => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
 const show = (ts) => ts.map((t) => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`);
@@ -74,4 +74,14 @@ test("a late run still sends the week's summary, after midnight too, within its 
   assert.equal(dueIn(null, mon("00:10"), mon("00:40"), sun("22:50")), "week");
   assert.equal(dueIn(null, mon("00:10"), mon("00:40"), sun("23:30")), null);       // sent by the run that started 23:30's span
   assert.equal(dueIn(parseDay("2026-10-19"), mon("08:20"), mon("08:40"), mon("08:20")), "remind");   // Monday 8:30: the week went out before
+});
+
+test("the previous check: the latest earlier one that looked, even before its success shows", () => {
+  const run = (id, at, conclusion) => ({ id, run_started_at: `2026-10-12T12:${at}:00Z`, conclusion });
+  const start = Date.parse("2026-10-12T12:30:00Z");
+  const runs = [run(9, "31", null), run(8, "30", null), run(7, "20", null), run(6, "10", "success"), run(5, "00", "success")];
+  assert.equal(previousCheck(runs, 8, start).id, 7);          // 7's success not in the API yet: it still counts
+  assert.equal(previousCheck([run(7, "20", "failure"), ...runs.slice(3)], 8, start).id, 6);   // a failed one may not have looked
+  assert.equal(previousCheck([run(7, "20", "cancelled"), ...runs.slice(3)], 8, start).id, 6);
+  assert.equal(previousCheck([], 8, start), undefined);
 });

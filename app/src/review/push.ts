@@ -1,5 +1,5 @@
 // Review reminders (#224): this phone's push subscription, and the day's progress for the reminder's text
-// (#242). A scheduled workflow (.github/workflows/remind.yml) sends an empty push at the owner's hours to
+// (#242). A workflow (.github/workflows/remind-check.yml) sends a push at the owner's hours to
 // the subscription kept as the repo secret PUSH_SUBSCRIPTION; public/push-sw.js shows it.
 import { onIOS } from "./feedback";
 import type { DayProgress } from "./progress";
@@ -7,7 +7,7 @@ import type { WeekLine } from "./week";
 
 /** The public half of the VAPID pair (the private half is the repo secret VAPID_PRIVATE_KEY). */
 const VAPID_PUBLIC_KEY = "BNOftj9zYlisgH2J90WpoiXWgnU1ov0L5d-pO-cUcaHUVCtUyEZPB1huwUabLCB9Q07n1t5XhBgWI20IVy6Okh8";
-/** When reminders come (#235): the phone's morning Shortcut sends the day's calendar, see remind.yml. */
+/** When reminders come (#235): the phone's morning Shortcut sends the day's calendar, see remind-check.yml. */
 export const REMIND_AT = "in each break between the day's calendar events (the phone's morning Shortcut sends them), or at 9:00 and 20:00 on a day it sent none";
 
 const STATE_CACHE = "study-hub-state";        // the same names in public/push-sw.js

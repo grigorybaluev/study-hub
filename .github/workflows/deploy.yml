@@ -25,6 +25,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Refuse a manual run of anything but a release tag
+        # "Run workflow" redeploys a release (pick its v* tag); a token that may start workflows (the
+        # reminder timer's, #247) must not be able to publish an unreleased main
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/v*) ;;
+            *) echo "::error::A manual deploy runs only on a release tag, not $GITHUB_REF"; exit 1 ;;
+          esac
       - name: Refuse to deploy anything that is not on main
         # A v* tag on a feature-branch commit would otherwise publish an unreviewed build.
         run: |

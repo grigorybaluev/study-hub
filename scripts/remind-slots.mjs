@@ -59,6 +59,13 @@ export function slots(busy, rule = RULE) {
   return Array.from({ length: rule.most }, (_, i) => out[Math.round((i * (out.length - 1)) / (rule.most - 1))]);
 }
 
+/** The check before this one that looked (runs of remind-check.yml, newest first, as the API lists them):
+ *  the latest started before it that succeeded or is still finishing (a conclusion the API does not show
+ *  yet), not one that failed (it may have failed before it looked) or was cancelled. */
+export function previousCheck(runs, id, start) {
+  return runs.find((r) => r.id !== id && Date.parse(r.run_started_at) < start && (r.conclusion === null || r.conclusion === "success"));
+}
+
 /** The local date of a time, "2026-10-12". */
 export function localDate(ms) {
   const d = new Date(ms), p = (n) => String(n).padStart(2, "0");
