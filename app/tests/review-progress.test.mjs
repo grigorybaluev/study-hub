@@ -80,3 +80,24 @@ test("the saved state: today's until its end, then the next day's count, then no
   assert.deepEqual({ ...(await old.progress(T0)) }, { done: 0, left: 4 });
   assert.equal(await old.progress(until + HOUR), null);
 });
+
+test("the Sunday push: the week in one line, and each reminder's arrival kept", async () => {
+  const { weekWords } = worker(null);
+  assert.deepEqual({ ...weekWords({ closed: 5, cards: 412, ms: 192 * MIN, time: "3 h 12 min", passed: 91, total: 100, arrived: 20, acted: 14 }) },
+    { title: "Week: 5 / 7 days closed · 412 cards · 3 h 12 min", body: "91 % recalled. 14 of 20 reminders led to a review." });
+  assert.deepEqual({ ...weekWords({ closed: 0, cards: 1, ms: 40 * MIN, time: "40 min", passed: 0, total: 0, arrived: 0, acted: 0 }) },
+    { title: "Week: 0 / 7 days closed · 1 card · 40 min", body: "Open the stats for the week." });
+  // logArrival appends to the cache
+  const store = new Map();
+  const cache = { match: async (u) => store.has(u) && { json: async () => JSON.parse(store.get(u)) }, put: async (u, r) => store.set(u, await r.text()) };
+  const ctx = vm.createContext({ self: { addEventListener() {}, registration: {} }, caches: { open: async () => cache }, Response, console });
+  vm.runInContext(readFileSync(new URL("../public/push-sw.js", import.meta.url), "utf8"), ctx);
+  await ctx.logArrival(1);
+  await ctx.logArrival(2);
+  assert.deepEqual(JSON.parse(store.get("./reminder-arrivals.json")), [1, 2]);
+  // the week counts the reminders that arrived since the app saved it
+  const now = Date.now();
+  store.set("./reminder-state.json", JSON.stringify({ week: { from: 0, until: now + MIN, arrived: 1, acted: 1 } }));
+  assert.equal((await ctx.week(now)).arrived, 2);
+  assert.equal(await ctx.week(now + 2 * MIN), null);
+});

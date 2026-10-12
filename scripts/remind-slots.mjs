@@ -11,6 +11,9 @@ export const RULE = { from: 8 * 60 + 30, to: 22 * 60, minBreak: 20, intoBreak: 5
 /** When the phone sent nothing for today (#224's hours). */
 export const FALLBACK = [9 * 60, 20 * 60];
 
+/** The week's summary (#243): Sunday at 23:00, whatever the day held. */
+export const WEEKLY = { weekday: 0, at: 23 * 60 };
+
 /** The phone's value, or null when it is not one (any block malformed, a time out of range). A block
  *  ending before its start runs past midnight; one ending at its start (a moment, "00:00-00:00") takes no time. */
 export function parseDay(value) {
@@ -68,15 +71,22 @@ export function timeOf(date, minutes) {
   return new Date(y, m - 1, d, 0, minutes).getTime();
 }
 
-/** Whether a reminder falls in (from, to]: today's times from the phone, or the fallback hours when it sent
- *  nothing for today (no value, a malformed one, yesterday's). */
+/** The push that falls in (from, to], if any: "week" for the week's summary, else "remind" for one of
+ *  today's times from the phone, or of the fallback hours when it sent nothing for today (no value, a
+ *  malformed one, yesterday's); null when none does. */
 export function due(value, from, to) {
   return dueIn(parseDay(value), from, to);
 }
 
-/** due() for a value already parsed. */
-export function dueIn(day, from, to) {
-  const date = localDate(to);
+/** due() for a value already parsed. `weekFrom`: the week's summary, sent once, may be later than a
+ *  reminder (which the next one soon replaces), so its span may start earlier. */
+export function dueIn(day, from, to, weekFrom = from) {
+  const date = localDate(to), within = (m) => { const t = timeOf(date, m); return t > from && t <= to; };
+  // the last Sunday 23:00 up to `to`: today's or, after midnight, yesterday's
+  for (const d of [date, localDate(timeOf(date, 0) - 12 * 3_600_000)]) {
+    const t = timeOf(d, WEEKLY.at);
+    if (new Date(timeOf(d, 0)).getDay() === WEEKLY.weekday && t > weekFrom && t <= to) return "week";
+  }
   const times = day && day.date === date ? slots(day.busy) : FALLBACK;
-  return times.some((m) => { const t = timeOf(date, m); return t > from && t <= to; });
+  return times.some(within) ? "remind" : null;
 }

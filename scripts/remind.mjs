@@ -3,10 +3,11 @@
 // tile the day by their start times, so a late or skipped run is covered by the next one.
 // Run logs of a public repo are public, and the times would give away the owner's day: the day is read
 // here through the API (never a step's env, which the log prints), and nothing about it or the decision
-// is printed. A manual run ("Run workflow") always sends.
+// is printed. A manual run ("Run workflow") always sends, the kind chosen there.
 import { dueIn, parseDay } from "./remind-slots.mjs";
 
 const LATE = 30 * 60_000;           // a reminder more than half an hour late is left out: the next one is near
+const WEEK_LATE = 6 * 3_600_000;    // the week's summary comes once, so it may come later
 const EVERY = 10 * 60_000;          // the schedule, when the previous run cannot be found
 
 const env = process.env;
@@ -28,10 +29,11 @@ async function span() {
     const start = Date.parse(run.run_started_at);
     const { workflow_runs } = await api(`actions/workflows/${run.workflow_id}/runs?event=schedule&status=success&per_page=5`);
     const prev = workflow_runs.find((r) => r.id !== run.id && Date.parse(r.run_started_at) < start);
-    return { from: Math.max(prev ? Date.parse(prev.run_started_at) : 0, start - LATE), to: start };
+    const since = prev ? Date.parse(prev.run_started_at) : 0;
+    return { from: Math.max(since, start - LATE), weekFrom: Math.max(since, start - WEEK_LATE), to: start };
   } catch (e) {
     console.log(`::warning::${e.message}; looking back one schedule step`);
-    return { from: to - EVERY, to };
+    return { from: to - EVERY, weekFrom: to - EVERY, to };
   }
 }
 
@@ -50,19 +52,23 @@ async function day() {
   }
 }
 
-async function send() {
+/** `kind`: "remind" (the day's progress), "test" (the same, from a manual run) or "week" (the week's
+ *  summary), which the service worker reads. */
+async function send(kind) {
   if (!env.SUBSCRIPTION) { console.log("::warning::No PUSH_SUBSCRIPTION secret yet: enable reminders on the phone and store it."); return; }
   const { default: webpush } = await import("web-push");
   let sub;
   try { sub = JSON.parse(env.SUBSCRIPTION); } catch { sub = null; }     // the parse error would quote the secret
   if (!sub?.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) throw new Error("PUSH_SUBSCRIPTION is not a push subscription");
   webpush.setVapidDetails("https://grigorybaluev.github.io/study-hub/", env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY);
-  await webpush.sendNotification(sub, "remind", { TTL: 3600 });     // throws on a refused push (410: gone)
+  await webpush.sendNotification(sub, kind, { TTL: 3600 });     // throws on a refused push (410: gone)
 }
 
-if (env.EVENT === "workflow_dispatch") await send();
+// a manual reminder is a "test": the phone shows it but does not count it as a reminder that arrived
+if (env.EVENT === "workflow_dispatch") await send(env.KIND === "week" ? "week" : "test");
 else {
-  const [d, { from, to }] = await Promise.all([day(), span()]);
-  if (dueIn(d, from, to)) await send();
+  const [d, { from, weekFrom, to }] = await Promise.all([day(), span()]);
+  const kind = dueIn(d, from, to, weekFrom);
+  if (kind) await send(kind);
 }
 console.log("done");

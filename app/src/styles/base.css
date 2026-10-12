@@ -678,8 +678,8 @@ html.deck-open .update-toast { top: calc(env(safe-area-inset-top) + 0.6rem); bot
 .stats h2 { font-size: 1.1rem; }
 /* the last 14 days per course (#231): categorical slots in a fixed course order, validated for both themes
    (dataviz validator: light on #fff, dark on #1a1d22); every bar carries its number, so colour is never alone */
-.activity, .anki { --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948; --s0: #8a8f98; }
-:root[data-theme="dark"] .activity, :root[data-theme="dark"] .anki { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767; --s0: #6b7079; }
+.activity, .anki, .week { --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948; --s0: #8a8f98; }
+:root[data-theme="dark"] .activity, :root[data-theme="dark"] .anki, :root[data-theme="dark"] .week { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767; --s0: #6b7079; }
 .activity i[class^="activity-s"] { display: inline-block; }
 .activity-s0 { background: var(--s0); } .activity-s1 { background: var(--s1); } .activity-s2 { background: var(--s2); }
 .activity-s3 { background: var(--s3); } .activity-s4 { background: var(--s4); } .activity-s5 { background: var(--s5); }
@@ -881,3 +881,39 @@ a.unit-tag:hover b { text-decoration: underline; }
 .haptic-switch { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
 .deck-show, .grade { position: relative; }
 .vibration-test button { position: relative; }
+
+/* This week (#243): the week against the last, sessions per day, the 8-week trend */
+.week-table { border-collapse: collapse; font-size: 0.9rem; margin: 0.4rem 0 0.2rem; }
+.week-table th, .week-table td { border: 0; border-bottom: 1px solid var(--line); background: none; padding: 0.22rem 0.9rem 0.22rem 0; }
+.week-table th { text-align: left; font-weight: 400; color: var(--fg-muted); }
+.week-table td { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.week-table td:last-child { padding-right: 0; }
+.week-table td.muted { font-weight: 400; font-size: 0.82rem; }
+.week-dots { display: inline-flex; gap: 3px; vertical-align: 1px; margin-right: 0.3rem; }
+.week-dots i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--s1); box-sizing: border-box; }
+.week-dots i.on { background: var(--s1); }
+.week-dots i.later { border-color: var(--line); }
+.week-timeline { font-size: 0.78rem; }
+.week-trow { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 0.5rem; align-items: center; height: 20px; }
+.week-trow.today .week-tday { font-weight: 700; }
+.week-trow.later { color: var(--fg-muted); }
+.week-track { position: relative; display: block; height: 12px; }
+.week-trow:not(.week-hours) .week-track { background: var(--bg-sunken); border-radius: 4px; }
+.week-hours { height: 16px; }
+.week-hours b { position: absolute; transform: translateX(-50%); font-weight: 400; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+.week-grid { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.week-session { position: absolute; top: 2px; bottom: 2px; min-width: 3px; border-radius: 4px; background: var(--s1); box-shadow: 0 0 0 1px var(--bg); }
+.week-reminder { position: absolute; bottom: -3px; width: 0; height: 0; transform: translateX(-4px);
+  border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid var(--fg); }
+.week-legend { display: flex; align-items: center; gap: 0.4rem; margin: 0.4rem 0 0 3.1rem; }
+.week-legend i { position: static; display: inline-block; transform: none; }
+.week-legend .week-session { width: 14px; height: 8px; }
+.week-trend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem 1rem; }
+.week-chart { margin: 0; }
+.week-chart figcaption { display: flex; justify-content: space-between; gap: 0.3rem; font-size: 0.8rem; color: var(--fg-muted); }
+.week-chart figcaption b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.week-bars { display: flex; align-items: flex-end; gap: 2px; height: 48px; border-bottom: 1px solid var(--line); margin-top: 0.25rem; }
+.week-bars i { flex: 1; min-height: 1px; border-radius: 4px 4px 0 0; background: color-mix(in srgb, var(--s1) 45%, transparent); }
+.week-bars i.now { background: var(--s1); }
+.week-trend-note { grid-column: 1 / -1; margin: 0; }
+@media (max-width: 520px) { .week-trend { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

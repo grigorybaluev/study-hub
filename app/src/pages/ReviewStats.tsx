@@ -1,4 +1,4 @@
-// /review/stats (#195): where each course stands (#231), the last 14 days, Anki's sections (#225), days in a row and freezes, the calendar of review days, mastery per course and
+// /review/stats (#195): this week against the last (#243), where each course stands (#231), the last 14 days, Anki's sections (#225), days in a row and freezes, the calendar of review days, mastery per course and
 // per concept, milestones, totals, and the settings (daily limits, retention, feedback).
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -12,6 +12,7 @@ import AnkiExport from "../review/AnkiExport";
 import AnkiSections from "../review/AnkiSections";
 import Reminders from "../review/Reminders";
 import StandingPanel, { standingFor } from "../review/StandingPanel";
+import WeekSection from "../review/WeekSection";
 import { scopes } from "../review/scopeContext";
 import { TIER_COLOR, memoryOf } from "../review/memory";
 import type { Settings } from "../review/engine";
@@ -35,7 +36,7 @@ export default function ReviewStats() {
     return {
       streak: s, cal: calendar(st.engine.log, now), courses, concepts: { total: m.concepts.size, silverPlus: m.silverPlus },
       milestones: milestones(st.engine, st.cards, s), stats: st.engine.stats(),
-      standing: standingFor(scopes(d), false)(st.cards, st.engine, now),
+      standing: standingFor(scopes(d), false)(st.cards, st.engine, now), cleared: clearedDays(st.store), firstSeen: (id: string) => st.engine.firstSeen(id),
     };
   }, [st, d]);
 
@@ -47,6 +48,11 @@ export default function ReviewStats() {
     <div className="stats">
       <div className="crumbs"><Link to="/review">Review</Link> › stats</div>
       <h1>Streak and stats</h1>
+
+      <section>
+        <h2>This week</h2>
+        <WeekSection log={st.engine.log} cleared={view.cleared} firstSeen={view.firstSeen} />
+      </section>
 
       <section>
         <h2>Where you stand</h2>

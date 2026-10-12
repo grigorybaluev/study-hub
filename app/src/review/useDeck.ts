@@ -8,7 +8,8 @@ import { Engine, dayStart, nextDay, type Rating, type Settings } from "./engine"
 import { EMPTY_TALLY, rewardOf, tally as addTo, type GradeReward, type SessionTally } from "./rewards";
 import { streak, type Streak } from "./days";
 import { prefs } from "./feedback";
-import { saveProgress } from "./push";
+import { reminderArrivals, saveProgress } from "./push";
+import { weekLine, weeks } from "./week";
 import { dayProgress, nextDayCards, type DailyAt, type DayProgress } from "./progress";
 import type { UnitCoverage } from "./coverage";
 import type { CourseStanding } from "./standing";
@@ -235,11 +236,19 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
   // and the day's progress for the text of a reminder (#224, #242)
   const left = view ? view.all.left : 0, done = view ? view.all.done : 0;
   const until = view ? nextDay(Date.now()) : 0;
+  const cleared = st ? clearedDays(st.store).at(-1) ?? 0 : 0;      // the last day cleared (the list is capped)
+  const saves = useRef(0);
   useEffect(() => {
     if (!until || !st) return;
-    // the next day's count (the plans at its start) is worked out here, once per change, not per look at the deck
-    saveProgress({ done, left, next: nextDayCards(st.engine, dailyAt, Date.now()) }, until, nextDay(until));
-  }, [done, left, until, st, dailyAt]);
+    // the next day's count (the plans at its start) and the week (#243) are worked out here, once per
+    // change, not per look at the deck; only the latest save writes, even after the page is left
+    const n = ++saves.current;
+    reminderArrivals().then((arrivals) => {
+      if (n !== saves.current) return;
+      const now = Date.now(), [week] = weeks(st.engine.log, clearedDays(st.store), arrivals, (id) => st.engine.firstSeen(id), now, 1);
+      saveProgress({ done, left, next: nextDayCards(st.engine, dailyAt, now) }, until, nextDay(until), weekLine(week));
+    });
+  }, [done, left, until, st, dailyAt, cleared]);
   useEffect(() => {
     if (!view || !prefs().badge || !("setAppBadge" in navigator)) return;
     (left ? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(() => { /* not allowed here */ });

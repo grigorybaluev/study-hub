@@ -2,7 +2,7 @@
 # Shortcut on the phone sends the day's busy blocks from its calendar (times only, no titles) to the repo
 # variable REMIND_DAY; this workflow checks every 10 minutes whether one of the day's reminder times
 # (scripts/remind-slots.mjs) has come, and falls back to 9:00 and 20:00 Montreal time on a day the phone
-# sent nothing. Run logs are public, and a step's env is printed in them: the script reads REMIND_DAY
+# sent nothing. Sunday at 23:00 it sends the week's summary (#243). Run logs are public, and a step's env is printed in them: the script reads REMIND_DAY
 # through the API with the secret REMIND_TOKEN (the phone's token: Variables, read and write, this repo
 # only), never vars.REMIND_DAY here, and every run takes the same steps and prints nothing about the times.
 # The phone's subscription is the secret PUSH_SUBSCRIPTION (copied from the stats page), the VAPID pair the
@@ -16,6 +16,12 @@ on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
+    inputs:
+      kind:
+        description: "remind: the day's progress; week: the Sunday summary"
+        type: choice
+        options: [remind, week]
+        default: remind
 
 permissions:
   actions: read       # the previous run's start (scripts/remind.mjs)
@@ -46,6 +52,7 @@ jobs:
         env:
           TZ: America/Toronto
           EVENT: ${{ github.event_name }}
+          KIND: ${{ inputs.kind }}
           GH_TOKEN: ${{ github.token }}
           REMIND_TOKEN: ${{ secrets.REMIND_TOKEN }}
           SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
