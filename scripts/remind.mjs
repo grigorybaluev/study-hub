@@ -1,9 +1,10 @@
-// The review reminder's run (#224, #235), every 10 minutes from .github/workflows/remind.yml: a push when
-// one of the day's reminder times (remind-slots.mjs) fell since the previous scheduled run started. Runs
-// tile the day by their start times, so a late or skipped run is covered by the next one.
+// The review reminder's run (#224, #235), every 10 minutes from .github/workflows/remind.yml (an external
+// timer, #247, and GitHub's schedule): a push when one of the day's reminder times (remind-slots.mjs) fell
+// since the previous check started. Checks tile the day by their start times, so a late or skipped one is
+// covered by the next.
 // Run logs of a public repo are public, and the times would give away the owner's day: the day is read
 // here through the API (never a step's env, which the log prints), and nothing about it or the decision
-// is printed. A manual run ("Run workflow") always sends, the kind chosen there.
+// is printed. A manual run ("Run workflow") with remind or week always sends that kind; auto checks.
 import { dueIn, parseDay } from "./remind-slots.mjs";
 
 const LATE = 30 * 60_000;           // a reminder more than half an hour late is left out: the next one is near
@@ -20,15 +21,18 @@ async function api(path, token = env.GH_TOKEN) {
   return r.json();
 }
 
-/** Since when to look: the previous scheduled run that finished its look (succeeded). A manual run never
- *  looks, and a failed one may have failed before it did, so neither counts. */
+/** A check: a scheduled run, or the external timer's (#247), named "Review reminder (auto)" by the workflow. */
+const isCheck = (r) => r.event === "schedule" || (r.event === "workflow_dispatch" && r.display_title === "Review reminder (auto)");
+
+/** Since when to look: the previous check that finished its look (succeeded). A manual send never looks,
+ *  and a failed check may have failed before it did, so neither counts. */
 async function span() {
   const to = Date.now();
   try {
     const run = await api(`actions/runs/${env.GITHUB_RUN_ID}`);
     const start = Date.parse(run.run_started_at);
-    const { workflow_runs } = await api(`actions/workflows/${run.workflow_id}/runs?event=schedule&status=success&per_page=5`);
-    const prev = workflow_runs.find((r) => r.id !== run.id && Date.parse(r.run_started_at) < start);
+    const { workflow_runs } = await api(`actions/workflows/${run.workflow_id}/runs?status=success&per_page=20`);
+    const prev = workflow_runs.find((r) => r.id !== run.id && isCheck(r) && Date.parse(r.run_started_at) < start);
     const since = prev ? Date.parse(prev.run_started_at) : 0;
     return { from: Math.max(since, start - LATE), weekFrom: Math.max(since, start - WEEK_LATE), to: start };
   } catch (e) {
@@ -65,7 +69,7 @@ async function send(kind) {
 }
 
 // a manual reminder is a "test": the phone shows it but does not count it as a reminder that arrived
-if (env.EVENT === "workflow_dispatch") await send(env.KIND === "week" ? "week" : "test");
+if (env.EVENT === "workflow_dispatch" && env.KIND !== "auto") await send(env.KIND === "week" ? "week" : "test");
 else {
   const [d, { from, weekFrom, to }] = await Promise.all([day(), span()]);
   const kind = dueIn(d, from, to, weekFrom);

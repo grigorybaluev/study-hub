@@ -1,26 +1,32 @@
 # Review reminders (#224, #235): pushes to the owner's phone in the breaks of the day. Each morning an iOS
 # Shortcut on the phone sends the day's busy blocks from its calendar (times only, no titles) to the repo
-# variable REMIND_DAY; this workflow checks every 10 minutes whether one of the day's reminder times
+# variable REMIND_DAY; this workflow checks whether one of the day's reminder times
 # (scripts/remind-slots.mjs) has come, and falls back to 9:00 and 20:00 Montreal time on a day the phone
-# sent nothing. Sunday at 23:00 it sends the week's summary (#243). Run logs are public, and a step's env is printed in them: the script reads REMIND_DAY
-# through the API with the secret REMIND_TOKEN (the phone's token: Variables, read and write, this repo
-# only), never vars.REMIND_DAY here, and every run takes the same steps and prints nothing about the times.
+# sent nothing. Sunday at 23:00 it sends the week's summary (#243).
+# The checks: GitHub's schedule ran hours late (#247), so an external timer (cron-job.org, with a token
+# that can only run this repo's workflows) starts a run with kind "auto" every 10 minutes, which GitHub
+# starts within seconds; the schedule stays, every 30 minutes, in case the timer stops.
+# Run logs are public, and a step's env is printed in them: the script reads REMIND_DAY through the API
+# with the secret REMIND_TOKEN (the phone's token: Variables, read and write, this repo only), never
+# vars.REMIND_DAY here, and every run takes the same steps and prints nothing about the times.
 # The phone's subscription is the secret PUSH_SUBSCRIPTION (copied from the stats page), the VAPID pair the
 # secrets VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY. The push is empty: the app's service worker writes the
-# day's progress (public/push-sw.js, #242). "Run workflow" sends one now. A failed send fails the run, so
+# day's progress (public/push-sw.js, #242). "Run workflow" with remind or week sends one now. A failed send fails the run, so
 # GitHub mails the owner. GitHub may start a scheduled run late or skip it (the next run covers it), and
 # turns schedules off in a repo with no commits for 60 days.
 name: Review reminder
+# "Review reminder (auto)" marks the timer's runs, which scripts/remind.mjs counts as checks
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('Review reminder ({0})', inputs.kind) || 'Review reminder' }}
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       kind:
-        description: "remind: the day's progress; week: the Sunday summary"
+        description: "remind: send the day's progress now; week: the Sunday summary; auto: check as scheduled (the timer)"
         type: choice
-        options: [remind, week]
+        options: [remind, week, auto]
         default: remind
 
 permissions:
