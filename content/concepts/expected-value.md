@@ -2,7 +2,7 @@
 title: Expected value
 domain: probability
 wikipedia: "Expected value"
-aliases: ["mean", "expectation"]
+aliases: ["mean (of a random variable)", "expectation"]
 maps_to: [study-hub/ds-core/random-variables]
 ---
 
