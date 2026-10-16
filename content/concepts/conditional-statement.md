@@ -1,8 +1,8 @@
 ---
-title: Selection
+title: Conditional statements
 domain: programming
 wikipedia: "Conditional (computer programming)"
-aliases: ["if statement", "if-else", "switch", "conditional statement", "boolean expression"]
+aliases: ["if statement", "if-else", "switch", "selection (control flow)", "boolean expression"]
 maps_to: [study-hub/ds-core/programming-fundamentals]
 ---
 

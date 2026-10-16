@@ -1,5 +1,5 @@
 ---
-title: Elementary number theory
+title: Modular arithmetic and elementary number theory
 domain: math.discrete
 wikipedia: "Modular arithmetic"
 aliases: ["divisibility", "prime", "gcd", "lcm", "division algorithm", "Euclidean algorithm", "congruence"]

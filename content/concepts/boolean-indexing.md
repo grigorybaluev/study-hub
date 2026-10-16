@@ -2,7 +2,7 @@
 title: Boolean indexing
 domain: programming
 aliases: ["logical indexing", "masking", "filtering"]
-requires: [{concept: selection, strength: soft}]
+requires: [{concept: conditional-statement, strength: soft}]
 maps_to: [study-hub/ds-core/r, study-hub/ds-core/data-wrangling]
 ---
 

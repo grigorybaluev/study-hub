@@ -3,7 +3,7 @@ title: Random walk
 domain: probability
 wikipedia: "Random walk"
 aliases: ["simple random walk", "Brownian motion", "Wiener process"]
-requires: [random-variable, independence, {concept: markov-chain, strength: soft}]
+requires: [random-variable, independent-events, {concept: markov-chain, strength: soft}]
 maps_to: [study-hub/ds-core/stochastic-processes]
 ---
 

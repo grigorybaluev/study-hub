@@ -1,5 +1,5 @@
 ---
-title: Heap
+title: Heap (data structure)
 domain: algorithms
 wikipedia: "Heap (data structure)"
 aliases: ["binary heap", "heap sort"]

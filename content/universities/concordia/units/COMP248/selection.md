@@ -3,7 +3,7 @@ title: Selection
 order: 3
 status: detailed
 weeks: [3]
-introduces: [selection]
+introduces: [conditional-statement]
 requires:
   - {concept: variables-and-expressions, strength: hard}
   - {concept: string, strength: soft}

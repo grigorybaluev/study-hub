@@ -4,7 +4,7 @@ domain: ml
 wikipedia: "One-hot"
 aliases: ["one-hot encoding", "dummy variables", "label encoding", "target encoding", "ordinal encoding"]
 part_of: [feature-engineering]
-requires: [{concept: factor, strength: soft}]
+requires: [{concept: categorical-variable, strength: soft}]
 maps_to: [study-hub/ds-core/feature-engineering]
 ---
 

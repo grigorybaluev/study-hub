@@ -7,7 +7,7 @@ introduces: []
 requires:
   - {concept: r-programming, strength: hard}
 reinforces:
-  - {concept: selection, perspective: "in R"}
+  - {concept: conditional-statement, perspective: "in R"}
   - {concept: iteration, perspective: "in R"}
   - {concept: function-definition, perspective: "in R"}
 ---

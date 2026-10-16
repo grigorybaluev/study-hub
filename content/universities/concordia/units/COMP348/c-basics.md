@@ -5,7 +5,7 @@ status: detailed
 weeks: [2]
 introduces: [c-programming]
 requires:
-  - {concept: selection, strength: hard}
+  - {concept: conditional-statement, strength: hard}
   - {concept: iteration, strength: hard}
   - {concept: language-implementation, strength: soft}
 reinforces:
