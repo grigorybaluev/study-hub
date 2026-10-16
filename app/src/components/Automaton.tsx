@@ -1,5 +1,5 @@
 // A static automaton diagram (#111): the simulator's drawing without its controls. Loaded lazily,
-// and it pulls in only the automata engine, not the Plotly-based Sim bundle.
+// and it pulls in only the automata engine, not the Sim bundle with every language engine.
 import { useMemo } from "react";
 import YAML from "yaml";
 import "../sims/automata.js";

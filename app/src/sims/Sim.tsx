@@ -4,7 +4,7 @@
 // Plotly is most of the weight and only the slider sims (not `custom`) plot, so it loads on demand (#40).
 import { useEffect, useRef, useState } from "react";
 import NeedsVerification from "../components/NeedsVerification";
-import { LoadFailed } from "../components/LazyBlock";
+import { loadFailedText } from "../components/LazyBlock";
 import "./automata.css";
 import "./java.css";
 import "./ds.css";
@@ -100,8 +100,6 @@ export default function Sim({ cfg }: { cfg: SimConfig }) {
     return () => { if (el && !cfg.custom) window.Plotly?.purge(el); };
   }, [cfg.custom]);
 
-  if (failed) return <LoadFailed />;
-
   return (
     <div className="sim-box">
       <NeedsVerification verified={cfg.verified} />
@@ -123,7 +121,7 @@ export default function Sim({ cfg }: { cfg: SimConfig }) {
         </div>
       )}
       <div ref={host} id={`sim-${cfg.id}`} className={`sim-plot${cfg.custom ? " sim-custom" : ""}`}>
-        {!ready && <div className="sim-loading">Loading the plot…</div>}
+        {!ready && <div className="sim-loading">{failed ? loadFailedText("plot") : "Loading the plot…"}</div>}
       </div>
       {cfg.note && <div className="sim-note">{cfg.note}</div>}
     </div>
