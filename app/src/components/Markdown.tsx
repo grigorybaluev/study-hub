@@ -20,7 +20,7 @@ import { splitSpacers } from "./mathSplit";
 import { BLOCKS } from "./blocks";
 import type { VFile } from "vfile";
 
-// Plotly + the engines are heavy; load them only when a page actually contains a simulation.
+// the engines are heavy (and Sim loads Plotly on top for a plotting sim); load them only when a page contains a block
 const Sim = lazy(() => import("../sims/Sim"));
 const Automaton = lazy(() => import("./Automaton"));
 const SolutionMap = lazy(() => import("./SolutionMap"));

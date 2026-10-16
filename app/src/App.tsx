@@ -1,20 +1,24 @@
-import { useEffect, useState } from "react";
+import { lazy, useEffect, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigationType } from "react-router-dom";
 import { DataContext, loadData, type Data } from "./data/load";
 import Search from "./components/Search";
 import ThemeToggle from "./components/ThemeToggle";
 import Footer from "./components/Footer";
+import LazyBlock from "./components/LazyBlock";
 import Home from "./pages/Home";
 import Course from "./pages/Course";
 import Unit from "./pages/Unit";
 import Concept from "./pages/Concept";
 import Roadmap from "./pages/Roadmap";
-import ConceptMap from "./pages/ConceptMap";
-import CourseGraph from "./pages/CourseGraph";
 import Design from "./pages/Design";
 import Analytics from "./pages/Analytics";
 import Review from "./pages/Review";
 import ReviewStats from "./pages/ReviewStats";
+
+// the graph pages carry Cytoscape and its layouts, which no other page needs (#40)
+const ConceptMap = lazy(() => import("./pages/ConceptMap"));
+const CourseGraph = lazy(() => import("./pages/CourseGraph"));
+const graph = (page: JSX.Element) => <LazyBlock what="map" fallback={<div className="loading">Loading…</div>}>{page}</LazyBlock>;
 
 export default function App() {
   const [data, setData] = useState<Data | null>(null);
@@ -59,8 +63,8 @@ export default function App() {
             <Route path="/concept/:slug" element={<Concept />} />
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/skill/:slug" element={<Roadmap />} />
-            <Route path="/explore" element={<ConceptMap />} />
-            <Route path="/explore/courses" element={<CourseGraph />} />
+            <Route path="/explore" element={graph(<ConceptMap />)} />
+            <Route path="/explore/courses" element={graph(<CourseGraph />)} />
             {/* the earlier names of the map (#155, #173) still open it, with their view settings */}
             <Route path="/explore/ds-map" element={<ToExplore />} />
             <Route path="/explore/ds-map-2" element={<ToExplore />} />
