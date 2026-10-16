@@ -7,7 +7,7 @@ requires:
   - {concept: r-programming, strength: hard}
 reinforces:
   - {concept: array, perspective: "R vectors"}
-introduces: [vectorized-operations, factor, boolean-indexing]
+introduces: [vectorized-operations, categorical-variable, boolean-indexing]
 ---
 
 Numeric, character and logical vectors, factors, vector arithmetic and recycling, and

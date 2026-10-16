@@ -3,7 +3,7 @@ title: Multinomial distribution
 domain: probability
 wikipedia: "Multinomial distribution"
 generalizes: [binomial-distribution]
-requires: [independence]
+requires: [independent-events]
 maps_to: [study-hub/ds-core/distributions]
 ---
 

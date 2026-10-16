@@ -3,7 +3,7 @@ title: Conditional independence
 domain: probability
 wikipedia: "Conditional independence"
 aliases: ["independent given", "d-separation"]
-requires: [independence, conditional-probability]
+requires: [independent-events, conditional-probability]
 maps_to: [study-hub/ds-core/multivariate-probability]
 ---
 

@@ -3,7 +3,7 @@ title: Normal forms
 order: 8
 status: detailed
 weeks: [6]
-introduces: [normalization]
+introduces: [database-normalization]
 requires:
   - {concept: functional-dependency, strength: hard}
   - {concept: relational-model, strength: hard}

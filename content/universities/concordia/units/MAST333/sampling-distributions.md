@@ -8,7 +8,7 @@ requires:
   - {concept: random-variable, strength: hard}
   - {concept: expected-value, strength: hard}
   - {concept: variance, strength: hard}
-  - {concept: independence, strength: hard}
+  - {concept: independent-events, strength: hard}
   - {concept: normal-distribution, strength: hard}
   - {concept: descriptive-statistics, strength: hard}
 reinforces: []

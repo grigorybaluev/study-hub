@@ -6,7 +6,7 @@ status: detailed
 weeks: [13]
 introduces: []
 requires: []
-reinforces: [variables-and-expressions, string, selection, iteration, array, function-definition, class-and-object, object-reference]
+reinforces: [variables-and-expressions, string, conditional-statement, iteration, array, function-definition, class-and-object, object-reference]
 ---
 
 The last week recaps everything for the final, which covers the whole term. Nothing new;

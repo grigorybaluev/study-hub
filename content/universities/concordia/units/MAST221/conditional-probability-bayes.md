@@ -3,7 +3,7 @@ title: Conditional probability, independence and Bayes' theorem
 order: 3
 status: detailed
 weeks: [2]
-introduces: [conditional-probability, independence, bayes-theorem]
+introduces: [conditional-probability, independent-events, bayes-theorem]
 requires:
   - {concept: probability, strength: hard}
   - {concept: inclusion-exclusion, strength: soft}

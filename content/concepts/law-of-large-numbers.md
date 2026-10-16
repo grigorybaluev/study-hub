@@ -3,7 +3,7 @@ title: Law of large numbers
 domain: probability
 wikipedia: "Law of large numbers"
 aliases: ["LLN", "weak law of large numbers", "strong law of large numbers"]
-requires: [expected-value, independence, {concept: chebyshev-inequality, strength: soft}]
+requires: [expected-value, independent-events, {concept: chebyshev-inequality, strength: soft}]
 maps_to: [study-hub/ds-core/random-variables, study-hub/ds-core/estimation]
 ---
 

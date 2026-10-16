@@ -2,7 +2,7 @@
 title: Geometric distribution
 domain: probability
 wikipedia: "Geometric distribution"
-requires: [bernoulli-distribution, {concept: independence, strength: soft}]
+requires: [bernoulli-distribution, {concept: independent-events, strength: soft}]
 maps_to: [study-hub/ds-core/distributions]
 ---
 

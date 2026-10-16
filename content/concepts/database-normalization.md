@@ -1,8 +1,8 @@
 ---
-title: Normalization
+title: Database normalization
 domain: data
 wikipedia: "Database normalization"
-aliases: ["BCNF", "3NF", "normal forms"]
+aliases: ["normalization (databases)", "BCNF", "3NF", "normal forms"]
 maps_to: [study-hub/ds-core/data-modelling]
 ---
 
