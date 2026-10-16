@@ -4,6 +4,17 @@
 // failure would unmount the whole app; with it, the block shows a note and the rest of the page stays.
 import { Component, Suspense, type ReactNode } from "react";
 
+/** The note in place of an interactive example whose code could not load (also used by Sim for Plotly). */
+export function LoadFailed() {
+  return (
+    <div className="sim-box"><div className="sim-note">
+      {navigator.onLine
+        ? "This interactive example could not load. Reload the page to get the latest version."
+        : "This interactive example needs a connection the first time it opens."}
+    </div></div>
+  );
+}
+
 interface Props { fallback: ReactNode; children: ReactNode }
 
 export default class LazyBlock extends Component<Props, { failed: boolean }> {
@@ -14,15 +25,7 @@ export default class LazyBlock extends Component<Props, { failed: boolean }> {
   }
 
   render() {
-    if (this.state.failed) {
-      return (
-        <div className="sim-box"><div className="sim-note">
-          {navigator.onLine
-            ? "This interactive example could not load. Reload the page to get the latest version."
-            : "This interactive example needs a connection the first time it opens."}
-        </div></div>
-      );
-    }
+    if (this.state.failed) return <LoadFailed />;
     return <Suspense fallback={this.props.fallback}>{this.props.children}</Suspense>;
   }
 }
