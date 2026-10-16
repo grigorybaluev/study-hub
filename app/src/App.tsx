@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigationType } from "react-router-dom";
 import { DataContext, loadData, type Data } from "./data/load";
 import Search from "./components/Search";
@@ -9,12 +9,14 @@ import Course from "./pages/Course";
 import Unit from "./pages/Unit";
 import Concept from "./pages/Concept";
 import Roadmap from "./pages/Roadmap";
-import ConceptMap from "./pages/ConceptMap";
-import CourseGraph from "./pages/CourseGraph";
 import Design from "./pages/Design";
 import Analytics from "./pages/Analytics";
 import Review from "./pages/Review";
 import ReviewStats from "./pages/ReviewStats";
+
+// the graph pages carry Cytoscape and its layouts, which no other page needs (#40)
+const ConceptMap = lazy(() => import("./pages/ConceptMap"));
+const CourseGraph = lazy(() => import("./pages/CourseGraph"));
 
 export default function App() {
   const [data, setData] = useState<Data | null>(null);
@@ -51,25 +53,27 @@ export default function App() {
           <ThemeToggle />
         </header>
         <main className={full ? "main full" : deck ? "main deck-main" : "main"}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/course/:code" element={<Course />} />
-            <Route path="/unit/:code/:slug" element={<Unit />} />
-            <Route path="/concepts" element={<Concept />} />
-            <Route path="/concept/:slug" element={<Concept />} />
-            <Route path="/roadmap" element={<Roadmap />} />
-            <Route path="/skill/:slug" element={<Roadmap />} />
-            <Route path="/explore" element={<ConceptMap />} />
-            <Route path="/explore/courses" element={<CourseGraph />} />
-            {/* the earlier names of the map (#155, #173) still open it, with their view settings */}
-            <Route path="/explore/ds-map" element={<ToExplore />} />
-            <Route path="/explore/ds-map-2" element={<ToExplore />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/review" element={<Review />} />
-            <Route path="/review/stats" element={<ReviewStats />} />
-            <Route path="/design/:kind" element={<Design />} />
-            <Route path="*" element={<p>Not found.</p>} />
-          </Routes>
+          <Suspense fallback={<div className="loading">Loading…</div>}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/course/:code" element={<Course />} />
+              <Route path="/unit/:code/:slug" element={<Unit />} />
+              <Route path="/concepts" element={<Concept />} />
+              <Route path="/concept/:slug" element={<Concept />} />
+              <Route path="/roadmap" element={<Roadmap />} />
+              <Route path="/skill/:slug" element={<Roadmap />} />
+              <Route path="/explore" element={<ConceptMap />} />
+              <Route path="/explore/courses" element={<CourseGraph />} />
+              {/* the earlier names of the map (#155, #173) still open it, with their view settings */}
+              <Route path="/explore/ds-map" element={<ToExplore />} />
+              <Route path="/explore/ds-map-2" element={<ToExplore />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/review" element={<Review />} />
+              <Route path="/review/stats" element={<ReviewStats />} />
+              <Route path="/design/:kind" element={<Design />} />
+              <Route path="*" element={<p>Not found.</p>} />
+            </Routes>
+          </Suspense>
         </main>
         {!full && !deck && <Footer />}
       </div>
