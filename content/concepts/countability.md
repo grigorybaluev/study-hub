@@ -2,7 +2,7 @@
 title: Countability
 domain: math.discrete
 wikipedia: "Countable set"
-aliases: ["cardinality", "diagonalization"]
+aliases: ["cardinality", "Cantor's diagonal argument"]
 maps_to: [study-hub/ds-core/discrete-mathematics, study-hub/ds-core/theory-of-computation]
 ---
 

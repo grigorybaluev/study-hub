@@ -2,7 +2,7 @@
 title: Riemann sum
 domain: math.calculus
 wikipedia: "Riemann sum"
-aliases: ["sigma notation", "left endpoint rule", "right endpoint rule", "midpoint rule", "partition"]
+aliases: ["sigma notation", "left endpoint rule", "right endpoint rule", "midpoint rule", "partition of an interval"]
 maps_to: [study-hub/ds-core/calculus]
 ---
 

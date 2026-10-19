@@ -3,7 +3,7 @@ title: Basis, dimension and coordinates
 domain: math.linear-algebra
 wikipedia: "Basis (linear algebra)"
 short: "basis"
-aliases: ["basis", "dimension", "coordinate vector", "change of basis", "transition matrix"]
+aliases: ["basis", "dimension", "coordinate vector", "change of basis", "change-of-basis matrix"]
 maps_to: [study-hub/ds-core/linear-algebra]
 ---
 
