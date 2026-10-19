@@ -8,8 +8,8 @@ start: repeat
 nodes:
   - {id: repeat, kind: decision, label: "Is something repeated?"}
   - {id: constants, kind: decision, label: "One value compared against several constants?"}
-  - {id: switch, kind: method, label: "switch", concept: selection}
-  - {id: if-else, kind: method, label: "if / else if / else", concept: selection}
+  - {id: switch, kind: method, label: "switch", concept: conditional-statement}
+  - {id: if-else, kind: method, label: "if / else if / else", concept: conditional-statement}
   - {id: known, kind: decision, label: "Is the number of repetitions known before the loop starts?"}
   - {id: for, kind: method, label: "for loop over a counter", concept: iteration}
   - {id: once, kind: decision, label: "Must the body run once before the test?"}

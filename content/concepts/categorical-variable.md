@@ -2,7 +2,7 @@
 title: Categorical variables
 domain: data
 wikipedia: "Categorical variable"
-aliases: ["categorical", "levels"]
+aliases: ["categorical", "levels", "factor (R)"]
 maps_to: [study-hub/ds-core/data-wrangling]
 ---
 

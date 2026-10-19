@@ -5,7 +5,7 @@ status: detailed
 weeks: [4]
 introduces: [iteration]
 requires:
-  - {concept: selection, strength: hard}
+  - {concept: conditional-statement, strength: hard}
 reinforces: []
 ---
 

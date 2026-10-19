@@ -5,7 +5,7 @@ status: outline
 introduces: [assembly-language]
 requires:
   - {concept: number-representation, strength: hard}
-  - {concept: selection, strength: soft}
+  - {concept: conditional-statement, strength: soft}
   - {concept: iteration, strength: soft}
 reinforces: []
 ---
