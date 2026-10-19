@@ -15,7 +15,7 @@ export default defineConfig({
     react(),
     // Installable, offline web app (#189). The service worker precaches the app shell, the KaTeX
     // woff2 fonts and all data (graph, derived, unit bodies per course); the heavy lazy chunks
-    // (Plotly and the language engines in Sim-*, sql.js) are cached the first time they load.
+    // (the language engines in Sim-*, Plotly in plotly-*, sql.js) are cached the first time they load.
     VitePWA({
       registerType: "prompt",
       injectRegister: false,
@@ -35,22 +35,29 @@ export default defineConfig({
       workbox: {
         importScripts: ["push-sw.js"],      // review reminders (#224)
         globPatterns: ["**/*.{html,js,css,woff2,svg,png,ico,json}"],
-        globIgnores: ["**/assets/Sim-*.js"],
+        globIgnores: ["**/assets/Sim-*.js", "**/assets/plotly-*.js"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             // the heavy chunks left out of the precache, kept after their first load; hashed names never
-            // change content. Each release adds one Sim chunk and at most one wasm, so 4 entries keep the
-            // current and previous release and old copies are evicted instead of piling up.
-            urlPattern: ({ url }) => /\/assets\/(Sim-.*\.js|sql-wasm.*\.wasm)$/.test(url.pathname),
+            // change content. Each release adds one Sim chunk and at most one Plotly chunk and one wasm,
+            // so 6 entries keep the current and previous release and old copies are evicted instead of
+            // piling up.
+            urlPattern: ({ url }) => /\/assets\/(Sim-.*\.js|plotly-.*\.js|sql-wasm.*\.wasm)$/.test(url.pathname),
             handler: "CacheFirst",
-            options: { cacheName: "lazy-assets", expiration: { maxEntries: 4, purgeOnQuotaError: true } },
+            options: { cacheName: "lazy-assets", expiration: { maxEntries: 6, purgeOnQuotaError: true } },
           },
         ],
       },
     }),
   ],
   base: "./",
+  build: {
+    rollupOptions: {
+      // Plotly's chunk gets a fixed name: the PWA globs above leave plotly-* out of the precache (#40)
+      output: { chunkFileNames: (c) => c.moduleIds.some((id) => id.includes("plotly.js-dist-min")) ? "assets/plotly-[hash].js" : "assets/[name]-[hash].js" },
+    },
+  },
   define: { __BUILD__: JSON.stringify({ version: describe, built: new Date().toISOString() }) },
 });

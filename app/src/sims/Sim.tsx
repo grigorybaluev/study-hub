@@ -1,9 +1,10 @@
 // Hosts the vanilla simulation engines (simulations.js / automata.js) inside React.
 // Contract the engines expect: a container #sim-<id>, window.ctrlVal(simId, ctrlId) for
 // slider values, window.Plotly, and window.runSim(id, cfg) as the entry point.
+// Plotly is most of the weight and only the slider sims (not `custom`) plot, so it loads on demand (#40).
 import { useEffect, useRef, useState } from "react";
-import Plotly from "plotly.js-dist-min";
 import NeedsVerification from "../components/NeedsVerification";
+import { loadFailedText } from "../components/LazyBlock";
 import "./automata.css";
 import "./java.css";
 import "./ds.css";
@@ -15,7 +16,7 @@ import "./erl.css";
 
 declare global {
   interface Window {
-    Plotly: unknown;
+    Plotly?: { purge: (e: HTMLElement) => void };
     ctrlVal: (simId: string, ctrlId: string) => number | null;
     runSim: (id: string, cfg?: unknown) => void;
     FA?: unknown;
@@ -29,7 +30,13 @@ declare global {
 }
 
 const VALUES: Record<string, Record<string, number>> = {};
-window.Plotly = Plotly;
+let plotly: Promise<void> | null = null;
+/** Loads Plotly once and sets window.Plotly, which the engines in simulations.js call. */
+function loadPlotly(): Promise<void> {
+  plotly ??= import("plotly.js-dist-min").then((m) => { window.Plotly = m.default; })
+    .catch((e) => { plotly = null; throw e; });
+  return plotly;
+}
 window.ctrlVal = (simId, ctrlId) => VALUES[simId]?.[ctrlId] ?? null;
 // side-effect imports: define window.runSim, window.FA, window.JAVA, window.DS, window.DB, window.C, window.PY and window.CLJ
 import "./simulations.js";
@@ -69,19 +76,28 @@ export default function Sim({ cfg }: { cfg: SimConfig }) {
   const [values, setValues] = useState<Record<string, number>>(() =>
     Object.fromEntries(controls.map((c) => [c.id, c.default])));
   const host = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(!!cfg.custom || !!window.Plotly);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (ready) return;
+    let live = true;
+    loadPlotly().then(() => { if (live) setReady(true); }, () => { if (live) setFailed(true); });
+    return () => { live = false; };
+  }, [ready]);
 
   useEffect(() => {
     VALUES[cfg.id] = values;
     const el = host.current;
-    if (!el) return;
+    if (!el || !ready) return;
     // engines look the container up by id; wait a tick so it is in the DOM
     const t = window.setTimeout(() => window.runSim(cfg.id, cfg), 0);
     return () => window.clearTimeout(t);
-  }, [cfg, values]);
+  }, [cfg, values, ready]);
 
   useEffect(() => {
     const el = host.current;
-    return () => { if (el && !cfg.custom) (Plotly as { purge: (e: HTMLElement) => void }).purge(el); };
+    return () => { if (el && !cfg.custom) window.Plotly?.purge(el); };
   }, [cfg.custom]);
 
   return (
@@ -104,7 +120,9 @@ export default function Sim({ cfg }: { cfg: SimConfig }) {
           <button className="btn" onClick={() => setValues((v) => ({ ...v }))}>▶ Update</button>
         </div>
       )}
-      <div ref={host} id={`sim-${cfg.id}`} className={`sim-plot${cfg.custom ? " sim-custom" : ""}`} />
+      <div ref={host} id={`sim-${cfg.id}`} className={`sim-plot${cfg.custom ? " sim-custom" : ""}`}>
+        {!ready && <div className="sim-loading">{failed ? loadFailedText("plot") : "Loading the plot…"}</div>}
+      </div>
       {cfg.note && <div className="sim-note">{cfg.note}</div>}
     </div>
   );
