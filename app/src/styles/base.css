@@ -266,6 +266,12 @@ blockquote.wiki p { margin: 0.4em 0; }
 .unit-list li:first-child { border-top: 0; }
 .unit-list .badges { white-space: nowrap; }
 .unit-list .n { color: var(--fg-faint); font-variant-numeric: tabular-nums; }
+/* on a phone the badges go under the title, and long chips wrap, so the list never outgrows the page (#240) */
+@media (max-width: 520px) {
+  .unit-list li { grid-template-columns: 2.2em minmax(0, 1fr); row-gap: 0.25em; }
+  .unit-list .badges { grid-column: 2; }
+  .unit-list .chip { white-space: normal; }
+}
 .unit-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3rem; padding-top: 1.2rem; border-top: 1.5px solid var(--line); }
 .unit-nav a { display: inline-block; padding: 0.6em 1.1em; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); color: var(--fg); box-shadow: var(--shadow); }
 .unit-nav a:hover { border-color: var(--accent); text-decoration: none; }
