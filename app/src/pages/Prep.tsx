@@ -1,13 +1,13 @@
 // The preparation section (#262): one study guide per exam, from content/universities/<uni>/prep/.
 // /prep lists the guides; /prep/<CODE>/<exam>[/<section>[/<item>]] is one guide with its tabs (#256).
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, NavLink, useParams } from "react-router-dom";
 import Markdown from "../components/Markdown";
 import PartsNav from "../components/PartsNav";
 import { UnitLink } from "../components/Chips";
 import ConversionMapView from "../components/ConversionMap";
 import { href, node, upcomingPreps, usePrep, useData, type Data } from "../data/load";
-import type { CourseNode, Prep, PrepIndex, PrepSection } from "../data/types";
+import type { CourseNode, Prep, PrepIndex, PrepSection, PrepTable } from "../data/types";
 import { useMemory } from "../review/memory";
 import { standing } from "../review/standing";
 import { standingInput } from "../review/StandingPanel";
@@ -119,6 +119,7 @@ function Section({ prep, course, id, item }: { prep: Prep; course: CourseNode | 
     case "overview": return <Overview prep={prep} course={course} />;
     case "types": return item ? <TypePage prep={prep} course={course} slug={item} /> : <Types prep={prep} />;
     case "map": return <Maps prep={prep} />;
+    case "table": return prep.table ? <SummaryTable t={prep.table} /> : null;
     default: return <p className="muted">This section is not built yet.</p>;
   }
 }
@@ -216,5 +217,58 @@ function TypePage({ prep, course, slug }: { prep: Prep; course: CourseNode | und
         ))}</ol></section>
       </aside>
     </div>
+  );
+}
+
+const md = (s: string) => <span className="cmap-md"><Markdown source={s} /></span>;
+
+/** The summary table (#259): every column side by side on a wide screen; on a phone one column at a time
+ *  (the CSS decides which layout shows), then the rows every column shares. */
+function SummaryTable({ t }: { t: PrepTable }) {
+  const [col, setCol] = useState(t.columns[0]?.id);
+  const one = t.columns.find((c) => c.id === col) ?? t.columns[0];
+  return (
+    <section className="prep-table">
+      {t.title && <h2>{t.title}</h2>}
+      {t.lead && <div className="prep-map-lead muted"><Markdown source={t.lead} /></div>}
+      <div className="prep-table-wide">
+        <table>
+          <thead>
+            <tr><th />{t.columns.map((c) => (
+              <th key={c.id} className={`tone-${c.tone}`}>
+                {c.concept ? <Link to={href.concept(c.concept)}>{c.title}</Link> : c.title}
+                {c.sub && <span>{c.sub}</span>}
+              </th>
+            ))}</tr>
+          </thead>
+          <tbody>
+            {t.rows.map((r) => (
+              <tr key={r.label}><th scope="row">{md(r.label)}</th>{t.columns.map((c) => (
+                <td key={c.id} className={`tone-${c.tone}`}>{r.cells[c.id] ? md(r.cells[c.id]) : null}</td>
+              ))}</tr>
+            ))}
+            {t.shared.map((r) => (
+              <tr key={r.label} className="shared"><th scope="row">{md(r.label)}</th><td colSpan={t.columns.length}>{md(r.text)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="prep-table-narrow">
+        <div className="prep-seg" role="tablist">
+          {t.columns.map((c) => (
+            <button key={c.id} role="tab" aria-selected={c.id === one.id} className={`tone-${c.tone}${c.id === one.id ? " on" : ""}`} onClick={() => setCol(c.id)}>{c.title}</button>
+          ))}
+        </div>
+        <dl className={`prep-col tone-${one.tone}`}>
+          {one.sub && <dd className="prep-col-sub">{one.sub}</dd>}
+          {t.rows.filter((r) => r.cells[one.id]).map((r) => (
+            <div key={r.label}><dt>{md(r.label)}</dt><dd>{md(r.cells[one.id])}</dd></div>
+          ))}
+        </dl>
+        <dl className="prep-shared">
+          {t.shared.map((r) => <div key={r.label}><dt>{md(r.label)}</dt><dd>{md(r.text)}</dd></div>)}
+        </dl>
+      </div>
+    </section>
   );
 }
