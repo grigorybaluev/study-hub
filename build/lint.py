@@ -532,6 +532,14 @@ def lint_prep(c: Content, uni, code: str, exam: str, prep, rep: Report):
         rep.error(where, f"`exam` must be the exam's name as in the course ({exam!r} as a slug)")
     if not _md(m.get("summary")):
         rep.error(where, "needs a `summary`")
+    for key in ("format", "types_intro"):
+        if m.get(key) is not None and not _md(m[key]):
+            rep.error(where, f"`{key}` must be markdown text")
+    if _md(m.get("types_intro")):
+        for problem in container_problems(m["types_intro"]):
+            rep.error(where, f"types_intro: {problem}")
+    if m.get("types_intro") is not None and not prep.types:
+        rep.warn(where, "`types_intro` without any types/<slug>.md")
     for mid in m.get("maps") or []:
         if mid not in c.maps:
             rep.error(where, f"map {mid!r} is not in content/maps/")
