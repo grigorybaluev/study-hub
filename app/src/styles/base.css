@@ -1111,3 +1111,17 @@ a.unit-tag:hover b { text-decoration: underline; }
 }
 .prep-table th .katex, .prep-col dt .katex, .prep-shared dt .katex { text-transform: none; }
 .prep-table tbody th { white-space: normal; min-width: 7.5rem; }
+
+/* ---------------------------------------------------------------- prep plan (#260) */
+.prep-plan-lists { display: grid; grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr)); gap: 1rem; align-items: start; }
+.prep-plan-list { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); padding: 0.7em 1em; }
+.prep-plan-head { display: flex; align-items: baseline; gap: 0.7em; }
+.prep-plan-head h3 { margin: 0; font-size: 1rem; flex: 1; }
+.prep-plan-done { color: var(--accent); font-weight: 700; }
+.prep-plan-reset { font: inherit; font-size: 0.78rem; background: none; border: 0; color: var(--fg-muted); cursor: pointer; text-decoration: underline; }
+.prep-plan-list ul { list-style: none; padding: 0; margin: 0.5em 0 0; }
+.prep-plan-list li { border-top: 1px solid var(--line); }
+.prep-plan-list label { display: flex; gap: 0.6em; align-items: flex-start; padding: 0.45em 0; cursor: pointer; font-size: 0.92rem; }
+.prep-plan-list input { margin-top: 0.25em; accent-color: var(--accent); width: 1.05rem; height: 1.05rem; flex: none; }
+.prep-plan-list li.on label { color: var(--fg-muted); }
+.prep-plan-list li.on .cmap-md { text-decoration: line-through; text-decoration-color: var(--line); }
