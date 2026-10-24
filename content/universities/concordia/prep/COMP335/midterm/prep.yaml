@@ -10,3 +10,32 @@ format: >-
   detailed solutions (about 25 % of the test). **Part B**: multiple choice (about 75 %). Most marks
   are for recognising things quickly and correctly; a few problems are worked in full.
 maps: [regular-language-representations]
+types_intro: |
+  Nine types of problem. For each: the reasoning, the steps, the traps, worked problems and a
+  multiple-choice drill. Part B samples every type; Part A is a few of them worked in full.
+
+  :::insight[The one idea behind all nine types]
+  **Finite memory.** To design: decide what must be remembered, and each possibility is a state. To
+  convert: track the right finite information (sets of states, pairs of states, labels on edges). To
+  prove "not regular": show that infinitely many different things must be remembered; the pumping
+  lemma does this with the pigeonhole principle.
+  :::
+
+  :::steps[How to write a Part A answer]
+  1. Say what each state means ("$q_1$: the last symbol read was $a$"). This is the proof that your DFA
+     is right, and graders look for it.
+  2. Draw the complete machine: mark the start arrow and the final states, and include the trap state
+     (or say "missing moves go to a trap").
+  3. For a conversion, show the table (subset construction, mark table, eliminated states), not only
+     the result.
+  4. Test two strings in $L$ and two outside, including $\lambda$ and the shortest strings.
+  :::
+
+  :::note[Multiple choice: fast and right]
+  - Test with tiny strings first: $\lambda$, $a$, $b$, $ab$, $ba$, $aa$. Most wrong options fail on one
+    of them.
+  - "Which expression equals $L$?" Find a string in one but not the other. One counterexample kills an
+    option.
+  - "Is $L$ regular?" Does recognising $L$ need an unbounded count or a comparison between two parts?
+    If not (counting mod $k$, bounded counts, finite), it is regular.
+  :::

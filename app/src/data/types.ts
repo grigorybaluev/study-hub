@@ -264,6 +264,8 @@ export interface Prep extends Omit<PrepIndex, "sections"> {
   format: string | null;
   maps: string[];
   overview: string | null;
+  /** markdown above the list of problem types: how to answer, how to be fast */
+  types_intro: string | null;
   types: PrepType[];
   table: PrepTable | null;
   plan: { id: string; title: string; items: string[] }[];

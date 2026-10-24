@@ -172,6 +172,7 @@ def build(c: Content) -> dict:
                 "date": str(course["date"]), "title": m.get("title") or course["name"],
                 "summary": m["summary"], "format": m.get("format"), "maps": m.get("maps") or [],
                 "overview": p.overview.body if p.overview else None,
+                "types_intro": m.get("types_intro"),
                 "types": [{"slug": unit_slug(d), "title": d.meta["title"], "order": d.meta["order"], "asks": d.meta["asks"],
                            "units": [f"{uni.id}/{code}/{u}" for u in d.meta.get("units") or []],
                            "method": d.meta.get("method"), "body": d.body} for d in types],

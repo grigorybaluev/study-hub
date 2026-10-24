@@ -175,8 +175,8 @@ Courses and programs
 
 Exam preps (#262)
 - `prep/<CODE>/<exam>/` serves one exam of the course: the folder name is the slug of an `exams[].name`
-  and `prep.yaml` repeats that name in `exam`. `prep.yaml`: `summary`, `format`, `maps` (ids in
-  `content/maps/`), `plan` (checklists: `{id, title, items}`). `overview.md` is a unit-style body.
+  and `prep.yaml` repeats that name in `exam`. `prep.yaml`: `summary`, `format`, `types_intro` (above the
+  problem types), `maps` (ids in `content/maps/`), `plan` (checklists: `{id, title, items}`). `overview.md` is a unit-style body.
   `types/<slug>.md`: one problem type each (`title`, `order` 1..n, `asks`, `units` of the course, optional
   `method`). `table.yaml`: `columns` (`id`, `title`, `sub`, `tone`, `concept`), `rows` (`label`, `cells` by
   column id), `shared` rows. Own words only: no references to assignments, tutorials or past exams, and
