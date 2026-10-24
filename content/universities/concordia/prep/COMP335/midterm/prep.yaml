@@ -39,3 +39,39 @@ types_intro: |
   - "Is $L$ regular?" Does recognising $L$ need an unbounded count or a comparison between two parts?
     If not (counting mod $k$, bounded counts, finite), it is regular.
   :::
+plan:
+  - id: definitions
+    title: Definitions to know exactly
+    items:
+      - "DFA $(Q,\\Sigma,\\delta,q_0,F)$ with a total $\\delta$; $\\delta^*$; $L(M)$"
+      - "NFA $\\delta: Q\\times(\\Sigma\\cup\\{\\lambda\\})\\to 2^Q$; acceptance means $\\delta^*(q_0,w)\\cap F\\neq\\varnothing$"
+      - indistinguishable states; the mark procedure
+      - "regular expression syntax and precedence ($^*$, then concatenation, then $+$)"
+      - "right-linear $A\\to xB\\mid x$; left-linear $A\\to Bx\\mid x$"
+      - "homomorphism; right quotient $L_1/L_2$"
+      - "pumping lemma: $|xy|\\le m$, $|y|\\ge 1$, $xy^iz\\in L$ for all $i\\ge 0$"
+      - "context-free rule $A\\to x$, $x\\in(V\\cup T)^*$; leftmost derivation; ambiguity"
+  - id: traps
+    title: The ten traps, one line each
+    items:
+      - "$\\varnothing^*=\\{\\lambda\\}$; $\\varnothing L=\\varnothing$; $L^+=L^*$ when $\\lambda\\in L$."
+      - Complete the DFA (trap state) before complementing or minimising.
+      - "Substring DFA: on a mismatch, keep the longest useful suffix."
+      - "$\\lambda$-closure after every move and at the start."
+      - "Minimisation: remove unreachable states; repeat passes until stable."
+      - "Precedence: $ab^*$ is $a(b^*)$; test $\\lambda$ against every expression."
+      - Never mix right- and left-linear rules.
+      - "Closure only works forwards; subsets of regular languages can be anything."
+      - "Pumping: $w$ depends on $m$, the split is not yours, cover every $k$."
+      - "Finite means regular; check what $L^*$ contains before calling it non-regular."
+  - id: evening
+    title: If you have one evening
+    items:
+      - "Redo [One but not both](/prep/COMP335/midterm/types/design-a-dfa) without the solution."
+      - "Redo [The second symbol from the end](/prep/COMP335/midterm/types/nfa-subset-construction): NFA, then the subset table."
+      - "Redo [Seven states down to three](/prep/COMP335/midterm/types/minimise-a-dfa): the full mark table."
+      - "Redo [State elimination](/prep/COMP335/midterm/types/regular-expressions) and the fixed-point exercise in [Regular grammars](/prep/COMP335/midterm/types/regular-grammars)."
+      - "Redo the prefix construction in [Closure and decisions](/prep/COMP335/midterm/types/closure-and-decisions)."
+      - "Redo both [pumping proofs and Decide first](/prep/COMP335/midterm/types/regular-or-not)."
+      - "Walk the [conversion map](/prep/COMP335/midterm/map) example once, then answer three of its questions from memory."
+      - "Clear the exam's review deck."
