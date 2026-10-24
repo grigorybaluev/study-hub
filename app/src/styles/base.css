@@ -504,9 +504,12 @@ html.sheet-open { overflow: hidden; }
   .search .results { left: 0; right: 0; width: auto; top: calc(100% + 6px); }
   .unit-body .math-nowrap { white-space: normal; }   /* a glued formula may still be wider than the screen */
 }
-/* a narrow phone: Program, Explore, Review and the two icons need the whole row; Program is the home page */
+/* a narrow phone: Program, Explore, Review (and Prep while an exam is ahead) and the two icons need the
+   whole row; Program is the home page */
 @media (max-width: 420px) {
   .topbar .brand { display: none; }
+  .topbar { gap: 0.6rem; }
+  .topbar nav { gap: 0.75rem; }
   .deck-undo .lbl { display: none; }     /* Undo and Sync as icons, so the counts keep one line */
   .deck-counts .c-done { display: none; } /* the ring shows the day's progress */
 }
@@ -924,3 +927,35 @@ a.unit-tag:hover b { text-decoration: underline; }
 .week-bars i.now { background: var(--s1); }
 .week-trend-note { grid-column: 1 / -1; margin: 0; }
 @media (max-width: 520px) { .week-trend { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------------------------------------------------------------- exam preparation (#262) */
+.prep h1 { margin-bottom: 0.1em; }
+.prep-sub { font-weight: 400; color: var(--fg-muted); font-size: 0.6em; }
+.prep-sub::before { content: " · "; }
+.prep-when.soon { color: var(--warn); font-weight: 650; }
+.prep-summary { max-width: var(--measure); color: var(--fg-muted); }
+.prep-summary p { margin: 0 0 0.8em; }
+.prep-tabs { display: flex; gap: 0.2rem; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin: 0.6rem 0 1.2rem; }
+.prep-tabs a { padding: 0.45em 0.9em; border: 1px solid transparent; border-bottom: 0; border-radius: var(--radius) var(--radius) 0 0; color: var(--fg-muted); margin-bottom: -1px; }
+.prep-tabs a:hover { color: var(--fg); text-decoration: none; background: var(--bg-sunken); }
+.prep-tabs a.active { color: var(--fg); font-weight: 650; border-color: var(--line); background: var(--bg); }
+.prep-format { max-width: var(--measure); border-left: 4px solid var(--warn); background: var(--warn-soft); border-radius: 0 var(--radius) var(--radius) 0; padding: 0.6em 1em; margin-bottom: 1.2rem; }
+.prep-format p { margin: 0; }
+.prep-format-label, .prep-banner-label { display: block; font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); }
+.prep-units { padding-left: 1.2em; margin: 0; }
+.prep-units li { margin: 0.25em 0; }
+.prep-banner { display: flex; align-items: center; gap: 0.8rem; max-width: 34rem; margin: 0.4rem 0 1rem; padding: 0.55em 0.9em; border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: var(--radius); background: var(--warn-soft); color: var(--fg); }
+.prep-banner:hover { text-decoration: none; border-color: var(--warn); }
+.prep-banner-label { display: inline; }
+.prep-banner span:nth-child(2) { flex: 1; }
+.prep-rows { list-style: none; padding: 0; display: grid; gap: 0.8rem; max-width: 46rem; }
+.prep-row { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.8em 1em; background: var(--bg-elev); }
+.prep-row > a { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: baseline; }
+.prep-row-title { font-weight: 650; font-size: 1.05rem; }
+.prep-row-summary { margin-top: 0.4em; font-size: 0.92rem; }
+@media (max-width: 640px) {
+  .prep-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .prep-tabs a { white-space: nowrap; padding: 0.45em 0.7em; }
+  .prep-sub { display: block; font-size: 0.55em; }
+  .prep-sub::before { content: none; }
+}

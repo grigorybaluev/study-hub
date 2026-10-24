@@ -8,7 +8,8 @@ import { coverage, type UnitCoverage } from "../review/coverage";
 import { UnitTag } from "../review/NextUnits";
 import { standingInput } from "../review/StandingPanel";
 import { scopes } from "../review/scopeContext";
-import { edgesIn, edgesOut, href, useData } from "../data/load";
+import { edgesIn, edgesOut, href, upcomingPreps, useData } from "../data/load";
+import { whenLabel } from "./Prep";
 import type { CourseNode, RoadmapSkillNode } from "../data/types";
 
 export default function Course() {
@@ -50,6 +51,13 @@ export default function Course() {
           <ReviewThis scope={{ kind: "course", id: course.id }} what="course" />
         </div>
         <p className="prose">{course.body}</p>
+        {upcomingPreps(d).filter((p) => p.course === course.id).map((p) => (
+          <Link key={p.id} className="prep-banner" to={href.prep(p.id)}>
+            <span className="prep-banner-label">Study guide</span>
+            <span><b>{p.exam}</b> · {new Date(p.date + "T00:00").toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })} · {whenLabel(p.date)}</span>
+            <span aria-hidden="true">→</span>
+          </Link>
+        ))}
         {tiers && (
           <div className="course-memory">
             <span className="small muted">Your memory of its cards</span><MasteryBar tiers={tiers} />
