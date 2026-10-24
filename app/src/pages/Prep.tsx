@@ -5,6 +5,7 @@ import { Link, NavLink, useParams } from "react-router-dom";
 import Markdown from "../components/Markdown";
 import PartsNav from "../components/PartsNav";
 import { UnitLink } from "../components/Chips";
+import ConversionMapView from "../components/ConversionMap";
 import { href, node, upcomingPreps, usePrep, useData, type Data } from "../data/load";
 import type { CourseNode, Prep, PrepIndex, PrepSection } from "../data/types";
 import { useMemory } from "../review/memory";
@@ -116,6 +117,7 @@ function PrepStatus({ d, p, course }: { d: Data; p: PrepIndex; course: CourseNod
 function Section({ prep, course, id }: { prep: Prep; course: CourseNode | undefined; id: PrepSection }) {
   switch (id) {
     case "overview": return <Overview prep={prep} course={course} />;
+    case "map": return <Maps prep={prep} />;
     default: return <p className="muted">This section is not built yet.</p>;
   }
 }
@@ -143,5 +145,20 @@ function Overview({ prep, course }: { prep: Prep; course: CourseNode | undefined
         )}
       </aside>
     </div>
+  );
+}
+
+function Maps({ prep }: { prep: Prep }) {
+  const d = useData();
+  return (
+    <>
+      {prep.maps.map((id) => d.maps.get(id)).filter((m) => m !== undefined).map((m) => (
+        <section key={m.id} className="prep-map">
+          <h2>{m.title}</h2>
+          {m.description && <p className="muted prep-map-lead">{m.description}</p>}
+          <ConversionMapView map={m} />
+        </section>
+      ))}
+    </>
   );
 }
