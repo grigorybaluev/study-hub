@@ -1070,3 +1070,11 @@ a.unit-tag:hover b { text-decoration: underline; }
 .cmap-dock { position: sticky; bottom: 0.8rem; z-index: 5; max-height: 48vh; overflow: auto; border-radius: var(--radius); box-shadow: 0 6px 28px rgba(0, 0, 0, 0.18); }
 .cmap-dock .cmap-card { margin: 0; }
 .cmap-walk.walking { position: sticky; bottom: 0; z-index: 5; max-height: 58vh; overflow: auto; background: var(--bg); padding-bottom: 0.8rem; box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12); }
+
+/* ---------------------------------------------------------------- prep problem types (#258) */
+.prep-type-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 0.7rem; margin: 0 0 1.5rem; }
+.prep-type-list li { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); padding: 0.7em 0.9em; }
+.prep-type-title { display: flex; gap: 0.5em; align-items: baseline; font-weight: 650; font-size: 1.02rem; margin-bottom: 0.2em; }
+.prep-type-title .n { display: inline-grid; place-items: center; min-width: 1.5em; height: 1.5em; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.8em; }
+.prep-types-intro { max-width: var(--measure); }
+.prep-type-h { border: 0; margin-top: 0.2rem; }

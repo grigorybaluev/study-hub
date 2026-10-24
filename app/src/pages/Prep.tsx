@@ -63,7 +63,7 @@ export function PrepList() {
 
 export default function PrepPage() {
   const d = useData();
-  const { code, exam, section = "" } = useParams();
+  const { code, exam, section = "", item } = useParams();
   const index = d.preps.find((p) => p.id.endsWith(`/${code}/${exam}`));
   const prep = usePrep(index?.id);
   if (!index) return <p>No study guide for {code} {exam}.</p>;
@@ -76,13 +76,13 @@ export default function PrepPage() {
       <PrepStatus d={d} p={index} course={course} />
       <nav className="prep-tabs" aria-label="Study guide sections">
         {SECTIONS.filter((s) => index.sections.includes(s.id)).map((s) => (
-          <NavLink key={s.id} to={href.prep(index.id, s.path)} end>{s.label}</NavLink>
+          <NavLink key={s.id} to={href.prep(index.id, s.path)} end={s.path === ""}>{s.label}</NavLink>
         ))}
       </nav>
       {prep === undefined ? <p className="muted">Loading…</p>
         : prep instanceof Error ? <p className="muted">Could not load this study guide: {prep.message}</p>
         : !tab ? <p>No section “{section}” in this study guide.</p>
-        : <Section prep={prep} course={course} id={tab.id} />}
+        : <Section prep={prep} course={course} id={tab.id} item={item} />}
     </div>
   );
 }
@@ -114,9 +114,10 @@ function PrepStatus({ d, p, course }: { d: Data; p: PrepIndex; course: CourseNod
   );
 }
 
-function Section({ prep, course, id }: { prep: Prep; course: CourseNode | undefined; id: PrepSection }) {
+function Section({ prep, course, id, item }: { prep: Prep; course: CourseNode | undefined; id: PrepSection; item?: string }) {
   switch (id) {
     case "overview": return <Overview prep={prep} course={course} />;
+    case "types": return item ? <TypePage prep={prep} course={course} slug={item} /> : <Types prep={prep} />;
     case "map": return <Maps prep={prep} />;
     default: return <p className="muted">This section is not built yet.</p>;
   }
@@ -160,5 +161,60 @@ function Maps({ prep }: { prep: Prep }) {
         </section>
       ))}
     </>
+  );
+}
+
+/** The problem types: what each asks and where it is taught, then the guide's advice on answering. */
+function Types({ prep }: { prep: Prep }) {
+  const d = useData();
+  return (
+    <div className="prep-types">
+      <ol className="prep-type-list">
+        {prep.types.map((t) => (
+          <li key={t.slug}>
+            <Link className="prep-type-title" to={href.prep(prep.id, `types/${t.slug}`)}><span className="n">{t.order}</span>{t.title}</Link>
+            <div className="small">{t.asks}</div>
+            <div className="small muted">
+              {t.units.map((u, k) => <span key={u}>{k > 0 && " · "}<UnitLink id={u} withCourse={false} /></span>)}
+              {t.method && d.methods.get(t.method) && <> · method: {d.methods.get(t.method)!.title}</>}
+            </div>
+          </li>
+        ))}
+      </ol>
+      {prep.types_intro && <div className="unit-body prose prep-types-intro"><Markdown source={prep.types_intro} /></div>}
+    </div>
+  );
+}
+
+function TypePage({ prep, course, slug }: { prep: Prep; course: CourseNode | undefined; slug: string }) {
+  const d = useData();
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const i = prep.types.findIndex((t) => t.slug === slug);
+  if (i < 0) return <p>No problem type “{slug}”.</p>;
+  const t = prep.types[i], prev = prep.types[i - 1], next = prep.types[i + 1];
+  const method = t.method ? d.methods.get(t.method) : undefined;
+  return (
+    <div className="with-sidebar">
+      <article>
+        <div className="crumbs"><Link to={href.prep(prep.id, "types")}>Problem types</Link> › type {t.order}</div>
+        <h2 className="prep-type-h">{t.order} · {t.title}</h2>
+        <p className="muted">{t.asks}</p>
+        <PartsNav key={t.slug} root={bodyRef} version={t.body} title={t.title} />
+        <div ref={bodyRef} className={`unit-body prose${course?.pages ? ` pages-${course.pages}` : ""}`}>
+          <Markdown key={t.slug} source={t.body} />
+        </div>
+        <nav className="unit-nav">
+          <span>{prev && <Link to={href.prep(prep.id, `types/${prev.slug}`)}>← {prev.title}</Link>}</span>
+          <span>{next && <Link to={href.prep(prep.id, `types/${next.slug}`)}>{next.title} →</Link>}</span>
+        </nav>
+      </article>
+      <aside className="sidebar">
+        {t.units.length > 0 && <section><h4>Taught in</h4><ul>{t.units.map((u) => <li key={u}><UnitLink id={u} withCourse={false} /></li>)}</ul></section>}
+        {method && <section><h4>Method graph</h4><p className="small"><b>{method.title}</b></p>{method.description && <p className="small muted">{method.description}</p>}</section>}
+        <section><h4>All types</h4><ol className="prep-units">{prep.types.map((x) => (
+          <li key={x.slug}>{x.slug === t.slug ? <b>{x.title}</b> : <Link to={href.prep(prep.id, `types/${x.slug}`)}>{x.title}</Link>}</li>
+        ))}</ol></section>
+      </aside>
+    </div>
   );
 }
