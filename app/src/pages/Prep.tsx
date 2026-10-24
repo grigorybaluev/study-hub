@@ -1,6 +1,6 @@
 // The preparation section (#262): one study guide per exam, from content/universities/<uni>/prep/.
 // /prep lists the guides; /prep/<CODE>/<exam>[/<section>[/<item>]] is one guide with its tabs (#256).
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useParams } from "react-router-dom";
 import Markdown from "../components/Markdown";
 import PartsNav from "../components/PartsNav";
@@ -14,6 +14,8 @@ import { standingInput } from "../review/StandingPanel";
 import { scopes } from "../review/scopeContext";
 import { scopeQuery } from "../review/scope";
 import { daysUntil, localDate } from "../review/term";
+import { openStore, type Store } from "../review/storage";
+import { countOn, tickKey, ticksOf, type Ticks } from "../review/ticks";
 
 const SECTIONS: { id: PrepSection; label: string; path: string }[] = [
   { id: "overview", label: "Overview", path: "" },
@@ -120,6 +122,7 @@ function Section({ prep, course, id, item }: { prep: Prep; course: CourseNode | 
     case "types": return item ? <TypePage prep={prep} course={course} slug={item} /> : <Types prep={prep} />;
     case "map": return <Maps prep={prep} />;
     case "table": return prep.table ? <SummaryTable t={prep.table} /> : null;
+    case "plan": return <Plan prep={prep} />;
     default: return <p className="muted">This section is not built yet.</p>;
   }
 }
@@ -270,5 +273,54 @@ function SummaryTable({ t }: { t: PrepTable }) {
         </dl>
       </div>
     </section>
+  );
+}
+
+/** The ticks of prep checklists, in the review store so that they sync with the progress file (#260). */
+function useTicks(): { ticks: Ticks; persistent: boolean; set(key: string, on: boolean): void; ready: boolean } {
+  const [store, setStore] = useState<Store | null>(null);
+  const [ticks, setTicks] = useState<Ticks>({});
+  useEffect(() => { let live = true; openStore().then((s) => { if (live) { setStore(s); setTicks(ticksOf(s.meta.ticks)); } }); return () => { live = false; }; }, []);
+  const set = (key: string, on: boolean) => {
+    if (!store) return;
+    const next = { ...ticksOf(store.meta.ticks), [key]: { on, at: Date.now() } };
+    setTicks(next);
+    store.setMeta("ticks", next);
+  };
+  return { ticks, set, persistent: store?.persistent ?? true, ready: store !== null };
+}
+
+function Plan({ prep }: { prep: Prep }) {
+  const { ticks, set, persistent, ready } = useTicks();
+  return (
+    <div className="prep-plan">
+      {!persistent && <p className="small muted">This browser keeps nothing between visits (private mode?): ticks last until the page closes.</p>}
+      <div className="prep-plan-lists">
+        {prep.plan.map((l) => {
+          const keys = l.items.map((it) => tickKey(prep.id, l.id, it));
+          const n = countOn(ticks, keys);
+          return (
+            <section key={l.id} className="prep-plan-list">
+              <div className="prep-plan-head">
+                <h3>{l.title}</h3>
+                <span className={`small${n === keys.length ? " prep-plan-done" : " muted"}`}>{n}/{keys.length}</span>
+                {n > 0 && <button className="prep-plan-reset" onClick={() => keys.forEach((k) => ticks[k]?.on && set(k, false))}>reset</button>}
+              </div>
+              <ul>
+                {l.items.map((it, i) => (
+                  <li key={keys[i]} className={ticks[keys[i]]?.on ? "on" : ""}>
+                    <label>
+                      <input type="checkbox" disabled={!ready} checked={!!ticks[keys[i]]?.on} onChange={(e) => set(keys[i], e.target.checked)} />
+                      {md(it)}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+      <p className="small muted">Ticks are kept on this device with your review progress, and travel with it (Review › Sync).</p>
+    </div>
   );
 }
