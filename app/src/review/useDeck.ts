@@ -16,6 +16,7 @@ import type { CourseStanding } from "./standing";
 import { openStore, type Store } from "./storage";
 import type { ExamPlan } from "./term";
 import { makeFile, missing, type ProgressFile } from "./transfer";
+import { mergeTicks, ticksOf } from "./ticks";
 
 const LEARN_AHEAD = 20 * 60_000;
 const MAX_MS = 60_000;          // time on a card counts up to a minute, as in Anki
@@ -281,7 +282,7 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
   const exportProgress = useCallback(async () => {
     if (!st) throw new Error("the deck is not loaded");
     const now = Date.now();
-    return makeFile(st.store.device, [...st.engine.log], st.engine.settings, Number(st.store.meta.settingsAt) || 0, now, clearedDays(st.store));
+    return makeFile(st.store.device, [...st.engine.log], st.engine.settings, Number(st.store.meta.settingsAt) || 0, now, clearedDays(st.store), ticksOf(st.store.meta.ticks));
   }, [st]);
 
   const markSent = useCallback(async () => {
@@ -303,6 +304,7 @@ export function useDeck(select?: (cards: Card[]) => Card[], shape?: Shape, stand
     }
     const days = clearedDays(st.store), more = (file.cleared ?? []).filter((d) => !days.includes(d));
     if (more.length) await st.store.setMeta("cleared", [...days, ...more].sort((a, b) => a - b).slice(-400));
+    if (file.ticks && Object.keys(file.ticks).length) await st.store.setMeta("ticks", mergeTicks(ticksOf(st.store.meta.ticks), file.ticks));   // prep checklists (#260)
     if (file.device !== st.store.device) await st.store.setMeta("received", { at: Date.now(), with: file.device } satisfies Received);
     bump();
     return { added: add.length, total: st.engine.log.length };

@@ -4,6 +4,7 @@
 // (engine.merge), so it never overwrites: the same data twice changes nothing, either direction is safe.
 // Pure apart from the web-standard CompressionStream and base64, so node runs it in tests.
 import type { Review, Settings } from "./engine";
+import { ticksOf, type Ticks } from "./ticks.ts";
 
 export const FORMAT = "study-hub-progress";
 export const VERSION = 1;
@@ -22,13 +23,15 @@ export interface ProgressFile {
   reviews: Review[];
   /** review days on which the deck was cleared (they count for the streak, #195); absent in older files */
   cleared?: number[];
+  /** ticked checklist items of exam preps (#260); absent in older files */
+  ticks?: Ticks;
 }
 
 /** Why an import was refused; nothing has been changed when this is thrown. */
 export class ProgressError extends Error {}
 
-export function makeFile(device: string, reviews: Review[], settings: Settings, settingsAt: number, now: number, cleared: number[] = []): ProgressFile {
-  return { format: FORMAT, version: VERSION, device, exported: now, settings, settingsAt, reviews, cleared };
+export function makeFile(device: string, reviews: Review[], settings: Settings, settingsAt: number, now: number, cleared: number[] = [], ticks: Ticks = {}): ProgressFile {
+  return { format: FORMAT, version: VERSION, device, exported: now, settings, settingsAt, reviews, cleared, ticks };
 }
 
 async function pipe(bytes: Uint8Array, stream: CompressionStream | DecompressionStream): Promise<Uint8Array> {
@@ -96,6 +99,7 @@ function validate(d: unknown): ProgressFile {
     format: FORMAT, version: f.version, device: f.device, exported: Number(f.exported) || 0,
     settings: f.settings as Settings, settingsAt: Number(f.settingsAt) || 0, reviews: f.reviews as Review[],
     cleared: Array.isArray(f.cleared) ? f.cleared.filter((d): d is number => Number.isFinite(d)) : [],
+    ticks: ticksOf(f.ticks),
   };
 }
 
