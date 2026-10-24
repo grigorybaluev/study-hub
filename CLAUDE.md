@@ -10,6 +10,7 @@ Content is authored as markdown/YAML; the graph is a build artifact; the site is
 content/
   concepts/<slug>.md                  global concept vocabulary (shared by all universities)
   methods/<id>.yaml                   method graphs: flowcharts for choosing a method (solution maps)
+  maps/<id>.yaml                      conversion maps: representations and the methods between them (#255)
   roadmaps/<roadmap>.yaml             skill roadmaps: areas -> skills (ds-core is our own)
   universities/<uni>/
     university.yaml                   name, assumed_prior courses, sources
@@ -17,6 +18,7 @@ content/
     units/<CODE>/<slug>.md            unit content + authored edges (frontmatter)
     programs/<program>.yaml           variants -> terms -> courses (placements only)
     programs/local/                   personal plans, same shape, git-ignored
+    prep/<CODE>/<exam>/               exam study guide (#262): prep.yaml, overview.md, types/<slug>.md, table.yaml
 build/    schema.py, build_graph.py, build_cards.py, derive.py, lint.py
           -> graph.json, cards.json, derived.json (never hand-edited)
 analytics/ report generator and notebooks
@@ -170,6 +172,22 @@ Courses and programs
   its name and the block's title or `##` heading ("Shifted · The ellipse"); a line about an example, an
   exercise or a simulation makes no card. Lint: duplicate card ids are errors, untitled card blocks
   warnings. Cards are never authored separately; examples are quiz material (#196).
+
+Exam preps (#262)
+- `prep/<CODE>/<exam>/` serves one exam of the course: the folder name is the slug of an `exams[].name`
+  and `prep.yaml` repeats that name in `exam`. `prep.yaml`: `summary`, `format`, `maps` (ids in
+  `content/maps/`), `plan` (checklists: `{id, title, items}`). `overview.md` is a unit-style body.
+  `types/<slug>.md`: one problem type each (`title`, `order` 1..n, `asks`, `units` of the course, optional
+  `method`). `table.yaml`: `columns` (`id`, `title`, `sub`, `tone`, `concept`), `rows` (`label`, `cells` by
+  column id), `shared` rows. Own words only: no references to assignments, tutorials or past exams, and
+  nothing personal (the site is public).
+- `content/maps/<id>.yaml` is global, like `methods/`: `canvas: [w, h]`; nodes with `box: [x, y, w, h]`,
+  a `tone` (schema.py TONES), `concept`, `text`, `easy`, `aux` (dashed); edges with `n` (shown number),
+  `kind` (algorithm | reversal | design | free), `cost` (free | same | shrinks | linear | design | explodes,
+  the route finder's weights), `name`, `short`, `steps`, `size`, `when`, `trap`, optional `both`, `label:
+  [x, y, w, align]` and SVG `path`; `routes` (`task`, node `path` along edges, `why`); an optional `example`
+  walked node by node or edge by edge. graph.json carries maps and preps; `npm run data` moves each prep
+  to `data/prep/<uni>/<CODE>/<exam>.json` and leaves an index entry.
 
 ## Workflow
 

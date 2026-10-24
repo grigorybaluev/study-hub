@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 import lint
-from schema import ROOT, SEASONS, Content, answer_text, edge_entries, load, prereq_groups, roadmap_root, unit_slug
+from schema import ROOT, SEASONS, Content, answer_text, edge_entries, load, prereq_groups, roadmap_root, slugify, unit_slug
 
 OUT = ROOT / "graph.json"
 SCHEMA_VERSION = 1
@@ -144,6 +144,47 @@ def build(c: Content) -> dict:
             "edges": [{"from": e["from"], "to": e["to"], "label": answer_text(e.get("label"))} for e in g["edges"]],
         })
 
+    # ---- maps (#255): representations and the methods between them, drawn on an authored canvas
+    maps = []
+    for mid, g in sorted(c.maps.items()):
+        maps.append({
+            "id": mid, "title": g["title"], "description": g.get("description"), "canvas": g["canvas"],
+            "nodes": [{"id": n["id"], "label": n["label"], "sub": n.get("sub"), "concept": n.get("concept"),
+                       "tone": n["tone"], "aux": bool(n.get("aux")), "box": n["box"], "text": n.get("text"),
+                       "easy": n.get("easy")} for n in g["nodes"]],
+            "edges": [{"id": e["id"], "n": str(e["n"]), "from": e["from"], "to": e["to"], "kind": e["kind"],
+                       "cost": e["cost"], "both": bool(e.get("both")), "name": e["name"], "short": e.get("short"),
+                       "label": e.get("label"), "path": e.get("path"), "steps": e["steps"], "size": e.get("size"),
+                       "when": e["when"], "trap": e.get("trap")} for e in g["edges"]],
+            "routes": [{"task": r["task"], "path": r["path"], "why": r.get("why")} for r in g.get("routes") or []],
+            "example": g.get("example"),
+        })
+
+    # ---- preps (#255): one study guide per exam; data.mjs moves the bodies to a file per prep
+    preps = []
+    for uni in c.universities.values():
+        for (code, exam), p in sorted(uni.preps.items()):
+            m = p.meta
+            course = next(e for e in uni.courses[code].meta.get("exams") or [] if slugify(e["name"]) == exam)
+            types = sorted(p.types, key=lambda d: d.meta["order"])
+            preps.append({
+                "id": f"{uni.id}/{code}/{exam}", "course": f"{uni.id}/{code}", "exam": course["name"],
+                "date": str(course["date"]), "title": m.get("title") or course["name"],
+                "summary": m["summary"], "format": m.get("format"), "maps": m.get("maps") or [],
+                "overview": p.overview.body if p.overview else None,
+                "types": [{"slug": unit_slug(d), "title": d.meta["title"], "order": d.meta["order"], "asks": d.meta["asks"],
+                           "units": [f"{uni.id}/{code}/{u}" for u in d.meta.get("units") or []],
+                           "method": d.meta.get("method"), "body": d.body} for d in types],
+                "table": p.table and {
+                    "title": p.table.get("title"), "lead": p.table.get("lead"),
+                    "columns": [{"id": x["id"], "title": x["title"], "sub": x.get("sub"), "tone": x["tone"],
+                                 "concept": x.get("concept")} for x in p.table["columns"]],
+                    "rows": [{"label": r["label"], "cells": r["cells"]} for r in p.table.get("rows") or []],
+                    "shared": [{"label": r["label"], "text": r["text"]} for r in p.table.get("shared") or []],
+                },
+                "plan": [{"id": l["id"], "title": l["title"], "items": l["items"]} for l in m.get("plan") or []],
+            })
+
     nodes.sort(key=lambda n: (n["type"], n["id"]))
     edges.sort(key=lambda e: (e["type"], e["from"], e["to"]))
     return {
@@ -156,6 +197,8 @@ def build(c: Content) -> dict:
         "nodes": nodes,
         "edges": edges,
         "methods": methods,
+        "maps": maps,
+        "preps": preps,
     }
 
 
