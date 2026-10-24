@@ -1,0 +1,11 @@
+# Study guide for the COMP 335 midterm (#262): weeks 1-6, regular languages and the start of
+# context-free grammars.
+exam: Midterm
+summary: >-
+  Which languages can a machine with a fixed, finite memory recognise? The regular languages: four
+  descriptions of them, the conversions between all four, the operations that keep a language
+  regular, and how to prove that one is not. Week 6 starts context-free grammars, which can count.
+format: >-
+  Sunday 25 October, 10:30–12:00, in person, common to all sections; 25 % of the grade. **Part A**:
+  detailed solutions (about 25 % of the test). **Part B**: multiple choice (about 75 %). Most marks
+  are for recognising things quickly and correctly; a few problems are worked in full.

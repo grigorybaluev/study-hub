@@ -36,6 +36,10 @@ STRENGTH = {"hard", "soft"}
 # relevance score; `foundation` areas are what it rests on; `practice` is professional context
 ROADMAP_AREA_ROLES = {"target", "foundation", "practice"}
 METHOD_NODE_KINDS = {"decision", "method", "end"}  # content/methods/<id>.yaml graphs (#91)
+# content/maps/<id>.yaml (#255): representations and the methods between them
+MAP_EDGE_KINDS = {"algorithm", "reversal", "design", "free"}
+MAP_COSTS = {"free": 0, "same": 1, "shrinks": 1, "linear": 2, "design": 3, "explodes": 6}   # route-finder weights
+TONES = {"blue", "navy", "sky", "violet", "lavender", "green", "mint", "teal", "forest", "grey", "amber"}   # map and table colours
 SEASONS = ("fall", "winter", "summer")  # ordered: index within a year
 
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -85,6 +89,17 @@ class University:
     courses: dict[str, Doc] = field(default_factory=dict)          # code -> Doc
     units: dict[str, list[Doc]] = field(default_factory=dict)      # code -> [Doc] (unsorted)
     programs: dict[str, dict] = field(default_factory=dict)        # program id -> yaml
+    preps: dict[tuple[str, str], "Prep"] = field(default_factory=dict)   # (code, exam slug) -> Prep (#255)
+
+
+@dataclass
+class Prep:
+    """prep/<CODE>/<exam>/: a study guide for one exam of a course (#255)."""
+    path: Path
+    meta: dict                                  # prep.yaml
+    overview: Doc | None = None                 # overview.md
+    types: list[Doc] = field(default_factory=list)   # types/<slug>.md (unsorted)
+    table: dict | None = None                   # table.yaml
 
 
 @dataclass
@@ -94,6 +109,7 @@ class Content:
     universities: dict[str, University]         # uni id -> University
     parse_errors: list[tuple[Path, str]]
     methods: dict[str, dict] = field(default_factory=dict)   # method graph id -> yaml (#91)
+    maps: dict[str, dict] = field(default_factory=dict)      # map id -> yaml (#255)
 
 
 # --------------------------------------------------------------------------- helpers
@@ -138,6 +154,11 @@ def answer_label(v) -> str | None:
         return None
     t = str(v).strip().lower()
     return YAML_BOOL.get(t, t)
+
+
+def slugify(text: str) -> str:
+    """"Midterm 2" -> "midterm-2": an exam's name as it appears in a prep's folder and URL."""
+    return re.sub(r"[^a-z0-9]+", "-", str(text).lower()).strip("-")
 
 
 def roadmap_root(data: dict, rid: str) -> str:
@@ -214,6 +235,11 @@ def load(content_dir: Path = CONTENT) -> Content:
         if data := _read_yaml(p, errors):
             methods[p.stem] = data
 
+    maps = {}
+    for p in sorted((content_dir / "maps").glob("*.yaml")):
+        if data := _read_yaml(p, errors):
+            maps[p.stem] = data
+
     universities = {}
     for udir in sorted(d for d in (content_dir / "universities").iterdir() if d.is_dir()):
         meta = _read_yaml(udir / "university.yaml", errors) if (udir / "university.yaml").exists() else None
@@ -230,6 +256,19 @@ def load(content_dir: Path = CONTENT) -> Content:
         for p in sorted((udir / "programs").glob("*.yaml")):
             if data := _read_yaml(p, errors):
                 uni.programs[p.stem] = data
+        for edir in sorted(d for d in (udir / "prep").glob("*/*") if d.is_dir()):
+            meta = _read_yaml(edir / "prep.yaml", errors) if (edir / "prep.yaml").exists() else None
+            if meta is None:
+                errors.append((edir, "missing or invalid prep.yaml"))
+                continue
+            prep = Prep(path=edir, meta=meta)
+            if (edir / "overview.md").exists():
+                prep.overview = _read_doc(edir / "overview.md", errors)
+            prep.types = [d for p in sorted((edir / "types").glob("*.md")) if (d := _read_doc(p, errors))]
+            if (edir / "table.yaml").exists():
+                prep.table = _read_yaml(edir / "table.yaml", errors)
+            uni.preps[(edir.parent.name, edir.name)] = prep
         universities[udir.name] = uni
 
-    return Content(concepts=concepts, roadmaps=roadmaps, universities=universities, parse_errors=errors, methods=methods)
+    return Content(concepts=concepts, roadmaps=roadmaps, universities=universities, parse_errors=errors, methods=methods,
+                   maps=maps)

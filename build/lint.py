@@ -15,7 +15,7 @@ import yaml
 
 from schema import (BLOCKS, CODE_RE, ROOT, COURSE_KIND, PAGE_KINDS, DOMAINS, OPTIONAL, REQUIRED, ROADMAP_AREA_ROLES, SEASONS, SIM_CHECKS, SLUG_RE, STRENGTH, METHOD_NODE_KINDS,
                     OPEN_RE, QUOTE_RE, SOLMAP_BLOCK_RE, UNIT_KIND, UNIT_REVIEW, UNIT_STATUS, WIKIDATA_RE, Content, Doc, edge_entries, load, prereq_groups,
-                    roadmap_node_ids, roadmap_root, unit_slug, answer_label)
+                    roadmap_node_ids, roadmap_root, unit_slug, answer_label, MAP_COSTS, MAP_EDGE_KINDS, TONES, slugify)
 
 
 class Report:
@@ -420,6 +420,189 @@ def lint_solution_maps(c: Content, body: str, where, rep: Report):
             rep.error(where, f"{name}: the last step must be at an end node")
 
 
+# --------------------------------------------------------------------------- maps and preps (#255)
+def _md(v) -> bool:
+    return isinstance(v, str) and bool(v.strip())
+
+
+def _box(v) -> bool:
+    return isinstance(v, list) and len(v) == 4 and all(isinstance(x, (int, float)) for x in v)
+
+
+def lint_maps(c: Content, rep: Report):
+    """content/maps/<id>.yaml: representations (nodes on an authored canvas) and the methods between
+    them (numbered edges with a kind and a cost class), task routes along the edges, a worked example."""
+    for mid, g in c.maps.items():
+        where = f"content/maps/{mid}.yaml"
+        if not SLUG_RE.match(mid):
+            rep.error(where, "file name must be a slug")
+        if g.get("id", mid) != mid:
+            rep.error(where, f"id {g.get('id')!r} must match the file name")
+        if not _md(g.get("title")):
+            rep.error(where, "needs a `title`")
+        canvas = g.get("canvas")
+        if not (isinstance(canvas, list) and len(canvas) == 2 and all(isinstance(x, int) and x > 0 for x in canvas)):
+            rep.error(where, "`canvas` must be [width, height] in pixels")
+        nodes, edges = g.get("nodes"), g.get("edges")
+        if not isinstance(nodes, list) or not nodes or not isinstance(edges, list) or not edges:
+            rep.error(where, "needs non-empty `nodes` and `edges` lists")
+            continue
+        ids: set[str] = set()
+        for n in nodes:
+            if not isinstance(n, dict) or not isinstance(n.get("id"), str) or not SLUG_RE.match(n["id"]):
+                rep.error(where, f"node {n!r} needs a slug `id`")
+                continue
+            nid = n["id"]
+            if nid in ids:
+                rep.error(where, f"duplicate node {nid!r}")
+            ids.add(nid)
+            if not _md(n.get("label")):
+                rep.error(where, f"node {nid!r} needs a `label`")
+            if not _box(n.get("box")):
+                rep.error(where, f"node {nid!r}: `box` must be [x, y, width, height]")
+            if n.get("tone") not in TONES:
+                rep.error(where, f"node {nid!r}: tone must be one of {sorted(TONES)}")
+            if n.get("concept") is not None and n["concept"] not in c.concepts:
+                rep.error(where, f"node {nid!r}: concept {n['concept']!r} does not exist")
+        pairs: set[tuple[str, str]] = set()
+        eids: set[str] = set()
+        for e in edges:
+            if not isinstance(e, dict) or not isinstance(e.get("id"), str) or not SLUG_RE.match(e["id"]):
+                rep.error(where, f"edge {e!r} needs a slug `id`")
+                continue
+            name = f"edge {e['id']!r}"
+            if e["id"] in eids:
+                rep.error(where, f"duplicate {name}")
+            eids.add(e["id"])
+            if e.get("from") not in ids or e.get("to") not in ids:
+                rep.error(where, f"{name}: `from` and `to` must be nodes of this map")
+                continue
+            if e.get("kind") not in MAP_EDGE_KINDS:
+                rep.error(where, f"{name}: kind must be one of {sorted(MAP_EDGE_KINDS)}")
+            if e.get("cost") not in MAP_COSTS:
+                rep.error(where, f"{name}: cost must be one of {sorted(MAP_COSTS)}")
+            if not isinstance(e.get("n"), (int, str)):
+                rep.error(where, f"{name}: needs `n`, the number (or letter) shown on the map")
+            for key in ("name", "steps", "when"):
+                if not _md(e.get(key)):
+                    rep.error(where, f"{name}: needs `{key}`")
+            label = e.get("label")
+            if label is not None and not (isinstance(label, list) and len(label) in (3, 4)
+                                          and all(isinstance(x, (int, float)) for x in label[:3])
+                                          and (len(label) == 3 or label[3] in ("left", "right", "center"))):
+                rep.error(where, f"{name}: `label` must be [x, y, width] or [x, y, width, left|right|center]")
+            if e.get("path") is not None and not (isinstance(e["path"], str) and e["path"].lstrip().startswith("M")):
+                rep.error(where, f"{name}: `path` must be an SVG path starting with M")
+            pairs.add((e["from"], e["to"]))
+            if e.get("both"):
+                pairs.add((e["to"], e["from"]))
+        for i, r in enumerate(g.get("routes") or [], 1):
+            path = r.get("path") if isinstance(r, dict) else None
+            if not (isinstance(r, dict) and _md(r.get("task")) and isinstance(path, list) and len(path) >= 2):
+                rep.error(where, f"route {i}: needs a `task` and a `path` of at least two nodes")
+                continue
+            for a, b in zip(path, path[1:]):
+                if (a, b) not in pairs:
+                    rep.error(where, f"route {i} ({r['task']}): no edge {a!r} -> {b!r}")
+        ex = g.get("example")
+        if ex is not None:
+            walk = ex.get("walk") if isinstance(ex, dict) else None
+            if not (isinstance(ex, dict) and _md(ex.get("title")) and isinstance(walk, list) and walk):
+                rep.error(where, "example: needs a `title` and a non-empty `walk`")
+            else:
+                for i, st in enumerate(walk, 1):
+                    at = st.get("edge") if isinstance(st, dict) else None
+                    ok = isinstance(st, dict) and ((st.get("node") in ids) != (at in eids)) and _md(st.get("text"))
+                    if not ok:
+                        rep.error(where, f"example step {i}: needs exactly one of `node` / `edge` of this map, and `text`")
+
+
+def lint_prep(c: Content, uni, code: str, exam: str, prep, rep: Report):
+    """prep/<CODE>/<exam>/: one study guide for an exam the course lists in `exams`."""
+    where = prep.path / "prep.yaml"
+    course = uni.courses.get(code)
+    if course is None:
+        rep.error(prep.path, f"course {code!r} does not exist")
+        return
+    names = [slugify(e.get("name", "")) for e in course.meta.get("exams") or [] if isinstance(e, dict)]
+    if exam not in names:
+        rep.error(prep.path, f"folder {exam!r} names no exam of {code} (its exams: {names or 'none'})")
+    m = prep.meta
+    if slugify(m.get("exam", "")) != exam:
+        rep.error(where, f"`exam` must be the exam's name as in the course ({exam!r} as a slug)")
+    if not _md(m.get("summary")):
+        rep.error(where, "needs a `summary`")
+    for mid in m.get("maps") or []:
+        if mid not in c.maps:
+            rep.error(where, f"map {mid!r} is not in content/maps/")
+    plan = m.get("plan") or []
+    if not isinstance(plan, list):
+        rep.error(where, "`plan` must be a list of checklists")
+        plan = []
+    lids = set()
+    for i, lst in enumerate(plan, 1):
+        if not (isinstance(lst, dict) and isinstance(lst.get("id"), str) and SLUG_RE.match(lst["id"]) and _md(lst.get("title"))
+                and isinstance(lst.get("items"), list) and lst["items"] and all(_md(x) for x in lst["items"])):
+            rep.error(where, f"plan list {i}: needs a slug `id`, a `title` and non-empty `items` (markdown strings)")
+            continue
+        if lst["id"] in lids:
+            rep.error(where, f"plan list {lst['id']!r} appears twice")
+        lids.add(lst["id"])
+    units = {unit_slug(d) for d in uni.units.get(code, [])}
+    bodies = []
+    if prep.overview is not None:
+        bodies.append(prep.overview)
+    orders = []
+    for doc in prep.types:
+        t = doc.meta
+        if not SLUG_RE.match(unit_slug(doc)):
+            rep.error(doc.path, "file name must be a slug")
+        if not _md(t.get("title")) or not _md(t.get("asks")):
+            rep.error(doc.path, "needs a `title` and `asks` (what the problem asks, one line)")
+        if not isinstance(t.get("order"), int):
+            rep.error(doc.path, "order must be an integer")
+        else:
+            orders.append(t["order"])
+        for u in t.get("units") or []:
+            if u not in units:
+                rep.error(doc.path, f"unit {u!r} is not a unit of {code}")
+        if t.get("method") is not None and t["method"] not in c.methods:
+            rep.error(doc.path, f"method {t['method']!r} is not in content/methods/")
+        bodies.append(doc)
+    if orders and sorted(orders) != list(range(1, len(orders) + 1)):
+        rep.error(prep.path / "types", f"type orders must be 1..{len(orders)}, each once (got {sorted(orders)})")
+    for doc in bodies:
+        for problem in container_problems(doc.body):
+            rep.error(doc.path, problem)
+        lint_solution_maps(c, doc.body, doc.path, rep)
+    tb = prep.table
+    if tb is not None:
+        tw = prep.path / "table.yaml"
+        cols = tb.get("columns")
+        if not (isinstance(cols, list) and cols and all(isinstance(x, dict) and isinstance(x.get("id"), str) for x in cols)):
+            rep.error(tw, "needs `columns`, each with an `id`")
+            return
+        cids = [x["id"] for x in cols]
+        if len(set(cids)) != len(cids):
+            rep.error(tw, "column ids must be distinct")
+        for x in cols:
+            if not _md(x.get("title")) or x.get("tone") not in TONES:
+                rep.error(tw, f"column {x['id']!r}: needs a `title` and a tone in {sorted(TONES)}")
+            if x.get("concept") is not None and x["concept"] not in c.concepts:
+                rep.error(tw, f"column {x['id']!r}: concept {x['concept']!r} does not exist")
+        for i, r in enumerate(tb.get("rows") or [], 1):
+            cells = r.get("cells") if isinstance(r, dict) else None
+            if not (isinstance(r, dict) and _md(r.get("label")) and isinstance(cells, dict)):
+                rep.error(tw, f"row {i}: needs a `label` and `cells`")
+                continue
+            for k in cells:
+                if k not in cids:
+                    rep.error(tw, f"row {r['label']!r}: cell {k!r} names no column")
+        for i, r in enumerate(tb.get("shared") or [], 1):
+            if not (isinstance(r, dict) and _md(r.get("label")) and _md(r.get("text"))):
+                rep.error(tw, f"shared row {i}: needs a `label` and `text`")
+
+
 FENCE_RE = re.compile(r"^```.*?^```", re.M | re.S)
 
 
@@ -696,6 +879,10 @@ def run(content=None) -> Report:
     lint_findings(c, rep)
     lint_cards(c, rep)
     lint_methods(c, rep)
+    lint_maps(c, rep)
+    for uni in c.universities.values():
+        for (code, exam), prep in sorted(uni.preps.items()):
+            lint_prep(c, uni, code, exam, prep, rep)
     # the design specimens (app/src/design/*.md) may hold solution maps too
     for p in sorted((ROOT / "app" / "src" / "design").glob("*.md")):
         lint_solution_maps(c, p.read_text(encoding="utf-8"), p, rep)

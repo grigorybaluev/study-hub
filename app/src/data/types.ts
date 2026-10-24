@@ -151,11 +151,131 @@ export interface MethodGraph {
   edges: MethodEdge[];
 }
 
+/** Colour tokens shared by maps and prep tables (#255); styles map them to light and dark colours. */
+export type Tone = "blue" | "navy" | "sky" | "violet" | "lavender" | "green" | "mint" | "teal" | "forest" | "grey" | "amber";
+
+/** A representation on a map (content/maps/<id>.yaml, #255), boxed on the map's authored canvas. */
+export interface MapNode {
+  id: string;
+  label: string;
+  /** small caps line under the label */
+  sub: string | null;
+  concept: string | null;
+  tone: Tone;
+  /** an intermediate or helper representation: drawn dashed */
+  aux: boolean;
+  /** x, y, width, height on the canvas */
+  box: [number, number, number, number];
+  /** markdown: what it is */
+  text: string | null;
+  /** markdown: what is easy in this representation */
+  easy: string | null;
+}
+
+/** A method between two representations. `n` is the number (or letter) the map shows. */
+export interface MapEdge {
+  id: string;
+  n: string;
+  from: string;
+  to: string;
+  kind: "algorithm" | "reversal" | "design" | "free";
+  cost: "free" | "same" | "shrinks" | "linear" | "design" | "explodes";
+  /** the method runs both ways (drawn double-headed) */
+  both: boolean;
+  name: string;
+  /** markdown: the line under the name on the map */
+  short: string | null;
+  /** where the map's label sits: x, y, width and alignment; null = beside the arrow's middle */
+  label: [number, number, number, ("left" | "right" | "center")?] | null;
+  /** SVG path on the canvas; null = a straight line between the two boxes */
+  path: string | null;
+  /** markdown: the steps to show, what it does to the size, when to use it, its trap */
+  steps: string;
+  size: string | null;
+  when: string;
+  trap: string | null;
+}
+
+export interface MapRoute {
+  task: string;
+  /** node ids, each pair joined by an edge */
+  path: string[];
+  why: string | null;
+}
+
+/** One step of a map's worked example: at a node (the language in that representation) or along an edge. */
+export interface MapExampleStep {
+  node?: string;
+  edge?: string;
+  text: string;
+  /** an inline automaton spec for the drawing (as in ```automaton blocks) */
+  automaton?: Record<string, unknown>;
+}
+
+export interface ConversionMap {
+  id: string;
+  title: string;
+  description: string | null;
+  canvas: [number, number];
+  nodes: MapNode[];
+  edges: MapEdge[];
+  routes: MapRoute[];
+  example: { title: string; language?: string; walk: MapExampleStep[] } | null;
+}
+
+export type PrepSection = "overview" | "types" | "table" | "map" | "plan";
+
+/** graph.json's entry for an exam prep (#255); the rest is in data/prep/<id>.json (`Prep`). */
+export interface PrepIndex {
+  /** `<university>/<CODE>/<exam slug>` */
+  id: string;
+  course: string;
+  /** the exam's name as in the course's `exams` */
+  exam: string;
+  date: string;
+  title: string;
+  summary: string;
+  sections: PrepSection[];
+}
+
+export interface PrepType {
+  slug: string;
+  title: string;
+  order: number;
+  /** what the problem asks, one line */
+  asks: string;
+  units: string[];
+  method: string | null;
+  body: string;
+}
+
+export interface PrepTable {
+  title: string | null;
+  lead: string | null;
+  columns: { id: string; title: string; sub: string | null; tone: Tone; concept: string | null }[];
+  /** cells by column id, markdown */
+  rows: { label: string; cells: Record<string, string> }[];
+  /** rows that hold for every column */
+  shared: { label: string; text: string }[];
+}
+
+/** data/prep/<id>.json: one study guide for one exam (#255). */
+export interface Prep extends Omit<PrepIndex, "sections"> {
+  format: string | null;
+  maps: string[];
+  overview: string | null;
+  types: PrepType[];
+  table: PrepTable | null;
+  plan: { id: string; title: string; items: string[] }[];
+}
+
 export interface Graph {
   meta: { built: string; content_version: string; schema: number; seasons: string[] };
   nodes: GraphNode[];
   edges: Edge[];
   methods: MethodGraph[];
+  maps: ConversionMap[];
+  preps: PrepIndex[];
 }
 
 // ---------------------------------------------------------------- derived.json
