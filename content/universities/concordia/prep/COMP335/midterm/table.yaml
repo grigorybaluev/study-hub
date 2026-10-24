@@ -1,0 +1,92 @@
+title: "Regular languages: the full picture in one table"
+lead: >-
+  Four descriptions of the same class of languages: a **finite memory** in four notations. Every
+  column can be converted into every other. The shared rows hold what is true of all four, where the
+  class ends, and what comes next.
+
+columns:
+  - {id: dfa, title: DFA, sub: deterministic finite accepter, tone: blue, concept: dfa}
+  - {id: nfa, title: NFA, sub: "non-deterministic, λ-moves allowed", tone: sky, concept: nfa}
+  - {id: regex, title: Regular expression, sub: the shape of the strings, tone: violet, concept: regular-expression}
+  - {id: grammar, title: Regular grammar, sub: right- or left-linear, tone: green, concept: regular-grammar}
+
+rows:
+  - label: What it is
+    cells:
+      dfa: '$(Q,\Sigma,\delta,q_0,F)$, with $\delta: Q\times\Sigma\to Q$ **total**: exactly one move per state and symbol'
+      nfa: '$\delta: Q\times(\Sigma\cup\{\lambda\})\to 2^Q$: zero, one or many moves; $\lambda$-moves read nothing'
+      regex: 'built from $\varnothing$, $\lambda$, $a\in\Sigma$ with $r_1+r_2$, $r_1r_2$, $r^*$; precedence $^*$, then concatenation, then $+$'
+      grammar: 'right-linear: $A\to xB\mid x$; left-linear: $A\to Bx\mid x$ ($x\in T^*$); **never mixed**'
+  - label: Accepts $w$ when
+    cells:
+      dfa: '$\delta^*(q_0,w)\in F$, with $\delta^*(q,\lambda)=q$, $\delta^*(q,wa)=\delta(\delta^*(q,w),a)$'
+      nfa: '**some** computation ends in $F$: $\delta^*(q_0,w)\cap F\neq\varnothing$; a hanging path does not reject'
+      regex: '$w\in L(r)$: $L(r_1+r_2)=L(r_1)\cup L(r_2)$, $L(r_1r_2)=L(r_1)L(r_2)$, $L(r^*)=L(r)^*$'
+      grammar: '$S\overset{*}{\Rightarrow}w$; a sentential form has at most one variable, at the end (right-linear) or the start (left-linear)'
+  - label: Build one
+    cells:
+      dfa: 'state = **what you must remember** (last symbols, count mod $k$, pattern progress); add a trap state; "and / or / not" by a product of two DFAs'
+      nfa: 'let it **guess** where the interesting part starts; unions and concatenations glue with $\lambda$-moves; "the $k$-th symbol from the end" needs $k+1$ states'
+      regex: 'find the **repeating block** ("$b$ or $ab$"), then the start and end exceptions; test $\lambda$ and the near misses'
+      grammar: 'variable = state; $A\to aB$ for each edge, $A\to\lambda$ for final states; left-linear: grow to the left (the variable = "everything before")'
+  - label: Convert from it
+    cells:
+      dfa: 'a DFA is already an NFA; minimise it: remove unreachable states, mark (final, non-final), propagate, merge the unmarked'
+      nfa: '→ DFA: **subset construction** (states = $\lambda$-closed sets, up to $2^{|Q|}$); → grammar: one rule per edge; → expression: state elimination'
+      regex: '→ NFA: build from the inside out (a symbol is one edge; $+$ is a new start; concatenation is a $\lambda$-link; $^*$ is a loop plus a bypass)'
+      grammar: 'right-linear → NFA: one state per variable, plus a final state for $A\to x$; left-linear: reverse the bodies, build an NFA for $L^R$, then reverse it'
+  - label: Into it
+    cells:
+      dfa: from an NFA by the subset construction
+      nfa: from a DFA (free), an expression (pieces) or a right-linear grammar
+      regex: 'from an NFA by **state elimination**: $r_{pq}+r_{pk}r_{kk}^*r_{kq}$, ending with $r_{ii}^*r_{if}(r_{ff}+r_{fi}r_{ii}^*r_{if})^*$; from a grammar by the fixed-point theorem: $X=\alpha X+\beta\Rightarrow X=\alpha^*\beta$'
+      grammar: 'from an NFA: $V_i\to aV_j$ per edge, $V_f\to\lambda$ per final state'
+  - label: Best for
+    cells:
+      dfa: '**complement** (swap $F$, complete DFA only), **intersection / difference** (product), and all **decisions**'
+      nfa: '**union, concatenation, star, reversal** (reverse the edges, swap start and final), quotients'
+      regex: 'describing a language compactly; **homomorphism** (substitute $h(a)$ for $a$); multiple choice "which is equal"'
+      grammar: generating strings; reversal (right ↔ left-linear); the link to context-free grammars
+  - label: Traps
+    cells:
+      dfa: 'missing moves; complementing an incomplete DFA; on a pattern mismatch, falling back too far; forgetting $\lambda$ when the start state is final'
+      nfa: 'forgetting the $\lambda$-closure after a move or at the start; $\varnothing$ is a valid DFA state (the trap)'
+      regex: '$ab^*\neq(ab)^*$; $a^*+b^*\neq(a+b)^*$; $(a^*b^*)^*=(a+b)^*$; $\varnothing^*=\lambda$; a loop forgotten during elimination'
+      grammar: 'mixing right- and left-linear rules gives only a **linear** grammar ($S\to aA$, $A\to Sb\mid\lambda$ gives $a^{n+1}b^n$)'
+
+shared:
+  - label: Closure
+    text: >-
+      If $L_1, L_2$ are regular, so are $L_1\cup L_2$, $L_1\cap L_2$, $L_1-L_2$, $\overline{L_1}$,
+      $L_1L_2$, $L_1^*$, $L_1^R$, $h(L_1)$ (homomorphism), $L_1/L_2=\{x: xy\in L_1, y\in L_2\}$ and the
+      left quotient. **Use 1**: build $L$ from regular pieces, or change a DFA for a new operation
+      (prefix: make every state that can reach $F$ final). **Use 2**: if $L\cap R$ ($R$ regular) is
+      known to be non-regular, then $L$ is not regular ($n_a=n_b$ intersected with $a^*b^*$ gives
+      $a^nb^n$). Closure only goes forwards: a subset or a factor of a regular language can be
+      non-regular.
+  - label: Decisions
+    text: >-
+      From a DFA: **membership** (run it), **emptiness** (is a final state reachable?), **finiteness**
+      (infinite iff a cycle lies on a path from $q_0$ to a final state), **equality** (minimise and
+      compare; or $(L_1\cap\overline{L_2})\cup(\overline{L_1}\cap L_2)=\varnothing$). The minimal DFA is
+      unique up to renaming.
+  - label: Not regular
+    text: >-
+      **Pumping lemma**: if $L$ is regular, there is an $m$ such that every $w\in L$ with $|w|\ge m$ is
+      $w=xyz$ with $|xy|\le m$, $|y|\ge 1$, and $xy^iz\in L$ for all $i\ge 0$ (pigeonhole: a walk of
+      $m$ steps repeats a state). **Game**: they pick $m$; you pick $w$ (in terms of $m$, usually
+      starting $a^m$); they split; you pick $i$ (0 or 2) with $xy^iz\notin L$ for **every**
+      $|y|=k\in[1,m]$. Classics: $a^nb^n$, $ww^R$, $ww$, $a^{n^2}$, primes, $a^{n!}$. It can never
+      prove regularity: finite languages and counts mod $k$ are always regular.
+  - label: Foundations
+    text: >-
+      $L^0=\{\lambda\}$; $\varnothing^*=\{\lambda\}$; $\varnothing L=\varnothing$; $\{\lambda\}L=L$;
+      $L^+=L^*-\{\lambda\}$ iff $\lambda\notin L$; $(uv)^R=v^Ru^R$, $(L_1L_2)^R=L_2^RL_1^R$;
+      $|2^S|=2^{|S|}$; $\overline{L}=\Sigma^*-L$. To disprove a claim, try $\varnothing$, $\{\lambda\}$
+      and single letters first; to prove one, take an arbitrary string and show both inclusions.
+  - label: "Next: context-free grammars (week 6)"
+    text: >-
+      Rules $A\to x$ with any $x\in(V\cup T)^*$, so a variable can grow on both sides and **count**:
+      $S\to aSb\mid\lambda$ ($a^nb^n$), $S\to aSa\mid bSb\mid a\mid b\mid\lambda$ (palindromes),
+      $S\to(S)\mid SS\mid\lambda$ (balanced parentheses). Leftmost derivations, derivation trees, and
+      **ambiguity** (two trees for one string, e.g. $E\to E+E\mid E*E\mid a$). Regular ⊊ context-free.
