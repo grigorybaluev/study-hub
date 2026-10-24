@@ -5,6 +5,7 @@
 // collapsed under it, and an ```output block right after a code block as that code's output (#131).
 import { Children, isValidElement, lazy, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
+import { Link } from "react-router-dom";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkDirective from "remark-directive";
@@ -242,6 +243,10 @@ export default function Markdown({ source }: { source: string }) {
       remarkPlugins={[remarkGfm, remarkMath, remarkDirective, remarkHeadingIds, remarkBlocks, remarkMathFit, remarkMathDense, remarkMathPunct, remarkViews, remarkSimCode]}
       rehypePlugins={[rehypeKatex, [rehypeHighlight, { ignoreMissing: true, plainText: ["sim", "automaton", "solution-map", "output"] }]]}
       components={{
+        // a link inside the site ("/unit/COMP335/…") goes through the router (the app runs under a HashRouter)
+        a: ({ node: _node, href, children, ...rest }) => href?.startsWith("/")
+          ? <Link to={href}>{children}</Link>
+          : <a href={href} {...rest}>{children}</a>,
         blockquote: ({ children }) => <blockquote className={calloutClass(children)}>{children}</blockquote>,
         code: ({ className, children, ...rest }) => {
           if (className === "language-automaton" || className === "hljs language-automaton") {

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ConceptChip } from "../components/Chips";
-import { href, node, useData } from "../data/load";
+import { href, last, node, upcomingPreps, useData } from "../data/load";
 import type { Card, ConceptNode, CourseNode, UnitNode } from "../data/types";
 import CardView, { isRight } from "../review/CardView";
 import NextUnits from "../review/NextUnits";
@@ -293,7 +293,10 @@ function ScopePicker({ deck, sc, current, onClose }: { deck: Deck; sc: Scopes; c
         <div className="scope-body">
           <ul>{row(ALL, "Everything due, every course (daily review)")}</ul>
           {ahead.length > 0 && <><h4>Exams ahead</h4>
-            <ul>{ahead.map((e) => row({ kind: "exam", course: e.course, index: e.index }, sc.label({ kind: "exam", course: e.course, index: e.index })))}</ul></>}
+            <ul>{ahead.map((e) => row({ kind: "exam", course: e.course, index: e.index }, sc.label({ kind: "exam", course: e.course, index: e.index })))}</ul>
+            {upcomingPreps(d).length > 0 && <p className="small">Study guides: {upcomingPreps(d).map((p, k) => (
+              <span key={p.id}>{k > 0 && " · "}<Link to={href.prep(p.id)} onClick={onClose}>{last(p.course)} {p.exam}</Link></span>
+            ))}</p>}</>}
           <h4>Exam prep: a course</h4>
           <ul>{courseIds.map((id) => row({ kind: "course", id }, sc.label({ kind: "course", id })))}</ul>
           <h4>Exam prep: a term</h4>

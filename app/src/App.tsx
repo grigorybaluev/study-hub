@@ -1,6 +1,6 @@
 import { lazy, useEffect, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigationType } from "react-router-dom";
-import { DataContext, loadData, type Data } from "./data/load";
+import { DataContext, loadData, upcomingPreps, type Data } from "./data/load";
 import Search from "./components/Search";
 import ThemeToggle from "./components/ThemeToggle";
 import Footer from "./components/Footer";
@@ -14,6 +14,7 @@ import Design from "./pages/Design";
 import Analytics from "./pages/Analytics";
 import Review from "./pages/Review";
 import ReviewStats from "./pages/ReviewStats";
+import PrepPage, { PrepList } from "./pages/Prep";
 
 // the graph pages carry Cytoscape and its layouts, which no other page needs (#40)
 const ConceptMap = lazy(() => import("./pages/ConceptMap"));
@@ -48,6 +49,7 @@ export default function App() {
             <NavLink to="/" end>Program</NavLink>
             <NavLink to="/explore">Explore</NavLink>
             <NavLink to="/review">Review</NavLink>
+            {upcomingPreps(data).length > 0 && <NavLink to="/prep">Prep</NavLink>}
             {/* Concepts, Roadmap and Analytics are left out of the menu for now; their pages still open from links */}
           </nav>
           <div className="spacer" />
@@ -71,6 +73,10 @@ export default function App() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/review" element={<Review />} />
             <Route path="/review/stats" element={<ReviewStats />} />
+            <Route path="/prep" element={<PrepList />} />
+            <Route path="/prep/:code/:exam" element={<PrepPage />} />
+            <Route path="/prep/:code/:exam/:section" element={<PrepPage />} />
+            <Route path="/prep/:code/:exam/:section/:item" element={<PrepPage />} />
             <Route path="/design/:kind" element={<Design />} />
             <Route path="*" element={<p>Not found.</p>} />
           </Routes>
