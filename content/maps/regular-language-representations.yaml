@@ -1,0 +1,521 @@
+id: regular-language-representations
+title: "Regular languages: every representation, every conversion"
+description: >-
+  A regular language can be written down in several ways. Each arrow is a method you can run by hand.
+  The NFA is the hub: one step from everything, one or two steps to everything.
+canvas: [965, 676]
+
+nodes:
+  - id: words
+    label: L described in words or set notation
+    tone: grey
+    box: [150, 2, 392, 72]
+    concept: regular-language
+    text: >-
+      First decide: is a **bounded memory** enough? Yes: it is regular, take a design arrow. No (an
+      unbounded count or comparison, $a^nb^n$): not regular, so use the pumping lemma or closure, off
+      the map.
+  - id: dfa
+    label: DFA
+    sub: deterministic, complete
+    tone: blue
+    box: [18, 150, 180, 140]
+    concept: dfa
+    text: "$\\delta: Q\\times\\Sigma\\to Q$: exactly one move per state and symbol; trap state included."
+    easy: "complement (swap $F$), $\\cap$ $\\cup$ $-$ (product of two DFAs), membership."
+  - id: nfa
+    label: NFA · the hub
+    sub: λ-moves, any number of moves
+    tone: sky
+    box: [318, 150, 180, 140]
+    concept: nfa
+    text: "$\\delta: Q\\times(\\Sigma\\cup\\{\\lambda\\})\\to 2^Q$; accepts if *some* path ends in $F$."
+    easy: "$\\cup$, concatenation, $^*$ (λ-links), reversal, designing by guessing."
+  - id: gtg
+    label: GTG
+    sub: generalized transition graph
+    tone: lavender
+    aux: true
+    box: [588, 172, 130, 100]
+    text: edges carry expressions; one start, one separate final.
+  - id: regex
+    label: Regular expression
+    sub: the shape of the strings
+    tone: violet
+    box: [778, 150, 180, 140]
+    concept: regular-expression
+    text: "$\\varnothing,\\lambda,a$ with $r_1{+}r_2$, $r_1r_2$, $r^*$; precedence $^*$, then concatenation, then $+$."
+    easy: "homomorphism (substitute $h(a)$), reversal, a compact answer."
+  - id: min
+    label: Minimal DFA
+    sub: unique up to renaming
+    tone: navy
+    box: [18, 354, 180, 112]
+    concept: dfa-minimization
+    text: fewest states; one state per class of equivalent states.
+    easy: equality of two languages, "how many states at least", emptiness, finiteness.
+  - id: rlg
+    label: Right-linear grammar
+    sub: "A → xB | x, with x ∈ T*"
+    tone: green
+    box: [380, 460, 200, 110]
+    concept: regular-grammar
+    text: "an NFA written as rules: variable = state, rule = edge, $A\\to\\lambda$ = final state."
+    easy: deriving strings.
+  - id: eq
+    label: Equations
+    sub: one per variable
+    tone: mint
+    aux: true
+    box: [692, 462, 210, 100]
+    text: "$S = aA + bS + \\lambda$, … Solve one variable at a time with the fixed-point theorem, then substitute."
+  - id: nfar
+    label: NFA for Lᴿ
+    tone: teal
+    aux: true
+    box: [210, 470, 150, 86]
+    text: same states, every edge turned round, start and final swapped.
+  - id: rlgr
+    label: Right-linear for Lᴿ
+    tone: teal
+    aux: true
+    box: [210, 600, 150, 76]
+    text: the rules of that reversed NFA.
+  - id: llg
+    label: Left-linear grammar
+    tone: forest
+    box: [18, 600, 164, 76]
+    concept: regular-grammar
+    text: "$A\\to Bx\\mid x$. The variable is the part on the left."
+  - id: cfg
+    label: Context-free grammar
+    tone: amber
+    box: [380, 602, 200, 74]
+    concept: context-free-grammar
+    text: "Week 6. $A\\to x$ for any $x$. $S\\to aSb\\mid\\lambda$ gives $a^nb^n$: no arrow back."
+
+edges:
+  # ---- design: from a description, no algorithm
+  - id: design-dfa
+    n: D
+    from: words
+    to: dfa
+    kind: design
+    cost: design
+    name: design a DFA
+    short: what must I remember about the prefix? Each answer is a state.
+    label: [20, 86, 122]
+    path: M215 74 L150 148
+    steps: >-
+      Decide what to remember about the prefix read so far; each possibility is a state. One move per
+      state and symbol; finals = memories that mean "accept"; send "already failed" to a trap. Test
+      $\lambda$, the shortest accepted string and a near miss.
+    size: one state per memory
+    when: "the memory is obvious: a count mod $k$, the last $k$ symbols, progress through one pattern, a pair of conditions (product)"
+    trap: on a mismatch, falling back too far; if $\lambda\in L$ the start state is final
+  - id: design-nfa
+    n: D
+    from: words
+    to: nfa
+    kind: design
+    cost: design
+    name: design an NFA
+    short: guess where the interesting part starts.
+    label: [296, 88, 108, right]
+    path: M408 74 L408 148
+    steps: >-
+      Let it guess: loop on $\Sigma$ at the start, then spell the pattern; branch with $\lambda$ for
+      "or"; missing moves just die.
+    size: "small: \"the $k$-th symbol from the end\" needs $k{+}1$ states (a DFA needs $2^k$)"
+    when: ends with / contains / $k$-th from the end; a union of patterns; "at most $k$ states"
+    trap: an NFA is never complemented by swapping $F$
+  - id: design-regex
+    n: D
+    from: words
+    to: regex
+    kind: design
+    cost: design
+    name: write an expression
+    short: find the repeating block, then the exceptions at the start and end.
+    label: [600, 6, 325, right]
+    path: M542 54 L930 54 L930 148
+    steps: >-
+      Find the repeating block ("$b$ or $ab$"), then the exceptions at the start and the end; test
+      $\lambda$ and the near misses.
+    size: short
+    when: "the language is a shape: blocks, an optional end"
+    trap: $ab^*\neq(ab)^*$; $(a{+}b)^*$ lets forbidden strings in
+
+  # ---- between automata
+  - id: subset
+    n: 1
+    from: nfa
+    to: dfa
+    kind: algorithm
+    cost: explodes
+    name: subset construction
+    short: states = λ-closed sets; $n\to$ up to $2^n$
+    label: [203, 168, 114]
+    path: M318 234 L200 234
+    steps: >-
+      Start state $E(\{q_0\})$ (the $\lambda$-closure). For each new set $S$ and symbol $a$:
+      $E\big(\bigcup_{q\in S}\delta(q,a)\big)$; a new set is a new row of the table. Final: every set
+      containing an NFA final state. $\varnothing$ is a real state (the trap).
+    size: $n$ states → up to $2^n$; only reachable sets are built
+    when: "you need determinism: complement, product, minimise, decide; \"convert to a DFA\""
+    trap: the closure forgotten at the start or after a move
+  - id: free-dfa-nfa
+    n: 2
+    from: dfa
+    to: nfa
+    kind: free
+    cost: free
+    name: free
+    short: a DFA is an NFA
+    label: [203, 273, 114]
+    path: M198 268 L316 268
+    steps: Nothing to do. Every DFA is an NFA, so every NFA method (4–7, 11) applies to it.
+    size: same
+    when: you hold a DFA and want a grammar or an expression
+  - id: free-min-dfa
+    n: 2
+    from: min
+    to: dfa
+    kind: free
+    cost: free
+    name: free
+    path: M40 352 L40 292
+    steps: Nothing to do. A minimal DFA is a DFA, so everything that starts from a DFA starts from it too.
+    size: same
+    when: you minimised and now need a grammar, an expression or a product
+  - id: minimise
+    n: 3
+    from: dfa
+    to: min
+    kind: algorithm
+    cost: shrinks
+    name: minimise
+    short: drop unreachable · mark · merge; never grows
+    label: [108, 298, 110]
+    path: M100 290 L100 352
+    steps: >-
+      Complete it; delete unreachable states; mark every (final, non-final) pair; repeat: mark $(p,q)$
+      if some symbol sends it to a marked pair; stop when a full pass marks nothing. Unmarked pairs
+      merge into classes, and each class is a state.
+    size: never grows; the result is unique up to renaming
+    when: "\"fewest states\", equality of languages, after 1 (its output is often not minimal)"
+    trap: one pass is not enough; unreachable states look equivalent
+
+  # ---- automaton and expression
+  - id: build
+    n: 4
+    from: regex
+    to: nfa
+    kind: algorithm
+    cost: linear
+    name: build from pieces
+    short: symbol = one edge; $+$, concatenation, $^*$ joined by λ-moves
+    label: [548, 98, 200, center]
+    path: M830 150 Q 650 30 472 148
+    steps: >-
+      Inside out. $\varnothing$: a start and a final, no edge; $\lambda$: start = final; $a$: one edge.
+      $r_1{+}r_2$: a new start with $\lambda$ to both, both finals $\lambda$ to a new final.
+      $r_1r_2$: $\lambda$ from the final of $M_1$ to the start of $M_2$. $r^*$: a new start and final,
+      $\lambda$ in, $\lambda$ out, a $\lambda$ bypass start → final, a $\lambda$ back edge final → start.
+    size: "linear: about 2 states per symbol"
+    when: "\"use the construction\"; otherwise read a small NFA off the expression's meaning"
+    trap: a star without the bypass loses $\lambda$; without the back edge it allows one round only
+  - id: prepare
+    n: 5
+    from: nfa
+    to: gtg
+    kind: algorithm
+    cost: same
+    name: prepare
+    short: one final state; $a,b\to a{+}b$
+    label: [502, 228, 84]
+    path: M498 222 L586 222
+    steps: >-
+      One final state (a new final, $\lambda$ from every old final). Merge parallel edges $a,b$ into
+      $a{+}b$; a missing edge counts as $\varnothing$.
+    size: +1 state
+    when: always, before 6
+    trap: the start and the final state must be different states
+  - id: eliminate
+    n: 6
+    from: gtg
+    to: regex
+    kind: algorithm
+    cost: explodes
+    name: state elimination
+    short: "remove $k$: $r_{pq}+r_{pk}r_{kk}^*r_{kq}$; at the end $r_1^*r_2(r_4+r_3r_1^*r_2)^*$"
+    label: [600, 282, 175]
+    path: M718 222 L776 222
+    steps: >-
+      Remove the other states one at a time. For **every** pair of edges $p\to k\to q$ (including
+      $p=q$, which makes a loop) the new label is $r_{pq}+r_{pk}r_{kk}^*r_{kq}$. With the start $i$ and
+      the final $f$ left: $r=r_1^*r_2(r_4+r_3r_1^*r_2)^*$, where $r_1$ = the loop on $i$, $r_2$ =
+      $i\to f$, $r_3$ = $f\to i$, $r_4$ = the loop on $f$ ($\varnothing^*=\lambda$).
+    size: can grow fast; the order changes the form, not the language
+    when: "\"find an expression for this automaton\"; eliminate from the **smallest** machine you have, and first the state with the fewest in × out paths"
+    trap: the loop $r_{kk}^*$ forgotten; a $q\to k\to q$ path forgotten
+
+  # ---- automaton, grammar, expression
+  - id: nfa-rlg
+    n: 7
+    from: nfa
+    to: rlg
+    kind: algorithm
+    cost: same
+    name: edge → rule
+    short: $q_i\xrightarrow{a}q_j$ gives $q_i\to aq_j$; final $q_f\to\lambda$
+    label: [336, 318, 86, right]
+    path: M425 290 L425 458
+    steps: >-
+      One variable per state; the start state is the start variable. Each edge $q_i\xrightarrow{a}q_j$
+      gives $q_i\to aq_j$ (a $\lambda$-edge gives $q_i\to q_j$); each final state gives $q_f\to\lambda$.
+    size: one rule per edge, plus one per final state
+    when: "\"give a grammar\" once you have any automaton"
+    trap: forgetting $q_f\to\lambda$
+  - id: rlg-nfa
+    n: 8
+    from: rlg
+    to: nfa
+    kind: algorithm
+    cost: same
+    name: rule → edge
+    short: variable = state, plus a new final $V_F$ for rules $A\to x$
+    label: [491, 350, 110]
+    path: M485 460 L485 292
+    steps: >-
+      One state per variable plus a special final $V_F$. $A\to a_1\cdots a_mB$: a path of $m$ edges
+      through new middle states; $A\to a_1\cdots a_m$: a path to $V_F$; $A\to B$ and $A\to\lambda$: a
+      $\lambda$-edge.
+    size: the variables + 1 + the middle states
+    when: "\"what does this grammar generate?\"; before 1 or 6"
+    trap: a rule without a variable must end in $V_F$
+  - id: rewrite
+    n: 9
+    from: rlg
+    to: eq
+    kind: algorithm
+    cost: same
+    name: rewrite
+    short: $\to$ as $=$, $\mid$ as $+$
+    label: [586, 478, 104]
+    path: M580 512 L690 512
+    steps: "Read each variable as its language: $\\to$ becomes $=$ and $\\mid$ becomes $+$."
+    size: same
+    when: before 10
+  - id: arden
+    n: 10
+    from: eq
+    to: regex
+    kind: algorithm
+    cost: explodes
+    name: fixed-point theorem
+    short: $X=\alpha X+\beta\Rightarrow X=\alpha^*\beta$ (needs $\lambda\notin L(\alpha)$); solve $S$ last
+    label: [712, 350, 162, right]
+    path: M880 462 L880 292
+    steps: >-
+      Gather all the $X$-terms of $X$'s own equation: $X=\alpha X+\beta$ has the solution
+      $X=\alpha^*\beta$ (unique if $\lambda\notin L(\alpha)$). Substitute it into the other equations;
+      repeat; solve $S$ last.
+    size: can grow, like 6
+    when: a grammar is given; few variables; chain-shaped rules
+    trap: $X=aX+bX+c$ gives $(a{+}b)^*c$, not $a^*b^*c$
+
+  # ---- the reversal route
+  - id: reverse
+    n: 11
+    from: nfa
+    to: nfar
+    kind: reversal
+    cost: same
+    both: true
+    name: reverse
+    short: turn every edge round; start ↔ final (one final state first). The same move both ways.
+    label: [205, 330, 120, right]
+    path: M330 292 L330 468
+    steps: >-
+      Make one final state first; turn every edge round; the old start becomes the final state and the
+      old final becomes the start. Doing it again gives the original back.
+    size: same
+    when: reversal; the left-linear route
+    trap: several finals would give several starts
+  - id: reverse-rules
+    n: 12
+    from: nfar
+    to: rlgr
+    kind: reversal
+    cost: same
+    both: true
+    name: 7, 8 on Lᴿ
+    label: [293, 568, 86]
+    path: M285 556 L285 598
+    steps: Arrows 7 and 8, applied to the reversed language.
+    size: same
+    when: the middle step of the route
+  - id: reverse-bodies
+    n: 13
+    from: rlgr
+    to: llg
+    kind: reversal
+    cost: same
+    both: true
+    name: reverse every body
+    short: >-
+      $A\to vB$ (right) ⇔ $A\to Bv^R$ (left), $A\to v$ ⇔ $A\to v^R$, both ways. Shortcut, not in the
+      slides: a left-linear grammar solves directly with $X=X\alpha+\beta\Rightarrow X=\beta\alpha^*$.
+    label: [20, 476, 186]
+    path: M208 638 L182 638
+    steps: >-
+      Reverse every right-hand side: $A\to a_1\cdots a_kB$ becomes $A\to Ba_k\cdots a_1$, and $A\to v$
+      becomes $A\to v^R$. The language reverses: $L(G')=L(G)^R$.
+    size: same
+    when: a left-linear grammar, in either direction
+    trap: reverse the order of the letters too ($A\to abB$ becomes $A\to Bba$)
+
+  # ---- beyond
+  - id: to-cfg
+    n: 14
+    from: rlg
+    to: cfg
+    kind: free
+    cost: free
+    name: free, one way
+    label: [486, 576, 100]
+    path: M480 570 L480 600
+    steps: >-
+      Nothing to do: every right- or left-linear grammar is context-free. There is no way back in
+      general: $S\to aSb\mid\lambda$ gives $a^nb^n$.
+    when: week 6
+    trap: a mix of right- and left-linear rules is only linear, and may not be regular
+
+routes:
+  - task: a DFA for a described language
+    path: [words, dfa]
+    why: when the memory is clear (counts mod $k$, last symbols, one pattern)
+  - task: a DFA for "somewhere / ends with / k-th from the end"
+    path: [words, nfa, dfa]
+    why: the NFA guesses; the subset construction removes the guesses
+  - task: the minimal DFA, or "how many states at least"
+    path: [nfa, dfa, min]
+    why: the answer is the number of classes; the subset result is usually not minimal
+  - task: an expression for an automaton
+    path: [nfa, gtg, regex]
+    why: eliminate from the smallest machine; first the state with the fewest in × out paths
+  - task: an expression for a right-linear grammar
+    path: [rlg, eq, regex]
+    why: the fixed-point theorem is fastest for a few variables
+  - task: an expression for a left-linear grammar
+    path: [llg, rlgr, nfar, nfa, gtg, regex]
+    why: the safe route goes through $L^R$ (or solve with $X=X\alpha+\beta\Rightarrow\beta\alpha^*$)
+  - task: an NFA for an expression
+    path: [regex, nfa]
+    why: the construction when asked; otherwise read a small NFA off the meaning
+  - task: a DFA for an expression
+    path: [regex, nfa, dfa]
+    why: for a short expression, reading it as words and designing directly is faster
+  - task: a right-linear grammar
+    path: [nfa, rlg]
+    why: one rule per edge; the work is in designing the automaton
+  - task: a left-linear grammar, mechanically
+    path: [nfa, nfar, rlgr, llg]
+    why: the grammar of $L^R$, then reverse every body
+  - task: what does this grammar generate?
+    path: [rlg, nfa, gtg, regex]
+    why: or name what each state remembers
+  - task: are two expressions equal? (proof)
+    path: [regex, nfa, dfa, min]
+    why: the minimal DFAs coincide exactly when the languages do; for multiple choice, one string in one and not the other settles "no"
+
+example:
+  title: One language around the whole map
+  language: "$L=\\{w\\in\\{a,b\\}^*: w\\text{ ends in }ab\\}$"
+  walk:
+    - node: words
+      text: >-
+        $L$ = the strings over $\{a,b\}$ that end in $ab$. A bounded memory is enough (the last two
+        symbols), so it is regular.
+    - edge: design-nfa
+      text: Loop on anything, then guess that this $a$ starts the final $ab$. Three states.
+      automaton:
+        type: nfa
+        states: q0 60 80, q1 190 80, q2 320 80
+        start: q0
+        finals: q2
+        trans: q0 a,b q0; q0 a q1; q1 b q2
+    - edge: subset
+      text: >-
+        A = $\{q_0\}$, B = $\{q_0,q_1\}$, C = $\{q_0,q_2\}$ (final). A: $a$→B, $b$→A; B: $a$→B, $b$→C;
+        C: $a$→B, $b$→A. $\varnothing$ never appears because $q_0$ is in every set.
+      automaton:
+        type: dfa
+        states: A 50 90, B 170 90, C 290 90
+        start: A
+        finals: C
+        trans: A b A; A a B; B a B; B b C; C a B; C b A
+        curves: {"C|A": -95}
+    - edge: minimise
+      text: >-
+        Mark (A, C) and (B, C): final against non-final. (A, B): on $b$ it goes to (A, C), marked, so mark
+        it. Nothing merges: no DFA for $L$ has fewer than 3 states. A "no progress", B "last symbol $a$",
+        C "last two symbols $ab$".
+    - edge: eliminate
+      text: >-
+        From the NFA: $q_2$ is the only final state, so the GTG is the NFA with $a,b$ merged to $a{+}b$.
+        Remove $q_1$: the path $q_0\xrightarrow{a}q_1\xrightarrow{b}q_2$ gives the edge $ab$. Then
+        $r_1=a{+}b$, $r_2=ab$, $r_3=r_4=\varnothing$, so $r=(a{+}b)^*ab$.
+      automaton:
+        type: nfa
+        states: q0 60 80, q2 230 80
+        start: q0
+        finals: q2
+        trans: q0 a+b q0; q0 ab q2
+    - node: dfa
+      text: >-
+        Eliminating from the DFA instead: remove B (loop $a$); A → B → C gives $aa^*b$ and C → B → C a new
+        loop $aa^*b$ on C. So $r=b^*aa^*b\,(aa^*b+bb^*aa^*b)^*$: the same language, three times as long.
+        Eliminate from the smallest machine.
+      automaton:
+        type: dfa
+        states: A 60 80, C 260 80
+        start: A
+        finals: C
+        trans: A b A; A aa*b C; C b A; C aa*b C
+    - edge: nfa-rlg
+      text: >-
+        One rule per edge of the NFA: $Q_0\to aQ_0\mid bQ_0\mid aQ_1$, $Q_1\to bQ_2$, $Q_2\to\lambda$.
+        Derivation of $bab$: $Q_0\Rightarrow bQ_0\Rightarrow baQ_1\Rightarrow babQ_2\Rightarrow bab$.
+    - edge: arden
+      text: >-
+        Equations: $Q_2=\lambda$, so $Q_1=b$ and $Q_0=(a{+}b)Q_0+ab$, which gives
+        $Q_0=(a{+}b)^*ab$, the same expression as the elimination.
+    - edge: build
+      text: >-
+        Back by the construction: the union $a{+}b$ ($q_1$ to $q_6$), the star (new start $q_0$, final
+        $q_7$, bypass and back edge), then $a$ and $b$ joined by λ-links. 12 states against 3 for the
+        designed NFA: the construction is for proofs and "use the construction" questions.
+      automaton:
+        type: nfa
+        states: q0 40 120, q1 115 120, q2 190 70, q3 265 70, q4 190 170, q5 265 170, q6 340 120, q7 415 120, q8 490 120, q9 565 120, q10 640 120, q11 715 120
+        start: q0
+        finals: q11
+        trans: q0 λ q1; q1 λ q2; q1 λ q4; q2 a q3; q4 b q5; q3 λ q6; q5 λ q6; q6 λ q7; q0 λ q7; q7 λ q0; q7 λ q8; q8 a q9; q9 λ q10; q10 b q11
+        curves: {"q0|q7": 150, "q7|q0": 150}
+    - edge: reverse
+      text: Reverse the NFA, start $q_2$, final $q_0$; it accepts $L^R=ba(a{+}b)^*$.
+      automaton:
+        type: nfa
+        states: q2 60 80, q1 190 80, q0 320 80
+        start: q2
+        finals: q0
+        trans: q2 b q1; q1 a q0; q0 a,b q0
+    - edge: reverse-rules
+      text: "Its grammar: $Q_2\\to bQ_1$, $Q_1\\to aQ_0$, $Q_0\\to aQ_0\\mid bQ_0\\mid\\lambda$."
+    - edge: reverse-bodies
+      text: >-
+        Reverse every body: $Q_2\to Q_1b$, $Q_1\to Q_0a$, $Q_0\to Q_0a\mid Q_0b\mid\lambda$, a
+        left-linear grammar for $L$. $Q_2\Rightarrow Q_1b\Rightarrow Q_0ab\Rightarrow Q_0bab\Rightarrow
+        bab$: it grows to the left.
