@@ -1,0 +1,97 @@
+title: "Probability: the full picture in one table"
+lead: >-
+  The two coloured columns are the same ideas for discrete mass (lumps, so you sum) and continuous mass
+  (a smear, so you integrate). The shared rows below are the event rules of weeks 1–2, which apply to
+  every event, including $\{X\le3\}$ or $\{X+Y<1\}$.
+
+columns:
+  - {id: discrete, title: Discrete, sub: "pmf p(x): lumps of mass", tone: blue, concept: probability-mass-function}
+  - {id: continuous, title: Continuous, sub: "density f(x): mass smeared out", tone: violet, concept: probability-density-function}
+  - {id: notes, title: Formulas and notes, sub: both columns, tone: grey}
+
+rows:
+  - label: Picture
+    cells:
+      discrete: bars at separate values; a probability is the total height of the bars that qualify
+      continuous: a curve; a probability is the area under it
+      notes: 'A random variable attaches a number to each outcome; $\{X=x\}$ and $\{X\le x\}$ are events, so the event rules apply to them.'
+  - label: Valid if
+    cells:
+      discrete: '$p(x)\ge0$ and $\sum_xp(x)=1$'
+      continuous: '$f(x)\ge0$ and $\int_{-\infty}^{\infty}f(x)\,dx=1$'
+      notes: 'A constant $c$: solve "total $=1$" ($c(1+2+5+10)=1$; $c\int_0^2x(2-x)\,dx=1$), then check $\ge0$ everywhere. $f(x)$ itself can exceed 1.'
+  - label: Probability
+    cells:
+      discrete: '$P(X\in A)=\sum_{x\in A}p(x)$; a point can carry mass, so $<$ and $\le$ differ'
+      continuous: '$P(a<X\le b)=\int_a^bf(x)\,dx$; $P(X=a)=0$, so $<$ and $\le$ do not matter'
+      notes: 'Conditional on an event about $X$: $P(X>a\mid X>b)=\frac{P(X>a)}{P(X>b)}$ for $a\ge b$. Piecewise $f$: split at the break points.'
+  - label: Distribution function
+    cells:
+      discrete: '$F(x)=\sum_{t\le x}p(t)$: a staircase that jumps by $p(x)$ at each value'
+      continuous: '$F(x)=\int_{-\infty}^xf(t)\,dt$: continuous; $f(x)=F''(x)$'
+      notes: '$F$ is non-decreasing, 0 on the far left, 1 on the far right; $P(a<X\le b)=F(b)-F(a)$. Write $F$ for every real $x$; each piece adds the mass to its left.'
+  - label: Joint
+    cells:
+      discrete: 'a table $p(x,y)=P(X=x,Y=y)$; $P((X,Y)\in A)$ = the sum of the cells in $A$'
+      continuous: 'a surface $f(x,y)$; $P((X,Y)\in A)=\iint_Af(x,y)\,dx\,dy$'
+      notes: 'Draw the support and the region first. Choose the order with the simplest limits; inner limits may depend on the outer variable ($\int_0^{1/2}\!\int_y^{1-y}$).'
+  - label: Marginal
+    cells:
+      discrete: '$p_X(x)=\sum_yp(x,y)$: row or column sums'
+      continuous: '$f_X(x)=\int f(x,y)\,dy$ over the $y$-range at that $x$'
+      notes: '"Squash the mass onto one axis." No other variable is left in it, and it has its own range ($f_X(x)=2x$, $0<x<1$). The marginals do not determine the joint.'
+  - label: Independent
+    cells:
+      discrete: '$p(x,y)=p_X(x)p_Y(y)$ in every cell; one failing cell means dependent'
+      continuous: '$f(x,y)=f_X(x)f_Y(y)$ for all $x,y$'
+      notes: 'A support that is not a rectangle ($0<y<x<1$) means dependent. The same idea as $P(A\cap B)=P(A)P(B)$.'
+  - label: Conditional
+    cells:
+      discrete: '$p(x\mid y)=\frac{p(x,y)}{p_Y(y)}$: one column, rescaled'
+      continuous: '$f(x\mid y)=\frac{f(x,y)}{f_Y(y)}$: one slice, rescaled'
+      notes: '"The joint over the given", like $P(A\mid B)$; it totals 1 in $x$. If independent, it equals the marginal. On $0<y<x$ with $f=2$: $f(y\mid x)=\frac1x$, uniform.'
+  - label: Mean
+    cells:
+      discrete: '$\mu=\sum_xx\,p(x)$; $E[g(X)]=\sum_xg(x)p(x)$'
+      continuous: '$\mu=\int x f(x)\,dx$; $E[g(X)]=\int g(x)f(x)\,dx$'
+      notes: 'The balance point; a symmetric density has its mean at the centre. $E[aX+b]=a\mu+b$. $E[X^2]\neq\mu^2$, $E[1/X]\neq1/\mu$.'
+  - label: Variance
+    cells:
+      discrete: '$\sum_x(x-\mu)^2p(x)$'
+      continuous: '$\int(x-\mu)^2f(x)\,dx$'
+      notes: 'Compute it as $\sigma^2=E[X^2]-\mu^2$ (it must be $\ge0$); $\operatorname{Var}(aX+b)=a^2\sigma^2$. Moments: $\mu_r''=E[X^r]$, $\mu_r=E[(X-\mu)^r]$.'
+
+shared:
+  - label: Events and counting
+    text: >-
+      Sample space $S$ = all outcomes; events are subsets, combined by $\cup$ ("or"), $\cap$ ("and"), $'$
+      ("not"); mutually exclusive means $A\cap B=\varnothing$. Equally likely outcomes:
+      $P(A)=\frac{n(A)}{n(S)}$. Multiplication principle; $_nP_r=\frac{n!}{(n-r)!}$ (ordered);
+      $\binom nr=\frac{n!}{r!(n-r)!}$ (unordered). Label identical objects ($R_1, R_2$). Draws without
+      replacement: a chain of fractions, or $\binom{13}{2}\binom{39}{3}/\binom{52}{5}$.
+  - label: Rules
+    text: >-
+      Axioms: $P(A)\ge0$, $P(S)=1$, additive over disjoint events. Hence $P(A')=1-P(A)$, $P(\varnothing)=0$,
+      $A\subseteq B\Rightarrow P(A)\le P(B)$, and $P(A\cup B)=P(A)+P(B)-P(A\cap B)$; three events: $+$
+      singles $-$ pairs $+$ triple. Fill the regions from the inside out: only $A=P(A)-P(A\cap B)$; exactly
+      one $=P(A\cup B)-P(A\cap B)$; at least one does not $=1-P(A\cap B)$.
+  - label: Conditional, independent
+    text: >-
+      $P(A\mid B)=\frac{P(A\cap B)}{P(B)}$: zoom into $B$. Chain:
+      $P(A\cap B\cap C)=P(A)P(B\mid A)P(C\mid A\cap B)$. Independent: $P(A\cap B)=P(A)P(B)$, i.e.
+      $P(A\mid B)=P(A)$, and then the complements are independent too. Independent trials multiply, times
+      $\binom nk$ for "any order"; at least one $=1-(1-p)^n$. Disjoint (with positive probabilities) means
+      dependent; $k$ events need every sub-collection to multiply.
+  - label: Total, Bayes
+    text: >-
+      For a partition $B_1,\dots,B_k$ (the cases): $P(A)=\sum_iP(B_i)P(A\mid B_i)$ and
+      $P(B_r\mid A)=\frac{P(B_r)P(A\mid B_r)}{P(A)}$, one branch over the total. Draw the tree: case, then
+      result; multiply along branches, add the $A$-branches. The posteriors add to 1. Base rates: prevalence
+      1 %, sensitivity 95 % and false positives 4 % give $P(C\mid +)\approx0.19$. In two-stage urns, the
+      second stage changes with the case.
+  - label: Chebyshev
+    text: >-
+      For any distribution: $P(|X-\mu|\ge k\sigma)\le\frac1{k^2}$, i.e. $P(|X-\mu|<k\sigma)\ge1-\frac1{k^2}$.
+      At least 75 % within $2\sigma$ and 89 % within $3\sigma$. Write the interval as $\mu\pm k\sigma$
+      (symmetric, $k>1$), or solve $1-1/k^2=$ the target for $k$. Not on the midterm: moment-generating
+      functions (week 7).
