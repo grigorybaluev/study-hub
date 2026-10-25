@@ -1,0 +1,427 @@
+id: random-variable-forms
+title: "Random variables: from the density to every number"
+description: >-
+  A random variable puts the mass on numbers: lumps (a pmf, so you sum) or a smear (a density, so you
+  integrate). One variable's distribution is the hub of the upper half: everything about X alone comes
+  out of it. The lower half is the events triangle again, for two variables: joint → marginal (add or
+  integrate out) → conditional (divide) → back to the joint (multiply). The only other way back up is the
+  product of the marginals, and it needs independence.
+canvas: [965, 830]
+
+legend:
+  kinds:
+    algorithm: "operation: mechanical; write the rule and the range, then compute"
+    condition: "only if: valid only when X and Y are independent"
+    free: "free: it already is one"
+  costs:
+    same: one product, quotient or difference
+    linear: one sum or integral
+    explodes: "a double integral: draw the region first"
+
+nodes:
+  - id: cform
+    label: A formula with c
+    sub: known up to a constant
+    tone: grey
+    box: [20, 8, 240, 84]
+    text: "A pmf, a density or a joint density, known up to a constant $c$."
+  - id: condev
+    label: "P(X > a | X > b)"
+    sub: given an event about X
+    tone: lavender
+    aux: true
+    box: [715, 8, 230, 84]
+    concept: conditional-probability
+    text: "the events rule, with events about $X$."
+  - id: one
+    label: One variable · the hub
+    sub: a pmf or a density
+    tone: blue
+    box: [20, 135, 240, 115]
+    concept: probability-density-function
+    text: >-
+      Valid if $\ge 0$ and the total is 1 ($\sum p=1$, $\int f=1$). A pmf from an experiment: each value
+      is an event, found with the events map. $f(x)$ is not a probability and can exceed 1.
+  - id: cdf
+    label: Distribution function
+    sub: the mass to the left of x
+    tone: sky
+    box: [380, 135, 205, 100]
+    concept: cumulative-distribution-function
+    text: "$F(x)=P(X\\le x)$, for **every** real $x$: from 0 to 1, never decreasing."
+    easy: many intervals.
+  - id: prob
+    label: A probability
+    sub: of an interval or a region
+    tone: violet
+    box: [715, 135, 230, 100]
+    concept: probability
+    text: "Discrete: a point can carry mass, so $<$ and $\\le$ differ. Continuous: they do not."
+  - id: moments
+    label: Moments
+    sub: weighted by the mass
+    tone: green
+    box: [20, 290, 240, 105]
+    concept: expected-value
+    text: "$E[X]$ is the balance point of the mass. For $g(X)$, weight $g$ by the same mass: no new distribution."
+  - id: musigma
+    label: Mean and variance
+    sub: balance point and spread
+    tone: mint
+    box: [380, 290, 205, 100]
+    concept: variance
+    text: "$\\sigma^2$: the average squared distance from $\\mu$. Must come out $\\ge 0$."
+    easy: "$E[aX+b]=a\\mu+b$, $\\operatorname{Var}(aX+b)=a^2\\sigma^2$."
+  - id: bound
+    label: Chebyshev bound
+    sub: any distribution
+    tone: teal
+    box: [715, 290, 230, 100]
+    concept: chebyshev-inequality
+    text: "$P(|X-\\mu|<k\\sigma)\\ge 1-\\frac{1}{k^2}$: guaranteed, usually far from the exact value."
+  - id: mgf
+    label: "Next: the mgf M(t) (week 7)"
+    tone: amber
+    aux: true
+    box: [20, 425, 240, 60]
+    concept: moment-generating-function
+    text: "not on this midterm."
+  - id: joint
+    label: Joint · the hub
+    sub: a table or a surface
+    tone: navy
+    box: [355, 485, 255, 125]
+    concept: joint-distribution
+    text: >-
+      The mass on the plane. Draw the **support** (where $f>0$) before anything else: every limit comes
+      from the picture.
+    easy: probabilities of regions; the marginals; independence.
+  - id: marginal
+    label: Marginal
+    sub: one axis
+    tone: sky
+    box: [20, 680, 230, 112]
+    concept: joint-distribution
+    text: "The mass squashed onto one axis. No $y$ is left in it, and it comes with its own range."
+  - id: conditional
+    label: Conditional
+    sub: one slice, rescaled
+    tone: violet
+    box: [715, 680, 230, 112]
+    concept: conditional-probability
+    text: "One slice of the joint, rescaled to total 1: exactly $P(A\\mid B)$ with variables."
+
+edges:
+  # ---- one variable
+  - id: normalise
+    n: 1
+    from: cform
+    to: one
+    kind: algorithm
+    cost: linear
+    name: normalise
+    short: total = 1
+    label: [148, 94, 100]
+    path: M140 92 L140 133
+    steps: >-
+      Set the total to 1 and solve for $c$: $c(1+2+5+10)=1$, or $c\int_0^2x(2-x)\,dx=1$. For a joint,
+      $\iint f=1$ over the support. Then check that the result is $\ge 0$ everywhere.
+    when: '"find $c$", "for what value of $k$ is this a density"'
+    trap: integrating over the whole line when $f=0$ outside the support
+  - id: cumulate
+    n: 2
+    from: one
+    to: cdf
+    kind: algorithm
+    cost: linear
+    name: running total
+    short: "$F(x)=\\sum_{t\\le x}p(t)$, $\\int_{-\\infty}^xf$"
+    label: [266, 117, 112]
+    path: M262 166 L378 166
+    steps: >-
+      Discrete: a staircase that jumps by $p(x)$ at each value and is flat between them. Continuous:
+      $F(x)=\int_{-\infty}^xf(t)\,dt$, piece by piece: each piece starts from the mass of the pieces to its
+      left. Write $F$ for every real $x$, with 0 before the support and 1 after it.
+    when: '"find the distribution function"; before several interval probabilities'
+    trap: forgetting the mass of the earlier pieces (check that $F$ is continuous at the joins and $F=1$ at the end)
+  - id: derive
+    n: 3
+    from: cdf
+    to: one
+    kind: algorithm
+    cost: same
+    name: differentiate
+    short: "$f=F'$; or the jumps"
+    label: [266, 224, 112]
+    path: M378 222 L262 222
+    steps: "Continuous: $f(x)=F'(x)$ where $F$ is differentiable. Discrete: $p(x)$ is the size of the jump of $F$ at $x$."
+    when: '"$F$ is given; find the density"'
+    trap: a discrete $F$ is a staircase, so differentiating it gives 0, not the pmf
+  - id: interval
+    n: 4
+    from: cdf
+    to: prob
+    kind: algorithm
+    cost: same
+    name: subtract
+    short: "$F(b)-F(a)$"
+    label: [592, 192, 118]
+    path: M587 186 L713 186
+    steps: "$P(a<X\\le b)=F(b)-F(a)$ and $P(X>a)=1-F(a)$. It includes $b$ and excludes $a$."
+    when: "$F$ is known; several intervals"
+    trap: 'discrete: $P(X<3)\neq P(X\le3)$ when 3 is a value'
+  - id: direct
+    n: 5
+    from: one
+    to: prob
+    kind: algorithm
+    cost: linear
+    name: sum or integrate over A
+    short: "$P(X\\in A)=\\sum_{x\\in A}p(x)$ or $\\int_Af(x)\\,dx$"
+    label: [300, 66, 380, center]
+    path: M250 135 L250 112 L780 112 L780 133
+    steps: >-
+      List the values that qualify and add their lumps, or integrate the density over the interval,
+      splitting at the break points of a piecewise $f$.
+    when: one probability; symmetric densities ($P(X>1)=\tfrac12$ for a density symmetric about 1)
+    trap: a single point has probability 0 for a continuous $X$, so $f(a)$ is not $P(X=a)$
+  - id: given-event
+    n: 6
+    from: prob
+    to: condev
+    kind: algorithm
+    cost: same
+    name: divide
+    short: smaller over larger
+    label: [888, 96, 76]
+    path: M880 135 L880 94
+    steps: >-
+      $P(X>a\mid X>b)=\frac{P(X>a\,\cap\,X>b)}{P(X>b)}=\frac{P(X>a)}{P(X>b)}$ for $a\ge b$, because
+      $\{X>a\}\subseteq\{X>b\}$. The events rule, unchanged.
+    when: '"given that it has lasted $b$ hours"'
+    trap: writing $P(X>a-b)$ out of habit (that is the exponential's memorylessness, not a general rule)
+  - id: weight
+    n: 7
+    from: one
+    to: moments
+    kind: algorithm
+    cost: linear
+    name: weight and add
+    short: "$E[g(X)]=\\sum g\\,p$, $\\int g\\,f$"
+    label: [148, 253, 112]
+    path: M140 250 L140 288
+    steps: >-
+      $E[X]=\sum_xx\,p(x)$ or $\int x f(x)\,dx$; for any $g$, $E[g(X)]=\sum g(x)p(x)$ or
+      $\int g(x)f(x)\,dx$. A density symmetric about $m$ has mean $m$, with no integral.
+    when: '"find the mean", "find $E[X^2]$", "$E[1/X]$"'
+    trap: "$E[X^2]\\neq(E[X])^2$ and $E[1/X]\\neq 1/E[X]$"
+  - id: shortcut
+    n: 8
+    from: moments
+    to: musigma
+    kind: algorithm
+    cost: same
+    name: shortcut
+    short: "$\\sigma^2=E[X^2]-\\mu^2$"
+    label: [266, 298, 112]
+    path: M262 344 L378 344
+    steps: >-
+      $\sigma^2=E[(X-\mu)^2]=E[X^2]-\mu^2$; $\sigma=\sqrt{\sigma^2}$. Linear changes need no new
+      distribution: $E[aX+b]=a\mu+b$, $\operatorname{Var}(aX+b)=a^2\sigma^2$.
+    when: always for the variance; "find $\operatorname{Var}(3X-1)$"
+    trap: the $b$ disappears and $a$ is squared ($\operatorname{Var}(-X)=\operatorname{Var}(X)$); a negative variance is an arithmetic error
+  - id: chebyshev
+    n: 9
+    from: musigma
+    to: bound
+    kind: algorithm
+    cost: same
+    name: "μ ± kσ"
+    short: "$\\ge 1-\\frac{1}{k^2}$"
+    label: [592, 298, 118]
+    path: M587 344 L713 344
+    steps: >-
+      Write the interval as $\mu\pm k\sigma$, then $P(|X-\mu|<k\sigma)\ge 1-\frac{1}{k^2}$. Backwards:
+      solve $1-\frac{1}{k^2}=$ the target for $k$, and the interval is $\mu\pm k\sigma$. At least 75 % of
+      the mass lies within $2\sigma$, at least 89 % within $3\sigma$.
+    when: only $\mu$ and $\sigma$ are known; "at least what probability"
+    trap: the interval must be symmetric about $\mu$; for $k\le1$ the bound says nothing
+  - id: to-mgf
+    n: 10
+    from: moments
+    to: mgf
+    kind: free
+    cost: free
+    name: free, week 7
+    short: "$g(x)=e^{tx}$"
+    label: [148, 397, 112]
+    path: M140 395 L140 423
+    steps: "$M(t)=E[e^{tX}]$ is one more $E[g(X)]$. Its derivatives at 0 are the moments. Not on this midterm."
+    when: week 7
+
+  # ---- two variables: the triangle
+  - id: region
+    n: 11
+    from: joint
+    to: prob
+    kind: algorithm
+    cost: explodes
+    name: sum the cells, or ∫∫ over the region
+    short: "draw the region; inner limits may depend on the outer variable"
+    label: [668, 444, 280, right]
+    path: M612 520 L955 520 L955 185 L947 185
+    steps: >-
+      Discrete: add the cells inside $A$. Continuous: $\iint_Af(x,y)\,dx\,dy$ over the part of $A$ inside
+      the support. Choose the order of integration with the simplest limits:
+      $P(X+Y<1)=\int_0^{1/2}\int_y^{1-y}f\,dx\,dy$ on $0<y<x<1$.
+    when: '"$P(X>Y)$", "$P(X+Y<1)$"'
+    trap: constant limits $\int_0^1\!\int_0^1$ on a support that is not a rectangle
+  - id: integrate-out
+    n: 12
+    from: joint
+    to: marginal
+    kind: algorithm
+    cost: linear
+    name: add or integrate out
+    short: "$f_X(x)=\\int f(x,y)\\,dy$; row sums"
+    label: [140, 592, 170, right]
+    path: M362 610 L252 690
+    steps: >-
+      Discrete: sum a row or a column of the table. Continuous: integrate $y$ over its range **at that
+      $x$** (the vertical slice of the support), then state the range of $x$: $f_X(x)=2x$, $0<x<1$.
+    when: '"find the marginals", and before every conditional'
+    trap: "$\\int_0^1$ for a marginal when the support is a triangle; a $y$ left in $f_X$"
+  - id: independent
+    n: 13
+    from: marginal
+    to: joint
+    kind: condition
+    cost: same
+    name: multiply, if independent
+    short: "$f(x,y)=f_X(x)f_Y(y)$"
+    label: [392, 645, 150]
+    path: M252 730 C 320 730 385 680 400 612
+    steps: >-
+      Only when $X$ and $Y$ are independent, which means exactly this: $p(x,y)=p_X(x)p_Y(y)$ in **every**
+      cell, $f(x,y)=f_X(x)f_Y(y)$ for **all** $x,y$. Otherwise the marginals do not determine the joint.
+    when: '"$X$ and $Y$ are independent with densities …"; or to **test** independence: compute both marginals and compare'
+    trap: 'a support that is not a rectangle ($0<y<x<1$) means dependent at once; one failing cell is enough'
+  - id: divide
+    n: 14
+    from: marginal
+    to: conditional
+    kind: algorithm
+    cost: same
+    name: divide
+    short: "$f(x\\mid y)=\\dfrac{f(x,y)}{f_Y(y)}$: the joint over the given"
+    label: [300, 782, 365, center]
+    path: M252 774 L713 774
+    steps: >-
+      The joint (from the hub) over the marginal of the given variable, for $y$ with $f_Y(y)>0$. It sums or
+      integrates to 1 in $x$. If $X$ and $Y$ are independent, it equals the marginal $f_X$.
+    when: '"the conditional density of $Y$ given $X=x$"'
+    trap: "dividing by the wrong marginal: the given goes underneath"
+  - id: multiply-back
+    n: 15
+    from: conditional
+    to: joint
+    kind: algorithm
+    cost: same
+    name: multiply back
+    short: "$f(x,y)=f_Y(y)f(x\\mid y)$"
+    label: [690, 618, 150]
+    path: M715 700 L605 612
+    steps: "The multiplication rule with variables: the marginal of the first stage times the conditional of the second."
+    when: '"$X$ is uniform on $(0,1)$; given $X=x$, $Y$ is uniform on $(0,x)$": two-stage models'
+    trap: the support of the joint is where both factors are positive
+  - id: marginal-one
+    n: 16
+    from: marginal
+    to: one
+    kind: free
+    cost: free
+    name: free
+    short: a marginal is a one-variable distribution
+    label: [14, 500, 140]
+    path: M18 720 L8 720 L8 192 L18 192
+    steps: "Nothing to do: $f_X$ is a density of one variable, so every arrow of the upper half applies to it."
+    when: '"find $E[X]$" from a joint'
+
+routes:
+  - task: "find c, then F(x)"
+    path: [cform, one, cdf]
+    why: write $F$ for every real $x$, piece by piece
+  - task: "P(a < X ≤ b)"
+    path: [one, cdf, prob]
+    why: or integrate directly (arrow 5) when only one interval is asked
+  - task: "P(X > a | X > b)"
+    path: [one, cdf, prob, condev]
+    why: the smaller event over the larger one
+  - task: "from F to the density"
+    path: [cdf, one]
+    why: differentiate; for a staircase, read the jumps
+  - task: a probability over a region of the plane
+    path: [joint, prob]
+    why: sketch the support and the region, then choose the order with the simplest limits
+  - task: the mean of X, from a joint density
+    path: [joint, marginal, one, moments]
+    why: integrate out $y$ first; the marginal is a density like any other
+  - task: a conditional density
+    path: [joint, marginal, conditional]
+    why: the marginal of the given variable goes underneath
+  - task: are X and Y independent?
+    path: [joint, marginal]
+    why: compute both marginals and compare their product with the joint; a non-rectangular support settles it at once
+  - task: the joint from the marginals
+    path: [marginal, joint]
+    why: only if independent; otherwise the marginals do not determine the joint
+  - task: "the variance of aX + b"
+    path: [one, moments, musigma]
+    why: $a^2\sigma^2$, no new distribution
+  - task: a Chebyshev bound or interval
+    path: [one, moments, musigma, bound]
+    why: write the interval as $\mu\pm k\sigma$
+
+example:
+  title: One joint density around the whole map
+  language: "$f(x,y)=c$ for $0<y<x<1$, and 0 elsewhere"
+  walk:
+    - node: joint
+      text: >-
+        The support is the triangle under the diagonal, with area $\frac12$. A constant density over it
+        must be $c=2$: arrow 1's "total = 1", for a joint.
+    - edge: region
+      text: >-
+        $P(X+Y<1)$: the region is $y<x$ and $x+y<1$, so $y<\frac12$ and $y<x<1-y$. With $y$ outside:
+        $\int_0^{1/2}\int_y^{1-y}2\,dx\,dy=\int_0^{1/2}2(1-2y)\,dy=\frac12$.
+    - edge: integrate-out
+      text: >-
+        At a fixed $x$, $y$ runs from 0 to $x$: $f_X(x)=\int_0^x2\,dy=2x$ for $0<x<1$. At a fixed $y$, $x$
+        runs from $y$ to 1: $f_Y(y)=2(1-y)$ for $0<y<1$.
+    - edge: independent
+      text: >-
+        At $(\frac12,\frac14)$: $f_X f_Y=1\cdot\frac32=\frac32$, but $f=2$. Not independent, as the triangle
+        already said; this arrow cannot be used.
+    - edge: divide
+      text: "$f(y\\mid x)=\\frac{2}{2x}=\\frac1x$ for $0<y<x$: given $X=x$, $Y$ is uniform on $(0,x)$."
+    - edge: multiply-back
+      text: "$f_X(x)\\,f(y\\mid x)=2x\\cdot\\frac1x=2$: the joint again."
+    - edge: marginal-one
+      text: "Now $X$ alone: $f(x)=2x$ on $(0,1)$, a density of one variable."
+    - edge: cumulate
+      text: "$F(x)=0$ for $x<0$, $\\int_0^x2t\\,dt=x^2$ for $0\\le x\\le1$, and 1 for $x>1$."
+    - edge: interval
+      text: "$P(\\frac14<X\\le\\frac12)=F(\\frac12)-F(\\frac14)=\\frac14-\\frac1{16}=\\frac3{16}$."
+    - edge: given-event
+      text: "$P(X>\\frac12\\mid X>\\frac14)=\\frac{1-1/4}{1-1/16}=\\frac{3/4}{15/16}=\\frac45$."
+    - edge: derive
+      text: "Check: $F'(x)=2x$ on $(0,1)$, the density we started from."
+    - edge: weight
+      text: "$E[X]=\\int_0^1x\\cdot2x\\,dx=\\frac23$ and $E[X^2]=\\int_0^1x^2\\cdot2x\\,dx=\\frac12$."
+    - edge: shortcut
+      text: "$\\sigma^2=\\frac12-\\frac49=\\frac1{18}$, $\\sigma\\approx0.236$. And $\\operatorname{Var}(3X+1)=9\\cdot\\frac1{18}=\\frac12$."
+    - edge: chebyshev
+      text: >-
+        $k=2$: $P(|X-\frac23|<2\sigma)\ge\frac34$. The exact value: the interval is $(0.195,\,1.138)$, so
+        $P=1-0.195^2\approx0.962$. The bound holds for every distribution with this $\mu$ and $\sigma$, which
+        is why it is so far below.
