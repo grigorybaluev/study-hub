@@ -1,0 +1,301 @@
+id: probability-of-events
+title: "Events: from the description to any probability"
+description: >-
+  Probability is an amount of mass, 1 in total, spread over the outcomes. Every number about events is
+  one of a few forms of that mass, and every arrow is one operation: multiply, add, divide. The regions are
+  the hub: once you have them, every event in words is a sum of regions. The triangle regions → one event
+  → conditional is the same triangle as joint → marginal → conditional on the random-variables map.
+canvas: [965, 640]
+
+legend:
+  kinds:
+    algorithm: "operation: mechanical; write the rule, then the numbers"
+    design: "modelling: no algorithm; name the events and the cases first"
+    condition: "only if: valid only when the events are independent"
+  costs:
+    same: one product, sum or quotient
+    linear: counting
+    design: needs thought
+
+nodes:
+  - id: words
+    label: The experiment in words
+    tone: grey
+    box: [330, 8, 305, 72]
+    text: >-
+      Name the events first ("$D$ = defective", "$C$ = has the condition"). The given numbers are
+      already some of the forms below.
+  - id: outcomes
+    label: Equally likely outcomes
+    sub: S listed or counted
+    tone: green
+    box: [20, 120, 230, 112]
+    concept: sample-space
+    text: "List $S$ with labelled objects ($R_1, R_2$), or count it with $n!$, $_nP_r$, $\\binom{n}{r}$."
+    easy: "$P(A)=n(A)/n(S)$; draws without replacement as positions."
+  - id: any
+    label: Any event in words
+    sub: or · neither · exactly one · at least one
+    tone: lavender
+    box: [375, 120, 215, 100]
+    concept: event
+    text: a union of regions, so its probability is a sum of regions.
+  - id: tree
+    label: "Tree: cases, then result"
+    sub: the case first, the result second
+    tone: amber
+    box: [715, 120, 230, 112]
+    concept: bayes-theorem
+    text: "First level: the cases $B_1,\\dots,B_k$ (a partition, exactly one happens). Second: $P(A\\mid B_i)$, one set per case."
+    easy: two-stage experiments; screening tests; "which machine?"
+  - id: joint
+    label: Regions · the hub
+    sub: Venn regions, tree leaves
+    tone: blue
+    box: [355, 285, 255, 125]
+    concept: probability
+    text: >-
+      $P(A\cap B)$, $P(A\cap B')$, $P(A'\cap B)$, $P(A'\cap B')$: four numbers that add to 1 (eight for
+      three events; one leaf per branch of a tree).
+    easy: every event in words; checking independence.
+  - id: single
+    label: One event
+    sub: P(A), P(B), P(A or B)
+    tone: sky
+    box: [20, 480, 230, 112]
+    concept: probability
+    text: "a total of regions: $P(A)=P(A\\cap B)+P(A\\cap B')$. The complement is free: $P(A')=1-P(A)$."
+    easy: '"at least one" $=1-P(\text{none})$.'
+  - id: conditional
+    label: Conditional
+    sub: P(A | B)
+    tone: violet
+    box: [715, 480, 230, 112]
+    concept: conditional-probability
+    text: "Zoom into $B$: only the part of $A$ inside $B$ survives, measured as a fraction of $B$."
+    easy: "$P(A'\\mid B)=1-P(A\\mid B)$: a conditional is a probability."
+
+edges:
+  # ---- modelling: from the words
+  - id: model-outcomes
+    n: D
+    from: words
+    to: outcomes
+    kind: design
+    cost: design
+    name: list or count S
+    short: does order matter? with or without replacement?
+    label: [140, 50, 180]
+    path: M330 40 L135 40 L135 118
+    steps: >-
+      Decide whether order matters and whether the draws are with replacement. Small experiments: list
+      $S$, labelling objects that look alike ($R_1, R_2$) so the outcomes are equally likely. Large ones:
+      count with the multiplication principle, $_nP_r=\frac{n!}{(n-r)!}$ (ordered) or
+      $\binom{n}{r}=\frac{n!}{r!(n-r)!}$ (unordered), the same way above and below the fraction line.
+    when: '"at random", "equally likely", cards, dice, committees, draws from an urn'
+    trap: unlabelled objects make outcomes that look equally likely but are not ("mixed" is 4 of the 6 pairs from $R_1R_2B_1B_2$)
+  - id: model-tree
+    n: D
+    from: words
+    to: tree
+    kind: design
+    cost: design
+    name: name the cases
+    short: what is the case (cause), what is the result?
+    label: [645, 50, 180, right]
+    path: M635 40 L830 40 L830 118
+    steps: >-
+      The cases are what happens first or what you cannot see (machine, urn, status); they must
+      partition $S$. The result is what is observed. Write $P(B_i)$ on the first branches and
+      $P(A\mid B_i)$ on the second.
+    when: the probability of the result depends on which case you are in
+    trap: in two stages (move a ball, then draw), the second stage changes with the case
+  - id: model-events
+    n: D
+    from: words
+    to: single
+    kind: design
+    cost: design
+    name: name the events
+    short: read the given numbers
+    label: [14, 250, 112]
+    path: M330 22 L8 22 L8 536 L18 536
+    steps: >-
+      Give each event a letter and translate every sentence: "60 % read A" is $P(A)=0.6$; "30 % read
+      both" is $P(A\cap B)=0.3$; "given it is defective" is a conditional.
+    when: the problem hands you percentages
+    trap: '"$A$ or $B$" is inclusive: it includes both'
+
+  # ---- into the hub
+  - id: count
+    n: 1
+    from: outcomes
+    to: single
+    kind: algorithm
+    cost: linear
+    name: count
+    short: "$P(A)=\\dfrac{n(A)}{n(S)}$"
+    label: [143, 330, 100]
+    path: M135 232 L135 478
+    steps: >-
+      Count the outcomes in $A$ the same way you counted $S$. Sequential draws can instead be a chain of
+      fractions ($\frac{10}{49}\cdot\frac{9}{48}$), and "where is the last defective" can be counted as
+      positions.
+    when: equally likely outcomes
+    trap: ordered counting on top with unordered counting below
+  - id: branches
+    n: 2
+    from: tree
+    to: joint
+    kind: algorithm
+    cost: same
+    name: multiply along branches
+    short: "leaf $=P(B_i)\\,P(A\\mid B_i)$"
+    label: [712, 245, 230]
+    path: M715 222 L612 300
+    steps: >-
+      Each leaf is a region: $P(B_i\cap A)=P(B_i)P(A\mid B_i)$, the product along its branch. The leaves
+      add to 1, which is a check.
+    when: a tree is drawn
+    trap: multiplying across branches instead of along one
+  - id: addition
+    n: 3
+    from: joint
+    to: single
+    kind: algorithm
+    cost: same
+    both: true
+    name: addition rule
+    short: "add regions; or, with one overlap, subtract outwards"
+    label: [145, 392, 165, right]
+    path: M362 410 L252 490
+    steps: >-
+      **Down:** an event is a total of regions, $P(A)=P(A\cap B)+P(A\cap B')$; over a tree's leaves this is
+      **total probability**, $P(A)=\sum_iP(B_i)P(A\mid B_i)$. **Up:** given $P(A)$, $P(B)$ and one of
+      $P(A\cap B)$, $P(A\cup B)$, fill the regions from the inside out:
+      $P(A\cup B)=P(A)+P(B)-P(A\cap B)$, only $A$ $=P(A)-P(A\cap B)$, neither $=1-P(A\cup B)$. Three
+      events: $+$ singles $-$ pairs $+$ triple, centre first.
+    when: '"or", "neither", "only", total probability'
+    trap: '"only $A$" with three events subtracts both pair overlaps and adds the triple back'
+  - id: independent
+    n: 4
+    from: single
+    to: joint
+    kind: condition
+    cost: same
+    name: multiply, if independent
+    short: "$P(A\\cap B)=P(A)P(B)$"
+    label: [392, 445, 150]
+    path: M252 530 C 320 530 385 480 400 412
+    steps: >-
+      Only when $A$ and $B$ are independent: $P(A\cap B)=P(A)P(B)$, and then also $A, B'$ and $A', B'$.
+      Independent trials multiply: $P(\text{hit, miss, miss})=p(1-p)^2$; "in any order" multiplies by the
+      number of orders, $\binom{3}{1}p(1-p)^2$; "at least one in $n$" is $1-(1-p)^n$.
+    when: independent trials (tosses, shots, components); or to **test** independence, compare $P(A\cap B)$ with $P(A)P(B)$
+    trap: mutually exclusive events (with positive probabilities) are never independent; three events need every sub-collection to multiply
+  - id: zoom
+    n: 5
+    from: single
+    to: conditional
+    kind: algorithm
+    cost: same
+    name: divide
+    short: "$P(A\\mid B)=\\dfrac{P(A\\cap B)}{P(B)}$: the joint over the given"
+    label: [300, 584, 365, center]
+    path: M252 574 L713 574
+    steps: >-
+      The region $A\cap B$ (from the hub) over the given event's probability $P(B)$ (from this node).
+      **Bayes** is this division after a tree: $P(B_r\mid A)=\frac{P(B_r)P(A\mid B_r)}{\sum_iP(B_i)P(A\mid B_i)}$,
+      one leaf over the total.
+    when: '"given", "if it is known that", "what fraction of the defectives"'
+    trap: '$P(A\mid B)\neq P(B\mid A)$: the given goes underneath'
+  - id: chain
+    n: 6
+    from: conditional
+    to: joint
+    kind: algorithm
+    cost: same
+    name: multiply back
+    short: "$P(A\\cap B)=P(B)P(A\\mid B)$; chains"
+    label: [690, 418, 150]
+    path: M715 500 L605 412
+    steps: >-
+      The multiplication rule reads the division backwards: $P(A\cap B)=P(B)P(A\mid B)$, and for three,
+      $P(A\cap B\cap C)=P(A)P(B\mid A)P(C\mid A\cap B)$. This is how draws without replacement are
+      computed: $\frac{4}{10}\cdot\frac{3}{9}\cdot\frac{6}{8}$.
+    when: sequential draws, "the first two are red"
+    trap: after each draw the counts change (49 cards, 10 hearts left)
+  - id: regions-any
+    n: 7
+    from: joint
+    to: any
+    kind: algorithm
+    cost: same
+    name: add the regions
+    label: [490, 232, 115]
+    path: M482 285 L482 222
+    steps: >-
+      Translate the words into regions and add: exactly one $=P(A\cap B')+P(A'\cap B)=P(A\cup B)-P(A\cap B)$;
+      at least one does not happen $=1-P(A\cap B)$; neither $=P(A'\cap B')$.
+    when: every question in words, once the regions are known
+    trap: '"at least one does not" is $1-P(\text{both})$, not $1-P(\text{at least one})$'
+
+routes:
+  - task: '"or", "neither", "exactly one" from given numbers'
+    path: [single, joint, any]
+    why: fill the regions from the inside out, then add the ones the words ask for
+  - task: equally likely outcomes
+    path: [words, outcomes, single]
+    why: label the objects, then count the same way above and below
+  - task: total probability (the result depends on a case)
+    path: [words, tree, joint, single]
+    why: multiply along each branch, add the branches that end in the result
+  - task: "Bayes: given the result, which case?"
+    path: [words, tree, joint, single, conditional]
+    why: one leaf over the total; the posteriors add to 1
+  - task: draws without replacement
+    path: [conditional, joint]
+    why: a chain of conditional fractions; or count with combinations, which is a free check
+  - task: independent trials, "at least one"
+    path: [single, joint, any]
+    why: multiply (arrow 4), times $\binom{n}{k}$ for any order; at least one $=1-(1-p)^n$
+  - task: are A and B independent?
+    path: [single, joint]
+    why: get $P(A\cap B)$ (often from the addition rule) and compare it with $P(A)P(B)$
+  - task: "P(A | B) from given numbers"
+    path: [joint, single, conditional]
+    why: the region $A\cap B$ over $P(B)$
+
+example:
+  title: A screening test around the map
+  language: "1 % have the condition $C$; the test is positive for 95 % of them and for 4 % of the others."
+  walk:
+    - node: words
+      text: >-
+        Events: $C$ = has the condition, $+$ = tests positive. Given: $P(C)=0.01$, $P(+\mid C)=0.95$,
+        $P(+\mid C')=0.04$. Asked: $P(C\mid +)$. The given numbers are a case and a result, so draw a tree.
+    - edge: model-tree
+      text: "First level: $C$ (0.01) and $C'$ (0.99). Second level: $+$ with 0.95 after $C$, and with 0.04 after $C'$."
+    - edge: branches
+      text: >-
+        The four leaves are the regions: $P(C\cap +)=0.0095$, $P(C\cap -)=0.0005$, $P(C'\cap +)=0.0396$,
+        $P(C'\cap -)=0.9504$. They add to 1.
+    - edge: addition
+      text: "Total probability: $P(+)=0.0095+0.0396=0.0491$, the two leaves that end in $+$."
+    - edge: zoom
+      text: >-
+        Bayes: $P(C\mid +)=\frac{0.0095}{0.0491}\approx 0.193$. Only about one positive in five has the
+        condition: the 4 % false positives among the 99 % healthy outnumber the true positives four to one.
+    - edge: independent
+      text: >-
+        Arrow 4 cannot be used here: $P(C)P(+)=0.01\times0.0491=0.00049$, but the region $C\cap +$ is
+        $0.0095$. $C$ and $+$ are dependent, which is the whole point of a test.
+    - edge: regions-any
+      text: >-
+        A wrong result is exactly one of $C$, $+$: $P(C\cap -)+P(C'\cap +)=0.0005+0.0396=0.0401$.
+    - edge: model-outcomes
+      text: >-
+        The same as counts: picture 10 000 people. 100 have $C$ and 95 of them test positive; 9 900 do not
+        and 396 of them test positive. Of the 491 positives, 95 have $C$: $\frac{95}{491}\approx 0.193$.
+    - edge: chain
+      text: "Back up: $P(+)P(C\\mid +)=0.0491\\times\\frac{95}{491}=0.0095$, the leaf we started from."
