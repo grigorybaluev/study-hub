@@ -21,7 +21,10 @@ const KIND_LABEL: Record<MapEdge["kind"], string> = {
   reversal: "reversal route: works on the reversed language",
   design: "design: no algorithm; say what each state or block means",
   free: "free: the object already is one of those",
+  condition: "condition: valid only when its condition holds",
 };
+const KINDS = ["algorithm", "reversal", "design", "condition", "free"] as const;
+const costLabel = (map: ConversionMap, c: MapEdge["cost"]) => map.legend.costs[c] ?? COST_LABEL[c];
 
 
 function useWidth(ref: React.RefObject<HTMLElement>): number {
@@ -90,7 +93,7 @@ export default function ConversionMapView({ map }: { map: ConversionMap }) {
           <div className={`cmap-canvas${focus ? " focus" : ""}`} style={{ width: W, height: H, transform: `scale(${k})` }}>
             <svg className="cmap-edges" viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
               <defs>
-                {(["algorithm", "reversal", "design", "free"] as const).map((kind) => (
+                {KINDS.map((kind) => (
                   <marker key={kind} id={`cm-${map.id}-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                     <path d="M0 0 L10 5 L0 10 z" className={`cmap-head ${kind}`} />
                   </marker>
@@ -133,8 +136,8 @@ export default function ConversionMapView({ map }: { map: ConversionMap }) {
 
       {wide && (
         <div className="cmap-legend">
-          {(["algorithm", "reversal", "design", "free"] as const).filter((kind) => map.edges.some((e) => e.kind === kind)).map((kind) => (
-            <span key={kind}><svg width="30" height="8"><path d="M1 4 H27" className={`cmap-legend-line ${kind}`} /></svg>{KIND_LABEL[kind]}</span>
+          {KINDS.filter((kind) => map.edges.some((e) => e.kind === kind)).map((kind) => (
+            <span key={kind}><svg width="30" height="8"><path d="M1 4 H27" className={`cmap-legend-line ${kind}`} /></svg>{map.legend.kinds[kind] ?? KIND_LABEL[kind]}</span>
           ))}
         </div>
       )}
@@ -186,7 +189,7 @@ function RouteFinder({ map, from, to, task, route, onFrom, onTo, onTask, onEdge 
             {route.map((h) => (
               <li key={h.edge.id + h.from}>
                 <button onClick={() => onEdge(h.edge.id)}><span className={`cmap-badge ${h.edge.kind}`}>{h.edge.n}</span> <b>{h.edge.name}</b></button>
-                <span className="small muted"> {label(h.from)} → {label(h.to)} · {COST_LABEL[h.edge.cost]}</span>
+                <span className="small muted"> {label(h.from)} → {label(h.to)} · {costLabel(map, h.edge.cost)}</span>
               </li>
             ))}
           </ol>
@@ -204,7 +207,7 @@ function EdgeCard({ map, e, onClose }: { map: ConversionMap; e: MapEdge; onClose
       <div className="cmap-card-head">
         <span className={`cmap-badge ${e.kind}`}>{e.n}</span>
         <b>{e.name}</b>
-        <span className="small muted">{label(e.from)} {e.both ? "↔" : "→"} {label(e.to)} · {COST_LABEL[e.cost]}</span>
+        <span className="small muted">{label(e.from)} {e.both ? "↔" : "→"} {label(e.to)} · {costLabel(map, e.cost)}</span>
         {onClose && <button className="cmap-close" onClick={onClose} aria-label="Close">✕</button>}
       </div>
       <dl>

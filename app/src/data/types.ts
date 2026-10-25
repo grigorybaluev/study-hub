@@ -178,7 +178,7 @@ export interface MapEdge {
   n: string;
   from: string;
   to: string;
-  kind: "algorithm" | "reversal" | "design" | "free";
+  kind: "algorithm" | "reversal" | "design" | "free" | "condition";
   cost: "free" | "same" | "shrinks" | "linear" | "design" | "explodes";
   /** the method runs both ways (drawn double-headed) */
   both: boolean;
@@ -221,6 +221,8 @@ export interface ConversionMap {
   edges: MapEdge[];
   routes: MapRoute[];
   example: { title: string; language?: string; walk: MapExampleStep[] } | null;
+  /** the map's own wording for the legend of its kinds and the cost of its arrows (#269); absent keys keep the defaults */
+  legend: { kinds: Partial<Record<MapEdge["kind"], string>>; costs: Partial<Record<MapEdge["cost"], string>> };
 }
 
 export type PrepSection = "overview" | "types" | "table" | "map" | "plan";

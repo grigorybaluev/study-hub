@@ -37,7 +37,7 @@ STRENGTH = {"hard", "soft"}
 ROADMAP_AREA_ROLES = {"target", "foundation", "practice"}
 METHOD_NODE_KINDS = {"decision", "method", "end"}  # content/methods/<id>.yaml graphs (#91)
 # content/maps/<id>.yaml (#255): representations and the methods between them
-MAP_EDGE_KINDS = {"algorithm", "reversal", "design", "free"}
+MAP_EDGE_KINDS = {"algorithm", "reversal", "design", "free", "condition"}   # condition: valid only under a condition (#269)
 MAP_COSTS = {"free": 0, "same": 1, "shrinks": 1, "linear": 2, "design": 3, "explodes": 6}   # route-finder weights
 TONES = {"blue", "navy", "sky", "violet", "lavender", "green", "mint", "teal", "forest", "grey", "amber"}   # map and table colours
 SEASONS = ("fall", "winter", "summer")  # ordered: index within a year
