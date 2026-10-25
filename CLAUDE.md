@@ -183,10 +183,12 @@ Exam preps (#262)
   nothing personal (the site is public).
 - `content/maps/<id>.yaml` is global, like `methods/`: `canvas: [w, h]`; nodes with `box: [x, y, w, h]`,
   a `tone` (schema.py TONES), `concept`, `text`, `easy`, `aux` (dashed); edges with `n` (shown number),
-  `kind` (algorithm | reversal | design | free), `cost` (free | same | shrinks | linear | design | explodes,
-  the route finder's weights), `name`, `short`, `steps`, `size`, `when`, `trap`, optional `both`, `label:
-  [x, y, w, align]` and SVG `path`; `routes` (`task`, node `path` along edges, `why`); an optional `example`
-  walked node by node or edge by edge. graph.json carries maps and preps; `npm run data` moves each prep
+  `kind` (algorithm | reversal | design | free | condition, the last valid only under a condition), `cost`
+  (free | same | shrinks | linear | design | explodes, the route finder's weights), `name`, `short`, `steps`,
+  `size`, `when`, `trap`, optional `both`, `label: [x, y, w, align]` and SVG `path`; `routes` (`task`, node
+  `path` along edges, `why`); an optional `example` walked node by node or edge by edge; an optional
+  `legend: {kinds: {kind: text}, costs: {cost: text}}` puts the map's own words in place of the default
+  legend and cost labels (#269). graph.json carries maps and preps; `npm run data` moves each prep
   to `data/prep/<uni>/<CODE>/<exam>.json` and leaves an index entry.
 
 ## Workflow

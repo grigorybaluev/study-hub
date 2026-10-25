@@ -504,6 +504,15 @@ def lint_maps(c: Content, rep: Report):
             for a, b in zip(path, path[1:]):
                 if (a, b) not in pairs:
                     rep.error(where, f"route {i} ({r['task']}): no edge {a!r} -> {b!r}")
+        legend = g.get("legend")
+        if legend is not None:
+            if not isinstance(legend, dict) or set(legend) - {"kinds", "costs"}:
+                rep.error(where, "`legend` must be a mapping with `kinds` and/or `costs`")
+            else:
+                for key, allowed in (("kinds", MAP_EDGE_KINDS), ("costs", MAP_COSTS)):
+                    labels = legend.get(key) or {}
+                    if not isinstance(labels, dict) or any(k not in allowed or not _md(v) for k, v in labels.items()):
+                        rep.error(where, f"legend.{key}: each key must be one of {sorted(allowed)}, each value text")
         ex = g.get("example")
         if ex is not None:
             walk = ex.get("walk") if isinstance(ex, dict) else None

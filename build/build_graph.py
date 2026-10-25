@@ -158,6 +158,7 @@ def build(c: Content) -> dict:
                        "when": e["when"], "trap": e.get("trap")} for e in g["edges"]],
             "routes": [{"task": r["task"], "path": r["path"], "why": r.get("why")} for r in g.get("routes") or []],
             "example": g.get("example"),
+            "legend": {"kinds": (g.get("legend") or {}).get("kinds") or {}, "costs": (g.get("legend") or {}).get("costs") or {}},
         })
 
     # ---- preps (#255): one study guide per exam; data.mjs moves the bodies to a file per prep
