@@ -1,0 +1,69 @@
+# Study guide for the MAST 221 midterm (#270): weeks 1-6, events, random variables, joint
+# distributions, expectation up to Chebyshev.
+exam: Midterm
+summary: >-
+  Probability is an amount of mass, 1 in total, spread over the outcomes. Weeks 1–2 move that mass
+  between events: add the pieces, take the complement, zoom into a smaller world, split by cases. Weeks
+  3–6 put the mass on numbers, as lumps (sum) or a smear (integrate), on a line or on a plane, and
+  summarise it by its mean, its spread and Chebyshev's bound.
+format: >-
+  Wednesday 28 October, in class, 75 minutes; closed book, approved calculator. Weeks 1–6: events and
+  counting, conditional probability and Bayes, discrete and continuous random variables, joint
+  distributions, expectation and variance up to Chebyshev's theorem. Moment-generating functions (week 7)
+  are not on it. 20 % of the grade, or 10 % when that is better for the student. Written answers: the set-up and the
+  rule earn marks, not only the number.
+maps: [probability-of-events, random-variable-forms]
+types_intro: |
+  Eight types of problem. For each: the reasoning, the steps, the traps, and worked problems with
+  "pattern at work". Expect five or six problems: one or two from events (very likely a tree and Bayes), a
+  density with a constant and a distribution function, a joint density, and a mean or variance.
+
+  :::insight[The one idea behind all eight types]
+  **Probability is mass with total 1.** Events move that mass around (add the pieces, take the complement,
+  zoom into $B$, split by cases). Random variables put it on numbers: lumps (sum) or a smear (integrate),
+  on a line or on a plane. Every question is "which mass, divided by which mass?"
+  :::
+
+  :::steps[How to write every answer]
+  1. Name the events or the variables ("$D$ = defective", "$X$ = number of tests"). In weeks 1–2, half
+     the marks are for the set-up.
+  2. Write the rule before the numbers: $P(A\cup B)=P(A)+P(B)-P(A\cap B)$, or $f_X(x)=\int f(x,y)\,dy$.
+  3. State the range of every density, marginal and $F$: "for $0<x<1$; 0 elsewhere". A piecewise answer
+     without its pieces is incomplete.
+  4. Sanity check: probabilities in $[0,1]$, totals equal to 1, a variance $\ge 0$, $F$ going from 0 to 1.
+  :::
+plan:
+  - id: definitions
+    title: Formulas to know cold
+    items:
+      - "$P(A')=1-P(A)$; $P(A\\cup B)=P(A)+P(B)-P(A\\cap B)$; three events: $+$ singles $-$ pairs $+$ triple"
+      - "$P(A\\mid B)=\\frac{P(A\\cap B)}{P(B)}$; $P(A\\cap B)=P(A)P(B\\mid A)$; independence $P(A\\cap B)=P(A)P(B)$"
+      - "total probability $P(A)=\\sum_iP(B_i)P(A\\mid B_i)$; Bayes $P(B_r\\mid A)=\\frac{P(B_r)P(A\\mid B_r)}{P(A)}$"
+      - "$\\binom{n}{r}=\\frac{n!}{r!(n-r)!}$, $_nP_r=\\frac{n!}{(n-r)!}$"
+      - "$\\sum p=1$, $\\int f=1$; $F(x)=P(X\\le x)$; $f=F'$; $P(a<X\\le b)=F(b)-F(a)$"
+      - "$f_X=\\int f\\,dy$; independent iff $f=f_Xf_Y$ everywhere; $f(x\\mid y)=f(x,y)/f_Y(y)$"
+      - "$E[g(X)]=\\sum g\\,p$ or $\\int g\\,f$; $\\sigma^2=E[X^2]-\\mu^2$; $\\operatorname{Var}(aX+b)=a^2\\sigma^2$"
+      - "Chebyshev: $P(|X-\\mu|<k\\sigma)\\ge1-1/k^2$"
+  - id: traps
+    title: The ten traps, one line each
+    items:
+      - Label identical objects so that the outcomes are equally likely.
+      - '"At least one does not" $=1-P(\text{both})$.'
+      - '"Exactly one" $=P(A\cup B)-P(A\cap B)$.'
+      - Mutually exclusive (with positive probabilities) means dependent.
+      - "Bayes: the given is the result; the answer is one leaf over the total."
+      - "Discrete: $<$ and $\\le$ differ; continuous: they do not."
+      - "Piecewise $F$: add the earlier mass; check continuity and $F=1$ at the end."
+      - "Joint: draw the support; the limits may depend on the other variable."
+      - A support that is not a rectangle means not independent.
+      - "$E[X^2]\\neq\\mu^2$; Chebyshev needs $\\mu\\pm k\\sigma$ with $k>1$."
+  - id: evening
+    title: If you have one evening
+    items:
+      - "Redo [Three newspapers](/prep/MAST221/midterm/types/rules-of-probability) from the centre outwards."
+      - "Redo [A screening test, and a two-stage urn](/prep/MAST221/midterm/types/total-probability-bayes) with a tree."
+      - "Redo [A piecewise density](/prep/MAST221/midterm/types/continuous-random-variables): $F$ for every real $x$."
+      - "Redo [On the unit square](/prep/MAST221/midterm/types/joint-distributions) and [On a triangle](/prep/MAST221/midterm/types/joint-distributions): sketch first."
+      - "Redo [Discrete and continuous](/prep/MAST221/midterm/types/expectation-chebyshev) and both Chebyshev directions."
+      - "Walk both [maps](/prep/MAST221/midterm/map) once, then answer three of their questions from memory."
+      - "Clear the exam's review deck."
