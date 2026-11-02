@@ -1,0 +1,446 @@
+id: lines-and-planes
+title: "Lines, planes and surfaces in space"
+description: >-
+  Everything in the top half is built from two kinds of vector: a direction (along a line) and a normal
+  (across a plane). A line is a point and a direction, a plane is a point and a normal, and the cross product
+  turns two of one kind into one of the other. Every question about meeting, distance or angle reduces to
+  substituting, a dot product or a cross product. The bottom half reads a quadratic equation in x, y, z as a
+  surface: complete the squares, read the signs, slice to check.
+canvas: [965, 960]
+
+legend:
+  kinds:
+    algorithm: "operation: mechanical; write the formula, then compute"
+    free: "free: it already is one"
+  costs:
+    same: one subtraction, product or substitution
+    linear: one small system to solve
+
+nodes:
+  - id: points
+    label: Points
+    sub: the data you are given
+    tone: grey
+    box: [365, 20, 235, 95]
+    concept: vector
+    text: "$P$, $Q$, $R$: three points not on one line fix a plane; two fix a line."
+  - id: direction
+    label: Direction vector
+    sub: along a line
+    tone: blue
+    box: [20, 175, 230, 100]
+    concept: vector
+    text: "$\\mathbf v$: any non-zero multiple works. Two lines are parallel when their directions are."
+  - id: normal
+    label: Normal vector
+    sub: across a plane
+    tone: violet
+    box: [715, 175, 230, 100]
+    concept: cross-product
+    text: "$\\mathbf n$, perpendicular to every vector in the plane. Two planes are parallel when their normals are."
+  - id: line
+    label: Line
+    sub: a point and a direction
+    tone: navy
+    box: [20, 345, 230, 110]
+    concept: line-and-plane-equations
+    text: >-
+      $\mathbf r=\mathbf r_0+t\mathbf v$; parametric $x=x_0+at$, …; symmetric
+      $\frac{x-x_0}a=\frac{y-y_0}b=\frac{z-z_0}c$.
+  - id: plane
+    label: Plane
+    sub: a point and a normal
+    tone: navy
+    box: [715, 345, 230, 110]
+    concept: line-and-plane-equations
+    text: "$a(x-x_0)+b(y-y_0)+c(z-z_0)=0$, that is $ax+by+cz=d$ with $\\mathbf n=\\langle a,b,c\\rangle$."
+  - id: position
+    label: Relative position
+    sub: of two lines
+    tone: sky
+    box: [20, 520, 230, 100]
+    concept: line-and-plane-equations
+    text: "Parallel, identical, intersecting or **skew** (not parallel and never meeting: only in space)."
+  - id: meet
+    label: Intersection point
+    sub: where they meet
+    tone: lavender
+    box: [365, 520, 235, 95]
+    concept: line-and-plane-equations
+    text: "A line and a plane meet in one point, in none (parallel) or in every point (the line lies in it)."
+  - id: number
+    label: A number
+    sub: distance, angle, area
+    tone: green
+    box: [715, 520, 230, 100]
+    concept: dot-product
+    text: "Distances come from projections onto a normal; angles from a dot product; areas from a cross product."
+  - id: quadratic
+    label: Quadratic equation
+    sub: in x, y and z
+    tone: grey
+    box: [20, 720, 230, 95]
+    concept: quadric-surface
+    text: "Squares, perhaps a linear term in one variable, no products like $xy$."
+  - id: standard
+    label: Standard form
+    sub: squares completed
+    tone: amber
+    box: [365, 720, 235, 95]
+    concept: quadric-surface
+    text: "Right side 1 (or 0), or one variable alone on one side: $\\frac{x^2}{a^2}\\pm\\frac{y^2}{b^2}\\pm\\frac{z^2}{c^2}=1$."
+  - id: surface
+    label: Surface
+    sub: its type and its axis
+    tone: teal
+    box: [715, 720, 230, 95]
+    concept: quadric-surface
+    text: "Ellipsoid (sphere), hyperboloid of one or two sheets, cone, elliptic or hyperbolic paraboloid, cylinder."
+  - id: traces
+    label: Traces
+    sub: slices by planes
+    tone: mint
+    box: [365, 860, 235, 85]
+    concept: quadric-surface
+    text: "Set $x=k$, $y=k$ or $z=k$: each slice is a conic in the other two variables."
+
+edges:
+  - id: subtract
+    n: 1
+    from: points
+    to: direction
+    kind: algorithm
+    cost: same
+    name: subtract
+    short: "$\\overrightarrow{PQ}=Q-P$"
+    label: [20, 128, 190, right]
+    path: M380 117 L190 173
+    steps: "The vector from $P$ to $Q$ is $Q-P$, coordinate by coordinate. Two points give the direction of the line through them; three give two directions in their plane."
+    when: '"the line through $P$ and $Q$", "the plane through $P$, $Q$, $R$"'
+    trap: $P-Q$ is fine too (the opposite direction); mixing the order between coordinates is not
+  - id: cross
+    n: 2
+    from: direction
+    to: normal
+    both: true
+    kind: algorithm
+    cost: same
+    name: cross product
+    short: "two directions → a normal; two normals → a direction"
+    label: [330, 196, 305, center]
+    path: M252 225 L713 225
+    steps: >-
+      $\mathbf u\times\mathbf v$ is perpendicular to both. Two directions in a plane
+      ($\overrightarrow{PQ}\times\overrightarrow{PR}$) give its normal. Two normals give the direction of
+      the line where the planes meet ($\mathbf n_1\times\mathbf n_2$): it lies in both planes, so it is
+      perpendicular to both normals.
+    size: "$\\langle u_2v_3-u_3v_2,\\;u_3v_1-u_1v_3,\\;u_1v_2-u_2v_1\\rangle$; check with two dot products, both 0"
+    when: '"the plane through three points", "the line of intersection of two planes", "perpendicular to both"'
+    trap: the middle component's sign; a zero result means the vectors were parallel (the points are on one line)
+  - id: point-direction
+    n: 3
+    from: direction
+    to: line
+    both: true
+    kind: algorithm
+    cost: same
+    name: attach a point ↔ read v
+    short: "$\\mathbf r_0+t\\mathbf v$; v = the t-coefficients"
+    label: [145, 292, 165]
+    path: M135 277 L135 343
+    steps: >-
+      **Build**: any point of the line and its direction, $\mathbf r=\mathbf r_0+t\mathbf v$. A line
+      parallel to another borrows its direction. **Read**: the coefficients of $t$ are the direction, the
+      constants (at $t=0$) a point; in symmetric form, the denominators are the direction.
+    when: '"the line through ... parallel to ...", "the line through $P$ and $Q$"'
+    trap: "symmetric form $\\frac{x-1}{2}=\\frac{y+3}{-1}=z$ has the point $(1,-3,0)$ and the direction $\\langle2,-1,1\\rangle$: the signs flip"
+  - id: point-normal
+    n: 4
+    from: normal
+    to: plane
+    both: true
+    kind: algorithm
+    cost: same
+    name: attach a point ↔ read n
+    short: "$\\mathbf n\\cdot(\\mathbf r-\\mathbf r_0)=0$; n = the coefficients"
+    label: [600, 292, 220, right]
+    path: M830 277 L830 343
+    steps: >-
+      **Build**: $a(x-x_0)+b(y-y_0)+c(z-z_0)=0$, then expand to $ax+by+cz=d$. A plane parallel to another
+      borrows its normal (only $d$ changes). **Read**: the coefficients of $x$, $y$, $z$ are the normal.
+      Scale the equation when the answer must have a given coefficient.
+    when: '"the plane through $P$ with normal ...", "parallel to the plane ...", "scaled so that $x$ has a given coefficient"'
+    trap: the constant $d$ is not part of the normal; check the given point satisfies the final equation
+  - id: perpendicular
+    n: 5
+    from: line
+    to: plane
+    both: true
+    kind: free
+    cost: free
+    name: perpendicular
+    short: "a line ⊥ a plane: its direction is the normal"
+    label: [330, 371, 305, center]
+    path: M252 400 L713 400
+    steps: >-
+      A line perpendicular to a plane has $\mathbf v=\mathbf n$, and a plane perpendicular (orthogonal) to a
+      line has $\mathbf n=\mathbf v$. Nothing to compute: copy the vector, then attach a point.
+    when: '"the plane through $P$ orthogonal to the line ...", "the line through $P$ perpendicular to the plane ..."'
+    trap: a line *parallel* to a plane has $\mathbf v\cdot\mathbf n=0$, the opposite situation
+  - id: substitute
+    n: 6
+    from: line
+    to: meet
+    kind: algorithm
+    cost: same
+    name: substitute
+    short: "into the plane; solve for $t$"
+    label: [300, 420, 150]
+    path: M252 440 L380 518
+    steps: >-
+      Put $x(t)$, $y(t)$, $z(t)$ into $ax+by+cz=d$: one linear equation in $t$. Its solution, put back into
+      the line, is the point. If $t$ cancels: a false statement means parallel and apart, a true one means
+      the line lies in the plane.
+    when: '"where does the line meet the plane"'
+    trap: answering with $t$ instead of the point
+  - id: intercepts
+    n: 7
+    from: plane
+    to: meet
+    kind: algorithm
+    cost: same
+    name: intercepts
+    short: "two coordinates 0, solve for the third"
+    label: [515, 420, 150, right]
+    path: M713 440 L585 518
+    steps: >-
+      The axes are lines, so this is arrow 6 three times: $y=z=0$ gives the $x$-intercept, and so on. A
+      missing variable means the plane is parallel to that axis: no intercept on it. Three intercepts sketch
+      the plane as a triangle.
+    when: '"find the intercepts", "sketch the plane"'
+    trap: "$3x+y+6z=12$ has $x$-intercept $(4,0,0)$, a point, not the number 4"
+  - id: compare
+    n: 8
+    from: line
+    to: position
+    kind: algorithm
+    cost: linear
+    name: compare
+    short: "directions, then solve"
+    label: [145, 470, 105]
+    path: M135 457 L135 518
+    steps: >-
+      1. Are the directions multiples? Then the lines are parallel, or identical if a point of one lies on the
+      other. 2. If not, use different parameters ($t$ and $s$), set two coordinates equal and solve; the third
+      coordinate decides: it agrees, so they intersect (at that point), or it does not, so they are skew.
+    when: '"intersect, parallel, skew or identical?"'
+    trap: one parameter for both lines; stopping before checking the third coordinate
+  - id: distance
+    n: 9
+    from: plane
+    to: number
+    kind: algorithm
+    cost: same
+    name: point to plane
+    short: "$\\frac{|ax_0+by_0+cz_0-d|}{|\\mathbf n|}$"
+    label: [840, 466, 110]
+    path: M830 457 L830 518
+    steps: >-
+      $D=\frac{|ax_0+by_0+cz_0-d|}{\sqrt{a^2+b^2+c^2}}$ for $(x_0,y_0,z_0)$ and $ax+by+cz=d$. Between two
+      parallel planes: a point of one, the equation of the other (with the same normal).
+    when: '"the distance from the point to the plane", "between the parallel planes"'
+    trap: "move $d$ to the left first: the formula uses $ax+by+cz-d$"
+  - id: angle-area
+    n: 10
+    from: normal
+    to: number
+    kind: algorithm
+    cost: same
+    name: angle, area
+    short: "$\\cos\\theta=\\frac{|\\mathbf n_1\\cdot\\mathbf n_2|}{|\\mathbf n_1||\\mathbf n_2|}$; $\\frac12|\\mathbf u\\times\\mathbf v|$"
+    label: [838, 281, 112]
+    path: M947 225 L958 225 L958 570 L947 570
+    steps: >-
+      The angle between two planes is the angle between their normals:
+      $\cos\theta=\frac{|\mathbf n_1\cdot\mathbf n_2|}{|\mathbf n_1||\mathbf n_2|}$ (the absolute value gives
+      the acute one). Area: $|\mathbf u\times\mathbf v|$ is the parallelogram on $\mathbf u,\mathbf v$; the
+      triangle is half of it.
+    when: '"the angle between the planes", "the area of the triangle $PQR$"'
+    trap: answer in radians when asked; perpendicular planes have $\mathbf n_1\cdot\mathbf n_2=0$
+  - id: skew-distance
+    n: 11
+    from: position
+    to: number
+    kind: algorithm
+    cost: same
+    name: distance between skew lines
+    short: "project $P_2-P_1$ onto $\\mathbf v_1\\times\\mathbf v_2$"
+    label: [330, 628, 305, center]
+    path: M135 622 L135 660 L830 660 L830 622
+    steps: >-
+      $\mathbf n=\mathbf v_1\times\mathbf v_2$ is perpendicular to both lines; the distance is
+      $\frac{|(P_2-P_1)\cdot\mathbf n|}{|\mathbf n|}$, a point of each line. It is arrow 9 for the plane
+      through one line parallel to the other.
+    when: '"the distance between the skew lines"'
+    trap: 'parallel lines have $\mathbf v_1\times\mathbf v_2=\mathbf0$: use a point-to-line distance instead'
+
+  # ---- quadric surfaces
+  - id: complete-squares
+    n: 12
+    from: quadratic
+    to: standard
+    kind: algorithm
+    cost: same
+    name: complete the squares
+    short: "group, complete, divide"
+    label: [256, 727, 105]
+    path: M252 795 L363 795
+    steps: >-
+      Group each variable, complete its square (multiply the added constant by the factored coefficient), move
+      the constants right and divide to get 1. A sphere $x^2+y^2+z^2+Dx+Ey+Fz+G=0$ becomes
+      $(x-h)^2+(y-k)^2+(z-l)^2=r^2$: the centre and the radius.
+    when: '"find the centre and radius", "identify the surface" with linear terms'
+    trap: a negative $r^2$ means no points; the centre has the opposite signs to the brackets
+  - id: read-signs
+    n: 13
+    from: standard
+    to: surface
+    kind: algorithm
+    cost: same
+    name: read the signs
+    short: "powers first, then signs, then the right side"
+    label: [606, 727, 105]
+    path: M602 795 L713 795
+    steps: >-
+      A variable missing: a **cylinder** over the curve of the other two. One variable to the first power:
+      **paraboloid**, elliptic if the two squares have the same sign, hyperbolic (a saddle) if not; its axis
+      is the linear variable. All squared, $=1$: **ellipsoid** (all $+$), **one sheet** (one $-$, the axis),
+      **two sheets** (two $-$; the axis is the $+$ one). All squared, $=0$: **cone** (the axis is the lone
+      sign).
+    when: '"classify the surface", "match the equation to its graph"'
+    trap: "$-x^2+9y^2-z^2=9$ has one $+$: two sheets, not one; divide by 9 before reading"
+  - id: slice
+    n: 14
+    from: standard
+    to: traces
+    kind: algorithm
+    cost: same
+    name: slice
+    short: "$x=k$, $y=k$, $z=k$"
+    label: [492, 824, 120]
+    path: M482 817 L482 858
+    steps: >-
+      Fix one variable at $k$ and read the conic left in the other two: an ellipse, a hyperbola, a parabola,
+      two lines, a point or nothing. Try $k=0$ and a general $k$.
+    when: '"sketch the surface", "describe the traces"'
+    trap: a hyperbola trace that changes direction as $k$ crosses a value is still one surface
+  - id: assemble
+    n: 15
+    from: traces
+    to: surface
+    kind: algorithm
+    cost: same
+    name: assemble
+    short: stack the slices
+    label: [612, 866, 210]
+    path: M602 900 L830 900 L830 817
+    steps: >-
+      Ellipse slices along the axis that grow from a point: cone or paraboloid (lines or parabolas in the side
+      slices tell which). Ellipses that exist for every $k$: one sheet; only for $|k|\ge c$: two sheets; only
+      for $|k|\le c$: ellipsoid.
+    when: to check a classification, or when the equation is unfamiliar
+    trap: the scale of each axis comes from the denominators $a^2,b^2,c^2$, not from the coefficients
+
+routes:
+  - task: the plane through three points
+    path: [points, direction, normal, plane]
+    why: two differences, one cross product, then a point
+  - task: the plane through a point orthogonal to a line
+    path: [line, plane]
+    why: the line's direction is the plane's normal
+  - task: the plane through a point parallel to a plane
+    path: [plane, normal, plane]
+    why: the same normal, a new point; only $d$ changes
+  - task: the plane containing a line, parallel to a plane
+    path: [plane, normal, plane]
+    why: borrow the normal; the line's point is the point
+  - task: the line of intersection of two planes
+    path: [plane, normal, direction, line]
+    why: cross the normals; a point from setting one variable to 0
+  - task: where a line meets a plane
+    path: [line, meet]
+    why: one equation in $t$, then the point
+  - task: the intercepts of a plane
+    path: [plane, meet]
+    why: two coordinates 0 at a time
+  - task: intersect, parallel, skew or identical?
+    path: [line, position]
+    why: directions first, then two parameters
+  - task: the distance from a point to a plane
+    path: [plane, number]
+    why: "$|ax_0+by_0+cz_0-d|/|\\mathbf n|$"
+  - task: the angle between two planes
+    path: [plane, normal, number]
+    why: the angle between the normals
+  - task: the area of a triangle in space
+    path: [points, direction, normal, number]
+    why: half the length of the cross product
+  - task: the centre and radius of a sphere
+    path: [quadratic, standard]
+    why: complete three squares
+  - task: classify a quadric surface
+    path: [quadratic, standard, surface]
+    why: powers, then signs, then the right side
+
+example:
+  title: One triangle, its plane, and a surface
+  language: "$P(1,0,2)$, $Q(3,1,0)$, $R(0,2,1)$"
+  walk:
+    - node: points
+      text: Three points; first make sure they are not on one line (the cross product below is not zero).
+    - edge: subtract
+      text: "$\\overrightarrow{PQ}=\\langle2,1,-2\\rangle$, $\\overrightarrow{PR}=\\langle-1,2,-1\\rangle$."
+    - edge: cross
+      text: >-
+        $\mathbf n=\overrightarrow{PQ}\times\overrightarrow{PR}=\langle3,4,5\rangle$. Check:
+        $\mathbf n\cdot\overrightarrow{PQ}=6+4-10=0$ and $\mathbf n\cdot\overrightarrow{PR}=-3+8-5=0$.
+    - edge: point-normal
+      text: "$3(x-1)+4y+5(z-2)=0$, so $3x+4y+5z=13$. $Q$: $9+4+0=13$; $R$: $0+8+5=13$."
+    - edge: angle-area
+      text: >-
+        Area of the triangle: $\frac12|\mathbf n|=\frac{\sqrt{50}}2=\frac{5\sqrt2}2$. Angle with the plane
+        $z=0$ (normal $\mathbf k$): $\cos\theta=\frac5{\sqrt{50}}=\frac1{\sqrt2}$, so $\theta=\frac\pi4$.
+    - edge: intercepts
+      text: "$\\left(\\frac{13}3,0,0\\right)$, $\\left(0,\\frac{13}4,0\\right)$, $\\left(0,0,\\frac{13}5\\right)$."
+    - edge: distance
+      text: "From the origin: $\\frac{|0-13|}{\\sqrt{50}}=\\frac{13\\sqrt2}{10}\\approx1.84$."
+    - edge: perpendicular
+      text: "The line through the origin perpendicular to the plane: $\\mathbf r=t\\langle3,4,5\\rangle$."
+    - edge: substitute
+      text: >-
+        $9t+16t+25t=13$, so $t=\frac{13}{50}$ and the foot is $\left(\frac{39}{50},\frac{26}{25},\frac{13}{10}\right)$.
+        Its distance from the origin is $\frac{13}{50}\sqrt{50}=\frac{13\sqrt2}{10}$: arrow 9 again.
+    - edge: cross
+      text: >-
+        With the plane $x+y+z=4$: $\mathbf n_1\times\mathbf n_2=\langle3,4,5\rangle\times\langle1,1,1\rangle=\langle-1,2,-1\rangle$.
+        A point: $z=0$ gives $3x+4y=13$, $x+y=4$, so $(3,1,0)$, which is $Q$.
+    - edge: compare
+      text: >-
+        Line $PQ$: $(1+2s,\,s,\,2-2s)$; line through $R$ along $\mathbf i$: $(w,\,2,\,1)$. Not parallel.
+        $y$: $s=2$; $z$: $2-4=-2\ne1$. Skew.
+    - edge: skew-distance
+      text: >-
+        $\mathbf v_1\times\mathbf v_2=\langle2,1,-2\rangle\times\langle1,0,0\rangle=\langle0,-2,-1\rangle$ and
+        $R-P=\langle-1,2,-1\rangle$: $\frac{|0-4+1|}{\sqrt5}=\frac3{\sqrt5}$.
+    - node: quadratic
+      text: "Now a surface: $4x^2+y^2-z^2-8x+2y+1=0$."
+    - edge: complete-squares
+      text: "$4(x-1)^2-4+(y+1)^2-1-z^2+1=0$, so $(x-1)^2+\\frac{(y+1)^2}4-\\frac{z^2}4=1$."
+    - edge: read-signs
+      text: "All squared, right side 1, one minus sign: a hyperboloid of one sheet, its axis parallel to the $z$-axis through $(1,-1,0)$."
+    - edge: slice
+      text: >-
+        $z=k$: $(x-1)^2+\frac{(y+1)^2}4=1+\frac{k^2}4$, ellipses for every $k$, smallest at $k=0$.
+        $x=1$: $\frac{(y+1)^2}4-\frac{z^2}4=1$, a hyperbola.
+    - edge: assemble
+      text: Ellipses at every height, narrowest in the middle, with hyperbolas down the sides; one connected tube.
