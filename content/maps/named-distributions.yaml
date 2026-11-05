@@ -1,0 +1,424 @@
+id: named-distributions
+title: "The named distributions: one family tree"
+description: >-
+  Most named distributions are one experiment seen from different sides. Independent trials give the Bernoulli, the
+  binomial and the waiting distributions. Very many rare trials give the Poisson, and the Poisson stream gives the
+  exponential and the gamma as its waiting times. Large counts turn normal, and squares of normals give the
+  chi-square. Each arrow is a relation you can use: a special case, a sum of independent copies, another question
+  about the same process, or a limit with its condition. The beta and the uniform on the unit interval stand apart.
+
+canvas: [965, 845]
+
+legend:
+  kinds:
+    algorithm: "exact: a sum of independent copies, or a change of variable"
+    design: "same process, another question"
+    condition: "limit: close only under its condition"
+    free: "special case: set a parameter"
+  costs:
+    free: a parameter value
+    same: "exact: one formula"
+    linear: another question about the same process
+    design: "an approximation: check the condition"
+
+nodes:
+  - id: discrete-uniform
+    label: Discrete uniform
+    sub: k equally likely values
+    tone: grey
+    box: [20, 10, 215, 105]
+    concept: discrete-uniform-distribution
+    text: "$f(x)=\\frac1k$. On $1,\\dots,k$: $\\mu=\\frac{k+1}2$, $\\sigma^2=\\frac{k^2-1}{12}$."
+  - id: bernoulli
+    label: Bernoulli · the atom
+    sub: one trial
+    tone: navy
+    box: [375, 10, 215, 105]
+    concept: bernoulli-distribution
+    text: "$X=1$ with probability $\\theta$, else 0. $\\mu=\\theta$, $\\sigma^2=\\theta(1-\\theta)$."
+  - id: multinomial
+    label: Multinomial
+    sub: k classes in n trials
+    tone: lavender
+    box: [730, 10, 215, 105]
+    concept: multinomial-distribution
+    text: "Each count is binomial, and the counts are dependent: $\\operatorname{cov}(X_i,X_j)=-n\\theta_i\\theta_j$."
+  - id: geometric
+    label: Geometric
+    sub: the trial of the first success
+    tone: sky
+    box: [20, 190, 215, 105]
+    concept: geometric-distribution
+    text: "$\\theta(1-\\theta)^{x-1}$, $x\\ge1$. $\\mu=\\frac1\\theta$, $\\sigma^2=\\frac{1-\\theta}{\\theta^2}$."
+    easy: "memoryless."
+  - id: binomial
+    label: Binomial · the hub
+    sub: successes in n trials
+    tone: blue
+    box: [375, 190, 215, 105]
+    concept: binomial-distribution
+    text: "$\\binom nx\\theta^x(1-\\theta)^{n-x}$. $\\mu=n\\theta$, $\\sigma^2=n\\theta(1-\\theta)$."
+    easy: "sums, with the same $\\theta$."
+  - id: hypergeometric
+    label: Hypergeometric
+    sub: without replacement
+    tone: lavender
+    box: [730, 190, 215, 105]
+    concept: hypergeometric-distribution
+    text: "$\\binom Mx\\binom{N-M}{n-x}/\\binom Nn$. $\\mu=\\frac{nM}N$, and the binomial variance times $\\frac{N-n}{N-1}$."
+  - id: negative-binomial
+    label: Negative binomial
+    sub: the trial of the k-th success
+    tone: sky
+    box: [20, 370, 215, 105]
+    concept: negative-binomial-distribution
+    text: "$\\binom{x-1}{k-1}\\theta^k(1-\\theta)^{x-k}$, $x\\ge k$. Mean $\\frac k\\theta$, variance $\\frac{k(1-\\theta)}{\\theta^2}$."
+  - id: poisson
+    label: Poisson · the bridge
+    sub: random events in a stretch
+    tone: teal
+    box: [375, 370, 215, 105]
+    concept: poisson-distribution
+    text: "$\\frac{\\lambda^xe^{-\\lambda}}{x!}$. $\\mu=\\sigma^2=\\lambda$."
+    easy: "sums: the means add."
+  - id: normal
+    label: Normal
+    sub: sums of many small effects
+    tone: green
+    box: [730, 370, 215, 105]
+    concept: normal-distribution
+    text: "Parameters $\\mu$ and $\\sigma$. $M(t)=e^{\\mu t+\\frac12\\sigma^2t^2}$."
+    easy: "combinations of independent normals."
+  - id: gamma
+    label: Gamma
+    sub: the wait for the k-th event
+    tone: amber
+    box: [20, 550, 215, 105]
+    concept: gamma-distribution
+    text: "Shape $\\alpha$, scale $\\beta$. $\\mu=\\alpha\\beta$, $\\sigma^2=\\alpha\\beta^2$, $M(t)=(1-\\beta t)^{-\\alpha}$."
+    easy: "sums, with the same $\\beta$."
+  - id: exponential
+    label: Exponential
+    sub: the gap between events
+    tone: amber
+    box: [375, 550, 215, 105]
+    concept: exponential-distribution
+    text: "$\\frac1\\theta e^{-x/\\theta}$. Mean $\\theta$, variance $\\theta^2$. A gamma with $\\alpha=1$."
+    easy: "memoryless."
+  - id: standard-normal
+    label: Standard normal
+    sub: one table for all
+    tone: mint
+    box: [730, 550, 215, 105]
+    concept: normal-distribution
+    text: "$Z$, with mean 0 and standard deviation 1. $\\Phi(-z)=1-\\Phi(z)$."
+  - id: chi-square
+    label: Chi-square
+    sub: squares of normals
+    tone: forest
+    box: [20, 730, 215, 105]
+    concept: chi-square-distribution
+    text: "$\\nu$ degrees of freedom. $\\mu=\\nu$, $\\sigma^2=2\\nu$, $M(t)=(1-2t)^{-\\nu/2}$."
+    easy: "sums: the degrees of freedom add."
+  - id: beta
+    label: Beta
+    sub: a proportion on the unit interval
+    tone: violet
+    box: [375, 730, 215, 105]
+    concept: beta-distribution
+    text: "$x^{\\alpha-1}(1-x)^{\\beta-1}$ on $(0,1)$. $\\mu=\\frac\\alpha{\\alpha+\\beta}$."
+  - id: uniform
+    label: Uniform
+    sub: spread evenly on an interval
+    tone: grey
+    box: [730, 730, 215, 105]
+    concept: continuous-uniform-distribution
+    text: "$\\frac1{\\beta-\\alpha}$ on $(\\alpha,\\beta)$. $\\mu=\\frac{\\alpha+\\beta}2$, $\\sigma^2=\\frac{(\\beta-\\alpha)^2}{12}$."
+
+edges:
+  - id: two-values
+    n: 1
+    from: discrete-uniform
+    to: bernoulli
+    kind: free
+    cost: free
+    name: k = 2 on 0, 1
+    short: "$\\theta=\\frac12$"
+    label: [240, 28, 130]
+    path: M237 66 L373 66
+    steps: "A discrete uniform on the two values 0 and 1 is a Bernoulli with $\\theta=\\frac12$: one toss of a fair coin."
+    when: a fair coin as a 0–1 variable
+  - id: count
+    n: 2
+    from: bernoulli
+    to: binomial
+    kind: algorithm
+    cost: same
+    name: sum of n
+    short: "same $\\theta$, independent"
+    label: [490, 138, 100]
+    path: M482 117 L482 188
+    steps: >-
+      $X=X_1+\dots+X_n$, with independent Bernoulli($\theta$) terms. So $\mu=n\theta$ and $\sigma^2=n\theta(1-\theta)$ by the
+      linear-combination rules, and $M(t)=(1+\theta(e^t-1))^n$ by the product rule for mgfs.
+    when: '"the number of successes in $n$ independent trials"'
+    trap: the trials must be independent with a constant $\theta$
+  - id: wait-first
+    n: 3
+    from: bernoulli
+    to: geometric
+    kind: design
+    cost: linear
+    name: wait for the first
+    short: "fix the successes, count the trials"
+    label: [90, 130, 200, right]
+    path: M373 100 L237 200
+    steps: "The same trials with a different question. The first success on trial $x$ means $x-1$ failures and then a success: $\\theta(1-\\theta)^{x-1}$."
+    when: '"how many trials until the first success?"'
+    trap: the geometric here counts trials, so it starts at 1
+  - id: k-geometrics
+    n: 4
+    from: geometric
+    to: negative-binomial
+    kind: algorithm
+    cost: same
+    name: sum of k
+    short: "$k=1$ is the geometric"
+    label: [135, 318, 150]
+    path: M127 297 L127 368
+    steps: >-
+      The wait for the $k$-th success is the sum of $k$ independent geometric waits, one after each success. So the
+      mean and the variance are $k$ times the geometric ones, and the mgf is the geometric mgf to the power $k$.
+    when: '"on which trial does the third success come?"'
+    trap: "the coefficient is $\\binom{x-1}{k-1}$, since the last trial is a success"
+  - id: large-lot
+    n: 5
+    from: hypergeometric
+    to: binomial
+    kind: condition
+    cost: design
+    name: large lot
+    short: "$n\\le N/20$"
+    label: [596, 206, 130]
+    path: M728 245 L592 245
+    steps: >-
+      With $\theta=\frac MN$. A sample that is a small part of the lot is almost the same with or without replacement. The
+      mean is the same exactly, and the variance loses the factor $\frac{N-n}{N-1}$, which is close to 1.
+    when: '"a sample of 20 from 10 000 items"'
+    trap: a sample of 4 from 20 is too large a share of the lot for this
+  - id: two-classes
+    n: 6
+    from: multinomial
+    to: binomial
+    kind: free
+    cost: free
+    name: two classes
+    short: "$k=2$, or one class against the rest"
+    label: [695, 130, 245]
+    path: M728 88 L560 188
+    steps: "With $k=2$ the multinomial is a binomial. And for any $k$, one count $X_i$ alone is binomial($n,\\theta_i$): that class against all the others."
+    when: '"how many customers pick plan A?" out of three plans'
+    trap: the counts are dependent, so their joint pmf is not a product of binomials
+  - id: rare
+    n: 7
+    from: binomial
+    to: poisson
+    kind: condition
+    cost: design
+    name: rare events
+    short: "$n$ large, $\\theta$ small"
+    label: [490, 318, 125]
+    path: M482 297 L482 368
+    steps: "With $\\lambda=n\\theta$ held fixed, $b(x;n,\\theta)\\to\\frac{\\lambda^xe^{-\\lambda}}{x!}$ as $n\\to\\infty$. Only the mean is needed."
+    when: '"500 items, each faulty with probability 0.004"'
+    trap: "$\\theta$ must be small: for $n=12$, $\\theta=\\frac12$ the Poisson has twice the binomial's variance"
+  - id: binomial-normal
+    n: 8
+    from: binomial
+    to: normal
+    kind: condition
+    cost: design
+    name: large n
+    short: "$n\\theta$, $n(1-\\theta)$ above 5; continuity correction"
+    label: [690, 303, 250]
+    path: M592 283 L728 382
+    steps: >-
+      $Z=\frac{X-n\theta}{\sqrt{n\theta(1-\theta)}}$ approaches the standard normal. A count is discrete, so the value $k$ owns
+      the strip from $k-\frac12$ to $k+\frac12$: $P(X\le k)\approx\Phi\left(\frac{k+\frac12-n\theta}{\sqrt{n\theta(1-\theta)}}\right)$.
+    when: '"at least 70 of 200 trials"'
+    trap: "$X<k$ and $X\\le k$ get different corrections"
+  - id: poisson-normal
+    n: 9
+    from: poisson
+    to: normal
+    kind: condition
+    cost: design
+    name: large λ
+    short: "$\\mu=\\lambda$, $\\sigma=\\sqrt\\lambda$"
+    label: [596, 388, 128]
+    path: M592 425 L728 425
+    steps: "$\\frac{X-\\lambda}{\\sqrt\\lambda}$ approaches the standard normal as $\\lambda\\to\\infty$, with the same continuity correction: $P(X\\le k)\\approx\\Phi\\left(\\frac{k+\\frac12-\\lambda}{\\sqrt\\lambda}\\right)$."
+    when: '"a Poisson count with mean 36"'
+    trap: "the standard deviation is $\\sqrt\\lambda$, not $\\lambda$"
+  - id: gaps
+    n: 10
+    from: poisson
+    to: exponential
+    kind: design
+    cost: linear
+    name: the gap between events
+    short: "rate $\\lambda$, so mean $\\theta=\\frac1\\lambda$"
+    label: [490, 498, 170]
+    path: M482 477 L482 548
+    steps: >-
+      The same stream with a different question. With events at rate $\lambda$, no event in time $t$ has probability
+      $e^{-\lambda t}$, the Poisson $p(0)$ with mean $\lambda t$. So the gap $T$ has $P(T>t)=e^{-\lambda t}$: exponential with mean
+      $\frac1\lambda$.
+    when: '"events at rate 2 per minute: how long until the next?"'
+    trap: rate and mean are inverses
+  - id: k-exponentials
+    n: 11
+    from: exponential
+    to: gamma
+    kind: algorithm
+    cost: same
+    name: sum of k
+    short: "$\\alpha=k$, $\\beta=\\theta$"
+    label: [240, 566, 130]
+    path: M373 605 L237 605
+    steps: "$M(t)=(1-\\theta t)^{-k}$ is the gamma mgf with $\\alpha=k$, $\\beta=\\theta$. The wait for the $k$-th event is the sum of $k$ independent gaps."
+    when: '"the time of the third call"'
+    trap: "the event $T>t$ is the Poisson event \"at most $k-1$ events by time $t$\""
+  - id: twins
+    n: 12
+    from: negative-binomial
+    to: gamma
+    kind: design
+    cost: linear
+    name: its continuous twin
+    short: "trials become time"
+    label: [135, 498, 160]
+    path: M127 477 L127 548
+    steps: >-
+      The same question in continuous time. The negative binomial waits for the $k$-th success over trials, and the gamma
+      waits for the $k$-th event over time. The geometric and the exponential are twins in the same way: both are memoryless.
+    when: a check on which family a waiting-time question belongs to
+    trap: this is an analogy between families, so it gives no formula to apply
+  - id: to-chi-square
+    n: 13
+    from: gamma
+    to: chi-square
+    kind: free
+    cost: free
+    name: "β = 2"
+    short: "$\\alpha=\\frac\\nu2$"
+    label: [135, 680, 120]
+    path: M127 657 L127 728
+    steps: "The gamma with $\\alpha=\\frac\\nu2$, $\\beta=2$ is the chi-square with $\\nu$ degrees of freedom. So $\\nu=2$ is the exponential with mean 2."
+    when: "$M(t)=(1-2t)^{-3}$ has $\\nu=6$"
+    trap: "$\\alpha$ is half the degrees of freedom"
+  - id: standardise
+    n: 14
+    from: normal
+    to: standard-normal
+    kind: algorithm
+    cost: same
+    both: true
+    name: standardise
+    short: "$Z=\\frac{X-\\mu}\\sigma$"
+    label: [846, 498, 98]
+    path: M837 477 L837 548
+    steps: "$Z=\\frac{X-\\mu}\\sigma$ is standard normal, and back: $X=\\mu+\\sigma Z$. So $P(a<X\\le b)=\\Phi\\left(\\frac{b-\\mu}\\sigma\\right)-\\Phi\\left(\\frac{a-\\mu}\\sigma\\right)$."
+    when: every normal probability or percentile
+    trap: "divide by $\\sigma$, not $\\sigma^2$"
+  - id: square
+    n: 15
+    from: standard-normal
+    to: chi-square
+    kind: algorithm
+    cost: same
+    name: square and add
+    short: "$Z_1^2+\\dots+Z_\\nu^2$ is chi-square with $\\nu$ degrees of freedom"
+    label: [375, 662, 345]
+    path: M837 657 L837 696 L302 696 L302 782 L237 782
+    steps: >-
+      $Z^2$ has mgf $(1-2t)^{-1/2}$, the chi-square with $\nu=1$. By the product rule, the sum of squares of $\nu$ independent
+      standard normals is chi-square with $\nu$ degrees of freedom.
+    when: '"$P(Z^2<3.84)$"; sums of squares'
+    trap: the normals must be standard and independent
+  - id: flat-beta
+    n: 16
+    from: beta
+    to: uniform
+    kind: free
+    cost: free
+    name: "α = β = 1"
+    short: "uniform on $(0,1)$"
+    label: [596, 746, 130]
+    path: M592 785 L728 785
+    steps: "With $\\alpha=\\beta=1$ the beta density is 1 on $(0,1)$: the uniform on the unit interval. The uniform on any other interval is a shift and scale of it."
+    when: "a beta shape with no powers"
+
+routes:
+  - task: the number of successes in n trials
+    path: [bernoulli, binomial]
+    why: "$\\mu=n\\theta$ and $\\sigma^2=n\\theta(1-\\theta)$ follow from the sum"
+  - task: the trial of the k-th success
+    path: [bernoulli, geometric, negative-binomial]
+    why: a sum of $k$ independent geometric waits
+  - task: a binomial with huge n and tiny θ
+    path: [binomial, poisson]
+    why: only $\lambda=n\theta$ is needed
+  - task: a binomial with large n
+    path: [binomial, normal, standard-normal]
+    why: same mean and variance, a continuity correction, then $\Phi$
+  - task: a Poisson count with large λ
+    path: [poisson, normal, standard-normal]
+    why: "$\\sigma=\\sqrt\\lambda$, and the same continuity correction"
+  - task: without replacement from a large lot
+    path: [hypergeometric, binomial]
+    why: "$\\theta=\\frac MN$ when $n$ is a small part of $N$"
+  - task: the wait for the k-th event
+    path: [poisson, exponential, gamma]
+    why: "$\\alpha=k$, $\\beta=\\frac1\\lambda$; or use the Poisson count for $P(T>t)$"
+  - task: a sum of squares of normals
+    path: [normal, standard-normal, chi-square]
+    why: standardise first, then square and add
+  - task: one class of a multinomial
+    path: [multinomial, binomial]
+    why: that class against all the others
+
+example:
+  title: One stream of calls around the map
+  language: "each second, a call arrives with probability $\\frac1{60}$, independently: one call per minute on average"
+  walk:
+    - node: bernoulli
+      text: "One second is one trial, with $\\theta=\\frac1{60}$."
+    - edge: count
+      text: >-
+        The calls in one minute are binomial with $n=60$, so $\mu=1$ and $\sigma^2=\frac{59}{60}$.
+        $P(\text{no call})=\left(\frac{59}{60}\right)^{60}\approx0.3648$.
+    - edge: rare
+      text: "$n$ is large and $\\theta$ small, so use the Poisson with $\\lambda=1$: $P(\\text{no call})\\approx e^{-1}\\approx0.3679$. Close, with only the mean."
+    - edge: wait-first
+      text: "Another question: the seconds until the first call are geometric, with mean $\\frac1\\theta=60$."
+    - edge: k-geometrics
+      text: "The seconds until the third call are negative binomial with $k=3$, with mean 180."
+    - edge: gaps
+      text: "In the Poisson limit, the gap between calls, in minutes, is exponential with $\\theta=1$. $P(T>2)=e^{-2}\\approx0.135$, the same as the Poisson $p(0)$ with mean 2."
+    - edge: k-exponentials
+      text: >-
+        The time of the third call, in minutes, is gamma with $\alpha=3$, $\beta=1$: $\mu=3$, $\sigma^2=3$. $T>2$ means at most 2
+        calls in 2 minutes: $e^{-2}\left(1+2+2\right)=5e^{-2}\approx0.677$.
+    - edge: twins
+      text: "Arrows 4 and 11 are the same story: the third call, counted in seconds as trials or in minutes as time. 180 seconds is 3 minutes."
+    - edge: to-chi-square
+      text: "Doubling a gamma doubles $\\beta$, so $2T$ is gamma with $\\alpha=3$, $\\beta=2$: the chi-square with $\\nu=6$, with mean 6."
+    - edge: poisson-normal
+      text: >-
+        The calls in one hour are Poisson with $\lambda=60$, so $\sigma=\sqrt{60}\approx7.75$. With the correction,
+        $P(X\le50)\approx\Phi\left(\frac{50.5-60}{7.75}\right)=\Phi(-1.23)\approx0.109$. The exact Poisson value is $0.108$.
+    - edge: standardise
+      text: "That $\\Phi(-1.23)$ is this arrow: one table serves every normal."
+    - edge: square
+      text: "$Z^2$ is chi-square with $\\nu=1$, so $P(Z^2<3.84)=P(|Z|<1.96)=0.95$."
