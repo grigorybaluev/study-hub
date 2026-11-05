@@ -1,0 +1,315 @@
+id: subspace-forms
+title: "Vector spaces: from a description to coordinates"
+description: >-
+  Every question about a finite-dimensional space ends in the same place: columns of numbers and one row
+  reduction. Polynomials and matrices become lists of coefficients, a condition becomes a list of vectors by
+  solving it, and the pivots of the RREF then answer independence, spanning, basis and dimension at once. A
+  basis turns any vector into coordinates, and a transition matrix moves coordinates from one basis to another.
+canvas: [965, 700]
+
+legend:
+  kinds:
+    algorithm: "mechanical: write the set-up, then compute or ask Sage"
+    free: "free: read it off"
+  costs:
+    free: nothing to compute
+    same: one product
+    shrinks: keep part of what you have
+    linear: one system or one row reduction
+
+nodes:
+  - id: object
+    label: Vectors of V
+    sub: polynomials, matrices, functions
+    tone: grey
+    box: [20, 20, 230, 100]
+    concept: vector-space
+    text: "$\\mathcal P_n$ has dimension $n+1$, $\\mathbb R^{m\\times n}$ has dimension $mn$. Fix the order of the standard basis."
+  - id: condition
+    label: A condition
+    sub: a subspace given by a property
+    tone: grey
+    box: [365, 20, 235, 100]
+    concept: vector-space
+    text: "$\\{p: p(1)=0\\}$, $\\{A: A^{\\mathrm T}=A\\}$. First the subspace test: $\\mathbf 0$ in it, closed under $+$ and scaling."
+  - id: lists
+    label: Columns of numbers
+    sub: vectors as lists
+    tone: sky
+    box: [20, 200, 230, 105]
+    concept: vector
+    text: "One column per vector. For a polynomial or a matrix, the coordinates in the standard basis."
+    easy: everything that follows.
+  - id: rref
+    label: RREF
+    sub: the pivots
+    tone: violet
+    box: [365, 200, 235, 105]
+    concept: matrix-rank
+    text: "`M.rref()`, `M.pivots()`, `M.rank()`: one computation answers every question below."
+  - id: verdict
+    label: Independent? Spans?
+    sub: read from the pivots
+    tone: amber
+    box: [715, 200, 230, 105]
+    concept: linear-independence
+    text: "A pivot in every **column**: independent. A pivot in every **row**: the columns span $\\mathbb R^m$."
+  - id: basis
+    label: Basis
+    sub: independent and spanning
+    tone: navy
+    box: [365, 385, 235, 110]
+    concept: basis-dimension
+    text: "Each vector is a combination of the basis in exactly one way. A subspace has many bases."
+  - id: dim
+    label: Dimension
+    sub: the size of every basis
+    tone: mint
+    box: [715, 385, 230, 110]
+    concept: basis-dimension
+    text: "With $\\dim V=n$ known, $n$ independent vectors or $n$ spanning vectors already form a basis."
+  - id: coords
+    label: "Coordinates in B"
+    sub: the numbers that describe v
+    tone: green
+    box: [20, 570, 230, 110]
+    concept: basis-dimension
+    text: "$[\\mathbf v]_{\\mathcal B}$: the coefficients of $\\mathbf v$ on $\\mathcal B$, in the order of $\\mathcal B$."
+  - id: other
+    label: "Coordinates in C"
+    sub: same vector, another basis
+    tone: teal
+    box: [715, 570, 230, 110]
+    concept: basis-dimension
+    text: "$[\\mathbf v]_{\\mathcal C}$. The vector does not change, only its description."
+
+edges:
+  - id: coefficients
+    n: 1
+    from: object
+    to: lists
+    kind: free
+    cost: free
+    name: read the coefficients
+    short: "the standard basis"
+    label: [143, 136, 105]
+    path: M135 120 L135 198
+    steps: >-
+      Write each polynomial or matrix as its list of coefficients in the standard basis: $1+2x^2$ in
+      $\mathcal P_2$ is $(1,0,2)$; a $2\times2$ matrix is its four entries row by row (`M.list()`). This is the
+      coordinate map, so independence and spanning carry over exactly.
+    when: 'any question about polynomials or matrices that is not about a single formula'
+    trap: "$\\mathcal P_2$ lists have 3 entries; write the zero coefficients"
+  - id: solve
+    n: 2
+    from: condition
+    to: lists
+    kind: algorithm
+    cost: linear
+    name: solve the condition
+    short: "one vector per parameter"
+    label: [396, 132, 160]
+    path: M372 122 L252 208
+    steps: >-
+      Write a general element, turn the condition into linear equations in its coefficients, and solve. Pull out
+      one vector per free parameter: $a+b+c=0$ gives $b(x-1)+c(x^2-1)$. In $\mathbb R^n$ the condition is $A\mathbf x=\mathbf 0$ and
+      `A.right_kernel().basis()` does it in one line.
+    when: '"find a basis of the subspace of all … such that …"'
+    trap: 'a condition that is not linear ($\det A=0$, $xy=0$) does not give a subspace at all: run the subspace test first'
+  - id: reduce
+    n: 3
+    from: lists
+    to: rref
+    kind: algorithm
+    cost: linear
+    name: row reduce
+    short: "`column_matrix`"
+    label: [256, 216, 106]
+    path: M252 256 L363 256
+    steps: >-
+      Put the vectors in the **columns** of a matrix `M = column_matrix(QQ, [...])` and compute `M.rref()`. Use
+      the columns, not the rows, so that a dependence among the columns can be read off and the pivot columns
+      name the vectors to keep.
+    when: 'every time: independence, span, basis, dimension, membership'
+    trap: "`matrix(QQ, [u, v])` puts the vectors in the **rows**; use `column_matrix`"
+  - id: read-pivots
+    n: 4
+    from: rref
+    to: verdict
+    kind: algorithm
+    cost: free
+    name: read the pivots
+    short: "`M.rank()`"
+    label: [606, 216, 106]
+    path: M602 256 L713 256
+    steps: >-
+      For an $m\times k$ matrix $M$ of rank $r$: the columns are independent exactly when $r=k$, and they span
+      $\mathbb R^m$ exactly when $r=m$. A dependence: `M.right_kernel().basis()` gives its coefficients. Is
+      $\mathbf b$ in the span? Compare `M.rank()` with `M.augment(b).rank()`.
+    when: '"are these independent?", "do these span?", "is $\mathbf b$ in the span?"'
+    trap: "more vectors than the dimension: dependent, without any computation"
+  - id: keep-pivots
+    n: 5
+    from: rref
+    to: basis
+    kind: algorithm
+    cost: shrinks
+    name: keep the pivot columns
+    short: "the **original** vectors"
+    label: [490, 324, 118]
+    path: M482 307 L482 383
+    steps: >-
+      The vectors in the pivot positions form a basis of the span: `[M.column(j) for j in M.pivots()]`. For the
+      row space of a matrix, take the nonzero rows of the RREF instead.
+    when: '"find a basis of the span", "find a basis of the column space"'
+    trap: "take the columns of the original matrix, not of the RREF: row operations change the column space"
+  - id: extend
+    n: 6
+    from: verdict
+    to: basis
+    kind: algorithm
+    cost: linear
+    name: extend
+    short: "add $\\mathbf e_i$"
+    label: [612, 322, 95]
+    path: M725 307 L604 390
+    steps: >-
+      An independent set that does not span: put it first, then all of $\mathbf e_0,\dots,\mathbf e_{n-1}$, and keep the pivot
+      columns of the RREF. The first vectors are always kept, because they are independent.
+    when: '"extend to a basis of $V$"'
+    trap: the added vectors must come after the given ones, or some of those may be dropped
+  - id: count
+    n: 7
+    from: basis
+    to: dim
+    kind: free
+    cost: free
+    name: count
+    short: "`W.dimension()`"
+    label: [606, 448, 106]
+    path: M602 440 L713 440
+    steps: "The dimension is the number of vectors in a basis, whichever basis it is. For the kernel and the column space of $A$: $n-r$ and $r$."
+    when: '"what is the dimension of …"'
+    trap: "$\\dim\\mathcal P_n=n+1$, not $n$"
+  - id: shortcut
+    n: 8
+    from: dim
+    to: verdict
+    kind: free
+    cost: free
+    name: counting shortcut
+    short: "$n$ vectors: check one half"
+    label: [838, 322, 105]
+    path: M830 383 L830 307
+    steps: >-
+      When the number of vectors equals the dimension, independent and spanning are the same condition: check one, and
+      for a square matrix of coordinates just check `det(M) != 0`.
+    when: '"show that these three polynomials are a basis of $\mathcal P_2$"'
+    trap: this needs the dimension to be known and the vectors to lie in the space
+  - id: coordinates
+    n: 9
+    from: basis
+    to: coords
+    kind: algorithm
+    cost: linear
+    name: solve for the coefficients
+    short: "`P.solve_right(v)`"
+    label: [262, 505, 110]
+    path: M400 497 L252 590
+    steps: >-
+      Solve $c_0\mathbf b_0+\dots+c_{n-1}\mathbf b_{n-1}=\mathbf v$. With the basis in the columns of $P$: $[\mathbf v]_{\mathcal B}=P^{-1}\mathbf v$,
+      `P.solve_right(v)`. For polynomials, use coefficient lists for $P$ and $\mathbf v$.
+    when: '"find the coordinates of … relative to …"'
+    trap: the order of the coordinates is the order of the basis
+  - id: rebuild
+    n: 10
+    from: coords
+    to: object
+    kind: algorithm
+    cost: same
+    name: rebuild the vector
+    short: "$\\mathbf v=P[\\mathbf v]_{\\mathcal B}$"
+    label: [24, 420, 120]
+    path: M18 630 L8 630 L8 70 L18 70
+    steps: "Multiply each basis vector by its coordinate and add: `P * c`. This is the check for arrow 9."
+    when: '"which vector has these coordinates?", or to check an answer'
+  - id: transition
+    n: 11
+    from: coords
+    to: other
+    both: true
+    kind: algorithm
+    cost: same
+    name: transition matrix
+    short: "$[\\mathbf v]_{\\mathcal C}=P_{\\mathcal C\\leftarrow\\mathcal B}[\\mathbf v]_{\\mathcal B}$, $P_{\\mathcal C\\leftarrow\\mathcal B}=P_{\\mathcal C}^{-1}P_{\\mathcal B}$"
+    label: [262, 630, 440, center]
+    path: M252 622 L713 622
+    steps: >-
+      The columns of $P_{\mathcal C\leftarrow\mathcal B}$ are the vectors of $\mathcal B$ written in $\mathcal C$. Compute it as
+      `PC.inverse() * PB`, or row reduce $[\,P_{\mathcal C}\mid P_{\mathcal B}\,]$ to $[\,I\mid P_{\mathcal C\leftarrow\mathcal B}\,]$. The inverse matrix goes the other way.
+    when: '"find the transition matrix from $\mathcal B$ to $\mathcal C$"; several vectors to convert'
+    trap: "the direction: old basis vectors written in the new basis. Test it on one basis vector"
+
+routes:
+  - task: are these polynomials independent?
+    path: [object, lists, rref, verdict]
+    why: coefficient lists as columns, then a pivot in every column
+  - task: a basis of a subspace given by a condition
+    path: [condition, lists, rref, basis]
+    why: solving already gives independent vectors; the row reduction confirms it
+  - task: the dimension of a subspace
+    path: [condition, lists, rref, basis, dim]
+    why: count the basis, or use rank plus nullity
+  - task: a basis of a span
+    path: [lists, rref, basis]
+    why: keep the original vectors in the pivot positions
+  - task: extend an independent set to a basis
+    path: [verdict, basis]
+    why: append the standard basis and keep the pivot columns
+  - task: is this a basis of V?
+    path: [dim, verdict]
+    why: with the right number of vectors, one half is enough
+  - task: the coordinates of a vector
+    path: [basis, coords]
+    why: one linear system
+  - task: from coordinates back to the vector
+    path: [coords, object]
+    why: multiply out; this is also the check
+  - task: from one basis to another
+    path: [coords, other]
+    why: the transition matrix, or its inverse for the opposite direction
+
+example:
+  title: One subspace of polynomials around the whole map
+  language: "$W=\\{p\\in\\mathcal P_3: p(1)=0\\}$"
+  walk:
+    - node: condition
+      text: >-
+        The zero polynomial is in $W$, and if $p(1)=q(1)=0$ then $(p+q)(1)=0$ and $(cp)(1)=0$. So $W$ is a subspace.
+    - edge: solve
+      text: >-
+        Let $p=a+bx+cx^2+dx^3$. Then $p(1)=a+b+c+d=0$, so $a=-b-c-d$ and $p=b(x-1)+c(x^2-1)+d(x^3-1)$: three
+        vectors span $W$.
+    - edge: coefficients
+      text: "In the standard basis $(1,x,x^2,x^3)$ these are $(-1,1,0,0)$, $(-1,0,1,0)$ and $(-1,0,0,1)$."
+    - edge: reduce
+      text: "As the columns of a $4\\times3$ matrix, the RREF has pivots in columns 0, 1 and 2."
+    - edge: read-pivots
+      text: "A pivot in every column: the three vectors are independent."
+    - edge: keep-pivots
+      text: "So $\\mathcal B=(x-1,\\ x^2-1,\\ x^3-1)$ is a basis of $W$."
+    - edge: count
+      text: "$\\dim W=3$: one condition took one dimension out of the four of $\\mathcal P_3$."
+    - edge: shortcut
+      text: >-
+        $\mathcal C=(x-1,\ (x-1)^2,\ (x-1)^3)$ lies in $W$, and its vectors have different degrees, so they are independent.
+        Three independent vectors in dimension 3 are a basis, with no spanning check.
+    - edge: coordinates
+      text: "For $p=x^3-x$: $p=(x^3-1)-(x-1)$, so $[p]_{\\mathcal B}=(-1,0,1)$."
+    - edge: transition
+      text: >-
+        Writing $\mathcal C$ in $\mathcal B$: $(x-1)^2=(x^2-1)-2(x-1)$ and $(x-1)^3=(x^3-1)-3(x^2-1)+3(x-1)$ give
+        $P_{\mathcal B\leftarrow\mathcal C}=\begin{bmatrix}1&-2&3\\0&1&-3\\0&0&1\end{bmatrix}$. Its inverse sends $(-1,0,1)$ to
+        $[p]_{\mathcal C}=(2,3,1)$.
+    - edge: rebuild
+      text: "Check: $2(x-1)+3(x-1)^2+(x-1)^3=x^3-x$."
