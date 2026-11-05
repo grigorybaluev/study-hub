@@ -1,0 +1,107 @@
+title: "Linear algebra: existence and uniqueness in one table"
+lead: >-
+  Every yes-or-no question of the first nine weeks is one of two questions about the columns of a matrix: do they
+  reach everything (existence), and do they waste nothing (uniqueness)? Read a row across to see the same fact in
+  two forms; the third column is what happens when both hold, and the last one is the Sage command. The shared rows are the second half of the course.
+
+columns:
+  - {id: unique, title: Uniqueness, sub: "at most one solution", tone: blue, concept: linear-independence}
+  - {id: exists, title: Existence, sub: "at least one solution", tone: violet, concept: linear-combination-span}
+  - {id: both, title: Both, sub: "exactly one solution", tone: green, concept: matrix-inverse}
+  - {id: sage, title: In Sage, sub: "A is m by n", tone: grey}
+
+rows:
+  - label: Columns of A
+    cells:
+      unique: linearly independent
+      exists: 'span $\mathbb R^m$'
+      both: 'a basis of $\mathbb R^m$'
+      sage: '`A.rank()`, then compare with `A.ncols()` and `A.nrows()`'
+  - label: Rank
+    cells:
+      unique: '$r=n$, the number of columns'
+      exists: '$r=m$, the number of rows'
+      both: '$r=m=n$'
+      sage: '`A.rank()`'
+  - label: RREF
+    cells:
+      unique: 'a pivot in every column: no free variables'
+      exists: 'a pivot in every row: no zero rows'
+      both: '$I_n$'
+      sage: '`A.rref()`, `A.pivots()`'
+  - label: Size
+    cells:
+      unique: 'needs $n\le m$: tall or square. A wide matrix always fails'
+      exists: 'needs $n\ge m$: wide or square. A tall matrix always fails'
+      both: 'only a square matrix'
+      sage: '`A.dimensions()`'
+  - label: System
+    cells:
+      unique: '$A\mathbf x=\mathbf b$ has at most one solution; $\ker(A)=\{\mathbf 0\}$'
+      exists: '$A\mathbf x=\mathbf b$ is consistent for every $\mathbf b$; $\mathrm{col}(A)=\mathbb R^m$'
+      both: '$\mathbf x=A^{-1}\mathbf b$, for every $\mathbf b$'
+      sage: '`A.right_kernel()`, `A.solve_right(b)`'
+  - label: One-sided inverse
+    cells:
+      unique: 'a left inverse $BA=I_n$'
+      exists: 'a right inverse $AB=I_m$'
+      both: 'the two-sided inverse $A^{-1}$; $\det(A)\neq0$'
+      sage: '`A.inverse()`, `det(A)`'
+  - label: Linear map
+    cells:
+      unique: '$T$ injective'
+      exists: '$T$ surjective'
+      both: '$T$ bijective, and $T^{-1}$ is linear'
+      sage: '`A.rank() == A.ncols()`, `A.rank() == A.nrows()`'
+  - label: General spaces
+    cells:
+      unique: '$\ker(T)=\{\mathbf 0\}$; needs $\dim V\le\dim W$'
+      exists: '$\mathrm{im}(T)=W$; needs $\dim V\ge\dim W$'
+      both: '$\dim V=\dim W$, and then either one implies the other'
+      sage: 'work with the matrix of $T$'
+  - label: A set of vectors
+    cells:
+      unique: 'independent; can be extended to a basis; at most $\dim V$ vectors'
+      exists: 'spanning; contains a basis; at least $\dim V$ vectors'
+      both: 'a basis; exactly $\dim V$ vectors, and then one half is enough'
+      sage: '`column_matrix(QQ, [...])`, then `rank` and `pivots`'
+  - label: How to say no
+    cells:
+      unique: 'a nonzero kernel vector, or a dependence relation'
+      exists: 'a $\mathbf b$ for which the system is inconsistent'
+      both: 'either of those; or $\det(A)=0$'
+      sage: '`A.right_kernel().basis()`, `A.augment(b).rank()`'
+
+shared:
+  - label: Subspaces
+    text: >-
+      $\mathbf 0\in W$, closed under $+$ and scaling. Always subspaces: spans, $\ker(A)$, $\mathrm{col}(A)$, $\mathrm{row}(A)$, intersections. Not subspaces: the
+      solutions of $A\mathbf x=\mathbf b$ with $\mathbf b\neq\mathbf 0$, sets with squares, products or inequalities in the condition, most unions. Passing the zero test proves nothing; one numeric failure of closure is a full answer.
+  - label: Dimensions
+    text: >-
+      $\dim\mathbb R^n=n$, $\dim\mathcal P_n=n+1$, $\dim\mathbb R^{m\times n}=mn$. $\dim\mathrm{col}(A)=\dim\mathrm{row}(A)=r$, $\dim\ker(A)=n-r$.
+      Rank–nullity: $\dim\ker(T)+\dim\mathrm{im}(T)=\dim V$, the domain.
+  - label: Coordinates
+    text: >-
+      $\mathbf v=P_{\mathcal B}[\mathbf v]_{\mathcal B}$. $[\mathbf v]_{\mathcal C}=P_{\mathcal C\leftarrow\mathcal B}[\mathbf v]_{\mathcal B}$, where the columns of $P_{\mathcal C\leftarrow\mathcal B}$ are the old basis in the new one:
+      $P_{\mathcal C\leftarrow\mathcal B}=P_{\mathcal C}^{-1}P_{\mathcal B}$, and its inverse is $P_{\mathcal B\leftarrow\mathcal C}$. In Sage: `PC.inverse() * PB`.
+  - label: Matrix of a map
+    text: >-
+      Column $j$ of $[T]_{\mathcal C\leftarrow\mathcal B}$ is $[T(\mathbf b_j)]_{\mathcal C}$. Composition: $[S\circ T]=[S][T]$. Operator: $[T]_{\mathcal C}=P^{-1}[T]_{\mathcal B}P$, with $P=P_{\mathcal B\leftarrow\mathcal C}$. Similar matrices share
+      $\det$, trace, rank, characteristic polynomial and eigenvalues. A difference disproves similarity, and agreement proves nothing.
+  - label: Complex numbers
+    text: >-
+      $z\bar z=|z|^2$; $\frac wz=\frac{w\bar z}{|z|^2}$; $re^{i\theta}=r(\cos\theta+i\sin\theta)$. Multiply the moduli, add the arguments; $(re^{i\theta})^n=r^ne^{in\theta}$. The $n$-th roots are $r^{1/n}e^{i(\theta+2\pi k)/n}$.
+      Degree $n$ means $n$ roots in $\mathbb C$, and a real polynomial's non-real roots come in conjugate pairs. In Sage: `I`, `p.roots(QQbar)`.
+  - label: Eigenvalues
+    text: >-
+      $A\mathbf v=\lambda\mathbf v$, $\mathbf v\neq\mathbf 0$. $p_A(\lambda)=\det(\lambda I-A)$, which is $\lambda^2-\mathrm{tr}(A)\lambda+\det(A)$ for $2\times2$. $E_\lambda=\ker(A-\lambda I)$. $\sum\lambda_i=\mathrm{tr}(A)$, $\prod\lambda_i=\det(A)$. $A^k$ has $\lambda^k$, $A^{-1}$ has $\frac1\lambda$;
+      invertible $\iff$ $0$ is not an eigenvalue. A triangular matrix has its diagonal. In Sage: `A.charpoly().factor()`, `A.eigenvectors_right()`.
+  - label: Diagonalization
+    text: >-
+      $A=PDP^{-1}\iff$ $n$ independent eigenvectors $\iff$ $\dim E_\lambda$ equals the algebraic multiplicity for every $\lambda$. Distinct eigenvalues suffice. Columns of $P$ pair with entries of $D$, and $A^k=PD^kP^{-1}$. In Sage: `D, P = A.eigenmatrix_right()`, then check
+      `P.is_invertible()`; use `A.change_ring(QQbar).is_diagonalizable()` for the honest answer.
+  - label: Dynamics
+    text: >-
+      $\mathbf x_{k+1}=A\mathbf x_k$ gives $\mathbf x_k=\sum_ic_i\lambda_i^k\mathbf v_i$ with $\mathbf c=P^{-1}\mathbf x_0$. All $|\lambda_i|<1$: $\mathbf x_k\to\mathbf 0$. A dominant $\lambda_0$ with $c_0\neq0$: $\mathbf x_k\approx c_0\lambda_0^k\mathbf v_0$. $\lambda_0=1$ and the others below $1$: a steady state $c_0\mathbf v_0$.
+      A recurrence becomes a system by stacking two consecutive terms.
