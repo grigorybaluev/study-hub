@@ -2726,8 +2726,8 @@
   const laNum = (x, d = 2) => { const s = x.toFixed(d); return Number(s) === 0 ? (0).toFixed(d) : s; };   // never "-0.00"
   const laMat = (a, b, c, d, n = 2) => `[${laNum(a, n)} ${laNum(b, n)}; ${laNum(c, n)} ${laNum(d, n)}]`;
   // equal-scale axes centred on the origin
-  const laView = (R, title, annotations) => layout({ title, annotations: annotations || [],
-    xaxis: ax({ range: [-R, R] }), yaxis: ax({ range: [-R, R], scaleanchor: 'x', scaleratio: 1 }),
+  const laView = (R, title, annotations) => layout({ title, annotations: annotations || [], height: 560,
+    xaxis: ax({ range: [-R, R], constrain: 'domain' }), yaxis: ax({ range: [-R, R], scaleanchor: 'x', scaleratio: 1 }),
     legend: { orientation: 'h', y: -0.12 }, margin: { t: 80, r: 20, b: 30, l: 40 } });
   // a vector as a legend entry, with its arrowhead added to `ann`
   function laVec(p, q, color, name, ann, dash) {
@@ -2833,7 +2833,7 @@
     const zr = val(id, 'zr', 1.5), zi = val(id, 'zi', 1), r = val(id, 'r', 1.2), th = val(id, 'th', 60) * Math.PI / 180;
     const w = [r * Math.cos(th), r * Math.sin(th)], wz = [w[0] * zr - w[1] * zi, w[0] * zi + w[1] * zr];
     const absZ = Math.hypot(zr, zi), absWz = Math.hypot(wz[0], wz[1]);
-    const deg = p => (Math.hypot(p[0], p[1]) < 1e-9 ? 'undefined' : `${laNum(Math.atan2(p[1], p[0]) * 180 / Math.PI, 1)}°`);
+    const deg = p => (Math.hypot(p[0], p[1]) < 1e-9 ? 'not defined' : `${laNum(Math.atan2(p[1], p[0]) * 180 / Math.PI, 1)}°`);
     const R = Math.max(2, absZ, r, absWz) * 1.2, ann = [];
     const circle = Array.from({ length: 121 }, (_, i) => [Math.cos(i * Math.PI / 60), Math.sin(i * Math.PI / 60)]);
     const label = (p, text, color) => ({ x: [p[0]], y: [p[1]], mode: 'markers+text', text: [text], textposition: 'top center', textfont: { color }, marker: { size: 8, color }, showlegend: false, hoverinfo: 'skip' });
