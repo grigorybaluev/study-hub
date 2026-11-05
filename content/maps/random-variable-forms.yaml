@@ -80,12 +80,12 @@ nodes:
     concept: chebyshev-inequality
     text: "$P(|X-\\mu|<k\\sigma)\\ge 1-\\frac{1}{k^2}$: guaranteed, usually far from the exact value."
   - id: mgf
-    label: "Next: the mgf M(t) (week 7)"
+    label: "The mgf M(t) (week 7)"
     tone: amber
     aux: true
     box: [20, 425, 240, 60]
     concept: moment-generating-function
-    text: "not on this midterm."
+    text: "the step after week 6, with a map of its own."
   - id: joint
     label: Joint · the hub
     sub: a table or a surface
@@ -256,7 +256,7 @@ edges:
     short: "$g(x)=e^{tx}$"
     label: [148, 397, 112]
     path: M140 395 L140 423
-    steps: "$M(t)=E[e^{tX}]$ is one more $E[g(X)]$. Its derivatives at 0 are the moments. Not on this midterm."
+    steps: "$M(t)=E[e^{tX}]$ is one more $E[g(X)]$. Its derivatives at 0 are the moments. The moments-and-sums map takes it from here."
     when: week 7
 
   # ---- two variables: the triangle
