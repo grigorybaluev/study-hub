@@ -1,5 +1,4 @@
-# Study guide for the MAST 218 final (#274): the whole course, chapters 10, 12, 13 and 14. Maps first;
-# the overview, problem types, table and plan follow.
+# Study guide for the MAST 218 final (#274, #277): the whole course, chapters 10, 12, 13 and 14.
 exam: Final
 summary: >-
   The course is one idea applied three times: describe an object by the form in which the question is easy,
@@ -14,3 +13,64 @@ format: >-
   gradient and optimisation (ch. 14). It counts 90 % of the grade, or 60 % when the midterm (30 %) helps.
   Written answers: the set-up and the formula earn marks, not only the number.
 maps: [plane-curve-forms, lines-and-planes, several-variables]
+types_intro: |
+  Twelve types of problem, in the order of the course. For each: the reasoning, the steps, the traps, and
+  worked problems with "pattern at work". The first six cover curves, vectors and surfaces; the last six cover
+  vector functions and functions of several variables.
+
+  :::insight[The one idea behind all twelve types]
+  **Describe the object in the form where the question is easy, then do calculus on it.** Every problem starts
+  by choosing that form: a parameter, a polar equation, a standard form, a point with a vector, a tree, a
+  gradient. The arrows of the three maps are these choices.
+  :::
+
+  :::steps[How to write every answer]
+  1. Say what the object is and which form you are using ("the line through $P$ with direction $\mathbf{v}$").
+  2. Write the formula with letters before putting numbers in.
+  3. Keep exact values ($\sqrt{5}$, $\frac{\pi}{3}$) until the end.
+  4. Check: substitute a given point, take two dot products of a cross product, compare with a sketch, or
+     see whether $a_T^2 + a_N^2 = |\mathbf{a}|^2$.
+  :::
+plan:
+  - id: formulas
+    title: Formulas to know cold
+    items:
+      - "Parametric: $\\frac{dy}{dx}=\\frac{y'}{x'}$; $\\frac{d^2y}{dx^2}=\\frac{\\frac{d}{dt}(dy/dx)}{x'}$; $L=\\int\\sqrt{x'^2+y'^2}\\,dt$"
+      - "Polar: $x=r\\cos\\theta$, $y=r\\sin\\theta$; $A=\\frac12\\int r^2\\,d\\theta$; $L=\\int\\sqrt{r^2+r'^2}\\,d\\theta$"
+      - "Conics: $c^2=a^2-b^2$ (ellipse), $c^2=a^2+b^2$ (hyperbola), $y^2=4px$; $r=\\frac{ed}{1\\pm e\\cos\\theta}$"
+      - "Vectors: $\\cos\\theta=\\frac{\\mathbf a\\cdot\\mathbf b}{|\\mathbf a||\\mathbf b|}$; projection $\\frac{\\mathbf a\\cdot\\mathbf b}{|\\mathbf a|^2}\\mathbf a$; $|\\mathbf a\\times\\mathbf b|$ is an area"
+      - "Lines and planes: $\\mathbf r_0+t\\mathbf v$; $\\mathbf n\\cdot(\\mathbf r-\\mathbf r_0)=0$; distance $\\frac{|ax_0+by_0+cz_0+d|}{\\sqrt{a^2+b^2+c^2}}$"
+      - "The six quadrics and how to read their signs"
+      - "Space curves: $L=\\int|\\mathbf r'|\\,dt$; $\\kappa=\\frac{|\\mathbf r'\\times\\mathbf r''|}{|\\mathbf r'|^3}$; $a_T=\\frac{\\mathbf r'\\cdot\\mathbf r''}{|\\mathbf r'|}$; $a_N=\\frac{|\\mathbf r'\\times\\mathbf r''|}{|\\mathbf r'|}$"
+      - "Tangent plane: $z=f(a,b)+f_x(x-a)+f_y(y-b)$; $dz=f_x\\,dx+f_y\\,dy$"
+      - "Chain rule: $\\frac{dz}{dt}=f_x\\frac{dx}{dt}+f_y\\frac{dy}{dt}$; implicit $\\frac{\\partial z}{\\partial x}=-\\frac{F_x}{F_z}$"
+      - "Gradient: $D_{\\mathbf u}f=\\nabla f\\cdot\\mathbf u$; largest rate $|\\nabla f|$; $\\nabla F$ is normal to $F=k$"
+      - "Extrema: $D=f_{xx}f_{yy}-f_{xy}^2$; $\\nabla f=\\lambda\\nabla g$ with $g=k$"
+  - id: traps
+    title: The twelve traps, one line each
+    items:
+      - "$\\frac{d^2y}{dx^2}$ is not $\\frac{y''(t)}{x''(t)}$."
+      - "Polar area between curves: subtract the squares, $r_{\\text{out}}^2-r_{\\text{in}}^2$."
+      - "Polar conic: make the denominator's constant 1 before reading $e$."
+      - "The middle component of a cross product changes sign."
+      - "A direction in a plane is perpendicular to the normal, not equal to it."
+      - "Two lines, two curves: two parameters."
+      - "Quadrics: right side $+1$ before counting minus signs."
+      - "The constant of integration is a vector, and it is not automatically the initial value."
+      - "Limits: agreement on many paths proves nothing; a polar bound must be free of $\\theta$."
+      - "The direction must be a unit vector."
+      - "Never divide by a variable that can be 0: split into cases."
+      - "Absolute extrema: corners count; critical points outside the region do not."
+  - id: evening
+    title: If you have one evening
+    items:
+      - "Redo [A curve with a loop](/prep/MAST218/final/types/parametric-curves): every tangent, then the area."
+      - "Redo [Inside a circle, outside another](/prep/MAST218/final/types/polar-curves), starting from a sketch."
+      - "Redo [An ellipse from its general equation](/prep/MAST218/final/types/conic-sections) and [Two polar conics](/prep/MAST218/final/types/conic-sections)."
+      - "Redo [Two lines and the plane they span](/prep/MAST218/final/types/lines-planes) and [Five surfaces to name](/prep/MAST218/final/types/quadric-surfaces)."
+      - "Redo [Length and curvature of one curve](/prep/MAST218/final/types/space-curves) and [From acceleration back to position](/prep/MAST218/final/types/space-curves)."
+      - "Redo [Four limits](/prep/MAST218/final/types/functions-limits) without looking at the steps."
+      - "Redo [A tangent plane and an estimate](/prep/MAST218/final/types/partials-chain-rule) and [Every reading at one point](/prep/MAST218/final/types/gradient)."
+      - "Redo [On a rectangle](/prep/MAST218/final/types/extrema) and [A tilted ellipse](/prep/MAST218/final/types/lagrange)."
+      - "Walk the three [maps](/prep/MAST218/final/map) once, then answer three of their questions from memory."
+      - "Clear the exam's review deck."
