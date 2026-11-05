@@ -444,13 +444,17 @@ $$
 
 :::proof
 Let $P_1(x_1, y_1, z_1)$ be in the plane, so $ax_1 + by_1 + cz_1 = -d$. The distance is the absolute
-value of the scalar projection of $\overrightarrow{P_1P_0}$ onto $\mathbf{n} = \langle a, b, c \rangle$:
+value of the scalar projection of $\overrightarrow{P_1P_0}$ onto $\mathbf{n} = \langle a, b, c \rangle$,
+that is $D = \frac{|\mathbf{n} \cdot \overrightarrow{P_1P_0}|}{|\mathbf{n}|}$. The numerator is
 
 $$
-D = \frac{|\mathbf{n} \cdot \overrightarrow{P_1P_0}|}{|\mathbf{n}|}
-  = \frac{|a(x_0 - x_1) + b(y_0 - y_1) + c(z_0 - z_1)|}{\sqrt{a^2 + b^2 + c^2}}
-  = \frac{|ax_0 + by_0 + cz_0 + d|}{\sqrt{a^2 + b^2 + c^2}} .
+\begin{aligned}
+\mathbf{n} \cdot \overrightarrow{P_1P_0} &= a(x_0 - x_1) + b(y_0 - y_1) + c(z_0 - z_1) \\
+&= ax_0 + by_0 + cz_0 + d ,
+\end{aligned}
 $$
+
+and the denominator is $\sqrt{a^2 + b^2 + c^2}$.
 :::
 ::::
 
@@ -584,7 +588,10 @@ only with a second equation beside it: $x^2 + y^2 = 1$, $z = 2$ is a circle at h
 A **quadric surface** is the graph in space of a second-degree equation in $x$, $y$, $z$:
 
 $$
-Ax^2 + By^2 + Cz^2 + Dxy + Exz + Fyz + Gx + Hy + Iz + J = 0 .
+\begin{aligned}
+&Ax^2 + By^2 + Cz^2 + Dxy \\
+&\quad + Exz + Fyz + Gx + Hy + Iz + J = 0 .
+\end{aligned}
 $$
 :::
 

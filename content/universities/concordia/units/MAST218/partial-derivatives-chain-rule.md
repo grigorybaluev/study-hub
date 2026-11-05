@@ -282,7 +282,11 @@ and the stronger notion is the following.
 $f$ is **differentiable** at $(a, b)$ if
 
 $$
-f(a + \Delta x, b + \Delta y) = f(a, b) + f_x(a, b)\,\Delta x + f_y(a, b)\,\Delta y + \varepsilon_1\,\Delta x + \varepsilon_2\,\Delta y ,
+\begin{aligned}
+&f(a + \Delta x, b + \Delta y) \\
+&\quad = f(a, b) + f_x(a, b)\,\Delta x + f_y(a, b)\,\Delta y \\
+&\qquad + \varepsilon_1\,\Delta x + \varepsilon_2\,\Delta y ,
+\end{aligned}
 $$
 
 where $\varepsilon_1, \varepsilon_2 \to 0$ as $(\Delta x, \Delta y) \to (0, 0)$.

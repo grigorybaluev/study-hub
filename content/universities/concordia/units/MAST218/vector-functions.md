@@ -91,7 +91,7 @@ $\lim_{t \to a} h(t) = h(a)$. So $\mathbf{r}$ is continuous at $a$ exactly when 
 Let $\mathbf{r}(t) = \langle f(t), g(t), h(t) \rangle$ be continuous on $I$. The set of points
 
 $$
-C = \{ (x, y, z) : x = f(t),\ y = g(t),\ z = h(t),\ t \in I \}
+C = \{ (f(t), g(t), h(t)) : t \in I \}
 $$
 
 is a **space curve**, and $x = f(t)$, $y = g(t)$, $z = h(t)$ are its **parametric equations**, with
@@ -207,11 +207,13 @@ $$
 $$
 
 :::proof
-Subtract and divide component by component, then use the definition of the limit of a vector function:
+Subtracting and dividing go component by component, so the first component of $\frac{\mathbf{r}(t + u) - \mathbf{r}(t)}{u}$ is
 
 $$
-\mathbf{r}'(t) = \lim_{u \to 0} \left\langle \frac{f(t + u) - f(t)}{u},\ \frac{g(t + u) - g(t)}{u},\ \frac{h(t + u) - h(t)}{u} \right\rangle = \langle f'(t), g'(t), h'(t) \rangle .
+\frac{f(t + u) - f(t)}{u} \to f'(t) \quad\text{as } u \to 0 ,
 $$
+
+and the other two behave the same way. A limit of a vector function is taken component by component, which gives the formula.
 :::
 ::::
 

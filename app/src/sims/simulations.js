@@ -931,9 +931,9 @@
   const sideBySide = (id, title, range) => layout({ title: { text: title, font: { size: 14 } }, height: 460, margin: { t: 60, r: 10, b: 45, l: 10 }, showlegend: false,
     scene: { ...scene3(id), domain: { x: [0, 0.52], y: [0, 1] }, aspectmode: 'cube' },
     xaxis: ax({ title: 'x', domain: [0.58, 0.99], range }), yaxis: ax({ title: 'y', range, scaleanchor: 'x', scaleratio: 1 }) });
-  const levels = (m, start, end, size) => ({ type: 'contour', x: m.x, y: m.y, z: m.z, showscale: false, hoverinfo: 'skip', autocontour: false,
+  const levels = (m, start, end, size) => ({ type: 'contour', x: m.x, y: m.y, z: m.z, showscale: false, showlegend: false, hoverinfo: 'skip', autocontour: false,
     contours: { start, end, size, coloring: 'lines', showlabels: true, labelfont: { size: 9, color: '#c8d0e0' } }, colorscale: [[0, '#475569'], [1, '#94a3b8']], line: { width: 1 } });
-  const oneLevel = (m, k, color) => ({ type: 'contour', x: m.x, y: m.y, z: m.z, showscale: false, hoverinfo: 'skip', autocontour: false,
+  const oneLevel = (m, k, color) => ({ type: 'contour', x: m.x, y: m.y, z: m.z, showscale: false, showlegend: false, hoverinfo: 'skip', autocontour: false,
     contours: { start: k, end: k + 1e-6, size: 1, coloring: 'none' }, line: { color: color || C_PT, width: 3 } });
 
   // ── P20. Quadric surfaces and their traces z = k ───────────────
@@ -1011,7 +1011,7 @@
       line3([p[0], tip[0]], [p[1], tip[1]], [p[2], tip[2]], 'r′(t)', C_ARROW),
       { type: 'cone', x: [tip[0]], y: [tip[1]], z: [tip[2]], u: [d[0]], v: [d[1]], w: [d[2]], anchor: 'tip', sizemode: 'absolute', sizeref: 0.35, showscale: false, colorscale: [[0, C_ARROW], [1, C_ARROW]], hoverinfo: 'skip' },
       dot3(p, 'P(t)'),
-    ], layout3(id, `${C.name}<br>t = ${n2(t)}: r = ⟨${n2(p[0])}, ${n2(p[1])}, ${n2(p[2])}⟩, r′ = ⟨${n2(d[0])}, ${n2(d[1])}, ${n2(d[2])}⟩, |r′| = ${speed.toFixed(3)}`), cfg());
+    ], layout3(id, `${C.name}<br>t = ${n2(t)}: r = ⟨${n2(p[0])}, ${n2(p[1])}, ${n2(p[2])}⟩, r′ = ⟨${n2(d[0])}, ${n2(d[1])}, ${n2(d[2])}⟩, |r′| = ${speed.toFixed(3)}`, { aspectmode: 'cube' }), cfg());
   }
 
   // ── P22. A projectile: velocity along the path, constant acceleration ─
@@ -1160,7 +1160,7 @@
       { x: [th * 180 / PI], y: [D], xaxis: 'x2', yaxis: 'y2', mode: 'markers', showlegend: false, marker: { color: C_MINT, size: 10 } },
     ], twoRows({ title: { text: `${F.name} at (${n2(a)}, ${n2(b)}): ∇f = ⟨${n2(g[0])}, ${n2(g[1])}⟩, |∇f| = ${len.toFixed(3)}<br>D_u f = ${n3m(D)} at θ = ${(th * 180 / PI).toFixed(0)}°${len < 1e-9 ? ': a critical point, every rate is 0' : ''}`, font: { size: 14 } },
       height: 660, margin: { t: 70, r: 20, b: 50, l: 55 }, annotations: ann,
-      xaxis: { title: 'x', range: [-L, L] }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
+      xaxis: { title: 'x', range: [-L, L], constrain: 'domain' }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
       xaxis2: { title: 'θ (degrees)', range: [0, 360] }, yaxis2: { title: 'D_u f', domain: [0, 0.24] } }), cfg());
   }
 
@@ -1197,7 +1197,7 @@
     ], twoRows({ title: { text: `${P.name}<br>(x, y) = (${n2(x)}, ${n2(y)}), f = ${n3m(f0)}: ${touch ? `∇f = λ∇g with λ = ${n2(lam)}, the curves touch` : 'the gradients are not parallel, so f still changes along the curve'}`, font: { size: 14 } },
       height: 660, margin: { t: 70, r: 20, b: 50, l: 55 },
       annotations: [arrow(x, y, x + 1.1 * gf[0] / nf, y + 1.1 * gf[1] / nf, C_ARROW), arrow(x, y, x + 1.1 * gg[0] / ng, y + 1.1 * gg[1] / ng, C_MINT)],
-      xaxis: { title: 'x', range: [-L, L] }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
+      xaxis: { title: 'x', range: [-L, L], constrain: 'domain' }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
       xaxis2: { title: 't (degrees)', range: [0, 360] }, yaxis2: { title: 'f', domain: [0, 0.24] } }), cfg());
   }
 
