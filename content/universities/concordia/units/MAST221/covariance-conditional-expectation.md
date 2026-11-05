@@ -271,7 +271,8 @@ print('cov of the plus sign:', np.mean(x * y) - x.mean() * y.mean())       # 0.0
 
 :::caution[The variance of a difference adds]
 $\operatorname{Var}(X - Y)$ is $\operatorname{Var}(X) + \operatorname{Var}(Y) - 2\sigma_{XY}$, with a plus
-between the variances: subtracting a random quantity adds uncertainty, it never cancels it.
+between the variances: for independent $X$ and $Y$, subtracting a random quantity adds uncertainty, it does
+not cancel it. Only a positive covariance can make a difference less variable.
 :::
 
 :::insight
