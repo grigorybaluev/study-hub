@@ -106,7 +106,7 @@ shared:
     text: >-
       For independent variables: binomials with the same $\theta$, negative binomials with the same $\theta$, Poissons,
       gammas with the same $\beta$, chi-squares, normals. $n$ exponentials with mean $\theta$ add to a
-      gamma($n,\theta$), and $k$ geometrics to a negative binomial.
+      gamma($n,\theta$), and $k$ geometrics with the same $\theta$ to a negative binomial.
   - label: Covariance
     text: >-
       $\sigma_{XY}=E[XY]-\mu_X\mu_Y$, $\rho=\frac{\sigma_{XY}}{\sigma_X\sigma_Y}$, $-1\le\rho\le1$. Independent gives

@@ -19,7 +19,6 @@ legend:
     same: one formula or one derivative
     linear: one sum or integral
     design: a match against the table
-    explodes: "a double sum or integral: draw the region first"
 
 nodes:
   # ---- one variable
@@ -43,7 +42,6 @@ nodes:
     sub: the sum of independent pieces
     tone: lavender
     box: [715, 58, 230, 96]
-    concept: moment-generating-function
     text: "$X+Y$ with $X$, $Y$ independent: hard for pmfs and densities, easy for mgfs."
   - id: moments
     label: Moments
@@ -57,14 +55,12 @@ nodes:
     sub: a shift and a scale
     tone: sky
     box: [370, 232, 225, 96]
-    concept: moment-generating-function
     text: "$a+bX$: the mean and the variance are easy, and the mgf also gives the distribution."
   - id: named
     label: A named distribution
     sub: recognised
     tone: teal
     box: [715, 232, 230, 96]
-    concept: moment-generating-function
     text: "Its name, its parameters and all its formulas, from the table. The family-tree map starts here."
   - id: musigma
     label: Mean and variance
@@ -85,7 +81,6 @@ nodes:
     sub: of n independent copies
     tone: forest
     box: [715, 405, 230, 100]
-    concept: variance
     text: "$E[\\bar X]=\\mu$ and $\\operatorname{Var}(\\bar X)=\\frac{\\sigma^2}n$: more measurements, less spread."
     easy: "a Chebyshev bound for $\\bar X$."
   # ---- two variables
@@ -101,7 +96,7 @@ nodes:
     sub: weighted by the joint
     tone: green
     box: [370, 575, 225, 105]
-    concept: covariance
+    concept: moment
     text: "$E[X^rY^s]$. Usually just $E[XY]$."
     easy: "any $E[g(X,Y)]$ the same way."
   - id: cov
@@ -240,8 +235,8 @@ edges:
     path: M830 156 L830 230
     steps: >-
       Simplify the product, then match it. Poissons, normals and chi-squares stay in their family; binomials and
-      negative binomials need the same $\theta$, and gammas the same $\beta$. $n$ exponentials become a gamma, and $k$
-      geometrics a negative binomial.
+      negative binomials need the same $\theta$, and gammas the same $\beta$. $n$ exponentials with one mean become a gamma, and
+      $k$ geometrics with the same $\theta$ a negative binomial.
     when: right after multiplying
     trap: binomials with different $\theta$ do not add to a binomial
   - id: recognise-change
@@ -292,7 +287,7 @@ edges:
     from: joint
     to: product
     kind: algorithm
-    cost: explodes
+    cost: linear
     name: "E[g(X, Y)]"
     short: "$\\iint xy\\,f$"
     label: [280, 590, 88]

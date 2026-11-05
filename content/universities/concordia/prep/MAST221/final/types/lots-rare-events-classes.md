@@ -3,7 +3,6 @@ title: Finite lots, rare events, several classes
 order: 11
 asks: hypergeometric, Poisson and its binomial limit, multinomial; which one is it, then compute
 units: [discrete-distributions]
-method: exact-or-normal-approximation
 ---
 
 ## Logic

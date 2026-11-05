@@ -24,6 +24,8 @@ waiting distributions fix the successes and count trials.
    with $\mu=\frac k\theta$ and $\sigma^2=\frac{k(1-\theta)}{\theta^2}$.
 5. "At least" and "at most": use the complement when it has fewer terms.
 6. A stage can itself be a trial: find the probability of the stage first, then use it as $\theta$.
+7. The two simplest cases. One trial is a Bernoulli, with $\mu=\theta$ and $\sigma^2=\theta(1-\theta)$. Equally likely
+   values $1,\dots,k$ are discrete uniform, with $\mu=\frac{k+1}2$ and $\sigma^2=\frac{k^2-1}{12}$.
 :::
 
 ## Traps
@@ -79,7 +81,7 @@ $P(X>5\mid X>2)$. (c) $X$ is discrete uniform on $1,\dots,10$. Find $\mu$ and $\
 ::::
 
 :::note[Pattern at work]
-(a) divides the two formulas of step 2. (b) uses $P(X>m)=(1-\theta)^m$ from step 3.
+(a) divides the two formulas of step 2. (b) uses $P(X>m)=(1-\theta)^m$ from step 3. (c) reads off step 7.
 :::
 
 ::::exercise[A sampling plan]

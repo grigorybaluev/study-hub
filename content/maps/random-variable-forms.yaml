@@ -85,7 +85,7 @@ nodes:
     aux: true
     box: [20, 425, 240, 60]
     concept: moment-generating-function
-    text: "the step after week 6, with a map of its own."
+    text: "one more expected value, with its own tools."
   - id: joint
     label: Joint · the hub
     sub: a table or a surface
@@ -256,7 +256,7 @@ edges:
     short: "$g(x)=e^{tx}$"
     label: [148, 397, 112]
     path: M140 395 L140 423
-    steps: "$M(t)=E[e^{tX}]$ is one more $E[g(X)]$. Its derivatives at 0 are the moments. The moments-and-sums map takes it from here."
+    steps: "$M(t)=E[e^{tX}]$ is one more $E[g(X)]$. Its derivatives at 0 are the moments."
     when: week 7
 
   # ---- two variables: the triangle

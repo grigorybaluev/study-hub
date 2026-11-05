@@ -5,7 +5,7 @@ description: >-
   binomial and the waiting distributions. Very many rare trials give the Poisson, and the Poisson stream gives the
   exponential and the gamma as its waiting times. Large counts turn normal, and squares of normals give the
   chi-square. Each arrow is a relation you can use: a special case, a sum of independent copies, another question
-  about the same process, or a limit with its condition. The beta and the uniform on the unit interval stand apart.
+  about the same process, or a limit with its condition. A double arrow runs both ways, and its card says how. The beta and the uniform on the unit interval stand apart.
 
 canvas: [965, 845]
 
@@ -73,6 +73,7 @@ nodes:
     box: [20, 370, 215, 105]
     concept: negative-binomial-distribution
     text: "$\\binom{x-1}{k-1}\\theta^k(1-\\theta)^{x-k}$, $x\\ge k$. Mean $\\frac k\\theta$, variance $\\frac{k(1-\\theta)}{\\theta^2}$."
+    easy: "the discrete twin of the gamma."
   - id: poisson
     label: Poisson · the bridge
     sub: random events in a stretch
@@ -154,13 +155,15 @@ edges:
     to: binomial
     kind: algorithm
     cost: same
+    both: true
     name: sum of n
     short: "same $\\theta$, independent"
     label: [490, 138, 100]
     path: M482 117 L482 188
     steps: >-
       $X=X_1+\dots+X_n$, with independent Bernoulli($\theta$) terms. So $\mu=n\theta$ and $\sigma^2=n\theta(1-\theta)$ by the
-      linear-combination rules, and $M(t)=(1+\theta(e^t-1))^n$ by the product rule for mgfs.
+      linear-combination rules, and $M(t)=(1+\theta(e^t-1))^n$ by the product rule for mgfs. Back: a binomial with $n=1$
+      is a Bernoulli.
     when: '"the number of successes in $n$ independent trials"'
     trap: the trials must be independent with a constant $\theta$
   - id: wait-first
@@ -182,13 +185,15 @@ edges:
     to: negative-binomial
     kind: algorithm
     cost: same
+    both: true
     name: sum of k
     short: "$k=1$ is the geometric"
     label: [135, 318, 150]
     path: M127 297 L127 368
     steps: >-
-      The wait for the $k$-th success is the sum of $k$ independent geometric waits, one after each success. So the
-      mean and the variance are $k$ times the geometric ones, and the mgf is the geometric mgf to the power $k$.
+      The wait for the $k$-th success is the sum of $k$ independent geometric waits with the same $\theta$, one after each
+      success. So the mean and the variance are $k$ times the geometric ones, and the mgf is the geometric mgf to the
+      power $k$. Back: $k=1$ is the geometric.
     when: '"on which trial does the third success come?"'
     trap: "the coefficient is $\\binom{x-1}{k-1}$, since the last trial is a success"
   - id: large-lot
@@ -282,30 +287,16 @@ edges:
     to: gamma
     kind: algorithm
     cost: same
+    both: true
     name: sum of k
     short: "$\\alpha=k$, $\\beta=\\theta$"
     label: [240, 566, 130]
     path: M373 605 L237 605
-    steps: "$M(t)=(1-\\theta t)^{-k}$ is the gamma mgf with $\\alpha=k$, $\\beta=\\theta$. The wait for the $k$-th event is the sum of $k$ independent gaps."
+    steps: "$M(t)=(1-\\theta t)^{-k}$ is the gamma mgf with $\\alpha=k$, $\\beta=\\theta$. The wait for the $k$-th event is the sum of $k$ independent gaps. Back: $\\alpha=1$ is the exponential."
     when: '"the time of the third call"'
     trap: "the event $T>t$ is the Poisson event \"at most $k-1$ events by time $t$\""
-  - id: twins
-    n: 12
-    from: negative-binomial
-    to: gamma
-    kind: design
-    cost: linear
-    name: its continuous twin
-    short: "trials become time"
-    label: [135, 498, 160]
-    path: M127 477 L127 548
-    steps: >-
-      The same question in continuous time. The negative binomial waits for the $k$-th success over trials, and the gamma
-      waits for the $k$-th event over time. The geometric and the exponential are twins in the same way: both are memoryless.
-    when: a check on which family a waiting-time question belongs to
-    trap: this is an analogy between families, so it gives no formula to apply
   - id: to-chi-square
-    n: 13
+    n: 12
     from: gamma
     to: chi-square
     kind: free
@@ -314,11 +305,11 @@ edges:
     short: "$\\alpha=\\frac\\nu2$"
     label: [135, 680, 120]
     path: M127 657 L127 728
-    steps: "The gamma with $\\alpha=\\frac\\nu2$, $\\beta=2$ is the chi-square with $\\nu$ degrees of freedom. So $\\nu=2$ is the exponential with mean 2."
+    steps: "The gamma with $\\alpha=\\frac\\nu2$, $\\beta=2$ is the chi-square with $\\nu$ degrees of freedom. So every chi-square is a gamma, and $\\nu=2$ is the exponential with mean 2."
     when: "$M(t)=(1-2t)^{-3}$ has $\\nu=6$"
     trap: "$\\alpha$ is half the degrees of freedom"
   - id: standardise
-    n: 14
+    n: 13
     from: normal
     to: standard-normal
     kind: algorithm
@@ -332,7 +323,7 @@ edges:
     when: every normal probability or percentile
     trap: "divide by $\\sigma$, not $\\sigma^2$"
   - id: square
-    n: 15
+    n: 14
     from: standard-normal
     to: chi-square
     kind: algorithm
@@ -347,7 +338,7 @@ edges:
     when: '"$P(Z^2<3.84)$"; sums of squares'
     trap: the normals must be standard and independent
   - id: flat-beta
-    n: 16
+    n: 15
     from: beta
     to: uniform
     kind: free
@@ -409,9 +400,8 @@ example:
     - edge: k-exponentials
       text: >-
         The time of the third call, in minutes, is gamma with $\alpha=3$, $\beta=1$: $\mu=3$, $\sigma^2=3$. $T>2$ means at most 2
-        calls in 2 minutes: $e^{-2}\left(1+2+2\right)=5e^{-2}\approx0.677$.
-    - edge: twins
-      text: "Arrows 4 and 11 are the same story: the third call, counted in seconds as trials or in minutes as time. 180 seconds is 3 minutes."
+        calls in 2 minutes: $e^{-2}\left(1+2+2\right)=5e^{-2}\approx0.677$. Arrow 4 told the same story in seconds: the gamma
+        is the continuous twin of the negative binomial, and 180 seconds is 3 minutes.
     - edge: to-chi-square
       text: "Doubling a gamma doubles $\\beta$, so $2T$ is gamma with $\\alpha=3$, $\\beta=2$: the chi-square with $\\nu=6$, with mean 6."
     - edge: poisson-normal
