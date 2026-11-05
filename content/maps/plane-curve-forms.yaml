@@ -1,0 +1,458 @@
+id: plane-curve-forms
+title: "Plane curves: one curve, four ways to write it"
+description: >-
+  A curve in the plane can be written as a Cartesian equation, a parametric pair, a polar equation, or, for
+  a conic, a standard form with its features. The top row converts between the forms; the stack in the middle
+  is the calculus, reached from the parametric form on the left and the polar form on the right. Pick the
+  form in which the question is easy, then convert.
+canvas: [965, 830]
+
+legend:
+  kinds:
+    algorithm: "operation: mechanical; write the formula, then compute"
+    design: "choice: pick the parameter that makes it simple"
+    free: "free: it already is one"
+  costs:
+    same: one substitution or one formula
+    linear: one derivative or one integral
+    design: a choice to make
+    explodes: "an integral whose limits come from a sketch"
+
+nodes:
+  - id: standard
+    label: Conic standard form
+    sub: after completing the square
+    tone: violet
+    box: [20, 20, 230, 105]
+    concept: conic-section
+    text: >-
+      $\frac{(x-h)^2}{a^2}\pm\frac{(y-k)^2}{b^2}=1$ or $(x-h)^2=4p(y-k)$. The signs and powers name the
+      conic: two squares with $+$ an ellipse, with $-$ a hyperbola, one square a parabola.
+  - id: features
+    label: Conic features
+    sub: centre, vertices, foci, e
+    tone: lavender
+    box: [365, 20, 235, 105]
+    concept: conic-section
+    text: >-
+      Ellipse $c^2=a^2-b^2$, hyperbola $c^2=a^2+b^2$, parabola: focus at distance $p$. Eccentricity
+      $e=c/a$; asymptotes $y-k=\pm\frac ba(x-h)$.
+  - id: polar-conic
+    label: Polar conic
+    sub: a focus at the origin
+    tone: lavender
+    box: [715, 20, 230, 105]
+    concept: conic-section
+    text: >-
+      $r=\frac{ed}{1\pm e\cos\theta}$ or $\frac{ed}{1\pm e\sin\theta}$: $e<1$ ellipse, $e=1$ parabola,
+      $e>1$ hyperbola; the directrix is at distance $d$.
+  - id: parametric
+    label: Parametric
+    sub: a moving point, with a direction
+    tone: blue
+    box: [20, 235, 230, 110]
+    concept: parametric-curve
+    text: >-
+      $x=f(t)$, $y=g(t)$, $a\le t\le b$. It also says **where the point starts, which way it moves and how
+      often it goes round**, which the equation forgets.
+  - id: cartesian
+    label: Cartesian · the hub
+    sub: an equation in x and y
+    tone: navy
+    box: [365, 235, 235, 110]
+    text: >-
+      $y=f(x)$ or $F(x,y)=0$. The form to recognise a curve in: a line, a circle, a conic. Every conversion
+      passes through it or ends in it.
+  - id: polar
+    label: Polar
+    sub: distance and angle
+    tone: sky
+    box: [715, 235, 230, 110]
+    concept: polar-coordinates
+    text: >-
+      $r=f(\theta)$. A point has many names: $(r,\theta)=(r,\theta+2\pi)=(-r,\theta+\pi)$. Circles about
+      the origin, rays and the classic curves are simple here.
+  - id: slope
+    label: Slope and tangents
+    sub: dy over dx
+    tone: green
+    box: [365, 400, 235, 80]
+    concept: derivative
+    text: "Horizontal tangent where $\\frac{dy}{dt}=0$, vertical where $\\frac{dx}{dt}=0$ (and not both)."
+  - id: area
+    label: Area
+    sub: enclosed or under the curve
+    tone: mint
+    box: [365, 510, 235, 80]
+    concept: integral
+    text: "Under a parametric curve, or swept from the origin by a polar one."
+  - id: length
+    label: Arc length
+    sub: how far the point travels
+    tone: teal
+    box: [365, 620, 235, 80]
+    concept: arc-length
+    text: "Always $\\int\\sqrt{\\dots}$ of the squared rates; the inside is often a perfect square."
+  - id: sketch
+    label: Sketch
+    sub: the picture, or which picture
+    tone: grey
+    box: [365, 730, 235, 85]
+    text: "A table of a few values, the direction of motion, the symmetries; then join the points."
+
+edges:
+  # ---- between the forms
+  - id: eliminate
+    n: 1
+    from: parametric
+    to: cartesian
+    kind: algorithm
+    cost: same
+    name: eliminate t
+    short: "solve for $t$"
+    label: [256, 304, 105]
+    path: M252 335 L363 335
+    steps: >-
+      Solve one equation for $t$ and substitute into the other ($x=t+1$, $y=t^2$ gives $y=(x-1)^2$). With
+      $\cos t$ and $\sin t$, isolate them and use $\cos^2t+\sin^2t=1$; with $\sec$ and $\tan$, use
+      $\sec^2t-\tan^2t=1$.
+    when: '"eliminate the parameter", "identify the curve", "find a Cartesian equation"'
+    trap: >-
+      the equation may describe more than the curve traces: $x=\sin t$, $y=\sin^2t$ gives only the part of
+      $y=x^2$ with $-1\le x\le1$. State the restriction.
+  - id: parametrize
+    n: 2
+    from: cartesian
+    to: parametric
+    kind: design
+    cost: design
+    name: parametrize
+    short: "$x=t$; cos and sin"
+    label: [256, 246, 105]
+    path: M363 282 L252 282
+    steps: >-
+      A graph $y=f(x)$: $x=t$, $y=f(t)$. A circle or an ellipse: $x=h+a\cos t$, $y=k+b\sin t$,
+      $0\le t\le2\pi$. A segment from $P$ to $Q$: $P+t(Q-P)$, $0\le t\le1$. Choose the range of $t$ for the
+      part and the direction asked.
+    when: '"parametrize", or before a slope, an area or a length that is easier in $t$'
+    trap: a parametrization is not unique; the direction and the start matter when the question names them
+  - id: to-polar
+    n: 3
+    from: cartesian
+    to: polar
+    kind: algorithm
+    cost: same
+    name: to polar
+    short: "$x=r\\cos\\theta$, $y=r\\sin\\theta$"
+    label: [606, 246, 105]
+    path: M602 282 L713 282
+    steps: >-
+      Substitute $x=r\cos\theta$, $y=r\sin\theta$ and $x^2+y^2=r^2$, then solve for $r$:
+      $x^2+y^2=4x$ becomes $r^2=4r\cos\theta$, so $r=4\cos\theta$ (dividing by $r$ loses only the origin,
+      which $\theta=\pi/2$ still gives).
+    when: a circle through the origin, $x^2+y^2$ in the equation, an area that sweeps from the origin
+    trap: dividing by $r$ can drop the origin; check whether the curve passes through it
+  - id: to-cartesian
+    n: 4
+    from: polar
+    to: cartesian
+    kind: algorithm
+    cost: same
+    name: to Cartesian
+    short: "multiply by $r$"
+    label: [606, 304, 105]
+    path: M713 335 L602 335
+    steps: >-
+      Make $r\cos\theta$, $r\sin\theta$ and $r^2$ appear, usually by multiplying by $r$:
+      $r=2\sin\theta$ becomes $r^2=2r\sin\theta$, so $x^2+y^2=2y$, a circle of radius 1 about $(0,1)$.
+      $\theta=c$ is the line $y=x\tan c$.
+    when: '"identify the curve", "find a Cartesian equation"; to check a polar answer'
+    trap: $\tan\theta=y/x$ gives the angle only up to $\pi$; read the quadrant from the signs of $x$ and $y$
+  - id: complete-square
+    n: 5
+    from: cartesian
+    to: standard
+    kind: algorithm
+    cost: same
+    name: complete the square
+    short: "group, complete, divide"
+    label: [105, 176, 180]
+    path: M420 233 L195 127
+    steps: >-
+      Group the $x$ terms and the $y$ terms, factor out each leading coefficient, complete each square, move
+      the constants right and divide so that the right side is 1:
+      $16x^2+25y^2-96x=256$ gives $16(x-3)^2+25y^2=400$, so $\frac{(x-3)^2}{25}+\frac{y^2}{16}=1$.
+    when: a quadratic in $x$ and $y$ with no $xy$ term
+    trap: >-
+      forgetting to multiply the added constant by the factored coefficient ($16(x-3)^2$ adds 144, not 9);
+      a negative right side means no points at all
+  - id: read-build
+    n: 6
+    from: standard
+    to: features
+    both: true
+    kind: algorithm
+    cost: same
+    name: read ↔ build
+    short: "$c$ from $a$ and $b$"
+    label: [256, 62, 105]
+    path: M252 100 L363 100
+    steps: >-
+      **Read**: the centre is $(h,k)$; $a$ goes with the larger denominator of an ellipse and with the
+      positive term of a hyperbola; then $c$ and the foci, vertices, asymptotes, $e=c/a$. **Build**: from
+      the given foci, vertices or asymptotes, find the centre (the midpoint), $a$ and $c$, then $b$, and
+      write the form.
+    when: '"find the foci, the vertices, the asymptotes"; "the conic with foci ... and vertex ..."'
+    trap: >-
+      $c^2=a^2-b^2$ for an ellipse but $a^2+b^2$ for a hyperbola; a vertical major axis puts $a^2$ under
+      $(y-k)^2$
+  - id: e-and-d
+    n: 7
+    from: features
+    to: polar-conic
+    both: true
+    kind: algorithm
+    cost: same
+    name: e, d ↔ polar
+    short: "$r=\\frac{ed}{1\\pm e\\cos\\theta}$"
+    label: [606, 56, 105]
+    path: M602 100 L713 100
+    steps: >-
+      **To polar**: put a focus at the origin; the directrix $x=\pm d$ gives $1\pm e\cos\theta$, $y=\pm d$
+      gives $1\pm e\sin\theta$. **Back**: divide so the denominator starts with 1, read $e$ and then $d$
+      from the numerator $ed$; the vertices are at $\theta=0,\pi$ (or $\pm\pi/2$).
+    when: '"a conic with focus at the origin, eccentricity ... and directrix ..."; "identify $r=\frac{6}{2+3\cos\theta}$"'
+    trap: "$r=\\frac{6}{2+3\\cos\\theta}$ is not $e=3$: divide by 2 first, so $e=\\frac32$ (a hyperbola) and $ed=3$"
+  - id: polar-conic-is-polar
+    n: 8
+    from: polar-conic
+    to: polar
+    kind: free
+    cost: free
+    name: free
+    short: it is a polar equation
+    label: [838, 168, 105]
+    path: M830 127 L830 233
+    steps: "Nothing to do: a polar conic is a polar equation, so every arrow from the polar form applies to it."
+    when: an area, a slope or a sketch of a polar conic
+
+  # ---- calculus, from the parametric side
+  - id: slope-param
+    n: 9
+    from: parametric
+    to: slope
+    kind: algorithm
+    cost: linear
+    name: slope
+    short: "$\\frac{dy}{dx}=\\frac{dy/dt}{dx/dt}$"
+    label: [240, 402, 120]
+    path: M235 347 L235 440 L363 440
+    steps: >-
+      $\frac{dy}{dx}=\frac{y'(t)}{x'(t)}$; the tangent at $t_0$ passes through $(x(t_0),y(t_0))$ with that
+      slope. Concavity: $\frac{d^2y}{dx^2}=\frac{\frac{d}{dt}\left(\frac{dy}{dx}\right)}{x'(t)}$, divided
+      by $x'(t)$ again.
+    when: '"the tangent at $t=\dots$", "where is the tangent horizontal / vertical", "concave up"'
+    trap: "$\\frac{d^2y}{dx^2}$ is not $\\frac{y''(t)}{x''(t)}$; a point where both rates are 0 needs a limit"
+  - id: area-param
+    n: 11
+    from: parametric
+    to: area
+    kind: algorithm
+    cost: linear
+    name: area
+    short: "$\\int y\\,dx=\\int y(t)\\,x'(t)\\,dt$"
+    label: [200, 514, 160]
+    path: M195 347 L195 550 L363 550
+    steps: >-
+      $A=\int_\alpha^\beta y(t)\,x'(t)\,dt$ with the $t$-limits of the arc. For a closed curve traced once,
+      $\left|\int y\,dx\right|$ is the enclosed area; for a loop, find the $t$ where the curve crosses itself.
+    when: '"the area under the arch", "the area enclosed by the loop"'
+    trap: the sign follows the direction of motion; take the absolute value, and do not mix $x$-limits with $dt$
+  - id: length-param
+    n: 13
+    from: parametric
+    to: length
+    kind: algorithm
+    cost: linear
+    name: arc length
+    short: "$\\int\\sqrt{x'(t)^2+y'(t)^2}\\,dt$"
+    label: [160, 624, 200]
+    path: M155 347 L155 660 L363 660
+    steps: >-
+      $L=\int_\alpha^\beta\sqrt{x'(t)^2+y'(t)^2}\,dt$. Simplify the inside before integrating: it is often a
+      perfect square ($x=t^2$, $y=\frac{t^3}3-t$ gives $(t^2+1)^2$).
+    when: '"the length of the curve", "the distance travelled for $0\le t\le\dots$"'
+    trap: a curve traced twice gives twice its length; check that the range of $t$ goes round once
+  - id: sketch-param
+    n: 15
+    from: parametric
+    to: sketch
+    kind: algorithm
+    cost: same
+    name: sketch
+    short: "a table of $t$; arrows for the direction"
+    label: [120, 740, 240]
+    path: M115 347 L115 772 L363 772
+    steps: >-
+      Tabulate $t$, $x$, $y$ at a few values (the ends, where $x'$ or $y'$ is 0), plot, join in the order of
+      $t$, and draw arrows for the direction. Eliminating $t$ (arrow 1) names the shape.
+    when: '"sketch the curve and show its direction"'
+    trap: the Cartesian shape alone loses the direction, the start and any part that is never traced
+
+  # ---- calculus, from the polar side
+  - id: slope-polar
+    n: 10
+    from: polar
+    to: slope
+    kind: algorithm
+    cost: linear
+    name: polar slope
+    short: "$\\theta$ as the parameter"
+    label: [605, 404, 120, right]
+    path: M730 347 L730 440 L602 440
+    steps: >-
+      $x=r(\theta)\cos\theta$, $y=r(\theta)\sin\theta$ is a parametric curve in $\theta$, so
+      $\frac{dy}{dx}=\frac{r'\sin\theta+r\cos\theta}{r'\cos\theta-r\sin\theta}$. At the origin ($r=0$) the
+      tangent is the line $\theta=\theta_0$.
+    when: '"the slope of the tangent to $r=\dots$ at $\theta=\dots$"'
+    trap: "$\\frac{dr}{d\\theta}$ is not the slope"
+  - id: area-polar
+    n: 12
+    from: polar
+    to: area
+    kind: algorithm
+    cost: explodes
+    name: polar area
+    short: "$\\frac12\\int r^2\\,d\\theta$"
+    label: [605, 514, 160, right]
+    path: M770 347 L770 550 L602 550
+    steps: >-
+      $A=\frac12\int_\alpha^\beta r^2\,d\theta$, the area swept from the origin. Between two curves,
+      $\frac12\int(r_{out}^2-r_{in}^2)\,d\theta$, with the limits at the intersections (solve
+      $r_1=r_2$ and check the origin separately). Use symmetry: one petal, then multiply.
+    when: '"the area inside one loop / one petal", "inside one curve and outside the other"'
+    trap: >-
+      limits that trace a part twice ($r=\cos2\theta$ needs $-\frac\pi4\le\theta\le\frac\pi4$ for one petal);
+      $\frac12\int(r_1-r_2)^2$ instead of $\frac12\int(r_1^2-r_2^2)$
+  - id: length-polar
+    n: 14
+    from: polar
+    to: length
+    kind: algorithm
+    cost: linear
+    name: polar length
+    short: "$\\int\\sqrt{r^2+r'^2}\\,d\\theta$"
+    label: [605, 624, 200, right]
+    path: M810 347 L810 660 L602 660
+    steps: "$L=\\int_\\alpha^\\beta\\sqrt{r^2+\\left(\\frac{dr}{d\\theta}\\right)^2}\\,d\\theta$: arrow 13 with $x=r\\cos\\theta$, $y=r\\sin\\theta$, simplified."
+    when: '"the length of the cardioid", "the length of the spiral"'
+    trap: "the cardioid $r=1+\\cos\\theta$ needs $\\sqrt{2+2\\cos\\theta}=2|\\cos\\frac\\theta2|$: mind the absolute value"
+  - id: sketch-polar
+    n: 16
+    from: polar
+    to: sketch
+    kind: algorithm
+    cost: same
+    name: polar sketch
+    short: "$r$ against $\\theta$; symmetry; the classic shapes"
+    label: [605, 740, 240, right]
+    path: M850 347 L850 772 L602 772
+    steps: >-
+      Tabulate $r$ at $\theta=0,\frac\pi6,\frac\pi4,\dots$; mark where $r=0$ (the curve passes through the
+      origin) and where $|r|$ is largest. Symmetry: $\theta\to-\theta$ unchanged gives the $x$-axis,
+      $\theta\to\pi-\theta$ the $y$-axis. Know the shapes: $a\pm b\cos\theta$ (cardioid when $a=b$, an inner
+      loop when $a<b$), $\cos n\theta$ (rose: $n$ petals for odd $n$, $2n$ for even), $r=a\theta$ (spiral).
+    when: '"sketch", "match the equation to its graph"'
+    trap: a negative $r$ plots the point in the opposite direction; that is what makes the inner loop
+
+routes:
+  - task: identify a parametric curve
+    path: [parametric, cartesian]
+    why: eliminate $t$, then state the part of the curve the range of $t$ allows
+  - task: a polar equation in x and y
+    path: [polar, cartesian]
+    why: multiply by $r$ to make $r\cos\theta$, $r\sin\theta$ and $r^2$ appear
+  - task: the foci of a conic given by a general equation
+    path: [cartesian, standard, features]
+    why: complete the square, then $c$ from $a$ and $b$ (with the sign of the conic)
+  - task: a conic from its foci and vertices
+    path: [features, standard]
+    why: the centre is the midpoint; find $a$ and $c$, then $b$
+  - task: identify r = ed / (1 ± e cos θ)
+    path: [polar-conic, features]
+    why: make the denominator start with 1, read $e$, then $d$
+  - task: the tangent line at a parameter value
+    path: [parametric, slope]
+    why: the point and the slope, both at that $t$
+  - task: the tangent to a polar curve
+    path: [polar, slope]
+    why: treat $\theta$ as the parameter
+  - task: the area of a parametric loop
+    path: [parametric, area]
+    why: the $t$-limits are where the curve crosses itself
+  - task: the area inside one petal, or between two polar curves
+    path: [polar, area]
+    why: the limits come from a sketch and from solving $r_1=r_2$
+  - task: the length of a parametric arc
+    path: [parametric, length]
+    why: simplify the square root before integrating
+  - task: match polar equations to their graphs
+    path: [polar, sketch]
+    why: "$r=0$ points, the largest $r$, the symmetry, the number of petals"
+
+example:
+  title: One ellipse around the whole map
+  language: "$x=3+5\\cos t$, $y=4\\sin t$, $0\\le t\\le2\\pi$"
+  walk:
+    - node: parametric
+      text: >-
+        At $t=0$ the point is $(8,0)$; it moves counter-clockwise and goes round once as $t$ runs over
+        $[0,2\pi]$.
+    - edge: eliminate
+      text: >-
+        $\cos t=\frac{x-3}5$, $\sin t=\frac y4$, and $\cos^2t+\sin^2t=1$:
+        $\frac{(x-3)^2}{25}+\frac{y^2}{16}=1$, or expanded, $16x^2+25y^2-96x=256$.
+    - edge: complete-square
+      text: "Back from the expanded form: $16(x^2-6x+9)+25y^2=256+144$, so $16(x-3)^2+25y^2=400$; divide by 400."
+    - edge: read-build
+      text: >-
+        Centre $(3,0)$, $a=5$, $b=4$, $c=\sqrt{25-16}=3$: foci $(0,0)$ and $(6,0)$, vertices $(-2,0)$ and
+        $(8,0)$, $e=\frac35$.
+    - edge: e-and-d
+      text: >-
+        A focus is at the origin and the directrix on its side is $x=3-\frac{a}{e}=-\frac{16}3$, so
+        $d=\frac{16}3$, $ed=\frac{16}5$ and $r=\frac{16/5}{1-\frac35\cos\theta}=\frac{16}{5-3\cos\theta}$.
+    - edge: polar-conic-is-polar
+      text: "Check two points: $\\theta=0$ gives $r=8$, the vertex $(8,0)$; $\\theta=\\pi$ gives $r=2$, the vertex $(-2,0)$."
+    - edge: to-cartesian
+      text: >-
+        $5r-3r\cos\theta=16$, so $5r=16+3x$; squaring, $25(x^2+y^2)=(16+3x)^2$, which is
+        $16x^2+25y^2-96x=256$ again.
+    - edge: to-polar
+      text: >-
+        Substituting directly gives $16r^2\cos^2\theta+25r^2\sin^2\theta-96r\cos\theta=256$: correct and
+        useless. With the focus at the origin, arrows 5, 6, 7 were the better road.
+    - edge: slope-param
+      text: >-
+        $\frac{dy}{dx}=\frac{4\cos t}{-5\sin t}$. At $t=\frac\pi4$: $-\frac45$ at
+        $\left(3+\frac{5\sqrt2}2,\,2\sqrt2\right)$. Horizontal tangents at $(3,\pm4)$, vertical at $(8,0)$
+        and $(-2,0)$.
+    - edge: slope-polar
+      text: >-
+        At $\theta=\frac\pi2$: $r=\frac{16}5$, $r'=-\frac{48}{25}$, so
+        $\frac{dy}{dx}=\frac{r'\cdot1+0}{0-r\cdot1}=\frac35$ at $\left(0,\frac{16}5\right)$, the same slope
+        as implicit differentiation of the Cartesian equation gives.
+    - edge: area-param
+      text: >-
+        $\int_0^{2\pi}4\sin t\cdot(-5\sin t)\,dt=-20\pi$: negative because the point moves counter-clockwise.
+        The area is $20\pi=\pi ab$.
+    - edge: area-polar
+      text: >-
+        $\frac12\int_0^{2\pi}\frac{256}{(5-3\cos\theta)^2}\,d\theta=20\pi$ as well, but the integral is
+        much harder: choose the form whose integral is easy.
+    - edge: length-param
+      text: >-
+        $\int_0^{2\pi}\sqrt{25\sin^2t+16\cos^2t}\,dt\approx28.36$. No antiderivative exists: an ellipse's
+        length is set up, not computed. Exam curves are chosen so the root simplifies.
+    - edge: sketch-param
+      text: "$t=0,\\frac\\pi2,\\pi,\\frac{3\\pi}2$: $(8,0)\\to(3,4)\\to(-2,0)\\to(3,-4)$, counter-clockwise."

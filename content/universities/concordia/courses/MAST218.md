@@ -8,6 +8,7 @@ cards: true
 term: fall-2026
 exams:
   - {name: Midterm, date: 2026-10-19, weeks: [1, 5]}   # the first five weeks: chapters 10 and 12
+  - {name: Final, date: 2026-12-09, weeks: [1, 13]}   # the whole course; the first day of the exam period until the schedule is posted
 prereqs: [[MATH204], [MATH205]]
 coreqs: []
 requirements: []

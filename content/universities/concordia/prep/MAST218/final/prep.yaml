@@ -1,0 +1,16 @@
+# Study guide for the MAST 218 final (#274): the whole course, chapters 10, 12, 13 and 14. Maps first;
+# the overview, problem types, table and plan follow.
+exam: Final
+summary: >-
+  The course is one idea applied three times: describe an object by the form in which the question is easy,
+  then do calculus on it. Curves in the plane take four forms (Cartesian, parametric, polar, a conic's
+  standard form). Lines and planes in space are a point plus a direction or a normal, joined by the cross
+  product. Functions of several variables are understood through their partial derivatives and the
+  gradient: rates in every direction, tangent planes, maxima and minima.
+format: >-
+  In the December exam period (9–22 December; the date is posted with the exam schedule). Approved
+  calculator only. It covers the whole course: parametric and polar curves and conics (ch. 10), vectors,
+  lines, planes and quadric surfaces (ch. 12), vector functions (ch. 13), and partial derivatives, the
+  gradient and optimisation (ch. 14). It counts 90 % of the grade, or 60 % when the midterm (30 %) helps.
+  Written answers: the set-up and the formula earn marks, not only the number.
+maps: [plane-curve-forms, lines-and-planes, several-variables]

@@ -1,0 +1,430 @@
+id: several-variables
+title: "Several variables: curves in space and functions of two variables"
+description: >-
+  Two kinds of function meet here. A vector function sends one number t to a point in space (a curve); its
+  calculus is the one-variable calculus done coordinate by coordinate. A function f(x, y) sends a point to one
+  number (a surface); its calculus runs through the partial derivatives and the gradient, which give rates in
+  every direction, tangent planes and the candidates for a maximum or a minimum. The two meet when f is
+  evaluated along a curve: the chain rule.
+canvas: [965, 760]
+
+legend:
+  kinds:
+    algorithm: "operation: mechanical; write the formula, then compute"
+    design: "choice: pick the paths or the substitution"
+    free: "free: it already is one"
+  costs:
+    same: one formula or one substitution
+    linear: one derivative or one integral
+    design: a choice to make
+    explodes: "a system of equations: list every case"
+
+nodes:
+  - id: level
+    label: Level curves
+    sub: the picture of f
+    tone: grey
+    box: [20, 20, 230, 95]
+    concept: multivariable-function
+    text: "The curves $f(x,y)=k$: a contour map of the surface. Close curves mean a steep surface."
+  - id: function
+    label: f(x, y) · the hub
+    sub: a point in, a number out
+    tone: navy
+    box: [365, 20, 235, 95]
+    concept: multivariable-function
+    text: "Its domain is the set of points where the formula makes sense; its graph $z=f(x,y)$ is a surface."
+  - id: limit
+    label: Limit at a point
+    sub: from every direction
+    tone: lavender
+    box: [715, 20, 230, 95]
+    concept: limit
+    text: "Exists only if every path to the point gives the same value."
+  - id: composite
+    label: Composite
+    sub: f of other variables
+    tone: sky
+    box: [20, 175, 230, 95]
+    concept: multivariable-chain-rule
+    text: "$z=f(x,y)$ with $x=x(t)$, $y=y(t)$, or $x(s,t)$, $y(s,t)$: draw the tree."
+  - id: partials
+    label: Partial derivatives
+    sub: one variable moves
+    tone: blue
+    box: [365, 175, 235, 95]
+    concept: partial-derivative
+    text: "$f_x$: differentiate in $x$, $y$ held constant. Mixed partials agree: $f_{xy}=f_{yx}$ (Clairaut)."
+  - id: tangent-plane
+    label: Tangent plane
+    sub: the best flat fit
+    tone: teal
+    box: [715, 175, 230, 95]
+    concept: tangent-plane
+    text: "Near $(a,b)$ the surface is almost this plane: the linear approximation of $f$."
+  - id: vector-function
+    label: Vector function
+    sub: a curve in space
+    tone: violet
+    box: [20, 330, 230, 95]
+    concept: vector-function
+    text: "$\\mathbf r(t)=\\langle x(t),y(t),z(t)\\rangle$: a point moving along a space curve."
+  - id: gradient
+    label: Gradient
+    sub: the vector of partials
+    tone: navy
+    box: [365, 330, 235, 95]
+    concept: gradient
+    text: >-
+      $\nabla f=\langle f_x,f_y\rangle$. It points uphill, the steepest way; its length is the steepest
+      rate; it is perpendicular to the level curve.
+  - id: directional
+    label: Directional derivative
+    sub: the rate along a unit vector
+    tone: green
+    box: [715, 330, 230, 95]
+    concept: directional-derivative
+    text: "$D_{\\mathbf u}f$: the slope of the surface walking in direction $\\mathbf u$."
+  - id: velocity
+    label: Velocity
+    sub: the derivative of the curve
+    tone: lavender
+    box: [20, 485, 230, 95]
+    concept: vector-function
+    text: "$\\mathbf r'(t)$ is tangent to the curve; its length $|\\mathbf r'(t)|$ is the speed."
+  - id: extrema
+    label: Absolute max and min
+    sub: on a region or a curve
+    tone: amber
+    box: [365, 485, 235, 95]
+    concept: lagrange-multipliers
+    text: "On a closed bounded region they exist: inside at critical points, or on the boundary."
+  - id: critical
+    label: Critical points
+    sub: where the gradient is zero
+    tone: mint
+    box: [715, 485, 230, 95]
+    concept: multivariable-optimization
+    text: "Candidates for local extrema: a local max, a local min or a saddle."
+  - id: arc-length
+    label: Arc length
+    sub: the distance along the curve
+    tone: forest
+    box: [20, 640, 230, 95]
+    concept: arc-length
+    text: "$\\int|\\mathbf r'(t)|\\,dt$: the speed, added up over time."
+  - id: curvature
+    label: Curvature
+    sub: how fast the direction turns
+    tone: forest
+    box: [365, 640, 235, 95]
+    concept: curvature
+    text: "$\\kappa=0$ on a line, $\\frac1R$ on a circle of radius $R$."
+
+edges:
+  - id: level-curves
+    n: 1
+    from: function
+    to: level
+    kind: algorithm
+    cost: same
+    name: level curves
+    short: "set $f=k$"
+    label: [256, 40, 105]
+    path: M363 82 L252 82
+    steps: >-
+      Set $f(x,y)=k$ for a few values of $k$ and name each curve (circles, ellipses, lines, hyperbolas).
+      The domain first: no division by 0, no square root of a negative, no logarithm of a non-positive number.
+    when: '"sketch the level curves", "find and sketch the domain"'
+    trap: equally spaced $k$ give unequally spaced curves; a $k$ outside the range gives no curve at all
+  - id: limit-paths
+    n: 2
+    from: function
+    to: limit
+    kind: design
+    cost: design
+    name: limit
+    short: "substitute; or paths"
+    label: [606, 40, 105]
+    path: M602 82 L713 82
+    steps: >-
+      If $f$ is continuous there (a polynomial, or a quotient whose denominator is not 0): substitute. If
+      substitution gives $\frac00$: try the paths $y=0$, $x=0$, $y=mx$, $y=x^2$; two different values mean
+      **no limit**. To prove a limit exists, bound it (squeeze) or use $x=r\cos\theta$, $y=r\sin\theta$ and
+      let $r\to0$.
+    when: '"find the limit or show it does not exist", "where is $f$ continuous"'
+    trap: >-
+      equal values on many paths prove nothing; $\frac{xy}{x^2+y^2}$ gives 0 on both axes but
+      $\frac m{1+m^2}$ along $y=mx$
+  - id: differentiate-partially
+    n: 3
+    from: function
+    to: partials
+    kind: algorithm
+    cost: linear
+    name: partial derivatives
+    short: "hold the others constant"
+    label: [492, 128, 200]
+    path: M482 117 L482 173
+    steps: >-
+      $f_x$: treat $y$ as a number and differentiate in $x$; $f_y$ the same way round. Second order:
+      $f_{xx}$, $f_{yy}$, $f_{xy}=(f_x)_y$. Implicit $F(x,y,z)=0$: $\frac{\partial z}{\partial x}=-\frac{F_x}{F_z}$.
+    when: '"find the first and second partial derivatives"'
+    trap: differentiating the "constant" $y$ too; the product rule applies only to factors that contain $x$
+  - id: chain
+    n: 4
+    from: composite
+    to: partials
+    kind: algorithm
+    cost: linear
+    name: chain rule
+    short: "sum over the tree"
+    label: [256, 194, 105]
+    path: M252 240 L363 240
+    steps: >-
+      Draw the tree: $z$ at the top, $x$ and $y$ below it, $t$ (or $s$, $t$) at the bottom. Each path from
+      $z$ to the variable is a product of derivatives; add the paths:
+      $\frac{dz}{dt}=f_x\frac{dx}{dt}+f_y\frac{dy}{dt}$, and
+      $\frac{\partial z}{\partial s}=f_x\frac{\partial x}{\partial s}+f_y\frac{\partial y}{\partial s}$.
+    when: '"use the chain rule to find $\frac{dz}{dt}$", "the rate of change along the path"'
+    trap: "write the answer in the bottom variables only, or evaluate at the given point; $d$ for one variable, $\\partial$ for several"
+  - id: tangent
+    n: 5
+    from: partials
+    to: tangent-plane
+    kind: algorithm
+    cost: same
+    name: tangent plane
+    short: "$z=f+f_x\\,\\Delta x+f_y\\,\\Delta y$"
+    label: [606, 190, 105]
+    path: M602 240 L713 240
+    steps: >-
+      At $(a,b)$: $z=f(a,b)+f_x(a,b)(x-a)+f_y(a,b)(y-b)$, and the same right side is the linear approximation
+      $f(x,y)\approx L(x,y)$ near $(a,b)$. For a surface $F(x,y,z)=k$, the normal is $\nabla F$ at the point:
+      $F_x(x-x_0)+F_y(y-y_0)+F_z(z-z_0)=0$.
+    when: '"the tangent plane at ...", "use a linear approximation to estimate $f(1.1,\,0.9)$"'
+    trap: every partial is evaluated at the point; only $x$, $y$ (and $z$) stay as variables
+  - id: stack
+    n: 6
+    from: partials
+    to: gradient
+    kind: free
+    cost: free
+    name: stack them
+    short: "$\\nabla f=\\langle f_x,f_y\\rangle$"
+    label: [492, 285, 110]
+    path: M482 272 L482 328
+    steps: "Nothing new: the gradient is the partial derivatives written as one vector, evaluated at the point."
+    when: '"find the gradient"'
+  - id: dot-unit
+    n: 7
+    from: gradient
+    to: directional
+    kind: algorithm
+    cost: same
+    name: dot with u
+    short: "$D_{\\mathbf u}f=\\nabla f\\cdot\\mathbf u$"
+    label: [606, 348, 105]
+    path: M602 392 L713 392
+    steps: >-
+      Make the direction a **unit** vector ($\mathbf u=\frac{\mathbf v}{|\mathbf v|}$, or
+      $\langle\cos\theta,\sin\theta\rangle$), then $D_{\mathbf u}f=\nabla f\cdot\mathbf u$. The largest rate
+      is $|\nabla f|$, in the direction of $\nabla f$; the rate is 0 along the level curve.
+    when: '"the rate of change in the direction of ...", "in which direction does $f$ increase fastest"'
+    trap: a direction that is not a unit vector scales the answer
+  - id: solve-zero
+    n: 8
+    from: gradient
+    to: critical
+    kind: algorithm
+    cost: explodes
+    name: "∇f = 0, then D"
+    short: "$D=f_{xx}f_{yy}-f_{xy}^2$"
+    label: [690, 428, 150]
+    path: M590 427 L725 483
+    steps: >-
+      Solve $f_x=0$ and $f_y=0$ together (factor; list every case), plus points where a partial does not
+      exist. Classify each: $D>0$, $f_{xx}>0$ a local min; $D>0$, $f_{xx}<0$ a local max; $D<0$ a saddle;
+      $D=0$ no conclusion.
+    when: '"find and classify the critical points"'
+    trap: dividing by a variable that can be 0 loses solutions ($x(y-1)=0$ means $x=0$ **or** $y=1$)
+  - id: compare-values
+    n: 9
+    from: critical
+    to: extrema
+    kind: algorithm
+    cost: same
+    name: compare
+    short: "inside and boundary"
+    label: [606, 502, 105]
+    path: M713 545 L602 545
+    steps: >-
+      On a closed bounded region: the values of $f$ at the critical points inside, and the extreme values on
+      the boundary (each edge is a one-variable problem, or a Lagrange problem). The largest is the absolute
+      max, the smallest the absolute min.
+    when: '"the absolute maximum and minimum on the triangle / disk / rectangle"'
+    trap: forgetting the corners of a polygon, or a critical point that lies outside the region
+  - id: lagrange
+    n: 10
+    from: gradient
+    to: extrema
+    kind: algorithm
+    cost: explodes
+    name: Lagrange
+    short: "$\\nabla f=\\lambda\\nabla g$, $g=k$"
+    label: [355, 440, 120, right]
+    path: M482 427 L482 483
+    steps: >-
+      Extremes of $f$ on the curve $g(x,y)=k$: solve $f_x=\lambda g_x$, $f_y=\lambda g_y$, $g=k$. Eliminate
+      $\lambda$ (divide only by what cannot be 0, or split into cases), find all points, evaluate $f$ at each.
+    when: '"maximise ... subject to ...", "the point of the curve closest to ..."'
+    trap: lost cases when dividing; $\lambda$ is not the answer, the values of $f$ are
+
+  # ---- curves in space
+  - id: along-curve
+    n: 11
+    from: vector-function
+    to: composite
+    kind: free
+    cost: free
+    name: free
+    short: "$f(\\mathbf r(t))$ is a composite"
+    label: [145, 285, 105]
+    path: M135 328 L135 272
+    steps: "$f$ evaluated along a curve, $f(x(t),y(t))$, is a function of $t$ alone; its rate is the chain rule (arrow 4)."
+    when: '"the rate of change of the temperature felt along the path"'
+  - id: differentiate
+    n: 12
+    from: vector-function
+    to: velocity
+    both: true
+    kind: algorithm
+    cost: linear
+    name: differentiate ↔ integrate
+    short: "each coordinate; $+\\mathbf C$ from $\\mathbf r(0)$"
+    label: [145, 440, 200]
+    path: M135 427 L135 483
+    steps: >-
+      **Down**: differentiate each coordinate: $\mathbf r'(t)$, $\mathbf r''(t)$ (acceleration); unit tangent
+      $\mathbf T=\frac{\mathbf r'}{|\mathbf r'|}$; tangent line $\mathbf r(t_0)+s\,\mathbf r'(t_0)$. **Up**:
+      integrate each coordinate and fix the constant vector with the given $\mathbf r(0)$ (or $\mathbf v(0)$).
+    when: '"the tangent line at $t=\dots$", "find the position from the acceleration and the initial values"'
+    trap: one constant per coordinate, found from the initial vector; the speed is a number, the velocity a vector
+  - id: length
+    n: 13
+    from: velocity
+    to: arc-length
+    kind: algorithm
+    cost: linear
+    name: arc length
+    short: "$\\int_a^b|\\mathbf r'(t)|\\,dt$"
+    label: [145, 595, 110]
+    path: M135 582 L135 638
+    steps: "$L=\\int_a^b\\sqrt{x'^2+y'^2+z'^2}\\,dt$: plane arc length with one more square. Exam curves are chosen so that the root simplifies."
+    when: '"the length of the curve from $t=a$ to $t=b$"'
+    trap: simplify under the root before integrating; $\cos^2+\sin^2=1$ is usually there
+  - id: curvature-formula
+    n: 14
+    from: velocity
+    to: curvature
+    kind: algorithm
+    cost: linear
+    name: curvature
+    short: "$\\kappa=\\frac{|\\mathbf r'\\times\\mathbf r''|}{|\\mathbf r'|^3}$"
+    label: [385, 596, 210]
+    path: M252 560 L380 638
+    steps: >-
+      $\kappa=\frac{|\mathbf r'\times\mathbf r''|}{|\mathbf r'|^3}$ at the parameter asked. For a plane graph
+      $y=f(x)$: $\kappa=\frac{|f''|}{(1+f'^2)^{3/2}}$.
+    when: '"find the curvature at the point ..."'
+    trap: evaluate $\mathbf r'$ and $\mathbf r''$ at the point before the cross product to keep it small
+
+routes:
+  - task: sketch the level curves
+    path: [function, level]
+    why: name each curve $f=k$
+  - task: does the limit exist?
+    path: [function, limit]
+    why: substitute; with $\frac00$, two paths with different values
+  - task: dz/dt along a path
+    path: [vector-function, composite, partials]
+    why: a sum over the tree's paths
+  - task: the tangent plane, or a linear approximation
+    path: [function, partials, tangent-plane]
+    why: partials at the point, then the formula
+  - task: the rate of change in a direction
+    path: [function, partials, gradient, directional]
+    why: a unit vector, then a dot product
+  - task: the direction of fastest increase
+    path: [function, partials, gradient]
+    why: the gradient itself; the rate is its length
+  - task: find and classify the critical points
+    path: [function, partials, gradient, critical]
+    why: solve both partials $=0$, then the $D$ test
+  - task: absolute max and min on a closed region
+    path: [gradient, critical, extrema]
+    why: critical values inside against the boundary
+  - task: extremes subject to a constraint
+    path: [gradient, extrema]
+    why: Lagrange; list every case
+  - task: the tangent line to a space curve
+    path: [vector-function, velocity]
+    why: the point and $\mathbf r'(t_0)$
+  - task: position from acceleration
+    path: [velocity, vector-function]
+    why: integrate each coordinate, then the initial vector
+  - task: the length of a space curve
+    path: [vector-function, velocity, arc-length]
+    why: integrate the speed
+  - task: the curvature at a point
+    path: [vector-function, velocity, curvature]
+    why: $\mathbf r'$ and $\mathbf r''$ at the point, then the cross product
+
+example:
+  title: One surface and a curve on it
+  language: "$f(x,y)=4-x^2-2y^2$, and the curve above the unit circle"
+  walk:
+    - node: function
+      text: Domain all of the plane; the graph is a paraboloid opening downwards with top $(0,0,4)$.
+    - edge: level-curves
+      text: "$x^2+2y^2=4-k$: ellipses for $k<4$, the single point $(0,0)$ for $k=4$, nothing for $k>4$."
+    - edge: limit-paths
+      text: >-
+        A polynomial is continuous: $\lim_{(x,y)\to(1,1)}f=1$ by substitution. (Paths are for $\frac00$,
+        like $\frac{xy}{x^2+y^2}$ at the origin.)
+    - edge: differentiate-partially
+      text: "$f_x=-2x$, $f_y=-4y$; $f_{xx}=-2$, $f_{yy}=-4$, $f_{xy}=0$."
+    - edge: tangent
+      text: >-
+        At $(1,1)$, $f=1$: $z=1-2(x-1)-4(y-1)$. Then $f(1.1,\,0.9)\approx1-0.2+0.4=1.2$; the true value is
+        $1.17$.
+    - edge: stack
+      text: "$\\nabla f(1,1)=\\langle-2,-4\\rangle$."
+    - edge: dot-unit
+      text: >-
+        Toward $\langle3,4\rangle$: $\mathbf u=\langle\frac35,\frac45\rangle$, $D_{\mathbf u}f=\frac{-6-16}5=-\frac{22}5$.
+        Fastest increase along $\langle-1,-2\rangle$, at the rate $|\nabla f|=2\sqrt5$.
+    - edge: solve-zero
+      text: "$-2x=0$, $-4y=0$: only $(0,0)$. $D=(-2)(-4)-0=8>0$ and $f_{xx}<0$: a local max, $f=4$."
+    - edge: lagrange
+      text: >-
+        On $x^2+y^2=1$: $-2x=2\lambda x$, $-4y=2\lambda y$. So $x=0$ or $\lambda=-1$, and $y=0$ or
+        $\lambda=-2$: the points $(0,\pm1)$ with $f=2$ and $(\pm1,0)$ with $f=3$.
+    - edge: compare-values
+      text: "On the closed disk: inside 4 at $(0,0)$; on the circle 2 and 3. Absolute max 4 at the centre, absolute min 2 at $(0,\\pm1)$."
+    - node: vector-function
+      text: "The curve on the surface above the unit circle: $\\mathbf r(t)=\\langle\\cos t,\\sin t,\\,2+\\cos^2t\\rangle$."
+    - edge: along-curve
+      text: "$f(\\cos t,\\sin t)=2+\\cos^2t$, the height of the curve."
+    - edge: chain
+      text: >-
+        $\frac{df}{dt}=f_x(-\sin t)+f_y\cos t=(-2\cos t)(-\sin t)+(-4\sin t)\cos t=-\sin2t$, the derivative
+        of $2+\cos^2t$.
+    - edge: differentiate
+      text: "$\\mathbf r'(t)=\\langle-\\sin t,\\cos t,-\\sin2t\\rangle$, $\\mathbf r'(0)=\\langle0,1,0\\rangle$: speed 1 at $(1,0,3)$."
+    - edge: length
+      text: "$\\int_0^{2\\pi}\\sqrt{1+\\sin^22t}\\,dt\\approx7.64$: set up, not computed; a little more than the circle's $2\\pi$."
+    - edge: curvature-formula
+      text: >-
+        $\mathbf r''(0)=\langle-1,0,-2\rangle$, $\mathbf r'(0)\times\mathbf r''(0)=\langle-2,0,1\rangle$, so
+        $\kappa=\frac{\sqrt5}{1^3}=\sqrt5$: more curved than the unit circle below it.
