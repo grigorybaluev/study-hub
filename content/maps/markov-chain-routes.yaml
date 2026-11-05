@@ -1,0 +1,226 @@
+id: markov-chain-routes
+title: "Markov chains: from the transition matrix to the long run"
+description: >-
+  Everything comes from one matrix. Simulate it and you get a path; multiply it and you get n-step probabilities;
+  solve it and you get the stationary distribution. The three routes to the right all reach the same long-run
+  distribution, which makes each one a check on the others.
+canvas: [960, 450]
+
+legend:
+  kinds:
+    algorithm: "method: mechanical; write the rule, then one line of R"
+    condition: "only if: every state reaches every other, and the chain does not cycle"
+    design: "design: read the story; say what each state means"
+  costs:
+    same: one line of R
+    linear: a loop, or a small system by hand
+    design: needs an idea
+
+nodes:
+  - id: words
+    label: A description
+    sub: where each state goes next
+    tone: grey
+    box: [20, 10, 220, 85]
+    text: "Name the states; the next state may depend only on the current one."
+  - id: matrix
+    label: Transition matrix · the hub
+    sub: row i, the next state from i
+    tone: navy
+    box: [20, 165, 220, 135]
+    concept: markov-chain
+    text: "$p_{ij}=P(X_{t+1}=j\\mid X_t=i)$. Entries $\\ge0$, and **every row** sums to 1."
+    easy: "the check `rowSums(P)`."
+  - id: path
+    label: A simulated path
+    sub: one row at a time
+    tone: blue
+    box: [370, 10, 220, 95]
+    concept: markov-chain
+    text: "A sequence of states. Successive values are dependent, unlike a sample."
+  - id: npow
+    label: n-step probabilities
+    sub: the entries of a matrix power
+    tone: sky
+    box: [370, 165, 220, 100]
+    concept: markov-chain
+    text: "Entry $(i,j)$ of $P^n$ is $P(X_{t+n}=j\\mid X_t=i)$."
+  - id: atn
+    label: The distribution at time n
+    sub: a start row times the power
+    tone: lavender
+    box: [370, 345, 220, 90]
+    concept: markov-chain
+    text: "$p_n=p_0P^n$, with $p_0$ a row vector."
+  - id: pi
+    label: Stationary distribution
+    sub: pi P equals pi
+    tone: green
+    box: [720, 165, 220, 135]
+    concept: markov-chain
+    text: "A row vector $\\pi$ with $\\pi P=\\pi$ and total 1. It is the long-run fraction of time in each state."
+  - id: longmean
+    label: A long-run mean
+    sub: a value for each state
+    tone: mint
+    box: [720, 345, 220, 90]
+    concept: expected-value
+    text: "The mean reward or cost per step, in the long run."
+
+edges:
+  - id: write-rows
+    n: 1
+    from: words
+    to: matrix
+    kind: design
+    cost: design
+    name: row by row
+    short: rows sum to 1
+    label: [138, 118, 100]
+    path: M130 95 L130 163
+    steps: >-
+      Fix the order of the states. For each state, write the probabilities of the next state along its row. Fill in what the
+      story leaves implicit: a broken machine that is repaired with probability 0.4 stays broken with probability 0.6.
+    when: '"write the transition matrix"'
+    trap: writing the story's numbers down a column; it is the **rows** that sum to 1
+  - id: walk
+    n: 2
+    from: matrix
+    to: path
+    kind: algorithm
+    cost: linear
+    name: draw from a row
+    short: "`sample(1:k, 1, prob = P[s, ])`"
+    label: [246, 88, 100]
+    path: M240 182 L350 182 L350 57 L368 57
+    steps: >-
+      Pre-allocate `path`, put the start in `path[1]`, then loop:
+      `path[t + 1] <- sample(1:k, 1, prob = P[path[t], ])`. The loop cannot be vectorised, since each step needs the last.
+    when: '"simulate the chain for 100 steps"'
+    trap: "`P[, s]` is a column, not a distribution; without the `1`, `sample()` returns a whole permutation"
+  - id: power
+    n: 3
+    from: matrix
+    to: npow
+    kind: algorithm
+    cost: linear
+    name: multiply
+    short: "`P %*% P`"
+    label: [248, 200, 115]
+    path: M240 240 L368 240
+    steps: >-
+      Two steps: `P %*% P`, whose $(i,j)$ entry $\sum_kp_{ik}p_{kj}$ sums over the state in between. $n$ steps: start from
+      `Pn <- diag(k)` and loop `Pn <- Pn %*% P`.
+    when: '"the probability of rain in two days, given sun today"'
+    trap: "`P^2` squares each entry, and its rows no longer sum to 1"
+  - id: start-row
+    n: 4
+    from: npow
+    to: atn
+    kind: algorithm
+    cost: same
+    name: a start row
+    short: "`p0 %*% Pn`"
+    label: [488, 296, 110]
+    path: M480 265 L480 343
+    steps: "A row vector on the left: `p0 %*% Pn`. Starting surely in state $i$ just reads row $i$ of $P^n$."
+    when: '"the start is random", "what is the distribution on day 3?"'
+    trap: the vector goes on the left of the matrix
+  - id: limit
+    n: 5
+    from: npow
+    to: pi
+    kind: condition
+    cost: same
+    name: n large
+    short: every row tends to $\pi$
+    label: [598, 186, 115]
+    path: M590 222 L718 222
+    steps: "When every state reaches every other and the chain does not cycle, the rows of $P^n$ become equal: the chain forgets its start. The common row is $\\pi$."
+    when: a quick numerical answer; "does it matter how it started?"
+    trap: "with $p_{12}=p_{21}=1$ a stationary $\\pi$ exists, but the rows of $P^n$ keep swapping"
+  - id: proportions
+    n: 6
+    from: path
+    to: pi
+    kind: condition
+    cost: same
+    name: long-run proportions
+    short: "`table(path) / length(path)`"
+    label: [600, 22, 222]
+    path: M590 57 L830 57 L830 163
+    steps: "Run a long path and count: the fraction of time in state $j$ estimates $\\pi_j$. The error is larger than for independent draws of the same length, because successive states are dependent."
+    when: a check by simulation; a chain too large to solve by hand
+    trap: a short path still remembers its start
+  - id: solve-pi
+    n: 7
+    from: matrix
+    to: pi
+    kind: algorithm
+    cost: linear
+    name: solve, or eigen()
+    short: "$\\pi P=\\pi$, or `eigen(t(P))`"
+    label: [248, 290, 225]
+    path: M240 283 L718 283
+    steps: >-
+      By hand: write $\pi P=\pi$, drop one equation (one is redundant), and add $\sum_i\pi_i=1$. In R: `e <- eigen(t(P))`,
+      take the first column of the eigenvectors, the one for eigenvalue 1, and divide it by its sum.
+    when: '"find the long-run fraction of days"'
+    trap: "it is the eigenvector of the **transpose**, and `eigen()` does not scale it to sum 1"
+  - id: weight
+    n: 8
+    from: pi
+    to: longmean
+    kind: algorithm
+    cost: same
+    name: weight
+    short: "$\\sum_j\\pi_jc_j$"
+    label: [838, 305, 100]
+    path: M830 300 L830 343
+    steps: "An expected value under $\\pi$: `sum(pi.hat * values)`."
+    when: '"the long-run average cost per day"'
+    trap: the weights are the $\pi_j$, not the entries of one row of $P$
+
+routes:
+  - task: simulate the chain
+    path: [words, matrix, path]
+    why: the row of the **current** state, again and again
+  - task: the probability in two steps
+    path: [matrix, npow]
+    why: "`P %*% P`, or the sum over the state in between"
+  - task: the distribution on day n
+    path: [matrix, npow, atn]
+    why: a row vector on the left
+  - task: the long run by hand
+    path: [matrix, pi]
+    why: solve $\pi P=\pi$ with total 1
+  - task: the long run by powers
+    path: [matrix, npow, pi]
+    why: all rows of $P^n$ agree when the chain forgets its start
+  - task: the long run by simulation
+    path: [matrix, path, pi]
+    why: count the time spent in each state
+  - task: a long-run mean cost
+    path: [matrix, pi, longmean]
+    why: an expected value under $\pi$
+
+example:
+  title: One machine, every route
+  language: "Works tomorrow with probability 0.9 if working, and with probability 0.4 if broken"
+  walk:
+    - edge: write-rows
+      text: "States work, broken: $P=\\begin{pmatrix}0.9&0.1\\\\0.4&0.6\\end{pmatrix}$. The broken row is the repair story, $0.4$ and what is left."
+    - edge: power
+      text: "$P^2=\\begin{pmatrix}0.85&0.15\\\\0.60&0.40\\end{pmatrix}$. Working today, it works in two days with probability $0.9\\cdot0.9+0.1\\cdot0.4=0.85$."
+    - edge: start-row
+      text: "Working on day 0: `c(1, 0) %*% P %*% P %*% P` is $(0.825,\\ 0.175)$, the distribution on day 3."
+    - edge: limit
+      text: "Ten steps: the rows of $P^{10}$ are $(0.8002,\\ 0.1998)$ and $(0.7992,\\ 0.2008)$, almost equal already."
+    - edge: solve-pi
+      text: "$0.9\\pi_1+0.4\\pi_2=\\pi_1$ gives $\\pi_1=4\\pi_2$, and the total gives $\\pi=(0.8,\\ 0.2)$. The eigenvector of `t(P)` agrees; the eigenvalues are 1 and 0.5."
+    - edge: walk
+      text: "A loop of 10 000 steps from state 1, after `set.seed(12)`, one `sample()` per step."
+    - edge: proportions
+      text: "`table(path) / length(path)` is 0.796 and 0.204: close to $\\pi$, as expected."
+    - edge: weight
+      text: "At 200 dollars on a working day and a loss of 50 on a broken day: $0.8\\cdot200-0.2\\cdot50=150$ dollars a day."

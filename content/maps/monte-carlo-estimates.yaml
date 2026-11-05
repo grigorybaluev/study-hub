@@ -1,0 +1,360 @@
+id: monte-carlo-estimates
+title: "Monte Carlo: from a question to an estimate with its error"
+description: >-
+  The left column is what you are asked for: a probability, an area, an integral. Each one is rewritten as an
+  expected value of something you can simulate, which is the hub in the middle. From there the route is always
+  the same: simulate, average, then the standard error, the interval and the number of draws. The band below is
+  for what plain averages cannot reach, so draws come from another density and carry weights.
+canvas: [1000, 870]
+
+legend:
+  kinds:
+    algorithm: "method: mechanical; write it as an expected value, then one line of R"
+    condition: "only if: g is bounded and non-negative, so that a box fits around it"
+    design: "design: choose a sampling density, and keep g/f bounded"
+    free: "free: it already is one"
+  costs:
+    free: no work
+    same: one line of R
+    linear: a line of algebra
+    design: needs an idea
+
+nodes:
+  - id: prob
+    label: A probability
+    sub: of an event you can test
+    tone: blue
+    box: [20, 10, 235, 90]
+    concept: probability
+    text: "$P(A)$: the fraction of simulated cases in which $A$ happened."
+  - id: area
+    label: An area or a volume
+    sub: a region inside a box
+    tone: sky
+    box: [20, 142, 235, 94]
+    concept: multiple-integral
+    text: "The box's measure times $P(\\text{a uniform point of the box is inside})$."
+  - id: integral
+    label: "An integral on [a, b]"
+    sub: a bounded range
+    tone: violet
+    box: [20, 278, 235, 94]
+    concept: monte-carlo-integration
+    text: "$\\int_a^bg$: nothing random in it, yet it is an average."
+  - id: multi
+    label: A multiple integral
+    sub: over a box
+    tone: lavender
+    box: [20, 414, 235, 86]
+    concept: multiple-integral
+    text: "The error rate does not depend on the dimension: this is where Monte Carlo wins."
+  - id: infinite
+    label: An infinite range
+    sub: no uniform distribution exists
+    tone: lavender
+    box: [20, 530, 235, 90]
+    concept: improper-integral
+    text: "$\\int_0^\\infty g$: draw from a density on the same range."
+  - id: expect
+    label: An expected value · the hub
+    sub: E[Y] for a Y you can simulate
+    tone: navy
+    box: [400, 10, 205, 610]
+    concept: expected-value
+    text: >-
+      Every question on the left becomes $E[Y]$. Write down $Y$, say how to simulate it, and note the constant in
+      front. The estimate is then a sample mean, so one piece of theory covers everything: the law of large numbers
+      for convergence, and the central limit theorem for the error.
+    easy: "a probability: $Y$ is an indicator; an integral: $Y$ is $g$ at a random point; a mean: $Y$ is $X$."
+  - id: estimate
+    label: The estimate
+    sub: the mean of the simulated values
+    tone: green
+    box: [745, 60, 235, 100]
+    concept: monte-carlo-simulation
+    text: "`mean(y)`, times the constant in front. A random number itself: rerun it and it moves."
+  - id: se
+    label: Standard error
+    sub: how far off it is likely to be
+    tone: mint
+    box: [745, 215, 235, 95]
+    concept: central-limit-theorem
+    text: "$s/\\sqrt n$: four times the draws halve it."
+  - id: ci
+    label: A 95 % interval
+    sub: the estimate with an error bar
+    tone: teal
+    box: [745, 365, 235, 95]
+    concept: confidence-interval
+    text: "Estimate $\\pm1.96$ standard errors."
+  - id: ndraws
+    label: The number of draws
+    sub: for a target accuracy
+    tone: teal
+    box: [745, 515, 235, 105]
+    concept: law-of-large-numbers
+    text: "From a pilot run's $s$, or from $s=\\frac12$ for a proportion, the worst case."
+  - id: rare
+    label: A rare event
+    sub: too rare for plain draws
+    tone: amber
+    box: [20, 660, 235, 90]
+    concept: monte-carlo-integration
+    text: "$P(Z>4)$: plain simulation almost never sees it."
+  - id: unnorm
+    label: A mean under a target
+    sub: known up to a constant
+    tone: amber
+    box: [20, 770, 235, 90]
+    concept: bayes-theorem
+    text: "$E[h(X)]$ for $X$ with density $\\propto g$."
+  - id: weighted
+    label: A weighted sample
+    sub: draws from f, weights g over f
+    tone: forest
+    box: [400, 690, 205, 150]
+    concept: monte-carlo-integration
+    text: "Keep every proposal, each with $w_i=g(x_i)/f(x_i)$. Nothing is thrown away, and no bound $k$ is needed."
+
+edges:
+  - id: indicator
+    n: 1
+    from: prob
+    to: expect
+    kind: free
+    cost: free
+    name: indicator
+    short: "$P(A)=E[1_A]$"
+    label: [262, 20, 132]
+    path: M255 57 L398 57
+    steps: "$1_A$ is 1 when $A$ happens and 0 otherwise, so $E[1_A]=P(A)$. In R a logical vector is the indicator: `mean(x > a)`."
+    when: every probability
+    trap: "the standard error of a proportion is $\\sqrt{\\hat p(1-\\hat p)/n}$; `sd()` of the logical vector gives the same up to rounding"
+  - id: hit
+    n: 2
+    from: area
+    to: prob
+    kind: algorithm
+    cost: same
+    name: hit or miss
+    short: "box × P(inside)"
+    label: [108, 104, 140]
+    path: M100 142 L100 102
+    steps: >-
+      Draw points uniformly in a box that contains the region. The region's measure is the box's measure times the
+      fraction of points inside: `8 * mean(rowSums(pts^2) <= 1)` for the unit ball in $[-1,1]^3$.
+    when: a volume, an area, or $\pi$ from a disc
+    trap: the box's measure is the factor in front; forgetting it gives only the fraction
+  - id: under-graph
+    n: 3
+    from: integral
+    to: area
+    kind: condition
+    cost: same
+    name: the area under g
+    short: "if $0\\le g\\le c$"
+    label: [108, 240, 140]
+    path: M100 278 L100 238
+    steps: >-
+      The integral of a non-negative $g$ is the area under its graph, which sits in the box $[a,b]\times[0,c]$:
+      `(b - a) * c * mean(v < g(u))`, with `u` uniform on $(a,b)$ and `v` uniform on $(0,c)$. This is hit-or-miss.
+    when: the question names hit-or-miss, or asks to compare it with the sample mean
+    trap: it is never more accurate than arrow 4, because it replaces the height of $g$ by a yes or no
+  - id: sample-mean
+    n: 4
+    from: integral
+    to: expect
+    kind: algorithm
+    cost: same
+    name: sample mean
+    short: "$(b-a)\\,E[g(U)]$"
+    label: [262, 288, 132]
+    path: M255 325 L398 325
+    steps: >-
+      With $U$ uniform on $[a,b]$, of density $\frac1{b-a}$: $\int_a^bg=(b-a)\,E[g(U)]$. In R:
+      `(b - a) * mean(g(runif(n, a, b)))`.
+    when: any integral on a bounded range; the default
+    trap: forgetting the factor $(b-a)$, which is invisible on $[0,1]$
+  - id: box
+    n: 5
+    from: multi
+    to: expect
+    kind: algorithm
+    cost: same
+    name: box volume
+    short: "$V\\,E[g(U_1,\\dots,U_d)]$"
+    label: [262, 420, 132]
+    path: M255 457 L398 457
+    steps: >-
+      Independent uniforms in each coordinate, times the box's volume: on $[0,1]\times[0,2]$,
+      `2 * mean(g(runif(n), runif(n, 0, 2)))`.
+    when: a double or triple integral, or a function with no antiderivative
+    trap: the factor is the whole volume, one length per coordinate
+  - id: sampling-density
+    n: 6
+    from: infinite
+    to: expect
+    kind: design
+    cost: design
+    name: a sampling density
+    short: "$E[g(X)/f(X)]$"
+    label: [262, 538, 132]
+    path: M255 575 L398 575
+    steps: >-
+      Choose a density $f$ you can sample, positive wherever $g\ne0$. Then $\int g=E[g(X)/f(X)]$. Often a density is
+      already inside: $\int_0^\infty x^2e^{-2x}\,dx=\frac12E[X^2]$ for $X$ exponential with rate 2.
+    when: an integral to infinity; a density visible inside the integrand
+    trap: with $g/f$ unbounded the variance may be infinite, and the standard error cannot be trusted
+  - id: simulate
+    n: 7
+    from: expect
+    to: estimate
+    kind: algorithm
+    cost: same
+    name: simulate, average
+    short: "`mean(y)`"
+    label: [612, 74, 130]
+    path: M607 110 L743 110
+    steps: "Generate $n$ independent copies of $Y$ in one vector expression, or with `replicate()`, and take `mean(y)`. The law of large numbers says it converges."
+    when: every time
+    trap: "`mean(x)` of the points themselves instead of `mean(g(x))`"
+  - id: spread
+    n: 8
+    from: estimate
+    to: se
+    kind: algorithm
+    cost: same
+    name: spread over √n
+    short: "`sd(y) / sqrt(n)`"
+    label: [870, 170, 112]
+    path: M862 160 L862 213
+    steps: "By the central limit theorem the estimate is about normal, with standard deviation $s/\\sqrt n$. Carry the constant: for an integral, $(b-a)\\,s_g/\\sqrt n$."
+    when: '"how accurate is it?", "give the standard error"'
+    trap: "$s$ alone is the spread of single draws, and it does not shrink"
+  - id: interval
+    n: 9
+    from: se
+    to: ci
+    kind: algorithm
+    cost: same
+    name: ± 1.96 SE
+    label: [870, 320, 112]
+    path: M862 310 L862 363
+    steps: "An approximate 95 % confidence interval for the true value: `est + c(-1.96, 1.96) * se`."
+    when: '"give a 95 % interval"'
+    trap: "the interval is for the value, not for a single draw"
+  - id: solve-n
+    n: 10
+    from: se
+    to: ndraws
+    kind: algorithm
+    cost: linear
+    name: solve for n
+    short: "$n=(1.96\\,s/w)^2$"
+    label: [612, 400, 106, right]
+    path: M745 262 L725 262 L725 567 L743 567
+    steps: >-
+      For a half-width $w$, set $1.96\,s/\sqrt n=w$. Round up. To cut the error by a factor $c$, multiply $n$ by $c^2$.
+      For a proportion with no pilot run, use $s=\frac12$.
+    when: '"how many draws are needed for two decimals?"'
+    trap: "one more digit costs 100 times the draws, not 10"
+  - id: propose-inside
+    n: 11
+    from: rare
+    to: weighted
+    kind: design
+    cost: design
+    name: propose inside
+    short: "$f$ lives on the event"
+    label: [262, 668, 132]
+    path: M255 705 L398 705
+    steps: >-
+      Choose $f$ so that every proposal lands in the event, as $4+$ an exponential for $P(Z>4)$. The weights
+      $w=\varphi/f$ are tiny, and their mean is the probability.
+    when: '"estimate a very small probability"'
+    trap: the normalised density of the target is needed here, since the estimate is `mean(w)` and not a ratio
+  - id: any-density
+    n: 12
+    from: unnorm
+    to: weighted
+    kind: algorithm
+    cost: same
+    name: any easy density
+    short: "$w=g/f$"
+    label: [262, 778, 132]
+    path: M255 815 L398 815
+    steps: "Draw from $f$ and compute $w_i=g(x_i)/f(x_i)$. Neither density needs its constant: dividing by $\\sum w_i$ takes care of the scaling."
+    when: a posterior or another density known up to a constant, and only means are wanted
+    trap: a weighted sample cannot be drawn as a plain histogram
+  - id: weighted-average
+    n: 13
+    from: weighted
+    to: estimate
+    kind: algorithm
+    cost: same
+    name: average with weights
+    short: "`mean(w)`, or `weighted.mean(h(x), w)`"
+    label: [640, 724, 330, center]
+    path: M607 765 L990 765 L990 110 L982 110
+    steps: "A rare event: `mean(w)`, with standard error `sd(w) / sqrt(n)`. A mean under a target: `weighted.mean(h(x), w)`, that is $\\sum w_ih(x_i)/\\sum w_i$."
+    when: after any importance sample
+    trap: "`mean(w * h(x))` is correct only when $g$ is normalised"
+
+routes:
+  - task: a probability with its error
+    path: [prob, expect, estimate, se]
+    why: "`mean(x > a)`, then `sd()` over the root of $n$"
+  - task: an integral by the sample mean
+    path: [integral, expect, estimate]
+    why: the factor $(b-a)$ goes in front
+  - task: an integral by hit-or-miss
+    path: [integral, area, prob, expect, estimate]
+    why: a longer route to the same value, with a larger variance
+  - task: the volume of a region
+    path: [area, prob, expect, estimate]
+    why: the box's volume times the fraction inside
+  - task: a double integral
+    path: [multi, expect, estimate]
+    why: one uniform per coordinate
+  - task: an integral to infinity
+    path: [infinite, expect, estimate]
+    why: first look for a density inside the integrand
+  - task: P(Z > 4)
+    path: [rare, weighted, estimate]
+    why: every proposal lands in the event
+  - task: a mean under a density up to a constant
+    path: [unnorm, weighted, estimate]
+    why: "`weighted.mean()` removes the constant"
+  - task: a 95 % interval
+    path: [estimate, se, ci]
+    why: the estimate plus or minus 1.96 standard errors
+  - task: how many draws for a half-width w?
+    path: [estimate, se, ndraws]
+    why: solve for $n$ and round up
+
+example:
+  title: One integral, two routes
+  language: "$\\theta=\\int_0^2e^{-x}\\,dx=1-e^{-2}\\approx0.8647$, with $n=10\\,000$"
+  walk:
+    - node: integral
+      text: "A bounded range, and $0\\le g\\le1$ on it, so both routes are open. The run below uses `set.seed(185)`."
+    - edge: sample-mean
+      text: "$\\theta=2\\,E[e^{-U}]$ with $U$ uniform on $(0,2)$: `u <- runif(n, 0, 2)` and `g <- exp(-u)`."
+    - edge: simulate
+      text: "`2 * mean(g)` is 0.8675."
+    - edge: spread
+      text: "`2 * sd(g) / sqrt(n)` is 0.0049. Exactly, it is $\\sqrt{0.234/n}\\approx0.0048$."
+    - edge: interval
+      text: "$0.8675\\pm1.96\\times0.0049$ is $(0.8580,\\ 0.8771)$, which contains the true value."
+    - edge: solve-n
+      text: "For a half-width of $0.001$ with $s=2\\,\\text{sd}(g)\\approx0.486$: $n=(1.96\\times0.486/0.001)^2\\approx9.1\\times10^5$ draws."
+    - edge: under-graph
+      text: "Now hit-or-miss. The graph sits in the box $[0,2]\\times[0,1]$, of area 2: `v <- runif(n)`."
+    - edge: hit
+      text: "`mean(v < g)` is 0.4368, the fraction of the box under the curve."
+    - edge: indicator
+      text: "So $\\theta=2\\,P(V<e^{-U})=2\\,E[1_{V<e^{-U}}]$, and the estimate is $2\\times0.4368=0.8736$."
+    - node: se
+      text: >-
+        Its standard error is $2\sqrt{0.4368\cdot0.5632/n}\approx0.0099$, twice the sample mean's. So hit-or-miss needs about
+        4 times the draws for the same accuracy: exactly $0.982/0.234\approx4.2$.
