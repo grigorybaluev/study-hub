@@ -11,14 +11,14 @@ columns:
 rows:
   - label: Estimate a mean
     cells:
-      idea: '$\mu\approx\bar X=\frac1m\sum X_i$, error $s/\sqrt m$, 95 % interval $\bar X\pm1.96\,s/\sqrt m$'
-      code: '`mean(x)`, `sd(x) / sqrt(m)`, `mean(x) + c(-1.96, 1.96) * sd(x) / sqrt(m)`'
-      trap: 'Four times the draws halve the error. To get a half-width $w$: $m=(1.96\,s/w)^2$, rounded up.'
+      idea: '$\mu\approx\bar X=\frac1n\sum X_i$, error $s/\sqrt n$, 95 % interval $\bar X\pm1.96\,s/\sqrt n$'
+      code: '`mean(x)`, `sd(x) / sqrt(n)`, `mean(x) + c(-1.96, 1.96) * sd(x) / sqrt(n)`'
+      trap: 'Four times the draws halve the error. To get a half-width $w$: $n=(1.96\,s/w)^2$, rounded up.'
   - label: Estimate a probability
     cells:
       idea: '$P(A)=E[1_A]$, the proportion of cases in which $A$ happened'
       code: '`mean(x > a)`, `mean(a < x & x < b)`'
-      trap: 'Its error is $\sqrt{\hat p(1-\hat p)/m}$, at most $\frac1{2\sqrt m}$.'
+      trap: 'Its error is $\sqrt{\hat p(1-\hat p)/n}$, at most $\frac1{2\sqrt n}$.'
   - label: Uniforms
     cells:
       idea: '$x_n=b\,x_{n-1}\bmod m$, $u_n=x_n/m$; mean $\frac12$, variance $\frac1{12}$'
@@ -32,7 +32,7 @@ rows:
   - label: Poisson
     cells:
       idea: '$P(X=x)=e^{-\lambda}\lambda^x/x!$; mean and variance $\lambda$. Process: count Poisson($\lambda L$), or exponential gaps'
-      code: '`rpois(n, lambda)`, `sort(runif(N, 0, L))`, `cumsum(rexp(k, lambda))`'
+      code: '`rpois(n, lambda)`, `sort(runif(N, 0, L))`; by gaps, `t <- cumsum(rexp(k, lambda))`, then `t[t <= L]`'
       trap: 'The mean count scales with the interval: 3 an hour over 20 minutes is 1.'
   - label: A finite table
     cells:
@@ -57,7 +57,7 @@ rows:
   - label: Markov chain
     cells:
       idea: 'Row $i$ of $P$ is the next-state distribution; $n$ steps: $P^n$; long run: $\pi P=\pi$, total 1'
-      code: '`sample(1:k, 1, prob = P[s, ])`, `P %*% P`, the first eigenvector of `t(P)`'
+      code: '`sample(1:k, 1, prob = P[s, ])`, `P %*% P`, the eigenvector of `t(P)` for eigenvalue 1'
       trap: 'Rows sum to 1. `P^2` squares entries. Divide the eigenvector by its sum.'
   - label: Sample mean integral
     cells:
@@ -76,7 +76,7 @@ rows:
       trap: 'Keep $g/f$ bounded, or the standard error cannot be trusted. Look for a density inside the integrand first.'
   - label: Rejection
     cells:
-      idea: '$k\,g\le f$ everywhere; accept $X$ if $U\,f(X)<k\,g(X)$; the rate is $k$'
+      idea: '$k\,g\le f$ everywhere; accept $X$ if $U\,f(X)<k\,g(X)$; the rate is $k$ for a normalised $g$'
       code: '`x[u * f(x) < k * g(x)]`; box: `x[y < g(x)]`'
       trap: '$k=1/\max(g/f)$. Too small wastes draws, too large gives the wrong distribution.'
   - label: Importance
@@ -104,8 +104,8 @@ shared:
   - label: Efficiency
     text: >-
       Correct first, then measure: `system.time()`, `Rprof()`. About 90 % of the time sits in about 10 % of the code. In order
-      of payoff: a better algorithm, vectorised code, pre-allocation, then compiled code. Horner: one multiplication per
-      coefficient. Binary search: at most $\lceil\log_2(n+1)\rceil$ comparisons on a sorted list.
+      of payoff: a better algorithm, vectorised code, pre-allocation, then compiled code. Horner: $d$ multiplications for
+      degree $d$. Binary search: at most $\lceil\log_2(n+1)\rceil$ comparisons on a sorted list.
   - label: d, p, q, r
     text: >-
       `d`: density, or $P(X=x)$. `p`: $F(x)=P(X\le x)$. `q`: the smallest $x$ with $F(x)\ge p$. `r`: random draws. Names:

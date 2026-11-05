@@ -143,13 +143,13 @@ edges:
     n: 6
     from: path
     to: pi
-    kind: condition
+    kind: algorithm
     cost: same
     name: long-run proportions
     short: "`table(path) / length(path)`"
     label: [600, 22, 222]
     path: M590 57 L830 57 L830 163
-    steps: "Run a long path and count: the fraction of time in state $j$ estimates $\\pi_j$. The error is larger than for independent draws of the same length, because successive states are dependent."
+    steps: "Run a long path and count: when every state reaches every other, the fraction of time in state $j$ estimates $\\pi_j$, even for a chain that cycles. The error is larger than for independent draws of the same length, because successive states are dependent."
     when: a check by simulation; a chain too large to solve by hand
     trap: a short path still remembers its start
   - id: solve-pi
@@ -164,7 +164,7 @@ edges:
     path: M240 283 L718 283
     steps: >-
       By hand: write $\pi P=\pi$, drop one equation (one is redundant), and add $\sum_i\pi_i=1$. In R: `e <- eigen(t(P))`,
-      take the first column of the eigenvectors, the one for eigenvalue 1, and divide it by its sum.
+      take the eigenvector for eigenvalue 1 (the first column, for a chain that does not cycle), apply `Re()` in case R shows complex numbers, and divide it by its sum.
     when: '"find the long-run fraction of days"'
     trap: "it is the eigenvector of the **transpose**, and `eigen()` does not scale it to sum 1"
   - id: weight

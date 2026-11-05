@@ -20,7 +20,7 @@ else is either how to write that repetition well, or how to get the random numbe
 - **Rejection is throwing darts.** Points uniform under a curve have $x$-coordinates with that curve as their
   density.
 - **An integral is an average.** The area under $g$ on $[a,b]$ is the width times the mean height.
-- **The error is $s/\sqrt m$.** Four times the draws halve it, whatever the dimension.
+- **The error is $s/\sqrt n$.** Four times the draws halve it, whatever the dimension.
 :::
 
 The **Map** tab draws this as three maps: from a target distribution to the R code that draws from it, from a
@@ -76,19 +76,19 @@ pass.
 
 Week 8 · [Monte Carlo simulation and pseudorandom numbers](/unit/STAT280/monte-carlo-pseudorandom)
 
-To estimate $\mu=E(X)$, generate $m$ independent copies and take their mean. A probability is the mean of an
+To estimate $\mu=E(X)$, generate $n$ independent copies and take their mean. A probability is the mean of an
 indicator, so it is estimated by a proportion. The law of large numbers gives convergence, and the central limit
-theorem gives the 95 % interval $\bar X\pm1.96\,s/\sqrt m$.
+theorem gives the 95 % interval $\bar X\pm1.96\,s/\sqrt n$.
 
 ```r
 set.seed(8)
-m <- 10000
-X <- pmax(runif(m), runif(m))             # the larger of two uniforms
+n <- 10000
+X <- pmax(runif(n), runif(n))             # the larger of two uniforms
 mean(X)                                   # exact: 2/3
 ## [1] 0.6675151
-sd(X) / sqrt(m)                           # its standard error
+sd(X) / sqrt(n)                           # its standard error
 ## [1] 0.002354671
-mean(X) + c(-1.96, 1.96) * sd(X) / sqrt(m)
+mean(X) + c(-1.96, 1.96) * sd(X) / sqrt(n)
 ## [1] 0.6628999 0.6721303
 ```
 
@@ -142,7 +142,7 @@ For a density with no usable $F$, or known only up to a constant, there are two 
 | idea | keep proposals that fall under the target | keep every proposal, with a weight |
 | needs | an envelope density $f$ and $k$ with $k\,g\le f$ | a density $f$; weights $w=g/f$ |
 | result | a plain sample from $g$ | weighted averages under $g$ |
-| cost | a fraction $1-k$ of proposals is thrown away | a weighted sample, not a plain one |
+| cost | a fraction $1-k$ of proposals is thrown away, for a normalised $g$ | a weighted sample, not a plain one |
 | best for | a sample to plot or to reuse | means, and rare events |
 
 ## How it fits together

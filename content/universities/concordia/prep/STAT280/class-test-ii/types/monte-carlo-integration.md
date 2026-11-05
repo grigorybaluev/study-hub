@@ -143,6 +143,7 @@ c(estimate = mean(w), std.error = sd(w) / sqrt(n))
 ::::
 
 :::note[Pattern at work]
-Step 6. (a) and (b) spot a density inside the integrand, and what is left over is $h$. (c) has no such luck, so it
-divides by a density of our choice and checks that the ratio stays bounded.
+Step 6. (a) and (b) spot a density inside the integrand, and what is left over is $h$. (c) imposes the sampling density,
+so it divides by that density and checks that the ratio stays bounded. Its integrand is itself a density, which is
+why the value is 1.
 :::

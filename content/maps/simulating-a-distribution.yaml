@@ -131,7 +131,7 @@ nodes:
     aux: true
     box: [800, 670, 180, 95]
     concept: monte-carlo-simulation
-    text: "`mean(x)` estimates $E(X)$, with error $s/\\sqrt m$."
+    text: "`mean(x)` estimates $E(X)$, with error $s/\\sqrt n$."
 
 edges:
   - id: rule
@@ -270,7 +270,7 @@ edges:
     from: density
     to: cform
     kind: free
-    cost: free
+    cost: linear
     name: no closed form?
     short: a density is a target too
     label: [703, 68, 180]
@@ -365,7 +365,7 @@ edges:
       Compare `mean(x)` and `var(x)` with the exact values, a proportion with $F$, and `hist(x, freq = FALSE)` with the
       density. For a discrete variable, compare `table(x) / n` with the `d` function.
     when: always; a generator that has not been checked is a guess
-    trap: agreement within about $2s/\sqrt m$ is all you should expect
+    trap: agreement within about $2s/\sqrt n$ is all you should expect
   - id: average
     n: 17
     from: draws

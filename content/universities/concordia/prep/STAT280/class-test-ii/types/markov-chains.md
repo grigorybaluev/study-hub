@@ -30,7 +30,7 @@ periodic cycle forgets its start: every row of $P^n$ tends to the stationary dis
 - **Rows** sum to 1, not columns. `P[s, ]` is the row of state `s`; `P[, s]` is a column, and it is not a distribution.
 - $\pi P=\pi$ has $\pi$ as a row vector on the left. So the eigenvector is that of the **transpose**, `t(P)`, not of `P`.
 - `sample(1:k, 1, prob = ...)` needs the `1`: forgetting it draws a whole permutation.
-- `eigen()` scales its vectors to length 1, not to sum 1, and may flip the sign. Divide by the sum.
+- `eigen()` scales its vectors to length 1, not to sum 1, and may flip the sign: divide by the sum. Other eigenvalues can be complex, so apply `Re()` to the column, and check in the eigenvalues that it belongs to 1.
 - A chain may have a stationary distribution and still not converge: with $p_{12}=p_{21}=1$ the rows of $P^n$ keep swapping.
 :::
 
@@ -110,7 +110,7 @@ round(table(path) / length(path), 3)           # exact: 0.25, 0.50, 0.25
 e <- eigen(t(P))
 round(e$values, 4)
 ## [1] 1.0 0.5 0.0
-v <- e$vectors[, 1]
+v <- Re(e$vectors[, 1])
 round(v / sum(v), 4)
 ## [1] 0.25 0.50 0.25
 P^2                                            # each entry squared

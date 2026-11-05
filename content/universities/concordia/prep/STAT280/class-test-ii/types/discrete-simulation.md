@@ -27,7 +27,7 @@ probabilities: the value whose interval contains the uniform.
 1. Bernoulli: `runif(n) < p` gives `TRUE` with probability $p$; `sum()` counts the successes.
 2. Binomial: `replicate(n, sum(runif(size) < prob))`.
 3. Finite table: `cum <- cumsum(probs)`, then `values[findInterval(u, cum) + 1]`, or simply `sample(values, n, replace = TRUE, prob = probs)`.
-4. Poisson process on $[0,L]$: draw $N$ with `rpois(1, lambda * L)`, then `sort(runif(N, 0, L))`. Or add exponential gaps: `cumsum(rexp(k, lambda))`.
+4. Poisson process on $[0,L]$: draw $N$ with `rpois(1, lambda * L)`, then `sort(runif(N, 0, L))`. Or add exponential gaps, with $k$ large enough to pass $L$, and cut: `t <- cumsum(rexp(k, lambda))`, then `t[t <= L]`.
 :::
 
 ## Traps

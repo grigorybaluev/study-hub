@@ -36,14 +36,14 @@ plan:
   - id: formulas
     title: Formulas to know cold
     items:
-      - '$\bar X\pm1.96\,s/\sqrt m$; the error falls like $1/\sqrt m$; $m=(1.96\,s/w)^2$'
+      - '$\bar X\pm1.96\,s/\sqrt n$; the error falls like $1/\sqrt n$; $n=(1.96\,s/w)^2$'
       - '$x_n=b\,x_{n-1}\bmod m$, $u_n=x_n/m$; period at most $m-1$; uniform on $(0,1)$: mean $\tfrac12$, variance $\tfrac1{12}$'
       - 'Bernoulli: $p$, $p(1-p)$; binomial: $np$, $np(1-p)$; Poisson: $\lambda$, $\lambda$; exponential: $1/\lambda$, $1/\lambda^2$'
       - 'Inverse transform: $X=F^{-1}(U)$; exponential: $-\log(1-U)/\lambda$'
       - 'Correlated normals: $Y=\rho Z_1+\sqrt{1-\rho^2}\,Z_2$; $\Sigma=R^{\mathsf T}R$; chi-square with $k$ degrees of freedom: mean $k$, variance $2k$'
       - 'Markov: rows sum to 1; $n$ steps $=P^n$; $p_n=p_0P^n$; $\pi P=\pi$ with total 1'
       - 'Sample mean: $\int_a^bg\approx(b-a)\,\bar g$, error $(b-a)\,s_g/\sqrt n$; hit-or-miss: box $\times$ fraction under the curve'
-      - 'Other densities: $\int g=E[g(X)/f(X)]$; rejection: $k\,g\le f$, accept if $U\,f(X)<k\,g(X)$, rate $k$; importance: $w=g/f$'
+      - 'Other densities: $\int g=E[g(X)/f(X)]$; rejection: $k\,g\le f$, accept if $U\,f(X)<k\,g(X)$, rate $k$ for a normalised $g$; importance: $w=g/f$'
   - id: r-names
     title: R to write from memory
     items:
@@ -60,7 +60,7 @@ plan:
       - 'Growing with `c()` in a loop copies everything; pre-allocate with `numeric(n)`.'
       - '`max()` is one number; `pmax()` is element by element.'
       - '`ceiling(k * u)`, never `round(k * u)`, for integers from uniforms.'
-      - '$s/\sqrt m$ is the error of the estimate; $s$ alone does not shrink.'
+      - '$s/\sqrt n$ is the error of the estimate; $s$ alone does not shrink.'
       - 'Discrete: $P(X<3)$ is `pbinom(2, ...)`, and $P(X>4)$ is `1 - pbinom(4, ...)`.'
       - '`rexp` takes the rate, not the mean; `rnorm` takes `sd`, not the variance.'
       - 'Keep the root of $u=F(x)$ that lies in the support.'
