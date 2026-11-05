@@ -51,6 +51,16 @@ plotly:
   - conic-hyperbola
   - conic-parabola
   - conic-polar
+  - quadric-traces
+  - space-curve-tangent
+  - projectile-motion
+  - curvature-circle
+  - level-curves
+  - limit-paths
+  - tangent-plane
+  - gradient-direction
+  - critical-point-types
+  - lagrange-constraint
   - dice-sum-grid
   - empirical-dice
   - venn-counts

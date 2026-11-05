@@ -895,6 +895,312 @@
     Plotly.newPlot(el(id), traces, layout(view(0, 0, rx, ry, { height: 560, title: `${head}<br>${second}` })), cfg());
   }
 
+  // ══ MAST 218 — Quadric surfaces, space curves, functions of two variables (units 8–14) ══
+  const C_PLANE = '#60a5fa', C_MINT = '#34d399';
+  const SURF = [[0, '#0f5132'], [1, '#34d399']], FLAT = [[0, C_PLANE], [1, C_PLANE]];
+  const n1 = v => (Math.abs(v) < 0.05 ? 0 : v).toFixed(1).replace('-', '−');
+  const n3m = v => n3(v).replace('-', '−');
+  const mesh = (f, x0, x1, y0, y1, n) => {
+    const x = [], y = [], z = [];
+    for (let i = 0; i <= n; i++) { x.push(x0 + (x1 - x0) * i / n); y.push(y0 + (y1 - y0) * i / n); }
+    for (const v of y) z.push(x.map(u => f(u, v)));
+    return { x, y, z };
+  };
+  // a surface x(u, v), y(u, v), z(u, v) as three matrices
+  const paramMesh = (P, u0, u1, v0, v1, n) => {
+    const X = [], Y = [], Z = [];
+    for (let i = 0; i <= n; i++) {
+      const rx = [], ry = [], rz = [];
+      for (let j = 0; j <= n; j++) {
+        const q = P(u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n);
+        rx.push(q[0]); ry.push(q[1]); rz.push(q[2]);
+      }
+      X.push(rx); Y.push(ry); Z.push(rz);
+    }
+    return { x: X, y: Y, z: Z };
+  };
+  const surf = (m, extra) => ({ type: 'surface', x: m.x, y: m.y, z: m.z, showscale: false, opacity: 0.85, colorscale: SURF, ...extra });
+  const line3 = (xs, ys, zs, name, color, extra) => ({ type: 'scatter3d', mode: 'lines', x: xs, y: ys, z: zs, name, line: { color, width: 6 }, ...extra });
+  const dot3 = (p, name) => ({ type: 'scatter3d', mode: 'markers', x: [p[0]], y: [p[1]], z: [p[2]], name, marker: { color: C_PT, size: 6 } });
+  // keep the view the reader dragged to: every slider move redraws the plot
+  const camera = (id, dflt) => { const g = el(id); return (g && g.layout && g.layout.scene && g.layout.scene.camera) || dflt; };
+  const scene3 = (id, extra) => ({ aspectmode: 'data', bgcolor: '#111827', camera: camera(id, { eye: { x: 1.5, y: 1.4, z: 0.9 } }),
+    xaxis: { title: 'x', gridcolor: '#2b3648' }, yaxis: { title: 'y', gridcolor: '#2b3648' }, zaxis: { title: 'z', gridcolor: '#2b3648' }, ...extra });
+  const layout3 = (id, title, extra) => layout({ title: { text: title, font: { size: 14 } }, height: 540, scene: scene3(id, extra), margin: { t: 60, r: 0, b: 0, l: 0 }, legend: { orientation: 'h', y: -0.02 } });
+  // a surface on the left, its contour map on the right
+  const sideBySide = (id, title, range) => layout({ title: { text: title, font: { size: 14 } }, height: 460, margin: { t: 60, r: 10, b: 45, l: 10 }, showlegend: false,
+    scene: { ...scene3(id), domain: { x: [0, 0.52], y: [0, 1] }, aspectmode: 'cube' },
+    xaxis: ax({ title: 'x', domain: [0.58, 0.99], range }), yaxis: ax({ title: 'y', range, scaleanchor: 'x', scaleratio: 1 }) });
+  const levels = (m, start, end, size) => ({ type: 'contour', x: m.x, y: m.y, z: m.z, showscale: false, hoverinfo: 'skip', autocontour: false,
+    contours: { start, end, size, coloring: 'lines', showlabels: true, labelfont: { size: 9, color: '#c8d0e0' } }, colorscale: [[0, '#475569'], [1, '#94a3b8']], line: { width: 1 } });
+  const oneLevel = (m, k, color) => ({ type: 'contour', x: m.x, y: m.y, z: m.z, showscale: false, hoverinfo: 'skip', autocontour: false,
+    contours: { start: k, end: k + 1e-6, size: 1, coloring: 'none' }, line: { color: color || C_PT, width: 3 } });
+
+  // ── P20. Quadric surfaces and their traces z = k ───────────────
+  function quadricTraces() {
+    const id = 'quadric-traces', Z = 3.5, n = 44;
+    const type = Math.round(val(id, 'type', 1)), a = val(id, 'a', 1.5), b = val(id, 'b', 1.5), c = val(id, 'c', 1.5), k = val(id, 'k', 1);
+    const circ = (u, v, s, zf) => [a * s * Math.cos(v), b * s * Math.sin(v), zf];
+    const parts = [];
+    let name, eq, rhs = null;
+    if (type === 0) { name = 'ellipsoid'; eq = 'x²/a² + y²/b² + z²/c² = 1'; rhs = 1 - k * k / (c * c);
+      parts.push(paramMesh((u, v) => circ(u, v, Math.sin(u), c * Math.cos(u)), 0, PI, 0, 2 * PI, n));
+    } else if (type === 1) { name = 'hyperboloid of one sheet'; eq = 'x²/a² + y²/b² − z²/c² = 1'; rhs = 1 + k * k / (c * c);
+      const m = Math.asinh(Z / c); parts.push(paramMesh((u, v) => circ(u, v, Math.cosh(u), c * Math.sinh(u)), -m, m, 0, 2 * PI, n));
+    } else if (type === 2) { name = 'hyperboloid of two sheets'; eq = '−x²/a² − y²/b² + z²/c² = 1'; rhs = k * k / (c * c) - 1;
+      const m = Math.acosh(Z / c);
+      for (const s of [1, -1]) parts.push(paramMesh((u, v) => circ(u, v, Math.sinh(u), s * c * Math.cosh(u)), 0, m, 0, 2 * PI, n));
+    } else if (type === 3) { name = 'elliptic cone'; eq = 'x²/a² + y²/b² = z²/c²'; rhs = k * k / (c * c);
+      parts.push(paramMesh((u, v) => circ(u, v, Math.abs(u) / c, u), -Z, Z, 0, 2 * PI, n));
+    } else if (type === 4) { name = 'elliptic paraboloid'; eq = 'x²/a² + y²/b² = z/c'; rhs = k / c;
+      parts.push(paramMesh((u, v) => circ(u, v, u, c * u * u), 0, Math.sqrt(Z / c), 0, 2 * PI, n));
+    } else { name = 'hyperbolic paraboloid'; eq = 'x²/a² − y²/b² = z/c';
+      const s = Math.sqrt(Z / c);
+      parts.push(paramMesh((u, v) => [a * u, b * v, c * (u * u - v * v)], -s, s, -s, s, n));
+    }
+    // the trace: an ellipse x²/a² + y²/b² = rhs, or for the saddle a hyperbola
+    const paths = []; let desc;
+    if (type < 5) {
+      if (rhs > 1e-9) {
+        const s = Math.sqrt(rhs), [px, py] = samplePath(v => a * s * Math.cos(v), v => b * s * Math.sin(v), 0, 2 * PI, 120);
+        paths.push([px, py]);
+        desc = `an ellipse with semi-axes ${n2(a * s)} and ${n2(b * s)}`;
+      } else if (rhs > -1e-9) { paths.push([[0], [0]]); desc = 'a single point'; }
+      else desc = 'empty: the plane misses the surface';
+    } else {
+      const q = k / c, lim = Math.sqrt(Z / c), s = Math.sqrt(Math.abs(q));
+      if (Math.abs(q) < 1e-9) {
+        for (const sg of [1, -1]) paths.push([[-a * lim, a * lim], [-sg * b * lim, sg * b * lim]]);
+        desc = 'two crossing lines';
+      } else {
+        const m = Math.acosh(Math.max(1, lim / s));
+        for (const sg of [1, -1]) {
+          const [px, py] = q > 0 ? samplePath(u => sg * a * s * Math.cosh(u), u => b * s * Math.sinh(u), -m, m, 60)
+                                 : samplePath(u => a * s * Math.sinh(u), u => sg * b * s * Math.cosh(u), -m, m, 60);
+          paths.push([px, py]);
+        }
+        desc = `a hyperbola opening along the ${q > 0 ? 'x' : 'y'}-axis`;
+      }
+    }
+    const R = Math.max(...parts.map(p => Math.max(...p.x.flat().map(Math.abs), ...p.y.flat().map(Math.abs)))) * 1.05;
+    const plane = paramMesh((u, v) => [u, v, k], -R, R, -R, R, 2);
+    const traces = parts.map((p, i) => surf(p, { name: i ? '' : name, showlegend: false }));
+    traces.push(surf(plane, { opacity: 0.25, colorscale: FLAT, hoverinfo: 'skip', name: 'z = k' }));
+    paths.forEach(([px, py], i) => traces.push({ type: 'scatter3d', mode: px.length > 1 ? 'lines' : 'markers', x: px, y: py, z: px.map(() => k),
+      name: 'trace', showlegend: i === 0, line: { color: C_PT, width: 7 }, marker: { color: C_PT, size: 6 } }));
+    Plotly.newPlot(el(id), traces, layout3(id, `${name}: ${eq}<br>z = ${n1(k)}: ${desc}`), cfg());
+  }
+
+  // ── P21. A space curve with r(t), r′(t) and the tangent line ───
+  function spaceCurveTangent() {
+    const id = 'space-curve-tangent', u = val(id, 'u', 0.125);
+    const C = [
+      { name: 'helix ⟨2cos t, 2sin t, t⟩', lo: 0, hi: 4 * PI, r: t => [2 * Math.cos(t), 2 * Math.sin(t), t], d: t => [-2 * Math.sin(t), 2 * Math.cos(t), 1] },
+      { name: 'spiral on a cone ⟨t cos t, t sin t, t⟩', lo: 0, hi: 6, r: t => [t * Math.cos(t), t * Math.sin(t), t], d: t => [Math.cos(t) - t * Math.sin(t), Math.sin(t) + t * Math.cos(t), 1] },
+      { name: 'twisted cubic ⟨t, t², t³⟩', lo: -1.3, hi: 1.3, r: t => [t, t * t, t * t * t], d: t => [1, 2 * t, 3 * t * t] },
+      { name: 'ellipse ⟨2cos t, 2sin t, 3 − 2sin t⟩', lo: 0, hi: 2 * PI, r: t => [2 * Math.cos(t), 2 * Math.sin(t), 3 - 2 * Math.sin(t)], d: t => [-2 * Math.sin(t), 2 * Math.cos(t), -2 * Math.cos(t)] },
+    ][Math.round(val(id, 'curve', 0))];
+    const t = C.lo + (C.hi - C.lo) * u, p = C.r(t), d = C.d(t), speed = Math.hypot(...d);
+    const pts = lin(C.lo, C.hi, 300).map(C.r), col = i => pts.map(q => q[i]);
+    const at = s => [0, 1, 2].map(i => p[i] + s * d[i]);
+    const [e0, e1, tip] = [at(-1.5), at(1.5), at(1)];
+    Plotly.newPlot(el(id), [
+      line3(col(0), col(1), col(2), 'curve', C_PATH),
+      line3([e0[0], e1[0]], [e0[1], e1[1]], [e0[2], e1[2]], 'tangent line', C_GHOST, { line: { color: '#94a3b8', width: 3, dash: 'dash' } }),
+      line3([0, p[0]], [0, p[1]], [0, p[2]], 'r(t)', C_TAN, { line: { color: C_TAN, width: 4 } }),
+      line3([p[0], tip[0]], [p[1], tip[1]], [p[2], tip[2]], 'r′(t)', C_ARROW),
+      { type: 'cone', x: [tip[0]], y: [tip[1]], z: [tip[2]], u: [d[0]], v: [d[1]], w: [d[2]], anchor: 'tip', sizemode: 'absolute', sizeref: 0.35, showscale: false, colorscale: [[0, C_ARROW], [1, C_ARROW]], hoverinfo: 'skip' },
+      dot3(p, 'P(t)'),
+    ], layout3(id, `${C.name}<br>t = ${n2(t)}: r = ⟨${n2(p[0])}, ${n2(p[1])}, ${n2(p[2])}⟩, r′ = ⟨${n2(d[0])}, ${n2(d[1])}, ${n2(d[2])}⟩, |r′| = ${speed.toFixed(3)}`), cfg());
+  }
+
+  // ── P22. A projectile: velocity along the path, constant acceleration ─
+  function projectileMotion() {
+    const id = 'projectile-motion', g = 9.8;
+    const v0 = val(id, 'v0', 30), al = val(id, 'alpha', 30) * PI / 180, h = val(id, 'h', 10), frac = val(id, 't', 0.3);
+    const vx = v0 * Math.cos(al), vy = v0 * Math.sin(al);
+    const T = (vy + Math.sqrt(vy * vy + 2 * g * h)) / g, t = frac * T;
+    const fx = s => vx * s, fy = s => h + vy * s - g * s * s / 2;
+    const [gx, gy] = samplePath(fx, fy, 0, T, 200), top = h + vy * vy / (2 * g);
+    const px = fx(t), py = fy(t), wy = vy - g * t, sc = 0.25 * Math.max(1, T / 3);    // arrows drawn as metres per sc seconds
+    Plotly.newPlot(el(id), [
+      { x: gx, y: gy, mode: 'lines', name: 'path', line: { color: C_PATH, width: 3 } },
+      { x: [px], y: [py], mode: 'markers', name: `(x, y) = (${n2(px)}, ${n2(py)})`, marker: { color: C_PT, size: 11 } },
+    ], layout({ title: { text: `landing at t = ${T.toFixed(2)} s, x = ${fx(T).toFixed(1)} m; top ${top.toFixed(1)} m<br>t = ${t.toFixed(2)} s: v = ⟨${n2(vx)}, ${n2(wy)}⟩, speed ${Math.hypot(vx, wy).toFixed(2)} m/s`, font: { size: 14 } },
+      height: 470, margin: { t: 70, r: 20, b: 50, l: 55 },
+      xaxis: ax({ title: 'x (m)' }), yaxis: ax({ title: 'y (m)', scaleanchor: 'x', scaleratio: 1 }), legend: { orientation: 'h', y: -0.2 },
+      annotations: [arrow(px, py, px + sc * vx, py + sc * wy, C_ARROW), arrow(px, py, px, py - sc * g, C_PT)] }), cfg());
+  }
+
+  // ── P23. Curvature: the osculating circle and T, N ────────────
+  function curvatureCircle() {
+    const id = 'curvature-circle', u = val(id, 'u', 0.1);
+    const C = [
+      { name: 'ellipse ⟨3cos t, 2sin t⟩', lo: 0, hi: 2 * PI, r: t => [3 * Math.cos(t), 2 * Math.sin(t)], d: t => [-3 * Math.sin(t), 2 * Math.cos(t)], e: t => [-3 * Math.cos(t), -2 * Math.sin(t)] },
+      { name: 'parabola y = x²', lo: -2, hi: 2, r: t => [t, t * t], d: t => [1, 2 * t], e: () => [0, 2] },
+      { name: 'hyperbola y = 1/x', lo: 0.3, hi: 3.3, r: t => [t, 1 / t], d: t => [1, -1 / (t * t)], e: t => [0, 2 / (t * t * t)] },
+      { name: 'sine y = sin x', lo: 0, hi: 2 * PI, r: t => [t, Math.sin(t)], d: t => [1, Math.cos(t)], e: t => [0, -Math.sin(t)] },
+    ][Math.round(val(id, 'curve', 0))];
+    const sk = t => { const d = C.d(t), e = C.e(t); return (d[0] * e[1] - d[1] * e[0]) / Math.pow(d[0] * d[0] + d[1] * d[1], 1.5); };   // signed curvature
+    const t = C.lo + (C.hi - C.lo) * u, p = C.r(t), d = C.d(t), v = Math.hypot(d[0], d[1]), Tv = [d[0] / v, d[1] / v], s = sk(t), kap = Math.abs(s);
+    const ts = lin(C.lo, C.hi, 300), pts = ts.map(C.r), xs = pts.map(q => q[0]), ys = pts.map(q => q[1]);
+    const traces = [{ x: xs, y: ys, mode: 'lines', name: C.name, line: { color: C_PATH, width: 3 } }];
+    const ann = [arrow(p[0], p[1], p[0] + Tv[0], p[1] + Tv[1], C_ARROW)];
+    let sub = 'κ = 0 here: a straight moment, no circle';
+    if (kap > 1e-3) {
+      const sg = Math.sign(s), Nv = [-sg * Tv[1], sg * Tv[0]], R = 1 / kap, c = [p[0] + R * Nv[0], p[1] + R * Nv[1]];
+      const [cx, cy] = samplePath(a => c[0] + R * Math.cos(a), a => c[1] + R * Math.sin(a), 0, 2 * PI, 160);
+      traces.push({ x: cx, y: cy, mode: 'lines', name: 'osculating circle', line: { color: C_PT, width: 2 } });
+      traces.push({ x: [c[0]], y: [c[1]], mode: 'markers', name: 'centre', marker: { color: C_PT, size: 7, symbol: 'x' } });
+      ann.push(arrow(p[0], p[1], p[0] + Nv[0], p[1] + Nv[1], C_MINT));
+      sub = `κ = ${kap.toFixed(3)}, radius of curvature ${R.toFixed(3)}`;
+    }
+    traces.push({ x: [p[0]], y: [p[1]], mode: 'markers', name: 'P', showlegend: false, marker: { color: '#e5e7eb', size: 9 } });
+    traces.push({ x: ts, y: ts.map(q => Math.abs(sk(q))), xaxis: 'x2', yaxis: 'y2', mode: 'lines', name: 'κ along the curve', line: { color: C_TAN, width: 2 } });
+    traces.push({ x: [t], y: [kap], xaxis: 'x2', yaxis: 'y2', mode: 'markers', showlegend: false, marker: { color: C_PT, size: 9 } });
+    const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)], pad = 0.6;
+    Plotly.newPlot(el(id), traces, twoRows({ title: { text: `${C.name}<br>t = ${n2(t)}: ${sub}`, font: { size: 14 } }, height: 640, margin: { t: 70, r: 20, b: 50, l: 55 },
+      xaxis: { title: 'x', range: [x0 - pad, x1 + pad] }, yaxis: { title: 'y', domain: [0.4, 1], range: [y0 - pad, y1 + pad], scaleanchor: 'x', scaleratio: 1 },
+      xaxis2: { title: 't' }, yaxis2: { title: 'κ', domain: [0, 0.27] }, annotations: ann, legend: { orientation: 'h', y: -0.13 } }), cfg());
+  }
+
+  // ── P24. Level curves: the surface, the plane z = k, the contour map ─
+  function levelCurves() {
+    const id = 'level-curves', k = val(id, 'k', 2);
+    const F = [
+      { name: 'f = x² + y²', f: (x, y) => x * x + y * y, about: k => (k > 1e-9 ? `a circle of radius ${Math.sqrt(k).toFixed(2)}` : k > -1e-9 ? 'the point (0, 0)' : 'no curve: k is outside the range') },
+      { name: 'f = √(x² + y²)', f: (x, y) => Math.hypot(x, y), about: k => (k > 1e-9 ? `a circle of radius ${k.toFixed(2)}` : k > -1e-9 ? 'the point (0, 0)' : 'no curve: k is outside the range') },
+      { name: 'f = x² − y²', f: (x, y) => x * x - y * y, about: k => (Math.abs(k) < 1e-9 ? 'the lines y = ±x' : `a hyperbola opening along the ${k > 0 ? 'x' : 'y'}-axis`) },
+      { name: 'f = y − x²', f: (x, y) => y - x * x, about: k => `the parabola y = x² ${k < 0 ? '−' : '+'} ${Math.abs(k).toFixed(1)}` },
+      { name: 'two hills', f: (x, y) => 3.5 * Math.exp(-((x - 1) ** 2 + y * y)) + 2.5 * Math.exp(-((x + 1.1) ** 2 + (y - 0.6) ** 2)), about: k => (k > 3.6 ? 'no curve: above both hills' : k <= 0 ? 'no curve: below the whole surface' : k > 2.6 ? 'one closed curve, around the higher hill' : 'one or two closed curves') },
+    ][Math.round(val(id, 'fn', 0))];
+    const L = 2.2, m = mesh(F.f, -L, L, -L, L, 56), pl = mesh(() => k, -L, L, -L, L, 2);
+    Plotly.newPlot(el(id), [
+      surf(m, { scene: 'scene', contours: { z: { show: true, start: k, end: k + 1e-6, size: 1, color: C_PT, width: 4 } } }),
+      surf(pl, { scene: 'scene', opacity: 0.25, colorscale: FLAT, hoverinfo: 'skip' }),
+      levels(m, -6, 10, 1),
+      oneLevel(m, k),
+    ], sideBySide(id, `${F.name}, k = ${n1(k)}: ${F.about(k)}`, [-L, L]), cfg());
+  }
+
+  // ── P25. Limits along paths at the origin ─────────────────────
+  function limitPaths() {
+    const id = 'limit-paths', m = val(id, 'm', 1), par = Math.round(val(id, 'path', 0)) === 1;
+    const line = m / (1 + m * m);
+    const F = [
+      { name: 'xy/(x²+y²)', f: (x, y) => x * y / (x * x + y * y), lim: par ? 0 : line, exists: false },
+      { name: '(x²−y²)/(x²+y²)', f: (x, y) => (x * x - y * y) / (x * x + y * y), lim: par ? 1 : (1 - m * m) / (1 + m * m), exists: false },
+      { name: 'x²y/(x⁴+y²)', f: (x, y) => x * x * y / (x ** 4 + y * y), lim: par ? line : 0, exists: false },
+      { name: 'xy²/(x²+y²)', f: (x, y) => x * y * y / (x * x + y * y), lim: 0, exists: true },
+    ][Math.round(val(id, 'fn', 2))];
+    const py = x => (par ? m * x * x : m * x);
+    const side = s => lin(0.004, 1, 120).map(x => s * x);
+    const path = xs => xs.filter(x => Math.abs(py(x)) <= 1);
+    const [xr, xl] = [path(side(1)), path(side(-1))];
+    const m2 = mesh((x, y) => F.f(x + 1e-9, y + 1e-9), -1, 1, -1, 1, 80);
+    const clip = v => Math.max(-1.2, Math.min(1.2, v));
+    Plotly.newPlot(el(id), [
+      { type: 'heatmap', x: m2.x, y: m2.y, z: m2.z.map(r => r.map(clip)), zmin: -1, zmax: 1, colorscale: [[0, '#1d4ed8'], [0.5, '#111827'], [1, '#dc2626']], showscale: false, hoverinfo: 'skip' },
+      { x: xr, y: xr.map(py), mode: 'lines', name: 'path', line: { color: C_ARROW, width: 3 } },
+      { x: xl, y: xl.map(py), mode: 'lines', showlegend: false, line: { color: C_ARROW, width: 3 } },
+      { x: xr, y: xr.map(x => F.f(x, py(x))), xaxis: 'x2', yaxis: 'y2', mode: 'lines', name: 'f along the path', line: { color: C_PATH, width: 3 } },
+      { x: xl, y: xl.map(x => F.f(x, py(x))), xaxis: 'x2', yaxis: 'y2', mode: 'lines', showlegend: false, line: { color: C_PATH, width: 3 } },
+      { x: [0], y: [F.lim], xaxis: 'x2', yaxis: 'y2', mode: 'markers', name: 'limit on this path', marker: { color: C_PT, size: 10, symbol: 'circle-open', line: { width: 2 } } },
+    ], layout({ title: { text: `f = ${F.name} along y = ${n1(m)}x${par ? '²' : ''}: f → ${n3m(F.lim)}<br>${F.exists ? 'the limit at the origin exists and is 0' : 'the limit at the origin does not exist: other paths give other values'}`, font: { size: 14 } },
+      height: 430, margin: { t: 70, r: 20, b: 50, l: 50 }, legend: { orientation: 'h', y: -0.2 },
+      xaxis: ax({ title: 'x', domain: [0, 0.44], range: [-1, 1] }), yaxis: ax({ title: 'y', range: [-1, 1] }),
+      xaxis2: ax({ title: 'x', domain: [0.56, 1], anchor: 'y2', range: [-1, 1] }), yaxis2: ax({ title: 'f', anchor: 'x2', range: [-1.2, 1.2] }) }), cfg());
+  }
+
+  // ── P26. The tangent plane and how fast it fits ───────────────
+  function tangentPlane() {
+    const id = 'tangent-plane', a = val(id, 'a', 0.8), b = val(id, 'b', 0.5), w = val(id, 'w', 1);
+    const F = [
+      { name: 'f = 4 − x² − 2y²', f: (x, y) => 4 - x * x - 2 * y * y, g: (x, y) => [-2 * x, -4 * y] },
+      { name: 'f = x² − y²', f: (x, y) => x * x - y * y, g: (x, y) => [2 * x, -2 * y] },
+      { name: 'f = sin x cos y', f: (x, y) => Math.sin(x) * Math.cos(y), g: (x, y) => [Math.cos(x) * Math.cos(y), -Math.sin(x) * Math.sin(y)] },
+      { name: 'f = √(x² + y²)', f: (x, y) => Math.hypot(x, y), g: (x, y) => { const r = Math.hypot(x, y); return r < 1e-9 ? null : [x / r, y / r]; } },
+    ][Math.round(val(id, 'fn', 0))];
+    const f0 = F.f(a, b), g = F.g(a, b), m = mesh(F.f, a - w, a + w, b - w, b + w, 36);
+    const traces = [surf(m, { name: 'surface' })];
+    let title = `${F.name} at (${n2(a)}, ${n2(b)}): the partials do not exist, so there is no tangent plane`;
+    if (g) {
+      const L = (x, y) => f0 + g[0] * (x - a) + g[1] * (y - b);
+      let gap = 0;
+      m.z.forEach((row, j) => row.forEach((v, i) => { gap = Math.max(gap, Math.abs(v - L(m.x[i], m.y[j]))); }));
+      traces.push(surf(mesh(L, a - w, a + w, b - w, b + w, 2), { opacity: 0.55, colorscale: FLAT, name: 'tangent plane' }));
+      traces.push(line3([a - w, a + w], [b, b], [f0 - w * g[0], f0 + w * g[0]], 'slope f_x', C_ARROW));
+      traces.push(line3([a, a], [b - w, b + w], [f0 - w * g[1], f0 + w * g[1]], 'slope f_y', C_MINT));
+      title = `${F.name} at (${n2(a)}, ${n2(b)}): f = ${n3m(f0)}, f_x = ${n3m(g[0])}, f_y = ${n3m(g[1])}<br>z = ${n3m(f0)} + (${n3m(g[0])})(x − ${n2(a)}) + (${n3m(g[1])})(y − ${n2(b)}); largest gap in the window ${gap.toFixed(4)}`;
+    }
+    traces.push(dot3([a, b, f0], 'P'));
+    Plotly.newPlot(el(id), traces, layout3(id, title, { aspectmode: 'cube' }), cfg());
+  }
+
+  // ── P27. The gradient, the level curve and D_u f in every direction ─
+  function gradientDirection() {
+    const id = 'gradient-direction', a = val(id, 'a', 1), b = val(id, 'b', 0.7), th = val(id, 'th', 40) * PI / 180;
+    const F = [
+      { name: 'f = x² + 4y²', f: (x, y) => x * x + 4 * y * y, g: (x, y) => [2 * x, 8 * y] },
+      { name: 'f = x²y − y³', f: (x, y) => x * x * y - y ** 3, g: (x, y) => [2 * x * y, x * x - 3 * y * y] },
+      { name: 'f = sin x + cos y', f: (x, y) => Math.sin(x) + Math.cos(y), g: (x, y) => [Math.cos(x), -Math.sin(y)] },
+      { name: 'hill f = 3e^(−(x² + y²)/4)', f: (x, y) => 3 * Math.exp(-(x * x + y * y) / 4), g: (x, y) => { const e = 3 * Math.exp(-(x * x + y * y) / 4); return [-x * e / 2, -y * e / 2]; } },
+    ][Math.round(val(id, 'fn', 0))];
+    const L = 2.6, m = mesh(F.f, -L, L, -L, L, 70), f0 = F.f(a, b), g = F.g(a, b), len = Math.hypot(g[0], g[1]);
+    const u = [Math.cos(th), Math.sin(th)], D = g[0] * u[0] + g[1] * u[1];
+    const flat = m.z.flat(), lo = Math.min(...flat), hi = Math.max(...flat), step = (hi - lo) / 16;
+    const sc = len > 1e-9 ? Math.min(1, 1.6 / len) : 0;
+    const ann = [arrow(a, b, a + u[0], b + u[1], C_MINT)];
+    if (len > 1e-9) ann.push(arrow(a, b, a + sc * g[0], b + sc * g[1], C_ARROW));
+    const degs = lin(0, 360, 180);
+    const mark = [{ x: [a], y: [b], mode: 'markers', showlegend: false, marker: { color: C_PT, size: 10 } }];
+    Plotly.newPlot(el(id), [
+      levels(m, lo, hi, step), oneLevel(m, f0), ...mark,
+      { x: degs, y: degs.map(d => g[0] * Math.cos(d * PI / 180) + g[1] * Math.sin(d * PI / 180)), xaxis: 'x2', yaxis: 'y2', mode: 'lines', name: 'D_u f as θ goes round', line: { color: C_TAN, width: 2 } },
+      { x: [th * 180 / PI], y: [D], xaxis: 'x2', yaxis: 'y2', mode: 'markers', showlegend: false, marker: { color: C_MINT, size: 10 } },
+    ], twoRows({ title: { text: `${F.name} at (${n2(a)}, ${n2(b)}): ∇f = ⟨${n2(g[0])}, ${n2(g[1])}⟩, |∇f| = ${len.toFixed(3)}<br>D_u f = ${n3m(D)} at θ = ${(th * 180 / PI).toFixed(0)}°${len < 1e-9 ? ': a critical point, every rate is 0' : ''}`, font: { size: 14 } },
+      height: 660, margin: { t: 70, r: 20, b: 50, l: 55 }, annotations: ann,
+      xaxis: { title: 'x', range: [-L, L] }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
+      xaxis2: { title: 'θ (degrees)', range: [0, 360] }, yaxis2: { title: 'D_u f', domain: [0, 0.24] } }), cfg());
+  }
+
+  // ── P28. Near a critical point: the discriminant decides the shape ─
+  function criticalPointTypes() {
+    const id = 'critical-point-types', A = val(id, 'A', 2), B = val(id, 'B', 1), C = val(id, 'C', 2);
+    const q = (x, y) => (A * x * x + 2 * B * x * y + C * y * y) / 2, L = 1.5, m = mesh(q, -L, L, -L, L, 44), D = A * C - B * B;
+    const kind = Math.abs(D) < 1e-9 ? 'D = 0: the test cannot decide' : D < 0 ? 'D < 0: a saddle point' : A > 0 ? 'D > 0, f_xx > 0: a local minimum' : 'D > 0, f_xx < 0: a local maximum';
+    Plotly.newPlot(el(id), [
+      surf(m, { scene: 'scene' }),
+      levels(m, -10, 10, 0.5),
+    ], sideBySide(id, `D = (${n1(A)})(${n1(C)}) − (${n1(B)})² = ${n2(D)}<br>${kind}`, [-L, L]), cfg());
+  }
+
+  // ── P29. Lagrange: the level curve touches the constraint ─────
+  function lagrangeConstraint() {
+    const id = 'lagrange-constraint', t = val(id, 't', 30) * PI / 180;
+    const P = [
+      { name: 'f = xy on x² + 4y² = 8', f: (x, y) => x * y, df: (x, y) => [y, x], dg: (x, y) => [2 * x, 8 * y], r: s => [2 * Math.SQRT2 * Math.cos(s), Math.SQRT2 * Math.sin(s)] },
+      { name: 'f = x + 2y on x² + y² = 5', f: (x, y) => x + 2 * y, df: () => [1, 2], dg: (x, y) => [2 * x, 2 * y], r: s => [Math.sqrt(5) * Math.cos(s), Math.sqrt(5) * Math.sin(s)] },
+      { name: 'f = x² + 2y² − 2x on x² + y² = 4', f: (x, y) => x * x + 2 * y * y - 2 * x, df: (x, y) => [2 * x - 2, 4 * y], dg: (x, y) => [2 * x, 2 * y], r: s => [2 * Math.cos(s), 2 * Math.sin(s)] },
+    ][Math.round(val(id, 'prob', 0))];
+    const [x, y] = P.r(t), f0 = P.f(x, y), gf = P.df(x, y), gg = P.dg(x, y), L = 3.4, m = mesh(P.f, -L, L, -L, L, 70);
+    const nf = Math.hypot(gf[0], gf[1]), ng = Math.hypot(gg[0], gg[1]), sin = (gf[0] * gg[1] - gf[1] * gg[0]) / (nf * ng), touch = Math.abs(sin) < 0.02;
+    const lam = (gf[0] * gg[0] + gf[1] * gg[1]) / (ng * ng);
+    const ts = lin(0, 360, 240), con = ts.map(d => P.r(d * PI / 180));
+    const flat = m.z.flat(), lo = Math.min(...flat), hi = Math.max(...flat);
+    Plotly.newPlot(el(id), [
+      levels(m, lo, hi, (hi - lo) / 18), oneLevel(m, f0, C_TAN),
+      { x: con.map(q => q[0]), y: con.map(q => q[1]), mode: 'lines', name: 'constraint g = k', line: { color: C_PT, width: 3 } },
+      { x: [x], y: [y], mode: 'markers', showlegend: false, marker: { color: '#e5e7eb', size: 10 } },
+      { x: ts, y: con.map(q => P.f(q[0], q[1])), xaxis: 'x2', yaxis: 'y2', mode: 'lines', name: 'f along the constraint', line: { color: C_TAN, width: 2 } },
+      { x: [t * 180 / PI], y: [f0], xaxis: 'x2', yaxis: 'y2', mode: 'markers', showlegend: false, marker: { color: C_PT, size: 10 } },
+    ], twoRows({ title: { text: `${P.name}<br>(x, y) = (${n2(x)}, ${n2(y)}), f = ${n3m(f0)}: ${touch ? `∇f = λ∇g with λ = ${n2(lam)}, the curves touch` : 'the gradients are not parallel, so f still changes along the curve'}`, font: { size: 14 } },
+      height: 660, margin: { t: 70, r: 20, b: 50, l: 55 },
+      annotations: [arrow(x, y, x + 1.1 * gf[0] / nf, y + 1.1 * gf[1] / nf, C_ARROW), arrow(x, y, x + 1.1 * gg[0] / ng, y + 1.1 * gg[1] / ng, C_MINT)],
+      xaxis: { title: 'x', range: [-L, L] }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
+      xaxis2: { title: 't (degrees)', range: [0, 360] }, yaxis2: { title: 'f', domain: [0, 0.24] } }), cfg());
+  }
+
   // ══════════════════════════════════════════════════════════════
   //  MAST 221 — Probability
   // ══════════════════════════════════════════════════════════════
@@ -2976,6 +3282,16 @@
     'conic-hyperbola':     conicHyperbola,
     'conic-parabola':      conicParabola,
     'conic-polar':         conicPolar,
+    'quadric-traces':      quadricTraces,
+    'space-curve-tangent': spaceCurveTangent,
+    'projectile-motion':   projectileMotion,
+    'curvature-circle':    curvatureCircle,
+    'level-curves':        levelCurves,
+    'limit-paths':         limitPaths,
+    'tangent-plane':       tangentPlane,
+    'gradient-direction':  gradientDirection,
+    'critical-point-types': criticalPointTypes,
+    'lagrange-constraint': lagrangeConstraint,
     // MAST 221
     'dice-sum-grid':       diceSumGrid,
     'empirical-dice':      empiricalDice,
