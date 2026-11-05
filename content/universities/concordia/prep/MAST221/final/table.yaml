@@ -1,0 +1,145 @@
+title: "The fourteen named distributions in one table"
+lead: >-
+  Each row is one named distribution: when to use it, its pmf or density, its mean and variance, and its mgf.
+  $\theta$ is the probability of success on one trial. The first eight rows are discrete and the last six
+  continuous. The shared rows below hold the rules that apply to every distribution.
+
+columns:
+  - {id: when, title: The situation, sub: what you recognise, tone: grey}
+  - {id: formula, title: "pmf or density", sub: with its range, tone: blue, concept: probability-density-function}
+  - {id: moments, title: Mean and variance, sub: "μ and σ²", tone: green, concept: variance}
+  - {id: mgf, title: mgf, sub: "M(t)", tone: violet, concept: moment-generating-function}
+
+rows:
+  - label: Discrete uniform
+    cells:
+      when: '$k$ equally likely values'
+      formula: '$f(x)=\frac1k$ on $x_1,\dots,x_k$'
+      moments: 'on $1,\dots,k$: $\mu=\frac{k+1}2$, $\sigma^2=\frac{k^2-1}{12}$'
+      mgf: '$\frac1k\sum_ie^{x_it}$'
+  - label: Bernoulli
+    cells:
+      when: 'one trial: $X=1$ for a success, 0 for a failure'
+      formula: '$\theta^x(1-\theta)^{1-x}$, $x=0,1$'
+      moments: '$\mu=\theta$, $\sigma^2=\theta(1-\theta)$'
+      mgf: '$1+\theta(e^t-1)$'
+  - label: Binomial
+    cells:
+      when: 'successes in a fixed number $n$ of independent trials'
+      formula: '$\binom nx\theta^x(1-\theta)^{n-x}$, $x=0,\dots,n$'
+      moments: '$\mu=n\theta$, $\sigma^2=n\theta(1-\theta)$'
+      mgf: '$\big(1+\theta(e^t-1)\big)^n$'
+  - label: Geometric
+    cells:
+      when: 'the trial of the first success'
+      formula: '$\theta(1-\theta)^{x-1}$, $x=1,2,\dots$'
+      moments: '$\mu=\frac1\theta$, $\sigma^2=\frac{1-\theta}{\theta^2}$'
+      mgf: '$\frac{\theta e^t}{1-(1-\theta)e^t}$ for $(1-\theta)e^t<1$'
+  - label: Negative binomial
+    cells:
+      when: 'the trial of the $k$-th success'
+      formula: '$\binom{x-1}{k-1}\theta^k(1-\theta)^{x-k}$, $x=k,k+1,\dots$'
+      moments: '$\mu=\frac k\theta$, $\sigma^2=\frac{k(1-\theta)}{\theta^2}$'
+      mgf: 'the geometric mgf to the power $k$'
+  - label: Hypergeometric
+    cells:
+      when: '$n$ draws without replacement from $N$ items, $M$ of them successes'
+      formula: '$\frac{\binom Mx\binom{N-M}{n-x}}{\binom Nn}$, with $x\le M$, $n-x\le N-M$'
+      moments: '$\mu=\frac{nM}N$, $\sigma^2=\frac{nM(N-M)(N-n)}{N^2(N-1)}$'
+      mgf: 'no simple form: use indicators'
+  - label: Poisson
+    cells:
+      when: 'random events counted over a stretch of time or space'
+      formula: '$\frac{\lambda^xe^{-\lambda}}{x!}$, $x=0,1,2,\dots$'
+      moments: '$\mu=\sigma^2=\lambda$'
+      mgf: '$e^{\lambda(e^t-1)}$'
+  - label: Multinomial
+    cells:
+      when: 'counts in $k$ classes over $n$ independent trials'
+      formula: '$\frac{n!}{x_1!\cdots x_k!}\theta_1^{x_1}\cdots\theta_k^{x_k}$, $\sum x_i=n$'
+      moments: '$E[X_i]=n\theta_i$, $\operatorname{Var}(X_i)=n\theta_i(1-\theta_i)$, $\operatorname{cov}(X_i,X_j)=-n\theta_i\theta_j$'
+      mgf: 'each $X_i$ alone is binomial($n,\theta_i$)'
+  - label: Uniform
+    cells:
+      when: 'a value spread evenly over an interval'
+      formula: '$\frac1{\beta-\alpha}$ on $(\alpha,\beta)$'
+      moments: '$\mu=\frac{\alpha+\beta}2$, $\sigma^2=\frac{(\beta-\alpha)^2}{12}$'
+      mgf: '$\frac{e^{\beta t}-e^{\alpha t}}{(\beta-\alpha)t}$, $M(0)=1$'
+  - label: Exponential
+    cells:
+      when: 'the gap between random events; a lifetime with no ageing'
+      formula: '$\frac1\theta e^{-x/\theta}$, $x>0$; $F(x)=1-e^{-x/\theta}$'
+      moments: '$\mu=\theta$, $\sigma^2=\theta^2$'
+      mgf: '$(1-\theta t)^{-1}$, $t<\frac1\theta$'
+  - label: Gamma
+    cells:
+      when: 'the wait for the $k$-th event ($\alpha=k$); a positive skewed quantity'
+      formula: '$\frac{x^{\alpha-1}e^{-x/\beta}}{\beta^\alpha\Gamma(\alpha)}$, $x>0$'
+      moments: '$\mu=\alpha\beta$, $\sigma^2=\alpha\beta^2$; $\mu_r''=\frac{\beta^r\Gamma(\alpha+r)}{\Gamma(\alpha)}$'
+      mgf: '$(1-\beta t)^{-\alpha}$, $t<\frac1\beta$'
+  - label: Chi-square
+    cells:
+      when: 'a sum of squares of $\nu$ independent standard normals'
+      formula: 'gamma with $\alpha=\frac\nu2$, $\beta=2$'
+      moments: '$\mu=\nu$, $\sigma^2=2\nu$'
+      mgf: '$(1-2t)^{-\nu/2}$, $t<\frac12$'
+  - label: Beta
+    cells:
+      when: 'a proportion on $(0,1)$'
+      formula: '$\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1}$ on $(0,1)$'
+      moments: '$\mu=\frac\alpha{\alpha+\beta}$, $\sigma^2=\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$'
+      mgf: 'no simple form: use the beta integral'
+  - label: Normal
+    cells:
+      when: 'sums and averages of many small independent effects'
+      formula: '$\frac1{\sigma\sqrt{2\pi}}e^{-\frac12\left(\frac{x-\mu}\sigma\right)^2}$, all real $x$'
+      moments: '$\mu$ and $\sigma^2$, the parameters'
+      mgf: '$e^{\mu t+\frac12\sigma^2t^2}$'
+
+shared:
+  - label: Moment-generating function
+    text: >-
+      $M_X(t)=E[e^{tX}]$, $M(0)=1$. $\mu_r'=M^{(r)}(0)$, and the coefficient of $t^r$ is $\mu_r'/r!$.
+      $\mu=M'(0)$, $\sigma^2=M''(0)-M'(0)^2$. $M_{a+bX}(t)=e^{at}M_X(bt)$. Independent:
+      $M_{X+Y}(t)=M_X(t)M_Y(t)$. Mgfs that agree near 0 belong to the same distribution.
+  - label: Sums that stay in the family
+    text: >-
+      For independent variables: binomials with the same $\theta$, negative binomials with the same $\theta$, Poissons,
+      gammas with the same $\beta$, chi-squares, normals. $n$ exponentials with mean $\theta$ add to a
+      gamma($n,\theta$), and $k$ geometrics to a negative binomial.
+  - label: Covariance
+    text: >-
+      $\sigma_{XY}=E[XY]-\mu_X\mu_Y$, $\rho=\frac{\sigma_{XY}}{\sigma_X\sigma_Y}$, $-1\le\rho\le1$. Independent gives
+      $\sigma_{XY}=0$, not conversely. $E[g(X,Y)]$ is the sum or double integral against the joint.
+  - label: Linear combinations
+    text: >-
+      $E[\sum a_iX_i]=\sum a_i\mu_i$ always. $\operatorname{Var}(\sum a_iX_i)=\sum a_i^2\sigma_i^2+2\sum_{i<j}a_ia_j\sigma_{ij}$;
+      independent: no cross terms. $E[\bar X]=\mu$, $\operatorname{Var}(\bar X)=\frac{\sigma^2}n$.
+  - label: Conditional expectation
+    text: >-
+      $E[X\mid y]=\sum_xx\,p(x\mid y)$ or $\int x\,f(x\mid y)\,dx$, a function of $y$.
+      $\sigma^2_{X\mid y}=E[X^2\mid y]-(E[X\mid y])^2$. Total expectation:
+      $E[X]=\sum_yE[X\mid y]\,p_Y(y)$ or $\int E[X\mid y]\,f_Y(y)\,dy$.
+  - label: Normal and approximations
+    text: >-
+      $Z=\frac{X-\mu}\sigma$, $\Phi(-z)=1-\Phi(z)$. Binomial, with $n\theta$ and $n(1-\theta)$ above 5: normal with the
+      same moments and a continuity correction, $P(X\le k)\approx\Phi\left(\frac{k+\frac12-n\theta}{\sqrt{n\theta(1-\theta)}}\right)$.
+      Poisson with large $\lambda$: the same, with $\mu=\lambda$, $\sigma=\sqrt\lambda$. Binomial with large $n$, small
+      $\theta$: Poisson with $\lambda=n\theta$. Hypergeometric with $n\le N/20$: binomial with $\theta=\frac MN$.
+  - label: Gamma integrals
+    text: >-
+      $\Gamma(\alpha)=\int_0^\infty y^{\alpha-1}e^{-y}\,dy$; $\Gamma(\alpha)=(\alpha-1)\Gamma(\alpha-1)$;
+      $\Gamma(n)=(n-1)!$; $\Gamma(\frac12)=\sqrt\pi$.
+      $\int_0^\infty x^{\alpha-1}e^{-x/\beta}\,dx=\beta^\alpha\Gamma(\alpha)$;
+      $\int_0^1x^{\alpha-1}(1-x)^{\beta-1}\,dx=\frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$.
+  - label: Memoryless
+    text: >-
+      Geometric: $P(X>m+n\mid X>m)=P(X>n)$, with $P(X>m)=(1-\theta)^m$. Exponential:
+      $P(X>a+b\mid X>a)=P(X>b)$, with $P(X>x)=e^{-x/\theta}$.
+  - label: Weeks 1–6
+    text: >-
+      $P(A\cup B)=P(A)+P(B)-P(A\cap B)$; $P(A\mid B)=\frac{P(A\cap B)}{P(B)}$; independent:
+      $P(A\cap B)=P(A)P(B)$; total probability and Bayes on a tree. $F(x)=P(X\le x)$, $f=F'$,
+      $f_X=\int f\,dy$, $f(x\mid y)=\frac{f(x,y)}{f_Y(y)}$. $E[g(X)]=\sum g\,p$ or $\int g\,f$;
+      $\sigma^2=E[X^2]-\mu^2$; $\operatorname{Var}(aX+b)=a^2\sigma^2$;
+      $P(|X-\mu|<k\sigma)\ge1-\frac1{k^2}$.
