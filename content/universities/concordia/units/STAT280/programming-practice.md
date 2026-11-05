@@ -121,7 +121,7 @@ bubble(c(5, 2, 9, 1, 7))
 bubble(c(3, 1))
 ## [1] 1 3
 bubble(4)
-## Error in if (x[k] > x[k + 1]) { : missing value where TRUE/FALSE needed
+## Error: missing value where TRUE/FALSE needed
 ```
 
 *Check* found a bug: a vector of length 1 stops with an error. Tests on "normal" inputs passed; the
@@ -273,7 +273,7 @@ rescale <- function(x) {
 rescale(c(10, 15, 30))
 ## [1] 0.00 0.25 1.00
 rescale(c(5, 5, 5))
-## Error in rescale(c(5, 5, 5)) : max(x) > min(x) is not TRUE
+## Error: max(x) > min(x) is not TRUE
 ```
 
 ### Making it reproducible
