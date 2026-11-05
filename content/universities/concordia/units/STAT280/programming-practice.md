@@ -121,7 +121,7 @@ bubble(c(5, 2, 9, 1, 7))
 bubble(c(3, 1))
 ## [1] 1 3
 bubble(4)
-## Error: missing value where TRUE/FALSE needed
+## Error in if (x[k] > x[k + 1]) { : missing value where TRUE/FALSE needed
 ```
 
 *Check* found a bug: a vector of length 1 stops with an error. Tests on "normal" inputs passed; the
@@ -273,7 +273,7 @@ rescale <- function(x) {
 rescale(c(10, 15, 30))
 ## [1] 0.00 0.25 1.00
 rescale(c(5, 5, 5))
-## Error: max(x) > min(x) is not TRUE
+## Error in rescale(c(5, 5, 5)) : max(x) > min(x) is not TRUE
 ```
 
 ### Making it reproducible
@@ -402,8 +402,8 @@ system.time(horner(xs, coef))
 :::example[Finding a name in a list]
 To find one name in an unsorted list, you check names one by one: on average half the list. If
 the list is **sorted**, check the middle name, keep the half that must contain the target, and
-repeat (the bisection idea again). That takes at most $\lceil \log_2 n \rceil$ comparisons: 17 for a
-list of 100 000, against tens of thousands for the scan.
+repeat (the bisection idea again). That takes at most $\lceil \log_2 (n + 1) \rceil$ comparisons: 17 for
+a list of 100 000, against tens of thousands for the scan.
 :::
 
 ```r
@@ -432,7 +432,7 @@ linear.search(names.sorted, 73514)
 ## [1] 73514
 binary.search(names.sorted, 73514)
 ## [1] 17
-ceiling(log2(100000))                    # the most binary search can need
+ceiling(log2(100000 + 1))                # the most binary search can need
 ## [1] 17
 ```
 
