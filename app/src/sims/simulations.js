@@ -1938,7 +1938,7 @@
       { type: 'bar', orientation: 'h', base: rows.map(r => r.lo - 0.5), x: rows.map(r => r.hi - r.lo + 1), y: rows.map((_, i) => i + 1), marker: { color: 'rgba(59,130,246,.55)' }, name: 'positions still possible', hovertemplate: 'step %{y}: %{base} …<extra></extra>' },
       { x: rows.map(r => r.mid), y: rows.map((_, i) => i + 1), mode: 'markers', marker: { color: C_HI, size: 9, symbol: 'line-ns-open', line: { width: 3, color: C_HI } }, name: 'middle position compared' },
       { x: [target, target], y: [0.4, k + 0.6], mode: 'lines', line: { color: C_OK, dash: 'dot' }, name: `target at position ${target}` },
-    ], layout({ title: `sorted list of ${n}: binary search needs ${k} comparison${k === 1 ? '' : 's'} (at most ⌈log₂ ${n}⌉ = ${Math.ceil(Math.log2(n))}), a scan from the start needs ${target}`,
+    ], layout({ title: `sorted list of ${n}: binary search needs ${k} comparison${k === 1 ? '' : 's'} (at most ⌈log₂ ${n + 1}⌉ = ${Math.ceil(Math.log2(n + 1))}), a scan from the start needs ${target}`,
                 xaxis: ax({ title: 'position in the sorted list', range: [0, n + 1] }), yaxis: ax({ title: 'comparison', autorange: 'reversed', dtick: 1 }), legend: { orientation: 'h', y: -0.22 } }), cfg());
   }
 
