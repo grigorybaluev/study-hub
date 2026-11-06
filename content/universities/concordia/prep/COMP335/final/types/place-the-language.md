@@ -7,16 +7,16 @@ units: [decidability, cfl-properties, pumping-lemma-regular]
 
 ## Logic
 
-To identify the class of a language, ask what memory it needs, then prove both sides: that it belongs to the class, and that it does not belong to the class below. Most traps come from a language that
+To identify the class of a language, ask what memory it needs, then prove both sides: that it belongs to the class, and that it does not belong to the next smaller class. Most traps come from a language that
 looks harder than it is.
 
 ## Pattern
 
 :::steps[Placing a language]
 1. Simplify it first. Is it really a condition on counts, or does the definition fix them? Is it finite? Is it all of $\Sigma^*$?
-2. Ask what must be remembered: a bounded amount (regular); one pair of counts, reverse order (context-free); no guess needed (deterministic); several counts or a copy (decidable); the behaviour of a machine (above that).
+2. Ask what must be remembered: a bounded amount (regular); pairs of counts in sequence or nested, in reverse order (context-free); no guess needed (deterministic); three tied counts, crossing pairs or a copy (decidable); the behaviour of a machine (above that).
 3. Prove membership with a machine, a grammar, closure or an algorithm.
-4. Prove exclusion from the class below with a pumping lemma, closure, a reduction or a diagonal argument.
+4. Prove exclusion from the next smaller class with a pumping lemma, closure, a reduction or a diagonal argument.
 :::
 
 ## Traps

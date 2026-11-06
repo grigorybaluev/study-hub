@@ -2,9 +2,9 @@ id: language-class-ladder
 title: "Where a language sits: every class, and how to prove it"
 description: >-
   The classes of the course in one ladder. On the left, what L is, going down from the smallest class to
-  the largest: being in a class means being in every class below it. On the right, what L is not, going up:
-  being outside a class means being outside every class above it. Each arrow across is the proof that moves
-  a language from left to right. Here r.e. means recursively enumerable.
+  the largest: being in a class means being in every larger class. On the right, what L is not, going up:
+  being outside a class means being outside every smaller class. Each arrow across is a proof, starting from L,
+  that L is outside the class on its left. Here r.e. means recursively enumerable.
 canvas: [975, 836]
 
 legend:
@@ -130,6 +130,20 @@ edges:
       what each state remembers.
     when: bounded counts, counts modulo $k$, patterns, any finite language
     trap: every finite language is regular, even a strange one
+  - id: build-dcfl
+    n: D
+    from: words
+    to: dcfl
+    kind: design
+    cost: design
+    name: a DPDA
+    label: [66, 234, 96]
+    path: M300 40 L58 40 L58 272 L168 272
+    steps: >-
+      Design a pushdown automaton in which every step is forced: the input announces each change of phase, so no
+      guess is needed. Then check both conditions of determinism.
+    when: one stack, with a marker or a visible change of phase
+    trap: a language with a guess in its only natural machine may have no DPDA at all
   - id: build-cfl
     n: D
     from: words
@@ -143,7 +157,7 @@ edges:
       Write a grammar from the outside in, or an NPDA with a stack that says what is owed, or use closure:
       $\cup$, concatenation, star, homomorphism, reversal, $\cap$ a regular language. The conversion map has
       every step.
-    when: one pair of tied counts, reverse order, nesting
+    when: pairs of tied counts, in sequence or nested, in reverse order
     trap: "closure does not cover $\\cap$ or complement"
   - id: build-rec
     n: D
@@ -241,7 +255,7 @@ edges:
   # ---- across: the proofs of impossibility
   - id: pump-reg
     n: 6
-    from: reg
+    from: words
     to: notreg
     kind: design
     cost: design
@@ -257,7 +271,7 @@ edges:
     trap: the split is the opponent's, not yours
   - id: not-det
     n: 7
-    from: dcfl
+    from: words
     to: notdcfl
     kind: design
     cost: design
@@ -272,7 +286,7 @@ edges:
     trap: "there is no pumping lemma for this in the course: \"I can't see how\" is not a proof"
   - id: pump-cfl
     n: 8
-    from: cfl
+    from: words
     to: notcfl
     kind: design
     cost: design
@@ -288,7 +302,7 @@ edges:
     trap: forgetting a position of the window; $v$ or $y$ may be empty
   - id: reduce
     n: 9
-    from: rec
+    from: words
     to: undec
     kind: design
     cost: design
@@ -303,7 +317,7 @@ edges:
     trap: reduce from the known problem to the new one, not the other way round
   - id: diagonal
     n: 10
-    from: re
+    from: words
     to: notre
     kind: design
     cost: design
@@ -411,7 +425,7 @@ edges:
     path: M200 630 L200 564
     steps: Run the two accepters in turns. Exactly one of them halts in a final state, and that is the answer.
     when: you have an accepter for $L$ and one for $\overline{L}$
-    trap: one accepter is not enough, because it may loop
+    trap: one accepter is not enough, because it may loop; $L_H$ has one and no more
   - id: halt-re
     n: 18
     from: halt
@@ -436,25 +450,25 @@ routes:
     path: [words, cfl]
     why: a grammar or an NPDA; the conversion map has the rest
   - task: "show that L is not regular"
-    path: [reg, notreg]
+    path: [words, notreg]
     why: assume it is, then pump
   - task: "show that L is context-free and not regular"
     path: [words, cfl]
     why: "two proofs: a grammar for the first claim, then arrow 6 for the second"
   - task: "show that L is not context-free"
-    path: [cfl, notcfl]
+    path: [words, notcfl]
     why: assume it is, then pump with cases on the window; or intersect with a regular language
   - task: "show that a problem is decidable"
     path: [words, rec]
     why: an algorithm, with an argument that it stops
   - task: "show that a problem about Turing machines is undecidable"
-    path: [rec, undec]
+    path: [words, undec]
     why: assume a decider, and reduce from halting
   - task: "show that L is recursively enumerable and not decidable"
     path: [words, re]
     why: a wait-and-see procedure, then a reduction from halting
   - task: "show that a language is not recursively enumerable"
-    path: [re, notre]
+    path: [words, notre]
     why: the diagonal, or the complement rule
   - task: "show that a language with an accepter on both sides is decidable"
     path: [re, rec]

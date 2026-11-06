@@ -486,9 +486,9 @@ its input was written.
 :::
 
 :::caution[Reading the hierarchy]
-A language in a class is also in all the classes above it, so "$a^n b^n$ is not regular" and "$a^n b^n$ is recursive"
+A language in a class is also in every larger class, so "$a^n b^n$ is not regular" and "$a^n b^n$ is recursive"
 are both true. To place a language exactly, show it belongs to a class, by a machine, a grammar or closure, and show
-it does not belong to the class below, by a pumping lemma, closure, or a reduction.
+it does not belong to the next smaller class, by a pumping lemma, closure, or a reduction.
 :::
 
 :::insight
@@ -499,5 +499,5 @@ Turing machine, the boundary stops being about a particular device: what lies be
 
 :::equations
 - *The chain*: regular $\subsetneq$ deterministic CF $\subsetneq$ CF $\subsetneq$ context-sensitive $\subsetneq$ recursive $\subsetneq$ recursively enumerable $\subsetneq$ all languages.
-- *Separating witnesses*: $a^n b^n$, $ww^R$, $a^n b^n c^n$, $L_H$, $\overline{L_H}$.
+- *Separating witnesses*: $a^n b^n$, $ww^R$, $a^n b^n c^n$, one by diagonalization, $L_H$, $\overline{L_H}$.
 :::

@@ -8,7 +8,7 @@ method: context-free-or-not
 
 ## Logic
 
-First decide, then prove. A stack can tie **one pair** of blocks, adjacent or nested, in reverse order. So three tied blocks, crossing pairs, a copy in the same
+First decide, then prove. A stack can tie pairs of blocks **in sequence or nested**, in reverse order. So three tied blocks, crossing pairs, a copy in the same
 order, and numeric conditions such as squares are not context-free. To prove "not context-free", use the pumping lemma or intersect with a regular language.
 
 ## Pattern

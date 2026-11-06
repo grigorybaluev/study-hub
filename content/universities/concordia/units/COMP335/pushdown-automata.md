@@ -386,7 +386,7 @@ $$(q_0, abc, z) \vdash (q_1, abc, Sz) \vdash (q_1, abc, aScz) \vdash (q_1, bc, S
 :::remark
 If the grammar is in Greibach normal form the machine is even shorter. A rule $A \to ax$ becomes the
 single move $(q_1, x) \in \delta(q_1, a, A)$: read $a$ and replace $A$ at the same time. No terminal is
-ever pushed, and each move after the first reads one input symbol.
+ever pushed, and each move between the start and the finish reads one input symbol.
 :::
 
 ### From an NPDA to a grammar

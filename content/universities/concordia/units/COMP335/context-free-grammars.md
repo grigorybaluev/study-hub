@@ -82,7 +82,8 @@ note: 'Leftmost derivations by search. The first three grammars generate the sam
 ```python
 # Every string of length at most n that a context-free grammar generates, by breadth-first
 # search over sentential forms. It is a check for a grammar you have just written: compare
-# the list with the language you meant. Output:
+# the list with the language you meant. Forms longer than n + 4 are cut off, so raise that
+# margin for a grammar with many nullable variables. Output:
 # ['', 'ac', 'bc', 'aacc', 'abcc', 'bbcc']
 # ['', 'ab', 'ba', 'aabb', 'abab', 'abba', 'baab', 'baba', 'bbaa']
 from collections import deque

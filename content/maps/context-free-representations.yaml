@@ -3,7 +3,7 @@ title: "Context-free languages: every representation, every conversion"
 description: >-
   A context-free language can be written as a grammar or as a pushdown automaton, and a grammar can be
   put in a normal form. Each arrow is a method you can run by hand. The grammar and the NPDA are the two
-  hubs: the theorem that they are equivalent is the pair of arrows between them.
+  hubs: the theorem that they are equivalent is arrow 1 in one direction and arrows 3 to 6 in the other.
 canvas: [975, 716]
 
 nodes:
@@ -324,7 +324,7 @@ edges:
     path: M700 558 L700 252 L582 252
     steps: >-
       The machine of 1 without the terminal moves: each rule $A\to ax$ becomes
-      $(q_1,x)\in\delta(q_1,a,A)$, so each move after the first reads one input symbol.
+      $(q_1,x)\in\delta(q_1,a,A)$, so each move between the start and the finish reads one input symbol.
     size: one move per rule
     when: a grammar already in GNF
     trap: "a rule of the original grammar in another form does not fit: use 1 instead"

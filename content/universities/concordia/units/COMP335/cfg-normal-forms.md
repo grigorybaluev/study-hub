@@ -423,7 +423,7 @@ $S \in V_{16}$, so $aabbab \in L(G)$, which agrees with the count of three $a$'s
 
 ```python
 # CYK: T[i][j] is the set of variables that derive w[i..j]; the grammar is in CNF, written
-# as (A, B, C) for A -> BC and (A, a) for A -> a.
+# as (A, B, C) for A -> BC and (A, a) for A -> a. w must not be empty: lambda is a separate test.
 def cyk(rules, start, w):
     n = len(w)
     T = [[set() for _ in range(n)] for _ in range(n)]
