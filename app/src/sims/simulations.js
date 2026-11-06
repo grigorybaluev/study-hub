@@ -2730,9 +2730,9 @@
     xaxis: ax({ range: [-R, R], constrain: 'domain' }), yaxis: ax({ range: [-R, R], scaleanchor: 'x', scaleratio: 1 }),
     legend: { orientation: 'h', y: -0.12 }, margin: { t: 80, r: 20, b: 30, l: 40 } });
   // a vector as a legend entry, with its arrowhead added to `ann`
-  function laVec(p, q, color, name, ann, dash) {
+  function laVec(p, q, color, name, ann) {
     ann.push(arrow(p[0], p[1], q[0], q[1], color));
-    return { x: [p[0], q[0]], y: [p[1], q[1]], mode: 'lines', line: { color, width: 2.5, dash }, name };
+    return { x: [p[0], q[0]], y: [p[1], q[1]], mode: 'lines', line: { color, width: 2.5 }, name };
   }
   // the grid drawn by two vectors u, v: n lines each side of the origin, one null-separated trace
   function laGrid(u, v, n, name) {
@@ -2817,7 +2817,7 @@
     const traces = [
       laGrid(b0, b1, 10, 'grid of the basis'),
       laVec([0, 0], b0, LA_BLUE, 'b₀', ann), laVec([0, 0], b1, LA_GOLD, 'b₁', ann),
-      laVec([0, 0], Tb0, LA_BLUE, 'T(b₀)', ann, 'dash'), laVec([0, 0], Tb1, LA_GOLD, 'T(b₁)', ann, 'dash'),
+      laVec([0, 0], Tb0, '#bfdbfe', 'T(b₀)', ann), laVec([0, 0], Tb1, '#fef08a', 'T(b₁)', ann),
     ];
     let title = 'b₀ and b₁ lie on one line: not a basis';
     if (ok) {

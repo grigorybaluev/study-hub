@@ -373,7 +373,7 @@ id: la-similar-matrices
 controls:
   - {id: th0, label: "Angle of b₀ (degrees)", min: 0, max: 175, step: 5, default: 30, decimals: 0}
   - {id: th1, label: "Angle of b₁ (degrees)", min: 0, max: 175, step: 5, default: 100, decimals: 0}
-note: 'T has standard matrix A = [3 1; 0 2]. Blue and gold: b₀, b₁ and the grid they draw. Dashed: T(b₀), T(b₁). The title shows [T]_B = P⁻¹AP with P = [b₀ b₁]. Try b₀ at 0° and b₁ at 135°: each T(bⱼ) lies along its bⱼ, and the matrix is diagonal, as in the example. Equal angles give no basis.'
+note: 'T has standard matrix A = [3 1; 0 2]. Blue and gold: b₀, b₁ and the grid they draw. The pale arrows of the same colours: T(b₀), T(b₁). The title shows [T]_B = P⁻¹AP with P = [b₀ b₁]. Try b₀ at 0° and b₁ at 135°: T(b₀) lies along b₀ and T(b₁) along b₁, and the matrix is diagonal, as in the example. Equal angles give no basis.'
 ```
 
 ```python

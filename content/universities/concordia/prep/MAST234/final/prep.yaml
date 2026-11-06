@@ -53,14 +53,14 @@ plan:
       - "`R.<x> = QQ[]`, `p.derivative()`, `p.factor()`, `p.padded_list(3)`, `p.roots(QQbar)`"
       - "`I`, `z.conjugate()`, `abs(z)`, `arg(z)`, `.n()`"
       - "`A.charpoly().factor()`, `A.eigenvalues()`, `A.eigenvectors_right()`"
-      - "`D, P = A.eigenmatrix_right()`, `P.is_invertible()`, `A.change_ring(QQbar).is_diagonalizable()`"
+      - "`D, P = A.eigenmatrix_right()`, `P.is_invertible()`, `A.change_ring(QQbar)`, then `.is_diagonalizable()`"
   - id: traps
     title: The twelve traps, one line each
     items:
       - "`right_kernel` and `eigenvectors_right`: the plain and `_left` versions are the other side."
       - "`rref()` with a parameter hides the special values: use `det` or single row operations."
       - "`matrix(QQ, [u, v])` puts vectors in rows; `column_matrix` puts them in columns."
-      - "The columns of a basis of $\\mathrm{col}(A)$ come from the original matrix, not the RREF."
+      - "A basis of $\\mathrm{col}(A)$ uses the columns of the original matrix, not of the RREF."
       - "$T(\\mathbf 0)=\\mathbf 0$ and $\\mathbf 0\\in W$ can only fail a candidate; they prove nothing."
       - "$\\dim\\mathcal P_n=n+1$."
       - "Rank plus nullity is the dimension of the domain."
