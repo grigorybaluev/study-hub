@@ -1,0 +1,117 @@
+title: "The whole course in one table"
+lead: >-
+  Four levels of memory: finite, one stack, a tape that always gives an answer, and a tape that may not. Each column
+  includes the columns to its left. The shared rows hold what cuts across the classes.
+
+columns:
+  - {id: reg, title: Regular, sub: finite memory, tone: blue, concept: regular-language}
+  - {id: cfl, title: Context-free, sub: one stack, tone: green, concept: context-free-grammar}
+  - {id: rec, title: Recursive, sub: "a tape; always halts", tone: amber, concept: decidability}
+  - {id: re, title: Recursively enumerable, sub: "a tape; may loop", tone: violet, concept: decidability}
+
+rows:
+  - label: Machine
+    cells:
+      reg: 'DFA, NFA: $\delta:Q\times\Sigma\to Q$; non-determinism adds nothing'
+      cfl: 'NPDA $(Q,\Sigma,\Gamma,\delta,q_0,z,F)$: read, pop one, push a string. **DPDAs are weaker.**'
+      rec: 'a Turing machine that halts on every input: a **decider**'
+      re: 'a Turing machine $(Q,\Sigma,\Gamma,\delta,q_0,\square,F)$, with partial $\delta:Q\times\Gamma\to Q\times\Gamma\times\{L,R\}$'
+  - label: Grammar
+    cells:
+      reg: 'right-linear $A\to xB\mid x$, or left-linear, never mixed'
+      cfl: '$A\to x$ for any $x$; normal forms: CNF $A\to BC\mid a$, GNF $A\to aB_1\cdots B_k$'
+      rec: 'no grammar form of its own'
+      re: 'unrestricted rules $u\to v$'
+  - label: Accepts $w$ when
+    cells:
+      reg: 'the input ends in a final state, on some path for an NFA'
+      cfl: '**some** run uses up the input and ends in a final state; the stack does not matter'
+      rec: 'the machine halts in a final state; on other inputs it halts elsewhere'
+      re: 'the machine halts in a final state; on other inputs it may loop'
+  - label: Examples
+    cells:
+      reg: '$(ab)^*$, finite languages, counts modulo $k$'
+      cfl: '$a^nb^n$, $ww^R$, balanced brackets, $n_a(w)=n_b(w)$'
+      rec: '$a^nb^nc^n$, $ww$, $a^{n^2}$, primes'
+      re: '$L_H$, $\overline{L_d}$, "$M$ accepts something"'
+  - label: Build one
+    cells:
+      reg: 'a state for each thing to remember; closure from regular pieces'
+      cfl: 'grammar: from the outside in. NPDA: the stack is what is owed, and guess with $\lambda$-moves'
+      rec: 'mark, sweep, mark, sweep back; or an algorithm in words, and argue that it stops'
+      re: 'simulate and wait; dovetail over all candidates'
+  - label: Prove it is outside
+    cells:
+      reg: '**pumping**: $w=xyz$, $|xy|\le m$, $|y|\ge 1$; or closure with a regular language'
+      cfl: '**pumping**: $w=uvxyz$, $|vxy|\le m$, $|vy|\ge 1$, a window anywhere, so cases; or $\cap$ a regular language'
+      rec: '**reduce** from the halting problem'
+      re: '**diagonal**, or the complement of a recursively enumerable undecidable language'
+  - label: Closed under
+    cells:
+      reg: '$\cup$, $\cap$, complement, $-$, concatenation, star, reversal, homomorphism, quotient'
+      cfl: '$\cup$, concatenation, star, reversal, homomorphism, $\cap$ a regular language'
+      rec: '$\cup$, $\cap$, complement, concatenation, star'
+      re: '$\cup$, $\cap$, concatenation, star'
+  - label: Not closed under
+    cells:
+      reg: 'nothing in this list'
+      cfl: '**$\cap$ and complement**: $\{a^nb^nc^k\}\cap\{a^kb^nc^n\}=\{a^nb^nc^n\}$'
+      rec: 'nothing in this list'
+      re: '**complement**: $L_H$ is in, and $\overline{L_H}$ is not'
+  - label: Is $w\in L$?
+    cells:
+      reg: 'decidable: run the DFA'
+      cfl: 'decidable: CNF, then CYK, cubic in $|w|$'
+      rec: 'decidable: run the decider'
+      re: 'undecidable in general: it may never stop'
+  - label: Is $L$ empty? finite?
+    cells:
+      reg: 'decidable: a reachable final state? a useful cycle?'
+      cfl: 'decidable: is $S$ generating? a cycle in the clean grammar?'
+      rec: 'undecidable, given a machine'
+      re: 'undecidable'
+  - label: Equality and universality
+    cells:
+      reg: 'decidable: minimise and compare'
+      cfl: '**undecidable**, and so is ambiguity'
+      rec: 'undecidable'
+      re: 'undecidable'
+  - label: Non-determinism
+    cells:
+      reg: 'no extra power: subset construction'
+      cfl: '**extra power**: $ww^R$ has no DPDA'
+      rec: 'no extra power: search all computations'
+      re: 'no extra power: search all computations'
+
+shared:
+  - label: Inclusions
+    text: >-
+      Regular $\subsetneq$ deterministic context-free $\subsetneq$ context-free $\subsetneq$ recursive $\subsetneq$ recursively
+      enumerable $\subsetneq$ all languages. Witnesses: $a^nb^n$, $ww^R$, $a^nb^nc^n$, $L_H$, $\overline{L_H}$. Deterministic context-free
+      languages are closed under complement and $\cap$ a regular language, and not under $\cup$ or $\cap$.
+  - label: Cleaning and normal forms
+    text: >-
+      Order: **$\lambda$-rules, unit rules, useless rules**; inside useless: generating, then reachable. CNF: $T_a\to a$, then cut long rules;
+      $2n-1$ steps for a string of length $n$. GNF: substitution and left-recursion removal; $n$ steps. Left recursion:
+      $A\to A\alpha\mid\beta$ becomes $A\to\beta\mid\beta B$, $B\to\alpha\mid\alpha B$.
+  - label: Grammar and NPDA
+    text: >-
+      Grammar to NPDA: $\lambda,z\to Sz$; $\lambda,A\to x$ for each rule; $a,a\to\lambda$ for each terminal; $\lambda,z\to z$ into the final state.
+      NPDA to grammar: triples $(q_iAq_j)$; a pop move gives $(q_iAq_j)\to a$; a push move gives $(q_iAq_k)\to a(q_jBq_l)(q_lCq_k)$ for all
+      $q_k,q_l$; start $(q_0zq_f)$.
+  - label: Pumping side by side
+    text: >-
+      Regular: a repeated **state**, $xy^iz$, $|xy|\le m$, so $y$ is near the start. Context-free: a repeated **variable** on a path of the tree,
+      $uv^ixy^iz$, $|vxy|\le m$, so the window is anywhere. Neither can prove that a language is in the class. In both, $w$ is written in terms of
+      $m$, and the split is the opponent's.
+  - label: Turing machines
+    text: >-
+      Marks and sweeps; a missing move rejects. Transducer: $q_0w\vdash^*q_ff(w)$, unary $1^n$, pairs $1^x01^y$. Combine by renaming states and sending
+      the end of one machine to the start of the next. Same power: stay-option, semi-infinite tape, multi-track, multi-tape, multi-dimensional,
+      non-deterministic, a PDA with two stacks. Turing's thesis is not a theorem.
+  - label: Undecidability
+    text: >-
+      $L$ and $\overline{L}$ both recursively enumerable $\iff L$ recursive. **Halting**: $D$ on $\langle M\rangle$ does the opposite of what $H$ says
+      about $M$ on $\langle M\rangle$; run it on $\langle D\rangle$. **Reduction**: from a known undecidable problem to the new one; $M'$ runs $M$ on $w$
+      first, so $L(M')$ is $\Sigma^*$ or $\varnothing$. **Rice's theorem**: every non-trivial property of the language of a Turing machine is
+      undecidable. Bounded questions and properties of the code stay decidable.

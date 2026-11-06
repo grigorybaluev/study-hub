@@ -1,0 +1,503 @@
+id: language-class-ladder
+title: "Where a language sits: every class, and how to prove it"
+description: >-
+  The classes of the course in one ladder. On the left, what L is, going down from the smallest class to
+  the largest: being in a class means being in every larger class. On the right, what L is not, going up:
+  being outside a class means being outside every smaller class. Each arrow across is a proof, starting from L,
+  that L is outside the class on its left. Here r.e. means recursively enumerable.
+canvas: [975, 836]
+
+legend:
+  kinds:
+    algorithm: "a standard simulation or construction"
+    design: "you build it or prove it: say what each step means"
+    condition: "valid only when its condition holds"
+    free: "free: nothing to do"
+  costs:
+    same: "standard"
+    linear: "standard"
+    design: "needs thought"
+    explodes: "slow, but only time is lost"
+
+nodes:
+  - id: words
+    label: A language L, or a yes/no problem
+    tone: grey
+    box: [300, 2, 420, 66]
+    concept: formal-language
+    text: >-
+      What must be remembered? Finite: regular. One stack: context-free. An algorithm that always stops:
+      decidable. Only "wait and see": recursively enumerable.
+  - id: reg
+    label: Regular
+    sub: finite memory
+    tone: blue
+    box: [170, 104, 240, 92]
+    concept: regular-language
+    text: "DFA, NFA, regular expression, regular grammar. $(ab)^*$, $a^*b^*$."
+  - id: dcfl
+    label: Deterministic context-free
+    sub: one stack, no guessing
+    tone: sky
+    box: [170, 226, 240, 92]
+    concept: pushdown-automaton
+    text: "DPDA. $a^nb^n$, $wcw^R$."
+  - id: cfl
+    label: Context-free
+    sub: one stack with guessing
+    tone: green
+    box: [170, 348, 240, 92]
+    concept: context-free-grammar
+    text: "CFG, NPDA. $ww^R$, $a^nb^n\\cup a^nb^{2n}$."
+  - id: rec
+    label: Recursive, or decidable
+    sub: a tape, and always an answer
+    tone: amber
+    box: [170, 470, 240, 92]
+    concept: decidability
+    text: "A Turing machine that halts on every input. $a^nb^nc^n$, $ww$, $a^{n^2}$."
+  - id: re
+    label: Recursively enumerable
+    sub: a tape, and maybe no answer
+    tone: violet
+    box: [170, 632, 240, 92]
+    concept: decidability
+    text: "A Turing machine that may loop outside $L$. The halting language $L_H$, $\\overline{L_d}$."
+  - id: notreg
+    label: Not regular
+    sub: unbounded memory is needed
+    tone: blue
+    box: [650, 104, 310, 92]
+    concept: pumping-lemma-regular
+    text: "$a^nb^n$, $ww^R$, $a^{n^2}$, $\\{w:n_a(w)=n_b(w)\\}$."
+  - id: notdcfl
+    label: Not deterministic context-free
+    sub: a guess cannot be avoided
+    tone: sky
+    box: [650, 226, 310, 92]
+    concept: pushdown-automaton
+    text: "$ww^R$, $a^nb^n\\cup a^nb^{2n}$, $\\overline{\\{a^nb^nc^n\\}}$."
+  - id: notcfl
+    label: Not context-free
+    sub: more than one stack can do
+    tone: green
+    box: [650, 348, 310, 92]
+    concept: pumping-lemma-cfl
+    text: "$a^nb^nc^n$, $ww$, $a^{n^2}$, $\\{a^ib^jc^k:i<j<k\\}$."
+  - id: undec
+    label: Undecidable
+    sub: no algorithm
+    tone: amber
+    box: [650, 470, 310, 92]
+    concept: decidability
+    text: "Halting, state entry, blank-tape halting, is $L(M)$ empty, is $L(M_1)=L(M_2)$."
+  - id: notre
+    label: Not recursively enumerable
+    sub: no machine confirms every member
+    tone: violet
+    box: [650, 632, 310, 92]
+    concept: decidability
+    text: "$\\overline{L_H}$, $L_d$. Most languages: machines are countable, and languages are not."
+  - id: variant
+    label: A variant of the Turing machine
+    sub: multi-tape, non-deterministic and others
+    tone: lavender
+    aux: true
+    box: [170, 756, 240, 76]
+    concept: turing-machine
+    text: same languages; only time changes.
+  - id: halt
+    label: The halting problem
+    sub: the first undecidable problem
+    tone: mint
+    aux: true
+    box: [450, 756, 190, 62]
+    concept: halting-problem
+
+edges:
+  # ---- building: L belongs to a class
+  - id: build-reg
+    n: D
+    from: words
+    to: reg
+    kind: design
+    cost: design
+    name: finite memory
+    label: [140, 62, 150, right]
+    path: M300 58 L290 58 L290 102
+    steps: >-
+      Build a DFA, an NFA, an expression or a regular grammar, or use closure from known regular pieces. Say
+      what each state remembers.
+    when: bounded counts, counts modulo $k$, patterns, any finite language
+    trap: every finite language is regular, even a strange one
+  - id: build-dcfl
+    n: D
+    from: words
+    to: dcfl
+    kind: design
+    cost: design
+    name: a DPDA
+    label: [66, 234, 96]
+    path: M300 40 L58 40 L58 272 L168 272
+    steps: >-
+      Design a pushdown automaton in which every step is forced: the input announces each change of phase, so no
+      guess is needed. Then check both conditions of determinism.
+    when: one stack, with a marker or a visible change of phase
+    trap: a language with a guess in its only natural machine may have no DPDA at all
+  - id: build-cfl
+    n: D
+    from: words
+    to: cfl
+    kind: design
+    cost: design
+    name: a grammar or an NPDA
+    label: [50, 354, 114]
+    path: M300 28 L42 28 L42 394 L168 394
+    steps: >-
+      Write a grammar from the outside in, or an NPDA with a stack that says what is owed, or use closure:
+      $\cup$, concatenation, star, homomorphism, reversal, $\cap$ a regular language. The conversion map has
+      every step.
+    when: pairs of tied counts, in sequence or nested, in reverse order
+    trap: "closure does not cover $\\cap$ or complement"
+  - id: build-rec
+    n: D
+    from: words
+    to: rec
+    kind: design
+    cost: design
+    name: an algorithm that stops
+    label: [50, 476, 114]
+    path: M300 16 L26 16 L26 516 L168 516
+    steps: >-
+      Give a Turing machine, a block diagram or an algorithm in words, by Turing's thesis, and argue that it
+      stops on every input. Markers for a table of the machine; bounded loops for an algorithm.
+    when: "a finite check: simulate for a bounded time, count states, test a DFA or a grammar"
+    trap: an algorithm with an unbounded search has not been shown to halt
+  - id: build-re
+    n: D
+    from: words
+    to: re
+    kind: design
+    cost: design
+    name: wait and see
+    label: [50, 656, 114]
+    path: M300 8 L10 8 L10 678 L168 678
+    steps: >-
+      Give a procedure that stops with yes for every member, and may run forever otherwise: simulate with the
+      universal machine, or try all candidates one after another (dovetailing).
+    when: "\"does some input, step or derivation exist?\""
+    trap: this alone does not make $L$ decidable
+
+  # ---- going down the left: inclusion
+  - id: reg-dcfl
+    n: 1
+    from: reg
+    to: dcfl
+    kind: free
+    cost: free
+    name: a DFA is a DPDA
+    label: [272, 200, 130]
+    path: M265 196 L265 224
+    steps: Nothing to do. Use the DFA, and leave the stack alone.
+    when: you need to place a regular language
+    trap: inclusions go one way only
+  - id: dcfl-cfl
+    n: 2
+    from: dcfl
+    to: cfl
+    kind: free
+    cost: free
+    name: a DPDA is an NPDA
+    label: [272, 322, 130]
+    path: M265 318 L265 346
+    steps: Nothing to do. Every DPDA is an NPDA.
+    when: you need a grammar for a deterministic language
+    trap: the converse is false; this is where non-determinism adds power
+  - id: cfl-rec
+    n: 3
+    from: cfl
+    to: rec
+    kind: algorithm
+    cost: same
+    name: CYK always stops
+    label: [272, 444, 130]
+    path: M265 440 L265 468
+    steps: Convert the grammar to Chomsky normal form, then run CYK. So membership in a context-free language is decidable.
+    when: you need to place a context-free language among the Turing classes
+    trap: a machine for it has to halt on every input; a plain NPDA simulation can loop on $\lambda$-moves
+  - id: rec-re
+    n: 4
+    from: rec
+    to: re
+    kind: free
+    cost: free
+    name: a decider accepts
+    label: [347, 580, 84]
+    path: M340 562 L340 630
+    steps: Nothing to do. A machine that always halts is also an accepter.
+    when: you know more than you need
+    trap: the converse is false, and $L_H$ is the proof
+  - id: variant-re
+    n: 5
+    from: variant
+    to: re
+    kind: algorithm
+    cost: explodes
+    name: simulate
+    label: [272, 732, 110]
+    path: M265 756 L265 726
+    steps: >-
+      Tracks for tapes, with a mark for each head; a breadth-first search of configurations for a
+      non-deterministic machine. So a proof may use a multi-tape machine or a guess for free.
+    when: an algorithm is easier with two tapes or a guess
+    trap: faster is not stronger
+
+  # ---- across: the proofs of impossibility
+  - id: pump-reg
+    n: 6
+    from: words
+    to: notreg
+    kind: design
+    cost: design
+    name: pumping lemma or closure
+    short: "$|xy|\\le m$ puts $y$ at the start of $w$"
+    label: [418, 106, 226]
+    path: M412 152 L648 152
+    steps: >-
+      Assume $L$ is regular, with constant $m$. Pick $w\in L$ with $|w|\ge m$, usually starting $a^m$. For any
+      split $w=xyz$ with $|xy|\le m$, $|y|\ge 1$, find $i$ with $xy^iz\notin L$. Or: if $L\cap R$ with $R$ regular
+      is not regular, then $L$ is not.
+    when: an unbounded count or comparison
+    trap: the split is the opponent's, not yours
+  - id: not-det
+    n: 7
+    from: words
+    to: notdcfl
+    kind: design
+    cost: design
+    name: complement or extension
+    short: if $L$ were deterministic, $\overline{L}$ would be context-free
+    label: [418, 228, 226]
+    path: M412 274 L648 274
+    steps: >-
+      Deterministic context-free languages are closed under complement. So if $\overline{L}$ is not context-free,
+      $L$ is not deterministic. For $a^nb^n\cup a^nb^{2n}$, a DPDA would extend to an NPDA for $a^nb^nc^n$.
+    when: a language that needs a guess
+    trap: "there is no pumping lemma for this in the course: \"I can't see how\" is not a proof"
+  - id: pump-cfl
+    n: 8
+    from: words
+    to: notcfl
+    kind: design
+    cost: design
+    name: CFL pumping lemma or closure
+    short: "$|vxy|\\le m$: a window anywhere in $w$, so cases"
+    label: [418, 350, 226]
+    path: M412 396 L648 396
+    steps: >-
+      Assume $L$ is context-free, with constant $m$. Pick $w$ with blocks of length at least $m$. For every position
+      of the window $vxy$, with $|vxy|\le m$, $|vy|\ge 1$, find $i$ with $uv^ixy^iz\notin L$. Or: if $L\cap R$
+      with $R$ regular is not context-free, then $L$ is not.
+    when: three tied counts, a copy in the same order, unary gaps
+    trap: forgetting a position of the window; $v$ or $y$ may be empty
+  - id: reduce
+    n: 9
+    from: words
+    to: undec
+    kind: design
+    cost: design
+    name: reduction
+    short: a decider for $L$ would decide halting
+    label: [418, 472, 226]
+    path: M412 508 L648 508
+    steps: >-
+      Assume a decider for $L$. From an arbitrary $\langle M\rangle w$, build a machine $M'$ that runs $M$ on $w$
+      first. Show that the answer for $M'$ is yes exactly when $M$ halts on $w$. Then halting would be decidable.
+    when: a question about what an arbitrary Turing machine does
+    trap: reduce from the known problem to the new one, not the other way round
+  - id: diagonal
+    n: 10
+    from: words
+    to: notre
+    kind: design
+    cost: design
+    name: diagonal or complement
+    short: if $L$ were accepted by $M_k$, ask about $w_k$
+    label: [418, 634, 205]
+    path: M412 680 L648 680
+    steps: >-
+      Diagonal: assume $L=L(M_k)$, and ask whether $w_k\in L$; both answers fail. Or use the complement rule of
+      arrow 16.
+    when: a language defined by negating what machines do
+    trap: every proof of this kind is self-reference; keep track of which machine runs on which code
+
+  # ---- going up the right: being outside
+  - id: notre-undec
+    n: 11
+    from: notre
+    to: undec
+    kind: free
+    cost: free
+    name: no accepter, no decider
+    label: [812, 588, 150]
+    path: M805 630 L805 564
+    steps: A language with no accepter certainly has no decider.
+    when: you know more than you need
+    trap: the converse fails, as $L_H$ shows
+  - id: undec-notcfl
+    n: 12
+    from: undec
+    to: notcfl
+    kind: free
+    cost: free
+    name: no decider, no CFG
+    label: [812, 444, 150]
+    path: M805 468 L805 442
+    steps: A context-free language is decidable by CYK, so an undecidable language is not context-free.
+    when: you know more than you need
+    trap: "the converse fails: $a^nb^nc^n$ is decidable and not context-free"
+  - id: notcfl-notdcfl
+    n: 13
+    from: notcfl
+    to: notdcfl
+    kind: free
+    cost: free
+    name: no grammar, no DPDA
+    label: [812, 322, 150]
+    path: M805 346 L805 320
+    steps: Every deterministic context-free language is context-free.
+    when: you know more than you need
+    trap: "the converse fails: $ww^R$"
+  - id: notdcfl-notreg
+    n: 14
+    from: notdcfl
+    to: notreg
+    kind: free
+    cost: free
+    name: no DPDA, no DFA
+    label: [812, 200, 150]
+    path: M805 224 L805 198
+    steps: Every regular language is deterministic context-free.
+    when: you know more than you need
+    trap: "the converse fails: $a^nb^n$"
+
+  # ---- the halting problem and the conditions
+  - id: halt-undec
+    n: 15
+    from: halt
+    to: undec
+    kind: design
+    cost: design
+    name: self-reference
+    short: $D$ does the opposite of what $H$ says about $\langle D\rangle$
+    label: [440, 568, 186]
+    path: M630 756 L630 545 L648 545
+    steps: >-
+      Assume a decider $H$. Build $D$: on $\langle M\rangle$, run $H$ on $\langle M\rangle\langle M\rangle$; if the
+      answer is yes, loop; if no, halt. Then $D$ halts on $\langle D\rangle$ exactly when it does not.
+    when: the one proof to know by heart
+    trap: it rules out one algorithm for all machines, not an answer for one machine
+  - id: undec-notre
+    n: 16
+    from: undec
+    to: notre
+    kind: condition
+    cost: design
+    name: complement rule
+    short: if $L$ is r.e. and undecidable, $\overline{L}$ is not r.e.
+    label: [678, 566, 122]
+    path: M670 562 L670 630
+    steps: >-
+      If $L$ and $\overline{L}$ are both recursively enumerable, then $L$ is decidable: run both machines in turns.
+      So if $L$ is recursively enumerable and undecidable, then $\overline{L}$ is not recursively enumerable. Note that
+      this arrow moves from $L$ to its complement.
+    when: the complement of a recursively enumerable undecidable language
+    trap: this is about the complement, not about $L$ itself
+  - id: re-rec
+    n: 17
+    from: re
+    to: rec
+    kind: condition
+    cost: design
+    name: both sides
+    short: $L$ and $\overline{L}$ both r.e.
+    label: [208, 574, 128]
+    path: M200 630 L200 564
+    steps: Run the two accepters in turns. Exactly one of them halts in a final state, and that is the answer.
+    when: you have an accepter for $L$ and one for $\overline{L}$
+    trap: one accepter is not enough, because it may loop; $L_H$ has one and no more
+  - id: halt-re
+    n: 18
+    from: halt
+    to: re
+    kind: algorithm
+    cost: same
+    name: universal machine
+    short: run $M$ on $w$; accept if it halts
+    label: [438, 692, 190]
+    path: M450 780 L430 780 L430 708 L412 708
+    steps: >-
+      Give $\langle M\rangle w$ to the universal machine, and accept if the simulation halts. If $M$ loops, this
+      machine loops too, which an accepter may do. So $L_H$ is recursively enumerable.
+    when: to place the halting language
+    trap: this accepts $L_H$; it does not decide it
+
+routes:
+  - task: "show that L is regular"
+    path: [words, reg]
+    why: build a machine or an expression, or use closure
+  - task: "show that L is context-free"
+    path: [words, cfl]
+    why: a grammar or an NPDA; the conversion map has the rest
+  - task: "show that L is not regular"
+    path: [words, notreg]
+    why: assume it is, then pump
+  - task: "show that L is context-free and not regular"
+    path: [words, cfl]
+    why: "two proofs: a grammar for the first claim, then arrow 6 for the second"
+  - task: "show that L is not context-free"
+    path: [words, notcfl]
+    why: assume it is, then pump with cases on the window; or intersect with a regular language
+  - task: "show that a problem is decidable"
+    path: [words, rec]
+    why: an algorithm, with an argument that it stops
+  - task: "show that a problem about Turing machines is undecidable"
+    path: [words, undec]
+    why: assume a decider, and reduce from halting
+  - task: "show that L is recursively enumerable and not decidable"
+    path: [words, re]
+    why: a wait-and-see procedure, then a reduction from halting
+  - task: "show that a language is not recursively enumerable"
+    path: [words, notre]
+    why: the diagonal, or the complement rule
+  - task: "show that a language with an accepter on both sides is decidable"
+    path: [re, rec]
+    why: run the two machines in turns
+
+example:
+  title: Three languages, placed exactly
+  language: "$\\{a^nb^n\\}$, $\\{a^nb^nc^n\\}$ and the halting language $L_H$"
+  walk:
+    - node: words
+      text: >-
+        Three languages, three amounts of memory: a count, two counts, and the behaviour of an arbitrary
+        machine.
+    - edge: pump-reg
+      text: >-
+        $a^nb^n$ is not regular: take $w=a^mb^m$; then $y=a^k$, and $xy^2z=a^{m+k}b^m\notin L$.
+    - node: dcfl
+      text: "$a^nb^n$ is deterministic context-free: push on $a$, pop on $b$. So it sits exactly here."
+    - edge: pump-cfl
+      text: >-
+        $a^nb^nc^n$ is not context-free: take $w=a^mb^mc^m$. The window misses a block, so pumping with $i=0$
+        leaves the counts unequal.
+    - edge: build-rec
+      text: >-
+        $a^nb^nc^n$ is decidable: cross off one $a$, one $b$ and one $c$ per round. Each round uses up symbols, so the
+        machine halts. So it sits exactly at the recursive level.
+    - edge: halt-undec
+      text: "$L_H$ is not recursive: a decider would give the machine $D$, which contradicts itself on $\\langle D\\rangle$."
+    - edge: halt-re
+      text: "$L_H$ is recursively enumerable: the universal machine accepts it. So it sits exactly here."
+    - edge: undec-notre
+      text: "And $\\overline{L_H}$ is not recursively enumerable, so it lies beyond every machine."

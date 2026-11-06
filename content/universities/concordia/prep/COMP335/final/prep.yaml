@@ -1,0 +1,95 @@
+# Study guide for the COMP 335 final (#262, #276): weeks 1-13, with the weight on context-free languages,
+# pushdown automata, Turing machines and decidability. The date in the course file is a placeholder.
+exam: Final
+summary: >-
+  What can each kind of memory compute? Finite memory gives the regular languages, one stack the
+  context-free languages, a tape everything computable, and beyond that lie problems no algorithm
+  solves. For each class: its machine, its grammar, its closure properties, and how to prove that a
+  language is outside it.
+format: >-
+  Scheduled by the Examinations Office during the final examination period, and planned to be in person;
+  the date shown here is a placeholder until the schedule is posted. 55 % of the grade, and a passing
+  grade on the final is required to pass the course. **Part A**: detailed solutions (about 25 % of the
+  exam). **Part B**: multiple choice (about 75 %).
+maps: [context-free-representations, language-class-ladder, regular-language-representations]
+types_intro: |
+  Fourteen types of problem. The first sums up the regular half, and has links to the midterm guide; the other
+  thirteen are the second half of the course. For each: the reasoning, the steps, the traps, worked problems and a
+  drill.
+
+  :::insight[The one idea behind all fourteen types]
+  **Memory decides everything.** To design: decide what must be remembered, and where it is kept: a state, a
+  stack, a tape. To convert: keep the same information in another form. To prove that a language is outside a class:
+  show that it needs more memory than the class has, with a pumping lemma; or more than any machine has, with a
+  reduction from the halting problem.
+  :::
+
+  :::steps[How to write a Part A answer]
+  1. Say what each state, stack symbol or variable means: "$q_1$: an $a$ has just been crossed off", "the stack holds
+     the surplus". This is the proof that the machine is right.
+  2. Write machines in full: the tuple or the start and final states, and every move. For a PDA, each move reads, pops
+     and pushes; for a Turing machine, each move writes and moves.
+  3. For a conversion, show the working: the nullable set, the unit pairs, the CYK table, the triples.
+  4. For a proof by contradiction, start with the assumption, name the constant, cover every case, and end with the
+     contradiction.
+  5. Test two strings in $L$ and two outside, including $\lambda$ and the shortest strings.
+  :::
+
+  :::note[Multiple choice: fast and right]
+  - Test with tiny strings: $\lambda$, $a$, $ab$, $ba$, $aabb$. Most wrong options fail on one of them.
+  - Simplify the language before classifying it. A condition can be empty, or the language finite.
+  - Check the direction of every claim: closure, inclusion, and the direction of a reduction.
+  - "Undecidable" and "not context-free" are strong words: ask what class the object in the question belongs to.
+  :::
+plan:
+  - id: definitions
+    title: Definitions to know exactly
+    items:
+      - "context-free rule $A\\to x$; leftmost derivation; derivation tree; ambiguous, inherently ambiguous"
+      - "s-grammar; Chomsky normal form $A\\to BC\\mid a$; Greibach normal form $A\\to aB_1\\cdots B_k$"
+      - "nullable, unit-production, useful variable, left recursion"
+      - "NPDA $(Q,\\Sigma,\\Gamma,\\delta,q_0,z,F)$ with $\\delta:Q\\times(\\Sigma\\cup\\{\\lambda\\})\\times\\Gamma\\to$ finite subsets of $Q\\times\\Gamma^*$"
+      - "instantaneous description $(q,w,u)$; acceptance by final state; DPDA, both conditions"
+      - "CFL pumping lemma: $|vxy|\\le m$, $|vy|\\ge 1$, $uv^ixy^iz\\in L$ for all $i\\ge 0$"
+      - "Turing machine $(Q,\\Sigma,\\Gamma,\\delta,q_0,\\square,F)$ with partial $\\delta:Q\\times\\Gamma\\to Q\\times\\Gamma\\times\\{L,R\\}$"
+      - "instantaneous description $x_1\\,q\\,x_2$; $L(M)$; Turing-computable function; Turing's thesis"
+      - "recursive, recursively enumerable, decidable; reduction; universal machine; halting problem"
+  - id: proofs
+    title: Proofs to be able to write out
+    items:
+      - "$\\{a^nb^nc^n\\}$ is not context-free: the window misses a block"
+      - "$\\{ww\\}$ is not context-free: $a^mb^ma^mb^m$, neighbouring blocks"
+      - "Context-free languages are not closed under $\\cap$, and so not under complement"
+      - "$\\{a^nb^n\\}\\cup\\{a^nb^{2n}\\}$ has no DPDA"
+      - "If $L$ and $\\overline{L}$ are recursively enumerable, then $L$ is recursive"
+      - "The languages outnumber the machines; the diagonal language is not recursively enumerable"
+      - "The halting problem is undecidable: the machine $D$ on its own code"
+      - "A reduction from halting: the machine $M'$ that runs $M$ on $w$ first"
+  - id: traps
+    title: The twelve traps, one line each
+    items:
+      - "Different derivations do not make a grammar ambiguous: different trees do."
+      - "Order of cleanup: $\\lambda$, unit, useless; inside useless: generating, then reachable."
+      - "CNF: $A\\to aB$ is not allowed; a string of length $n$ takes $2n-1$ steps."
+      - "CYK needs CNF, and every split of every substring."
+      - "Every PDA move pops exactly one symbol; there is no move on an empty stack."
+      - "PDA acceptance: input used up **and** final state; the stack does not matter."
+      - "DPDA: no $\\lambda$-move beside a reading move on the same state and top."
+      - "NPDAs are stronger than DPDAs, while NFAs equal DFAs and non-deterministic TMs equal TMs."
+      - "CFL pumping: the window is anywhere, and $v$ or $y$ may be empty."
+      - "Context-free: closed under $\\cup$, concatenation, star; not $\\cap$, not complement; yes $\\cap$ regular."
+      - "A looping machine neither accepts nor rejects; recursive means it halts on every input."
+      - "Reduce from the known undecidable problem to the new one, never the other way round."
+  - id: last-week
+    title: If you have one week
+    items:
+      - "Redo the [regular half](/prep/COMP335/final/types/regular-review), and walk the [conversion maps](/prep/COMP335/final/map) once."
+      - "Redo [Three grammars](/prep/COMP335/final/types/write-a-grammar) and [A grammar with two sides](/prep/COMP335/final/types/derivations-and-ambiguity) without the solution."
+      - "Redo [A full cleanup](/prep/COMP335/final/types/clean-a-grammar) and [Convert and test](/prep/COMP335/final/types/cnf-and-cyk): show every table."
+      - "Redo [To Greibach normal form](/prep/COMP335/final/types/greibach-and-left-recursion)."
+      - "Redo [Two machines](/prep/COMP335/final/types/design-a-pda) and [Both directions](/prep/COMP335/final/types/grammars-and-pdas)."
+      - "Redo [Two proofs and a decision](/prep/COMP335/final/types/context-free-or-not) and the drill of [closure](/prep/COMP335/final/types/cfl-closure-and-decisions)."
+      - "Redo [Marking in pairs](/prep/COMP335/final/types/design-a-turing-machine) and [Adding one more](/prep/COMP335/final/types/computing-with-turing-machines)."
+      - "Write the halting proof from memory, then do [Reductions](/prep/COMP335/final/types/decidable-or-not)."
+      - "Do [Ten languages](/prep/COMP335/final/types/place-the-language), and read the [table](/prep/COMP335/final/table) from memory."
+      - "Clear the exam's review deck."
