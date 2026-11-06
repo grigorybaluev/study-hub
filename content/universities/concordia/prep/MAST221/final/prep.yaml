@@ -1,0 +1,104 @@
+# Study guide for the MAST 221 final (#278): the whole course. Types 1-4 compress weeks 1-6; types 5-14
+# carry the later material: mgfs, product moments, linear combinations, conditional expectation and the
+# special distributions.
+exam: Final
+summary: >-
+  Probability is mass with total 1. Weeks 1–6 move that mass between events and put it on numbers. Weeks
+  7–8 add the tools for working with it: the moment-generating function, covariance, linear combinations and
+  conditional means. Weeks 9–12 name the distributions that keep coming back and show how they turn into one
+  another through special cases, sums and limits.
+format: >-
+  Three hours, closed book, approved calculator only. It covers all the material of the course, weeks 1–12:
+  events and Bayes, random variables, joint distributions, expectation and Chebyshev's theorem,
+  moment-generating functions, product moments, linear combinations, conditional expectation, the special
+  discrete and continuous distributions, and the normal approximations. It counts 70 % of the grade, or 80 %
+  when that is better for the student. The Examinations Office posts the date with the exam schedule; the date
+  shown here is a placeholder until then.
+maps: [probability-of-events, random-variable-forms, moments-and-sums, named-distributions]
+types_intro: |
+  Fourteen types of problem. For each: the reasoning, the steps, the traps, and worked problems with
+  "pattern at work". Types 1–4 compress weeks 1–6 and set up a table and a density that come back later. Types
+  5–14 are the material after week 6, so they get the most room here. The
+  [weeks 1–6 guide](/prep/MAST221/midterm/types) has more worked problems on the early types.
+
+  :::insight[The one idea behind all fourteen types]
+  **Probability is mass with total 1.** Events and random variables say where the mass sits. The mgf,
+  covariance and conditional means summarise it. A named distribution is a pattern of mass that comes up so often
+  that its formulas are already worked out. Most questions come down to two steps: **recognise the situation,
+  then apply the rule.**
+  :::
+
+  :::steps[How to write every answer]
+  1. Name the variables and, when a named distribution applies, say which one and with what parameters:
+     "$X$ = the number of defectives, binomial with $n=10$, $\theta=0.1$".
+  2. Write the rule before the numbers: $\sigma_{XY}=E[XY]-\mu_X\mu_Y$, or $M_{X+Y}(t)=M_X(t)M_Y(t)$ because
+     $X$ and $Y$ are independent.
+  3. State every range: the support of a density, the values of a pmf, the $t$ for which an mgf exists.
+  4. Say what you used: independence, uniqueness of the mgf, a continuity correction.
+  5. Sanity check: probabilities in $[0,1]$, $M(0)=1$, a variance $\ge0$, $-1\le\rho\le1$.
+  :::
+plan:
+  - id: formulas
+    title: Formulas to know cold
+    items:
+      - "$M_X(t)=E[e^{tX}]$; $\\mu=M'(0)$; $\\sigma^2=M''(0)-M'(0)^2$; the coefficient of $t^r$ is $\\mu_r'/r!$"
+      - "$M_{a+bX}(t)=e^{at}M_X(bt)$; independent: $M_{X+Y}(t)=M_X(t)M_Y(t)$"
+      - "$\\sigma_{XY}=E[XY]-\\mu_X\\mu_Y$; $\\rho=\\frac{\\sigma_{XY}}{\\sigma_X\\sigma_Y}$; independent gives $\\sigma_{XY}=0$, not conversely"
+      - "$\\operatorname{Var}(\\sum a_iX_i)=\\sum a_i^2\\sigma_i^2+2\\sum_{i<j}a_ia_j\\sigma_{ij}$; $\\operatorname{Var}(\\bar X)=\\frac{\\sigma^2}{n}$"
+      - "$E[X\\mid y]=\\sum_xx\\,p(x\\mid y)$ or $\\int x\\,f(x\\mid y)\\,dx$; $\\sigma^2_{X\\mid y}=E[X^2\\mid y]-(E[X\\mid y])^2$"
+      - "Total expectation: $E[X]=\\sum_yE[X\\mid y]\\,p_Y(y)$ or $\\int E[X\\mid y]\\,f_Y(y)\\,dy$"
+      - "$\\Gamma(\\alpha)=(\\alpha-1)\\Gamma(\\alpha-1)$, $\\Gamma(n)=(n-1)!$, $\\Gamma(\\frac12)=\\sqrt\\pi$"
+      - "$\\int_0^\\infty x^{\\alpha-1}e^{-x/\\beta}\\,dx=\\beta^\\alpha\\Gamma(\\alpha)$; $\\int_0^1x^{\\alpha-1}(1-x)^{\\beta-1}\\,dx=\\frac{\\Gamma(\\alpha)\\Gamma(\\beta)}{\\Gamma(\\alpha+\\beta)}$"
+      - "$Z=\\frac{X-\\mu}{\\sigma}$; $\\Phi(-z)=1-\\Phi(z)$; $P(X\\le k)\\approx\\Phi\\left(\\frac{k+\\frac12-n\\theta}{\\sqrt{n\\theta(1-\\theta)}}\\right)$"
+      - "From weeks 1–6: the addition rule, $P(A\\mid B)$, Bayes, $F$, marginals, $\\sigma^2=E[X^2]-\\mu^2$, $P(|X-\\mu|<k\\sigma)\\ge1-\\frac1{k^2}$"
+  - id: distributions
+    title: The distributions, from memory
+    items:
+      - "Write the pmf or density and its range for all fourteen rows of the [table](/prep/MAST221/final/table), from memory."
+      - "Add the mean, the variance and the mgf where there is a simple one."
+      - "Say the situation each one models, in one line."
+      - "Derive three of them instead of recalling them: the binomial mean from indicators, the Poisson mgf, the gamma moments."
+      - "List the families that are closed under independent sums, with their conditions."
+      - "Draw the [family tree](/prep/MAST221/final/map) on paper: special cases, sums, limits."
+  - id: traps
+    title: The twelve traps, one line each
+    items:
+      - "An mgf coefficient is $\\mu_r'/r!$, not $\\mu_r'$: multiply by $r!$."
+      - "$M_{X+Y}=M_XM_Y$ needs independence; $M_{2X}(t)=M_X(2t)$, not $M_X(t)^2$."
+      - "Binomials add only with the same $\\theta$, gammas only with the same $\\beta$."
+      - "Zero covariance does not give independence."
+      - "$\\operatorname{Var}(X-Y)=\\sigma_X^2+\\sigma_Y^2-2\\sigma_{XY}$: the variances add, and only the covariance term changes sign."
+      - "$E[XY]=E[X]E[Y]$ needs zero covariance; $E[X+Y]=E[X]+E[Y]$ needs nothing."
+      - "$E[X\\mid y]$ is a function of $y$, with a range."
+      - "Without replacement from a small lot is hypergeometric, not binomial."
+      - "The geometric here counts trials, so it starts at 1; check which event is the \"success\"."
+      - "Scale or rate: $\\theta=5$ means a mean of 5, so $f(x)=\\frac15e^{-x/5}$."
+      - "Standardise with $\\sigma$, not $\\sigma^2$; a sum's variances add, its standard deviations do not."
+      - "Continuity correction: $X<k$ stops at $k-\\frac12$, $X\\le k$ at $k+\\frac12$, and only for a discrete $X$."
+  - id: drills
+    title: Redo these without looking
+    items:
+      - "[From M back to the distribution](/prep/MAST221/final/types/moment-generating-functions): four mgfs, named on sight."
+      - "[Two Poisson streams](/prep/MAST221/final/types/mgf-linear-changes-and-sums) and [A combination of normals](/prep/MAST221/final/types/mgf-linear-changes-and-sums)."
+      - "[The triangle again](/prep/MAST221/final/types/covariance-correlation): covariance and $\\rho$ from the joint density."
+      - "[Matching letters](/prep/MAST221/final/types/linear-combinations): indicators and covariances."
+      - "[Two stages](/prep/MAST221/final/types/conditional-expectation): the mean without the joint."
+      - "[One stream of trials](/prep/MAST221/final/types/bernoulli-trials): binomial, geometric and negative binomial on one story."
+      - "[The third call](/prep/MAST221/final/types/uniform-gamma-beta): the same event as a gamma and as a Poisson count."
+      - "[Sums, differences and averages](/prep/MAST221/final/types/normal-distribution) and [Two hundred trials](/prep/MAST221/final/types/normal-approximation)."
+  - id: early
+    title: Weeks 1–6, one pass
+    items:
+      - "Redo [A committee and Two heads in a row](/prep/MAST221/final/types/events-and-bayes) with a tree."
+      - "Redo [A triangle-shaped density](/prep/MAST221/final/types/one-random-variable): $F$ for every real $x$."
+      - "Redo [The triangle](/prep/MAST221/final/types/joint-distributions): sketch the support first."
+      - "Redo [Chebyshev both ways](/prep/MAST221/final/types/expectation-chebyshev)."
+      - "Walk the first two [maps](/prep/MAST221/final/map) once."
+  - id: evening
+    title: If you have one evening
+    items:
+      - "Read the [table](/prep/MAST221/final/table) row by row, covering the formulas."
+      - "Walk the [moments-and-sums and family-tree maps](/prep/MAST221/final/map) with their worked examples."
+      - "Redo one problem each from types 5, 7, 9, 13 and 14."
+      - "Read the twelve traps above."
+      - "Clear the exam's review deck."

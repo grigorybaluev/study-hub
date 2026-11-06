@@ -1,0 +1,479 @@
+id: moments-and-sums
+title: "Moments and sums: from a distribution to its numbers"
+description: >-
+  The tools of the later weeks. The upper half is one variable: the distribution goes up to its mgf, and from there
+  to the moments, to linear changes and to independent sums, and a formula you recognise comes back down as a named
+  distribution. The lower half is two variables: the joint gives the product moments and the covariance, which feed
+  the variance of a linear combination, and it gives the conditional mean, whose average is the plain mean again.
+
+canvas: [965, 860]
+
+legend:
+  kinds:
+    algorithm: "operation: mechanical; write the rule, then compute"
+    condition: "only if: valid only when the variables are independent"
+    design: "recognise: match the formula with a known one"
+    free: "free: it already is one"
+  costs:
+    free: nothing to compute
+    same: one formula or one derivative
+    linear: one sum or integral
+    design: a match against the table
+
+nodes:
+  # ---- one variable
+  - id: dist
+    label: Distribution · the hub
+    sub: a pmf or a density
+    tone: blue
+    box: [20, 58, 235, 96]
+    concept: probability-density-function
+    text: "Where the mass of one variable sits. A marginal is one of these, and so is a named distribution."
+  - id: mgf
+    label: "The mgf M(t)"
+    sub: all the moments in one function
+    tone: violet
+    box: [370, 58, 225, 96]
+    concept: moment-generating-function
+    text: "$M(t)=E[e^{tX}]$, finite near 0. It identifies the distribution."
+    easy: "moments and sums."
+  - id: sum
+    label: An independent sum
+    sub: the sum of independent pieces
+    tone: lavender
+    box: [715, 58, 230, 96]
+    text: "$X+Y$ with $X$, $Y$ independent: hard for pmfs and densities, easy for mgfs."
+  - id: moments
+    label: Moments
+    sub: about the origin
+    tone: green
+    box: [20, 232, 235, 96]
+    concept: moment
+    text: "$\\mu_r'=E[X^r]$, the Maclaurin coefficients of $M(t)$ times $r!$."
+  - id: linear
+    label: A linear change
+    sub: a shift and a scale
+    tone: sky
+    box: [370, 232, 225, 96]
+    text: "$a+bX$: the mean and the variance are easy, and the mgf also gives the distribution."
+  - id: named
+    label: A named distribution
+    sub: recognised
+    tone: teal
+    box: [715, 232, 230, 96]
+    text: "Its name, its parameters and all its formulas, from the table. The family-tree map starts here."
+  - id: musigma
+    label: Mean and variance
+    sub: balance point and spread
+    tone: mint
+    box: [20, 405, 235, 100]
+    concept: variance
+    text: "$\\mu$ and $\\sigma^2=E[X^2]-\\mu^2$, for each variable."
+  - id: combo
+    label: A linear combination
+    sub: of several variables
+    tone: forest
+    box: [370, 405, 225, 100]
+    concept: variance
+    text: "$Y=\\sum_ia_iX_i$: the mean needs only the means, and the variance also needs the covariances."
+  - id: average
+    label: The average
+    sub: of n independent copies
+    tone: forest
+    box: [715, 405, 230, 100]
+    text: "$E[\\bar X]=\\mu$ and $\\operatorname{Var}(\\bar X)=\\frac{\\sigma^2}n$: more measurements, less spread."
+    easy: "a Chebyshev bound for $\\bar X$."
+  # ---- two variables
+  - id: joint
+    label: Joint · the hub
+    sub: a table or a surface
+    tone: navy
+    box: [20, 575, 235, 105]
+    concept: joint-distribution
+    text: "The mass on the plane. Draw the **support** first: every limit comes from the picture."
+  - id: product
+    label: Product moments
+    sub: weighted by the joint
+    tone: green
+    box: [370, 575, 225, 105]
+    concept: moment
+    text: "$E[X^rY^s]$. Usually just $E[XY]$."
+    easy: "any $E[g(X,Y)]$ the same way."
+  - id: cov
+    label: Covariance and correlation
+    sub: do they move together
+    tone: amber
+    box: [715, 575, 230, 105]
+    concept: covariance
+    text: "$\\sigma_{XY}$ and $\\rho=\\frac{\\sigma_{XY}}{\\sigma_X\\sigma_Y}$, with $-1\\le\\rho\\le1$. Independent gives 0; 0 does not give independent."
+  - id: conditional
+    label: Conditional distribution
+    sub: one slice, rescaled
+    tone: violet
+    box: [20, 750, 235, 100]
+    concept: conditional-probability
+    text: "$f(x\\mid y)$: a distribution of $x$ for each $y$. In a two-stage model it is given."
+  - id: condmean
+    label: Conditional mean and variance
+    sub: a function of y
+    tone: sky
+    box: [370, 750, 225, 100]
+    concept: conditional-expectation
+    text: "$E[X\\mid y]$: the best prediction of $X$ once $y$ is known. $\\sigma^2_{X\\mid y}=E[X^2\\mid y]-(E[X\\mid y])^2$."
+
+edges:
+  # ---- one variable
+  - id: to-mgf
+    n: 1
+    from: dist
+    to: mgf
+    kind: algorithm
+    cost: linear
+    name: "take E[e^(tX)]"
+    short: "$\\sum e^{tx}p$, $\\int e^{tx}f$"
+    label: [259, 80, 106]
+    path: M257 118 L368 118
+    steps: >-
+      $M(t)=\sum_xe^{tx}p(x)$ or $\int e^{tx}f(x)\,dx$ over the support. Close it with a geometric or exponential series,
+      the binomial theorem, a gamma-type integral, or by completing the square. Keep the range of $t$ for which it
+      converges, and check that $M(0)=1$.
+    when: '"find the mgf"; before a sum of independent variables'
+    trap: "a density with $|x|$ splits at 0, and each half has its own condition on $t$"
+  - id: differentiate
+    n: 2
+    from: mgf
+    to: moments
+    kind: algorithm
+    cost: same
+    name: differentiate at 0
+    short: "$\\mu_r'=M^{(r)}(0)$"
+    label: [350, 192, 128]
+    path: M398 156 L258 236
+    steps: >-
+      $\mu_r'=M^{(r)}(0)$. Or expand $M(t)$ around 0: the coefficient of $t^r$ is $\mu_r'/r!$, which is quicker when the
+      series is known, as for $\frac1{1-t^2}=1+t^2+t^4+\dots$
+    when: '"use the mgf to find the moments"; a high moment such as $E[X^4]$'
+    trap: "the coefficient is $\\mu_r'/r!$, so multiply by $r!$; and $M''(0)$ is $E[X^2]$, not the variance"
+  - id: weight
+    n: 3
+    from: dist
+    to: moments
+    kind: algorithm
+    cost: linear
+    name: weight and add
+    short: "$\\sum x^rp$, $\\int x^rf$"
+    label: [106, 180, 150]
+    path: M98 156 L98 230
+    steps: "$E[X^r]=\\sum_xx^rp(x)$ or $\\int x^rf(x)\\,dx$, one moment at a time."
+    when: only one or two moments are needed and the integral is easy
+    trap: "$E[X^2]\\neq(E[X])^2$"
+  - id: shortcut
+    n: 4
+    from: moments
+    to: musigma
+    kind: algorithm
+    cost: same
+    name: shortcut
+    short: "$\\sigma^2=\\mu_2'-\\mu^2$"
+    label: [146, 352, 110]
+    path: M138 330 L138 403
+    steps: "$\\mu=\\mu_1'$ and $\\sigma^2=\\mu_2'-\\mu^2$. From the mgf: $\\mu=M'(0)$, $\\sigma^2=M''(0)-M'(0)^2$."
+    when: always for the variance
+    trap: a negative variance is an arithmetic error
+  - id: change
+    n: 5
+    from: mgf
+    to: linear
+    kind: algorithm
+    cost: same
+    name: change the argument
+    short: "$e^{at}M(bt)$"
+    label: [490, 180, 145]
+    path: M482 156 L482 230
+    steps: "$M_{a+bX}(t)=e^{at}M_X(bt)$, and in the form with a division $M_{(X+a)/b}(t)=e^{at/b}M_X(t/b)$. The shift multiplies by an exponential, and the scale goes inside."
+    when: '"find the distribution of $2X+1$"; standardising'
+    trap: "$M_{2X}(t)=M_X(2t)$, not $2M_X(t)$ or $M_X(t)^2$"
+  - id: multiply
+    n: 6
+    from: mgf
+    to: sum
+    kind: condition
+    cost: same
+    name: multiply
+    short: "$M_XM_Y$, if independent"
+    label: [600, 80, 112]
+    path: M597 118 L713 118
+    steps: >-
+      Only for independent variables: $M_{X+Y}(t)=M_X(t)M_Y(t)$, and for $n$ of them the product of $n$ mgfs. With
+      coefficients: $M_{\sum a_iX_i}(t)=\prod_iM_{X_i}(a_it)$.
+    when: '"$X$ and $Y$ are independent; find the distribution of $X+Y$"'
+    trap: "without independence the product means nothing: $X+X$ has mgf $M_X(2t)$, not $M_X(t)^2$"
+  - id: recognise
+    n: 7
+    from: mgf
+    to: named
+    kind: design
+    cost: design
+    name: recognise
+    short: "uniqueness"
+    label: [674, 172, 90]
+    path: M597 145 L713 240
+    steps: >-
+      Two mgfs that agree on an open interval around 0 belong to the same distribution. Match the formula with the mgf
+      column of the table. A finite sum $\sum_xp(x)e^{tx}$ is the pmf itself, read off term by term.
+    when: '"$M(t)=(1-2t)^{-3}$: what is the distribution?"'
+    trap: "in $e^{\\mu t+\\frac12\\sigma^2t^2}$ the coefficient of $t^2$ is half the variance"
+  - id: recognise-sum
+    n: 8
+    from: sum
+    to: named
+    kind: design
+    cost: design
+    name: recognise
+    short: "the same family?"
+    label: [838, 180, 105]
+    path: M830 156 L830 230
+    steps: >-
+      Simplify the product, then match it. Poissons, normals and chi-squares stay in their family; binomials and
+      negative binomials need the same $\theta$, and gammas the same $\beta$. $n$ exponentials with one mean become a gamma, and
+      $k$ geometrics with the same $\theta$ a negative binomial.
+    when: right after multiplying
+    trap: binomials with different $\theta$ do not add to a binomial
+  - id: recognise-change
+    n: 9
+    from: linear
+    to: named
+    kind: design
+    cost: design
+    name: recognise
+    short: "a scale keeps some"
+    label: [600, 250, 112]
+    path: M597 300 L713 300
+    steps: >-
+      A scale keeps a gamma a gamma ($\beta$ becomes $b\beta$) and an exponential an exponential, and $a+bX$ keeps a normal
+      normal. Other families are left: $2X$ is not Poisson.
+    when: right after a linear change
+    trap: "$e^{\\lambda(e^{2t}-1)}$ is not a Poisson mgf"
+  - id: read-table
+    n: 10
+    from: named
+    to: dist
+    kind: free
+    cost: free
+    name: read it from the table
+    short: "a name is a pmf or a density, with every formula"
+    label: [330, 4, 400, center]
+    path: M947 280 L958 280 L958 36 L138 36 L138 56
+    steps: "Nothing to compute: the name and the parameters give the pmf or density, and with it the mean, the variance and the mgf."
+    when: "as soon as the distribution has a name"
+  # ---- two variables
+  - id: marginal
+    n: 11
+    from: joint
+    to: dist
+    kind: algorithm
+    cost: linear
+    name: add or integrate out
+    short: "$f_X(x)=\\int f(x,y)\\,dy$"
+    label: [14, 524, 200]
+    path: M18 628 L8 628 L8 106 L18 106
+    steps: >-
+      Sum a row or a column, or integrate $y$ over its range at that $x$, then state the range of $x$. The marginal is a
+      distribution of one variable, so the upper half applies to it.
+    when: '"find $\mu_X$ from a joint"; before a covariance'
+    trap: "$\\int_0^1$ for a marginal when the support is a triangle"
+  - id: product-moment
+    n: 12
+    from: joint
+    to: product
+    kind: algorithm
+    cost: linear
+    name: "E[g(X, Y)]"
+    short: "$\\iint xy\\,f$"
+    label: [280, 590, 88]
+    path: M257 628 L368 628
+    steps: >-
+      $E[g(X,Y)]=\sum\sum g(x,y)p(x,y)$ or $\iint g(x,y)f(x,y)\,dx\,dy$ over the support. For $E[XY]$, only cells with $x$
+      and $y$ both nonzero contribute.
+    when: '"find $E[XY]$", "find $E[X/Y]$"'
+    trap: "writing $E[X]E[Y]$ without independence; constant limits on a triangle"
+  - id: subtract
+    n: 13
+    from: product
+    to: cov
+    kind: algorithm
+    cost: same
+    name: subtract
+    short: "$E[XY]-\\mu_X\\mu_Y$"
+    label: [600, 590, 112]
+    path: M597 628 L713 628
+    steps: >-
+      $\sigma_{XY}=E[XY]-\mu_X\mu_Y$, then $\rho=\frac{\sigma_{XY}}{\sigma_X\sigma_Y}$. Shifts drop out and scales multiply:
+      $\operatorname{cov}(aX+b,cY+d)=ac\,\sigma_{XY}$.
+    when: '"find the covariance", "the correlation coefficient"'
+    trap: zero covariance does not give independence; it only rules out a linear tendency
+  - id: cross-terms
+    n: 14
+    from: cov
+    to: combo
+    kind: algorithm
+    cost: same
+    name: the cross terms
+    short: "$2\\sum_{i<j}a_ia_j\\sigma_{ij}$"
+    label: [716, 520, 225]
+    path: M735 573 L598 495
+    steps: >-
+      $\operatorname{Var}(\sum a_iX_i)=\sum a_i^2\sigma_i^2+2\sum_{i<j}a_ia_j\sigma_{ij}$: a square for each variable and a
+      cross term for each pair. Independence makes every cross term 0.
+    when: '"find $\operatorname{Var}(2X-3Y+1)$"'
+    trap: "$\\operatorname{Var}(X-Y)=\\sigma_X^2+\\sigma_Y^2-2\\sigma_{XY}$: the variances add"
+  - id: means-combine
+    n: 15
+    from: musigma
+    to: combo
+    kind: algorithm
+    cost: same
+    name: linearity
+    short: "$E[Y]=\\sum a_i\\mu_i$"
+    label: [259, 412, 106]
+    path: M257 450 L368 450
+    steps: "$E[\\sum a_iX_i]=\\sum a_i\\mu_i$ always, with or without independence. The variances $\\sigma_i^2$ enter the first sum of the variance formula, squared coefficients in front."
+    when: every linear combination
+    trap: a constant moves the mean and disappears from the variance
+  - id: average-of
+    n: 16
+    from: combo
+    to: average
+    kind: condition
+    cost: same
+    name: take a = 1/n
+    short: "if independent"
+    label: [600, 412, 112]
+    path: M597 450 L713 450
+    steps: >-
+      With $a_i=\frac1n$ and independent copies: $E[\bar X]=\mu$ and $\operatorname{Var}(\bar X)=n\cdot\frac{\sigma^2}{n^2}=\frac{\sigma^2}n$.
+      Then Chebyshev: $P(|\bar X-\mu|\ge c)\le\frac{\sigma^2}{nc^2}$.
+    when: '"how many measurements", "the average of $n$"'
+    trap: "the standard deviation shrinks by $\\sqrt n$, not by $n$"
+  - id: slice
+    n: 17
+    from: joint
+    to: conditional
+    kind: algorithm
+    cost: linear
+    name: divide
+    short: "$f(x\\mid y)=\\frac{f(x,y)}{f_Y(y)}$"
+    label: [146, 695, 200]
+    path: M138 682 L138 748
+    steps: "Integrate out to get the marginal of the **given** variable, then divide. The result is a distribution of $x$, with its range, for each $y$ with $f_Y(y)>0$."
+    when: '"the conditional density of $X$ given $Y=y$"'
+    trap: "dividing by the wrong marginal: the given goes underneath"
+  - id: conditional-weight
+    n: 18
+    from: conditional
+    to: condmean
+    kind: algorithm
+    cost: linear
+    name: the mean
+    short: "$\\int x\\,f(x\\mid y)\\,dx$"
+    label: [259, 762, 106]
+    path: M257 800 L368 800
+    steps: >-
+      The same sum or integral as ever, weighted by the conditional: $E[u(X)\mid y]=\sum_xu(x)p(x\mid y)$ or
+      $\int u(x)f(x\mid y)\,dx$. If the conditional is a named distribution, read off its mean.
+    when: '"find $E[X\mid y]$", "the conditional variance"'
+    trap: "the answer is a function of $y$, with a range"
+  - id: total
+    n: 19
+    from: condmean
+    to: musigma
+    kind: algorithm
+    cost: linear
+    name: average the predictions
+    short: "$E[X]=\\int E[X\\mid y]f_Y(y)\\,dy$"
+    label: [280, 524, 235]
+    path: M430 748 L430 732 L272 732 L272 490 L257 490
+    steps: >-
+      Law of total expectation: $E[X]=\sum_yE[X\mid y]\,p_Y(y)$ or $\int E[X\mid y]\,f_Y(y)\,dy$. It is total probability
+      applied to every value of $X$. It works for $E[X^2]$ too, which then gives the variance of $X$.
+    when: 'two-stage models: "first $N$, then given $N$ …"'
+    trap: the average of the conditional variances is not the variance of $X$
+
+routes:
+  - task: the mean and variance from the mgf
+    path: [mgf, moments, musigma]
+    why: "$M'(0)$, and $M''(0)-M'(0)^2$"
+  - task: a high moment such as E[X⁴]
+    path: [dist, mgf, moments]
+    why: read it from the series, and multiply the coefficient by $r!$
+  - task: what distribution has this mgf?
+    path: [mgf, named]
+    why: uniqueness; a finite sum of exponentials is the pmf itself
+  - task: the distribution of X + Y, independent
+    path: [dist, mgf, sum, named]
+    why: multiply the mgfs, then recognise the product
+  - task: the distribution of a + bX
+    path: [dist, mgf, linear, named]
+    why: $e^{at}M(bt)$, then recognise it
+  - task: the covariance from a joint
+    path: [joint, product, cov]
+    why: get $\mu_X$ and $\mu_Y$ from the marginals (arrow 11) as well
+  - task: the variance of 2X − 3Y + 1
+    path: [joint, product, cov, combo]
+    why: the squares of the coefficients, plus twice each cross term
+  - task: the variance of an average
+    path: [musigma, combo, average]
+    why: $\sigma^2/n$, for independent copies
+  - task: E[X | y]
+    path: [joint, conditional, condmean]
+    why: the marginal of the given variable goes underneath
+  - task: the mean of a two-stage model
+    path: [conditional, condmean, musigma]
+    why: no joint needed; average the conditional means
+
+example:
+  title: One joint density around the whole map
+  language: "$f(x,y)=e^{-y}$ for $0<x<y$: the times of the first and second events of a stream with one event per unit time"
+  walk:
+    - node: joint
+      text: >-
+        The support is the wedge above the diagonal: $0<x<y$. $X$ is the time of the first event and $Y$ of the second.
+        Not a rectangle, so they are dependent. The total is 1: $\int_0^\infty\int_x^\infty e^{-y}\,dy\,dx=\int_0^\infty e^{-x}\,dx=1$.
+    - edge: marginal
+      text: >-
+        At a fixed $x$, $y$ runs from $x$ to $\infty$: $f_X(x)=e^{-x}$ for $x>0$. At a fixed $y$, $x$ runs from 0 to $y$:
+        $f_Y(y)=ye^{-y}$ for $y>0$.
+    - edge: to-mgf
+      text: "$M_X(t)=\\int_0^\\infty e^{tx}e^{-x}\\,dx=\\frac1{1-t}$ for $t<1$."
+    - edge: differentiate
+      text: "The series is $1+t+t^2+\\dots$, so $\\mu_r'=r!$: $E[X]=1$ and $E[X^2]=2$."
+    - edge: shortcut
+      text: "$\\sigma_X^2=2-1=1$."
+    - edge: multiply
+      text: >-
+        The gap $G=Y-X$ has joint density $e^{-x}e^{-g}$ with $X$, so it is independent of $X$ with the same density. So
+        $Y=X+G$ is an independent sum: $M_Y(t)=\frac1{(1-t)^2}$.
+    - edge: recognise-sum
+      text: "That is the gamma mgf with $\\alpha=2$, $\\beta=1$, which matches $f_Y(y)=ye^{-y}$. So $\\mu_Y=2$ and $\\sigma_Y^2=2$."
+    - edge: change
+      text: "A linear change: $M_{3X}(t)=M_X(3t)=\\frac1{1-3t}$."
+    - edge: recognise-change
+      text: "An exponential with mean 3: a scale keeps the family and multiplies the mean."
+    - edge: read-table
+      text: "The name gives everything else: $f(x)=\\frac13e^{-x/3}$ for $x>0$, with variance 9."
+    - edge: product-moment
+      text: "$E[XY]=\\int_0^\\infty\\int_0^yxy\\,e^{-y}\\,dx\\,dy=\\int_0^\\infty\\frac{y^3}2e^{-y}\\,dy=\\frac{\\Gamma(4)}2=3$."
+    - edge: subtract
+      text: "$\\sigma_{XY}=3-1\\cdot2=1$ and $\\rho=\\frac1{\\sqrt1\\sqrt2}\\approx0.707$. Positive: a late first event means a late second one."
+    - edge: means-combine
+      text: "$E[Y-X]=2-1=1$, the mean of the gap."
+    - edge: cross-terms
+      text: "$\\operatorname{Var}(Y-X)=2+1-2(1)=1$, the variance of an exponential with mean 1, as it should be."
+    - edge: average-of
+      text: "The average of 100 independent gaps has mean 1 and variance $\\frac1{100}$, so $P(|\\bar X-1|\\ge\\frac12)\\le\\frac{1/100}{1/4}=0.04$."
+    - edge: slice
+      text: "$f(x\\mid y)=\\frac{e^{-y}}{ye^{-y}}=\\frac1y$ for $0<x<y$: given the second event, the first is uniform on $(0,y)$."
+    - edge: conditional-weight
+      text: "$E[X\\mid y]=\\frac y2$ and $\\sigma^2_{X\\mid y}=\\frac{y^2}{12}$."
+    - edge: total
+      text: "$E[X]=E\\left[\\frac Y2\\right]=\\frac22=1$: the mean we started with."
