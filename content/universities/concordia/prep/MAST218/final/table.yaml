@@ -1,0 +1,110 @@
+title: "Multivariable calculus: the full picture in one table"
+lead: >-
+  The three coloured columns are the same questions asked of three objects: a curve in the plane, a curve in
+  space and a surface. The shared rows below are the geometry that runs alongside them: polar form, conics,
+  vectors, lines and planes, quadrics.
+
+columns:
+  - {id: plane, title: Plane curve, sub: "x(t), y(t): a point moving in the plane", tone: blue, concept: parametric-curve}
+  - {id: space, title: Space curve, sub: "r(t): a point moving in space", tone: violet, concept: vector-function}
+  - {id: surface, title: Surface, sub: "z = f(x, y): one height per point", tone: teal, concept: multivariable-function}
+  - {id: notes, title: Formulas and notes, sub: all columns, tone: grey}
+
+rows:
+  - label: Inputs and output
+    cells:
+      plane: 'one number $t$ in, a point $(x, y)$ out'
+      space: 'one number $t$ in, a vector $\langle x, y, z \rangle$ out'
+      surface: 'a point $(x, y)$ in, one number out'
+      notes: 'Domain of $\mathbf{r}$: where every component is defined. Domain of $f$: a region of the plane; draw it, solid or dashed boundary.'
+  - label: Picture
+    cells:
+      plane: 'a path with a direction; eliminate $t$ for the shape'
+      space: 'a path on a surface; find an equation the components satisfy'
+      surface: 'a graph, or a contour map of level curves $f = k$'
+      notes: 'Curve of intersection: parametrize the cylinder, then solve the other surface. Close contours mean a steep surface.'
+  - label: Limit
+    cells:
+      plane: 'as in one variable, along the parameter'
+      space: 'component by component'
+      surface: 'along every path at once; two paths with different values mean no limit'
+      notes: 'To prove a limit of $f$: squeeze, or polar form with a bound free of $\theta$. Agreement on many paths proves nothing.'
+  - label: Derivative
+    cells:
+      plane: '$\frac{dy}{dx} = \frac{y''(t)}{x''(t)}$, the slope'
+      space: '$\mathbf{r}''(t) = \langle x'', y'', z'' \rangle$, tangent to the curve'
+      surface: '$f_x$, $f_y$; together $\nabla f = \langle f_x, f_y \rangle$'
+      notes: 'Partials: freeze the other variables. Clairaut: $f_{xy} = f_{yx}$. Rate in a direction: $D_{\mathbf{u}}f = \nabla f \cdot \mathbf{u}$, with $\mathbf{u}$ a unit vector.'
+  - label: Second derivative
+    cells:
+      plane: '$\frac{d^2y}{dx^2} = \frac{\frac{d}{dt}(dy/dx)}{x''(t)}$, the concavity'
+      space: '$\mathbf{r}''''$, the acceleration'
+      surface: '$f_{xx}$, $f_{yy}$, $f_{xy}$, the Hessian $H$'
+      notes: '$\frac{d^2y}{dx^2} \ne \frac{y''''}{x''''}$. Discriminant: $D = \det H = f_{xx}f_{yy} - f_{xy}^2$.'
+  - label: Best linear fit
+    cells:
+      plane: 'tangent line through $(x_0, y_0)$ with the slope above'
+      space: 'tangent line $\mathbf{r}(t_0) + s\,\mathbf{r}''(t_0)$'
+      surface: 'tangent plane $z = f(a, b) + f_x(x - a) + f_y(y - b)$'
+      notes: 'The surface $F = k$ has normal $\nabla F$. The same plane gives $f(x, y) \approx L(x, y)$ and $dz = f_x\,dx + f_y\,dy$.'
+  - label: Size
+    cells:
+      plane: '$L = \int \sqrt{x''^2 + y''^2}\,dt$; $A = |\int y\,x''\,dt|$'
+      space: '$L = \int |\mathbf{r}''(t)|\,dt$'
+      surface: 'rate of fastest increase $|\nabla f|$'
+      notes: 'Length is the integral of the speed. Simplify the root before integrating: look for a perfect square or $\cos^2 + \sin^2 = 1$.'
+  - label: Bending
+    cells:
+      plane: '$\kappa = \frac{|x''y'''' - y''x''''|}{(x''^2 + y''^2)^{3/2}}$; graph: $\frac{|f''''|}{(1 + f''^2)^{3/2}}$'
+      space: '$\kappa = \frac{|\mathbf{r}'' \times \mathbf{r}''''|}{|\mathbf{r}''|^3}$'
+      surface: 'the Hessian: bowl, dome or saddle'
+      notes: 'Circle of radius $R$: $\kappa = \frac1R$; line: $\kappa = 0$. Acceleration: $a_T = \frac{\mathbf{r}'' \cdot \mathbf{r}''''}{|\mathbf{r}''|}$, $a_N = \frac{|\mathbf{r}'' \times \mathbf{r}''''|}{|\mathbf{r}''|} = \kappa v^2$.'
+  - label: Composition
+    cells:
+      plane: '$\frac{dy}{dx}$ from the rates in $t$'
+      space: '$\frac{d}{dt}\mathbf{r}(a(t)) = \mathbf{r}''(a(t))\,a''(t)$'
+      surface: '$\frac{dz}{dt} = f_x\frac{dx}{dt} + f_y\frac{dy}{dt}$; a term per path of the tree'
+      notes: 'Implicit: $\frac{dy}{dx} = -\frac{F_x}{F_y}$, $\frac{\partial z}{\partial x} = -\frac{F_x}{F_z}$. Product rules for $\mathbf{r} \cdot \mathbf{s}$ and $\mathbf{r} \times \mathbf{s}$ keep the order.'
+  - label: Largest and smallest
+    cells:
+      plane: 'horizontal tangent: $y''(t) = 0$; vertical tangent: $x''(t) = 0$'
+      space: 'set the derivative of the quantity to 0, as in one variable'
+      surface: '$\nabla f = \mathbf{0}$, then $D$; on a constraint $\nabla f = \lambda\,\nabla g$'
+      notes: 'On a closed bounded region: critical values inside, the boundary, the corners, then compare. $D > 0$, $f_{xx} > 0$ min; $D > 0$, $f_{xx} < 0$ max; $D < 0$ saddle.'
+
+shared:
+  - label: Polar
+    text: >-
+      $x = r\cos\theta$, $y = r\sin\theta$, $r^2 = x^2 + y^2$. Slope:
+      $\frac{dy}{dx} = \frac{r'\sin\theta + r\cos\theta}{r'\cos\theta - r\sin\theta}$. Area:
+      $\frac12\int r^2\,d\theta$; between curves, $\frac12\int (r_{\text{out}}^2 - r_{\text{in}}^2)\,d\theta$.
+      Length: $\int\sqrt{r^2 + r'^2}\,d\theta$. Limits from $r_1 = r_2$ or $r = 0$; sketch first, and check the
+      pole separately.
+  - label: Conics
+    text: >-
+      Complete squares, divide to get 1. Ellipse $\frac{x^2}{a^2} + \frac{y^2}{b^2} = 1$, $c^2 = a^2 - b^2$;
+      hyperbola $\frac{x^2}{a^2} - \frac{y^2}{b^2} = 1$, $c^2 = a^2 + b^2$, asymptotes $y = \pm\frac bax$;
+      parabola $y^2 = 4px$, focus $(p, 0)$, directrix $x = -p$. Polar: $r = \frac{ed}{1 \pm e\cos\theta}$ with
+      the denominator's constant made 1; $e < 1$, $e = 1$, $e > 1$ for ellipse, parabola, hyperbola.
+  - label: Vectors
+    text: >-
+      $\mathbf{a} \cdot \mathbf{b} = a_1b_1 + a_2b_2 + a_3b_3 = |\mathbf{a}|\,|\mathbf{b}|\cos\theta$, zero when
+      perpendicular. Projection of $\mathbf{b}$ onto $\mathbf{a}$: scalar $\frac{\mathbf{a} \cdot \mathbf{b}}{|\mathbf{a}|}$,
+      vector $\frac{\mathbf{a} \cdot \mathbf{b}}{|\mathbf{a}|^2}\mathbf{a}$. $\mathbf{a} \times \mathbf{b}$ is
+      perpendicular to both, of length $|\mathbf{a}|\,|\mathbf{b}|\sin\theta$, the area of the parallelogram; half
+      of it is the triangle.
+  - label: Lines and planes
+    text: >-
+      Line $\mathbf{r}_0 + t\mathbf{v}$; plane $a(x - x_0) + b(y - y_0) + c(z - z_0) = 0$ with
+      $\mathbf{n} = \langle a, b, c \rangle$. Plane through three points:
+      $\mathbf{n} = \overrightarrow{AB} \times \overrightarrow{AC}$. Line of two planes:
+      $\mathbf{v} = \mathbf{n}_1 \times \mathbf{n}_2$. Point to plane:
+      $\frac{|ax_0 + by_0 + cz_0 + d|}{\sqrt{a^2 + b^2 + c^2}}$. Angle of two planes:
+      $\cos\theta = \frac{|\mathbf{n}_1 \cdot \mathbf{n}_2|}{|\mathbf{n}_1|\,|\mathbf{n}_2|}$. Two lines need two
+      parameters; not parallel and not meeting means skew.
+  - label: Quadrics
+    text: >-
+      Variable missing: cylinder. One variable linear: paraboloid, elliptic (squares of one sign) or hyperbolic
+      (opposite signs). All squared, right side 0: cone. All squared, right side 1: ellipsoid (no minus), one
+      sheet (one minus, its axis), two sheets (two minuses, axis the plus variable). Traces: set a variable to a
+      constant and name the conic.
