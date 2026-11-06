@@ -1,0 +1,113 @@
+title: "Simulation: every method in one table"
+lead: >-
+  One row per method. The first column is the idea as a formula, the second is the line of R, and the third is what
+  goes wrong. The shared rows below are the programming practice of weeks 6–7, which every simulation relies on.
+
+columns:
+  - {id: idea, title: The idea, sub: as a formula, tone: blue, concept: monte-carlo-simulation}
+  - {id: code, title: In R, sub: one line when possible, tone: violet, concept: r-programming}
+  - {id: trap, title: Watch out, sub: "traps and checks", tone: grey}
+
+rows:
+  - label: Estimate a mean
+    cells:
+      idea: '$\mu\approx\bar X=\frac1n\sum X_i$, error $s/\sqrt n$, 95 % interval $\bar X\pm1.96\,s/\sqrt n$'
+      code: '`mean(x)`, `sd(x) / sqrt(n)`, `mean(x) + c(-1.96, 1.96) * sd(x) / sqrt(n)`'
+      trap: 'Four times the draws halve the error. To get a half-width $w$: $n=(1.96\,s/w)^2$, rounded up.'
+  - label: Estimate a probability
+    cells:
+      idea: '$P(A)=E[1_A]$, the proportion of cases in which $A$ happened'
+      code: '`mean(x > a)`, `mean(a < x & x < b)`'
+      trap: 'Its error is $\sqrt{\hat p(1-\hat p)/n}$, at most $\frac1{2\sqrt n}$.'
+  - label: Uniforms
+    cells:
+      idea: '$x_n=b\,x_{n-1}\bmod m$, $u_n=x_n/m$; mean $\frac12$, variance $\frac1{12}$'
+      code: '`(b * x) %% m`, `set.seed(k)`, `runif(n, a, b)`'
+      trap: 'Period at most $m-1$. The value 0 traps the sequence, and a prime $m$ avoids it. Integers: `ceiling(k * u)`, never `round()`.'
+  - label: Bernoulli, binomial
+    cells:
+      idea: '$U<p$; a sum of $n$ trials has mean $np$, variance $np(1-p)$'
+      code: '`runif(n) < p`, `rbinom(n, size, prob)`, `replicate(n, sum(runif(size) < prob))`'
+      trap: '$P(X>4)$ is `1 - pbinom(4, size, prob)`. The first argument of `rbinom` is how many values.'
+  - label: Poisson
+    cells:
+      idea: '$P(X=x)=e^{-\lambda}\lambda^x/x!$; mean and variance $\lambda$. Process: count Poisson($\lambda L$), or exponential gaps'
+      code: '`rpois(n, lambda)`, `sort(runif(N, 0, L))`; by gaps, `t <- cumsum(rexp(k, lambda))`, then `t[t <= L]`'
+      trap: 'The mean count scales with the interval: 3 an hour over 20 minutes is 1.'
+  - label: A finite table
+    cells:
+      idea: 'The first value whose cumulative probability exceeds $u$'
+      code: '`sample(v, n, TRUE, p)`, `v[findInterval(u, cumsum(p)) + 1]`'
+      trap: 'Add 1 to `findInterval()`. For a joint table, draw a cell and read its row and column.'
+  - label: Inverse transform
+    cells:
+      idea: '$X=F^{-1}(U)$, because $P(F^{-1}(U)\le x)=F(x)$'
+      code: '`Finv(runif(n))`; exponential: `-log(1 - runif(n)) / rate`'
+      trap: 'Keep the root in the support. A piecewise $F$ inverts piece by piece, with `ifelse()`.'
+  - label: Conditioning
+    cells:
+      idea: 'Simulate, and keep the draws in $A$; the rate is $P(A)$'
+      code: '`x[x > a]`, `length(kept) / n`'
+      trap: 'A rare event wastes nearly everything. Keep pairs together with one logical vector.'
+  - label: Correlated normals
+    cells:
+      idea: '$Y=\rho Z_1+\sqrt{1-\rho^2}\,Z_2$; $\Sigma=R^{\mathsf T}R$'
+      code: '`R <- chol(Sigma)`, `sweep(Z %*% R, 2, mu, "+")`'
+      trap: '`Z` goes on the left. `Sigma` holds variances; `rnorm` takes standard deviations.'
+  - label: Markov chain
+    cells:
+      idea: 'Row $i$ of $P$ is the next-state distribution; $n$ steps: $P^n$; long run: $\pi P=\pi$, total 1'
+      code: '`sample(1:k, 1, prob = P[s, ])`, `P %*% P`, the eigenvector of `t(P)` for eigenvalue 1'
+      trap: 'Rows sum to 1. `P^2` squares entries. Divide the eigenvector by its sum.'
+  - label: Sample mean integral
+    cells:
+      idea: '$\int_a^bg=(b-a)\,E[g(U)]$, error $(b-a)\,s_g/\sqrt n$'
+      code: '`(b - a) * mean(g(runif(n, a, b)))`'
+      trap: 'The factor $(b-a)$. Over a box, the volume of the box.'
+  - label: Hit-or-miss
+    cells:
+      idea: 'For $0\le g\le c$: $\int_a^bg=(b-a)\,c\,P(V<g(U))$'
+      code: '`(b - a) * c * mean(runif(n, 0, c) < g(runif(n, a, b)))`'
+      trap: 'Never more accurate than the sample mean. It is the natural choice for a region with no height function.'
+  - label: Other densities
+    cells:
+      idea: '$\int g=E[g(X)/f(X)]$ for a density $f$ positive where $g\ne0$'
+      code: '`mean(g(x) / f(x))`, with `x` drawn from $f$'
+      trap: 'Keep $g/f$ bounded, or the standard error cannot be trusted. Look for a density inside the integrand first.'
+  - label: Rejection
+    cells:
+      idea: '$k\,g\le f$ everywhere; accept $X$ if $U\,f(X)<k\,g(X)$; the rate is $k$ for a normalised $g$'
+      code: '`x[u * f(x) < k * g(x)]`; box: `x[y < g(x)]`'
+      trap: '$k=1/\max(g/f)$. Too small wastes draws, too large gives the wrong distribution.'
+  - label: Importance
+    cells:
+      idea: '$w_i=g(x_i)/f(x_i)$; $E_g[h]\approx\sum w_ih(x_i)/\sum w_i$'
+      code: '`weighted.mean(h(x), w)`; a rare event: `mean(w)`'
+      trap: 'No constant is needed for `weighted.mean()`. For `mean(w)`, $g$ must be normalised.'
+
+shared:
+  - label: Repeating
+    text: >-
+      `replicate(n, expr)` evaluates `expr` afresh $n$ times: one number each gives a vector, $k$ numbers each give a
+      $k\times n$ matrix, one column per repetition. `sapply(x, f)` makes one call per element. Test one repetition by
+      itself first. The loop version needs `res <- numeric(n)` first and `res[k] <-` inside.
+  - label: Designing
+    text: >-
+      Understand a specific case, find a general idea, translate it, check it. Top-down: a few steps, each cut again until it
+      is one line. Bubble sort swaps neighbours in passes; merge sort splits, sorts each half recursively, and merges by
+      taking the smaller front element. Check a new function against a trusted one on random input.
+  - label: Debugging
+    text: >-
+      Recognise, make reproducible, find the cause, fix and test, look for similar errors. Edge cases: empty, length one, ties,
+      zero. `stopifnot()` on entry; `traceback()` shows where an error happened; `browser()` and `debug(f)` stop inside (`n`
+      next line, `c` continue, `Q` quit); `set.seed()` makes a random bug repeat. `seq_along(x)`, not `1:length(x)`.
+  - label: Efficiency
+    text: >-
+      Correct first, then measure: `system.time()`, `Rprof()`. About 90 % of the time sits in about 10 % of the code. In order
+      of payoff: a better algorithm, vectorised code, pre-allocation, then compiled code. Horner: $d$ multiplications for
+      degree $d$. Binary search: at most $\lceil\log_2(n+1)\rceil$ comparisons on a sorted list.
+  - label: d, p, q, r
+    text: >-
+      `d`: density, or $P(X=x)$. `p`: $F(x)=P(X\le x)$. `q`: the smallest $x$ with $F(x)\ge p$. `r`: random draws. Names:
+      `binom` (`size`, `prob`), `pois` (`lambda`), `exp` (`rate`), `norm` (`mean`, `sd`), `unif` (`min`, `max`). The same
+      pattern covers `geom`, `gamma`, `beta`, `chisq`, `t`, `f`.

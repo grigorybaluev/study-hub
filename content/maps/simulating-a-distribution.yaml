@@ -1,0 +1,442 @@
+id: simulating-a-distribution
+title: "Simulation: from a target distribution to the R code that draws from it"
+description: >-
+  Every box on the top row is something you can be given. Every arrow leads to the same place: a vector of draws
+  in R. Named distributions and finite tables take one call. A density goes through its distribution function
+  when that can be inverted, and under an envelope when it cannot. Below the hub, the draws are conditioned,
+  combined, checked and averaged.
+canvas: [1000, 780]
+
+legend:
+  kinds:
+    algorithm: "method: mechanical; write the formula, then one line of R"
+    design: "design: no recipe; choose the envelope, then prove the bound"
+    free: "free: R or the data already gives it"
+  costs:
+    free: one call
+    same: one line of R
+    linear: an integral, or a solve by hand
+    design: needs an idea
+
+nodes:
+  - id: seed
+    label: Seed and rule
+    sub: where uniforms come from
+    tone: grey
+    box: [20, 10, 180, 76]
+    concept: pseudorandom-number-generation
+    text: "A deterministic rule, started from a seed: `set.seed(k)`."
+  - id: joint
+    label: A joint table
+    sub: two discrete variables
+    tone: grey
+    aux: true
+    box: [410, 10, 180, 76]
+    concept: joint-distribution
+    text: "One probability per cell: $X$ by row, $Y$ by column."
+  - id: uniform
+    label: Uniform numbers
+    sub: the raw material
+    tone: teal
+    box: [20, 125, 180, 100]
+    concept: continuous-uniform-distribution
+    text: "`runif(n)` on $(0,1)$. A probability is a width: $U$ falls in an interval of width $p$ with probability $p$."
+  - id: named
+    label: A named distribution
+    sub: binomial, Poisson, normal
+    tone: blue
+    box: [215, 125, 180, 100]
+    concept: random-variable
+    text: "`d`, `p`, `q`, `r` plus the name. Always the first thing to try."
+  - id: table
+    label: Values and probabilities
+    sub: a finite table
+    tone: sky
+    box: [410, 125, 180, 100]
+    concept: probability-mass-function
+    text: "Values $v_i$ with probabilities $p_i$ that add to 1."
+  - id: density
+    label: A density
+    sub: normalised, with a formula
+    tone: violet
+    box: [605, 125, 180, 100]
+    concept: probability-density-function
+    text: "$f\\ge0$ with total 1. Check both before anything else."
+  - id: cform
+    label: A density up to a constant
+    sub: no usable F
+    tone: lavender
+    box: [800, 125, 180, 100]
+    concept: random-variate-generation
+    text: "$g$ is known in shape only, or $F$ has no closed form."
+  - id: cdf
+    label: Distribution function
+    sub: the mass to the left of x
+    tone: sky
+    box: [605, 275, 180, 80]
+    concept: cumulative-distribution-function
+    text: "$F(x)=P(X\\le x)$; for a table, the running total of the $p_i$."
+  - id: envelope
+    label: An envelope and k
+    sub: k g stays under f
+    tone: amber
+    box: [800, 275, 180, 80]
+    concept: random-variate-generation
+    text: "A density $f$ to sample from, with $k\\,g\\le f$ everywhere."
+  - id: inverse
+    label: The inverse of F
+    sub: a formula or a lookup
+    tone: violet
+    box: [605, 405, 180, 70]
+    concept: random-variate-generation
+    text: "$x=F^{-1}(u)$, in the support."
+  - id: draws
+    label: A vector of draws · the hub
+    sub: x in R, one simulated value per entry
+    tone: navy
+    box: [20, 525, 960, 72]
+    concept: random-variate-generation
+    text: "Independent values with the target distribution. Everything above ends here; everything below starts here."
+  - id: cov
+    label: Means and covariances
+    sub: a dependent normal vector
+    tone: grey
+    box: [20, 670, 180, 95]
+    concept: multivariate-normal-distribution
+    text: "$\\boldsymbol\\mu$ and $\\Sigma$. Dependence has to be built in."
+  - id: conditioned
+    label: Draws given an event
+    sub: a conditional distribution
+    tone: green
+    box: [215, 670, 180, 95]
+    concept: conditional-probability
+    text: "The kept fraction estimates the probability of the event."
+  - id: combined
+    label: A function of draws
+    sub: a sum, a maximum, a square
+    tone: green
+    box: [410, 670, 180, 95]
+    concept: random-variable
+    text: "A chi-square, a binomial as a sum, $\\max(U_1,U_2)$."
+  - id: checked
+    label: A checked sample
+    sub: against what you know
+    tone: mint
+    box: [605, 670, 180, 95]
+    text: "Mean, variance, histogram: do they agree with the exact values?"
+  - id: estimate
+    label: "Next: an estimate"
+    sub: the second map
+    tone: amber
+    aux: true
+    box: [800, 670, 180, 95]
+    concept: monte-carlo-simulation
+    text: "`mean(x)` estimates $E(X)$, with error $s/\\sqrt n$."
+
+edges:
+  - id: rule
+    n: 1
+    from: seed
+    to: uniform
+    kind: algorithm
+    cost: same
+    name: the rule
+    short: "$x_n=b\\,x_{n-1}\\bmod m$"
+    label: [68, 91, 130]
+    path: M60 86 L60 123
+    steps: >-
+      The simplest generator: $x_n=b\,x_{n-1}\bmod m$ and $u_n=x_n/m$. It is periodic, with period at most $m-1$,
+      so $m$ must be huge and prime. R uses the Mersenne Twister instead, through `runif()`, and `set.seed(k)` fixes
+      the start.
+    when: '"run this generator by hand", "find the period", "make the run repeatable"'
+    trap: the same seed gives the same numbers, so never reset it before every draw
+  - id: direct
+    n: 2
+    from: uniform
+    to: draws
+    kind: algorithm
+    cost: same
+    name: a direct formula
+    short: "`u < p`, `ceiling(6 * u)`, `a + (b - a) * u`"
+    label: [68, 340, 138]
+    path: M60 225 L60 523
+    steps: >-
+      Bernoulli: `runif(n) < p`. A fair die: `ceiling(6 * u)`. Uniform on $(a,b)$: `a + (b - a) * u`, the same as
+      `runif(n, a, b)`. A binomial count: `sum(runif(size) < p)`.
+    when: a yes/no with probability $p$, equally likely integers, a change of scale
+    trap: "`round(6 * u)` gives 0 to 6 with half-size ends; use `ceiling()`"
+  - id: call
+    n: 3
+    from: named
+    to: draws
+    kind: free
+    cost: free
+    name: call r…
+    short: "`rbinom(n, size, prob)`, `rpois(n, lambda)`, `rexp(n, rate)`, `rnorm(n, mean, sd)`"
+    label: [263, 340, 136]
+    path: M255 225 L255 523
+    steps: >-
+      The prefix `r` gives draws: `rbinom`, `rpois`, `rexp`, `rnorm`, `rgamma`, `rbeta`, `rchisq`, and so on. The prefix
+      `d` gives the density or $P(X=x)$, `p` gives $F$, and `q` gives the quantile.
+    when: the distribution has a name R knows, and the question does not ask for a method
+    trap: "`n` is how many values, `size` is the number of trials; `rexp` takes the rate, not the mean; `rnorm` takes `sd`, not the variance"
+  - id: cells
+    n: 4
+    from: joint
+    to: table
+    kind: free
+    cost: free
+    name: list the cells
+    short: "`as.vector(joint)`"
+    label: [508, 91, 90]
+    path: M500 86 L500 123
+    steps: >-
+      A joint table is one finite distribution over its cells. `as.vector()` lists them column by column, and
+      `row(joint)[cells]`, `col(joint)[cells]` read $X$ and $Y$ back from the chosen cells.
+    when: a pair $(X,Y)$ given by a table
+    trap: the order of `as.vector()` is by column; `row()` and `col()` use the same order, so use them to read the cell
+  - id: sample
+    n: 5
+    from: table
+    to: draws
+    kind: algorithm
+    cost: same
+    name: sample()
+    short: "`sample(v, n, TRUE, p)`"
+    label: [458, 370, 136]
+    path: M450 225 L450 523
+    steps: "`sample(v, n, replace = TRUE, prob = p)`: one line. The argument `prob` follows the order of `v`."
+    when: any finite distribution; a biased coin or die; an equally likely choice
+    trap: without `replace = TRUE`, `n` cannot exceed the length of `v`, and the draws are not independent
+  - id: cumulate
+    n: 6
+    from: table
+    to: cdf
+    kind: algorithm
+    cost: same
+    name: cumsum()
+    short: the running total
+    label: [452, 250, 88, right]
+    path: M545 225 L545 315 L603 315
+    steps: "`cum <- cumsum(probs)`: the cut points that divide $(0,1)$ into intervals whose widths are the probabilities."
+    when: '"generate this by inversion", or "which value does $u=0.62$ give?"'
+    trap: the values must be listed in the same order as the probabilities
+  - id: integrate
+    n: 7
+    from: density
+    to: cdf
+    kind: algorithm
+    cost: linear
+    name: integrate
+    short: "$F(x)=\\int f$"
+    label: [703, 230, 96]
+    path: M695 225 L695 273
+    steps: >-
+      $F(x)=\int f(t)\,dt$ from the left end of the support to $x$. A piecewise density adds the mass of the earlier
+      pieces. Check that $F$ reaches 1 at the right end.
+    when: the density is a polynomial, a power or an exponential
+    trap: forgetting the mass to the left of a piece; integrating from 0 when the support starts at 1
+  - id: solve
+    n: 8
+    from: cdf
+    to: inverse
+    kind: algorithm
+    cost: linear
+    name: solve
+    short: "$u=F(x)$"
+    label: [703, 360, 96]
+    path: M695 355 L695 403
+    steps: >-
+      Set $u=F(x)$ and solve for $x$, keeping the root in the support. For a table: return the first value whose
+      cumulative probability exceeds $u$, which is `values[findInterval(u, cum) + 1]`. A piecewise $F$ inverts piece by
+      piece, joined with `ifelse()`.
+    when: $F$ has a closed-form inverse
+    trap: "the wrong root ($x=\\pm2\\sqrt u$); and `findInterval()` starts at 0, so add 1 to index"
+  - id: feed
+    n: 9
+    from: inverse
+    to: draws
+    kind: algorithm
+    cost: same
+    name: feed uniforms
+    short: "`Finv(runif(n))`"
+    label: [703, 480, 122]
+    path: M695 475 L695 523
+    steps: "`x <- Finv(runif(n))`. It works because $P(F^{-1}(U)\\le x)=P(U\\le F(x))=F(x)$. Exponential: `-log(1 - runif(n)) / rate`."
+    when: always after the algebra; the whole generator is this one line
+    trap: "`log()` is the natural logarithm in R"
+  - id: no-closed-form
+    n: 10
+    from: density
+    to: cform
+    kind: free
+    cost: linear
+    name: no closed form?
+    short: a density is a target too
+    label: [703, 68, 180]
+    path: M695 125 L695 106 L890 106 L890 123
+    steps: "When $F$ or its inverse has no closed form, treat the density as a target for rejection, exactly as if the constant were unknown."
+    when: "the normal, a Beta density, a density with a wave in it"
+  - id: choose
+    n: 11
+    from: cform
+    to: envelope
+    kind: design
+    cost: design
+    name: choose an envelope
+    short: "$k\\,g\\le f$ for all $x$"
+    label: [838, 230, 142]
+    path: M830 225 L830 273
+    steps: >-
+      Bounded target on a bounded range: the box, with $f$ uniform and the top at the maximum of $g$. Otherwise choose $f$
+      with tails at least as heavy as $g$, maximise $g/f$, and take $k=1/\max(g/f)$. Check the bound on the whole support.
+    when: "the question gives a density but no way to invert it"
+    trap: an envelope with lighter tails than the target has no bound at all
+  - id: accept
+    n: 12
+    from: envelope
+    to: draws
+    kind: algorithm
+    cost: linear
+    name: accept or reject
+    short: "`x[u * f(x) < k * g(x)]`"
+    label: [838, 390, 142]
+    path: M830 355 L830 523
+    steps: >-
+      Draw `x` from $f$ and `u <- runif(n)`, and keep `x[u * f(x) < k * g(x)]`. The kept $x$-values have density $g$
+      exactly. With a normalised $g$, the acceptance rate is $k$: a tighter envelope wastes less.
+    when: a plain sample is needed from a density with no usable $F$
+    trap: the kept sample is shorter than `n`, and its length is random
+  - id: cholesky
+    n: 13
+    from: cov
+    to: draws
+    kind: algorithm
+    cost: same
+    name: Cholesky
+    short: "`Z %*% chol(Sigma)`"
+    label: [68, 616, 136]
+    path: M60 668 L60 599
+    steps: >-
+      `R <- chol(Sigma)` gives the upper triangular $R$ with $R^{\mathsf T}R=\Sigma$. With `Z` a matrix of independent
+      standard normals, `sweep(Z %*% R, 2, mu, "+")` has one draw per row. For two standard normals:
+      $Y=\rho Z_1+\sqrt{1-\rho^2}\,Z_2$.
+    when: correlated normal variables
+    trap: "`Z` goes on the left of `R`; `Sigma` holds variances, not standard deviations"
+  - id: keep
+    n: 14
+    from: draws
+    to: conditioned
+    kind: algorithm
+    cost: same
+    name: keep what qualifies
+    short: "`x[x > a]`"
+    label: [263, 616, 136]
+    path: M255 597 L255 668
+    steps: "Simulate without the condition and keep what satisfies it: `z[z > 1 & z < 2]`. What is kept has exactly the conditional distribution."
+    when: '"given that", "conditional on", a truncated distribution'
+    trap: "the kept fraction is the probability of the event, so a rare event wastes nearly everything"
+  - id: combine
+    n: 15
+    from: draws
+    to: combined
+    kind: algorithm
+    cost: same
+    name: combine
+    short: "`rowSums(Z^2)`, `pmax(a, b)`"
+    label: [458, 616, 136]
+    path: M450 597 L450 668
+    steps: >-
+      Independent components sit side by side, one generator per column. Then apply the function row by row:
+      `rowSums(Z^2)` for a chi-square, `pmax(a, b)` for the larger of two, `a + b` for a sum.
+    when: the target is defined through other variables
+    trap: "`max(a, b)` is one number; use `pmax()` element by element"
+  - id: check
+    n: 16
+    from: draws
+    to: checked
+    kind: algorithm
+    cost: same
+    name: check
+    short: "`mean(x)`, `var(x)`, `hist(x)`"
+    label: [653, 616, 136]
+    path: M645 597 L645 668
+    steps: >-
+      Compare `mean(x)` and `var(x)` with the exact values, a proportion with $F$, and `hist(x, freq = FALSE)` with the
+      density. For a discrete variable, compare `table(x) / n` with the `d` function.
+    when: always; a generator that has not been checked is a guess
+    trap: agreement within about $2s/\sqrt n$ is all you should expect
+  - id: average
+    n: 17
+    from: draws
+    to: estimate
+    kind: free
+    cost: free
+    name: average
+    short: the Monte Carlo map
+    label: [848, 616, 132]
+    path: M840 597 L840 668
+    steps: "Draws are what a Monte Carlo estimate averages. The second map starts here."
+    when: the aim is a number, not a sample
+
+routes:
+  - task: a binomial or a Poisson count
+    path: [named, draws]
+    why: one call; use it unless the question asks for a method
+  - task: a biased coin from uniforms
+    path: [uniform, draws]
+    why: "`runif(n) < p`: a probability is a width"
+  - task: a finite table
+    path: [table, draws]
+    why: "`sample()` is the one-line version of inversion"
+  - task: a table, by inversion
+    path: [table, cdf, inverse, draws]
+    why: cut points, then a lookup
+  - task: a density with a closed-form F
+    path: [density, cdf, inverse, draws]
+    why: integrate, solve, feed uniforms
+  - task: a density with no closed-form F
+    path: [density, cform, envelope, draws]
+    why: rejection needs only the formula of the density
+  - task: a density up to a constant
+    path: [cform, envelope, draws]
+    why: "the constant goes into $k$, and the acceptance rate estimates it"
+  - task: a pair from a joint table
+    path: [joint, table, draws]
+    why: "one draw of a cell gives both coordinates"
+  - task: correlated normals
+    path: [cov, draws]
+    why: "`chol(Sigma)`, then multiply independent normals"
+  - task: a normal given 1 < Z < 2
+    path: [named, draws, conditioned]
+    why: "simulate, keep; the rate is the probability of the event"
+  - task: a chi-square by hand
+    path: [named, draws, combined]
+    why: "`rowSums(Z^2)` on a matrix of normals"
+
+example:
+  title: One density around the whole map
+  language: "$f(x)=x/2$ for $0<x<2$, and 0 elsewhere"
+  walk:
+    - node: density
+      text: "$f\\ge0$ on $(0,2)$, and $\\int_0^2\\frac x2\\,dx=1$, so it is a density. Its mean is $\\frac43$ and its variance $\\frac29$."
+    - edge: integrate
+      text: "$F(x)=\\int_0^x\\frac t2\\,dt=\\frac{x^2}4$ on $(0,2)$, and $F(2)=1$."
+    - edge: solve
+      text: "$u=\\frac{x^2}4$ gives $x=2\\sqrt u$: the positive root, because the support is positive."
+    - edge: feed
+      text: "`x <- 2 * sqrt(runif(n))` is the whole generator. After `set.seed(11)` with `n <- 100000`, this run is the one used below."
+    - edge: check
+      text: "`mean(x)` is 1.334 and `var(x)` is 0.222, against $\\frac43$ and $\\frac29$. `mean(x <= 1)` is 0.2505, against $F(1)=\\frac14$."
+    - edge: keep
+      text: "Given $X>1$: `big <- x[x > 1]` keeps 0.7495 of the draws, against $P(X>1)=\\frac34$. `mean(big)` is 1.557, against $E(X\\mid X>1)=\\frac{14}9$."
+    - edge: combine
+      text: "The larger of two draws: `pmax(x[1:50000], x[50001:100000])` has mean 1.600, against the exact $\\frac85$."
+    - edge: no-closed-form
+      text: "Now pretend that $F$ cannot be inverted, and treat $f$ as a target $g$."
+    - edge: choose
+      text: "The box: the envelope is uniform on $(0,2)$, with density $\\frac12$. Then $k\\cdot\\frac x2\\le\\frac12$ on $(0,2)$ needs $k\\le\\frac12$, so $k=\\frac12$."
+    - edge: accept
+      text: >-
+        `y <- runif(n, 0, 2)`, then keep `y[runif(n) * 0.5 < 0.5 * y / 2]`. In the same session the kept fraction is 0.497,
+        against $k=\frac12$, and the mean is 1.337 with variance 0.222: the same distribution, at twice the cost.

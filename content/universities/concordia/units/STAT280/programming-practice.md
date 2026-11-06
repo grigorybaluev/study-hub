@@ -402,8 +402,8 @@ system.time(horner(xs, coef))
 :::example[Finding a name in a list]
 To find one name in an unsorted list, you check names one by one: on average half the list. If
 the list is **sorted**, check the middle name, keep the half that must contain the target, and
-repeat (the bisection idea again). That takes at most $\lceil \log_2 n \rceil$ comparisons: 17 for a
-list of 100 000, against tens of thousands for the scan.
+repeat (the bisection idea again). That takes at most $\lceil \log_2 (n + 1) \rceil$ comparisons: 17 for
+a list of 100 000, against tens of thousands for the scan.
 :::
 
 ```r
@@ -432,7 +432,7 @@ linear.search(names.sorted, 73514)
 ## [1] 73514
 binary.search(names.sorted, 73514)
 ## [1] 17
-ceiling(log2(100000))                    # the most binary search can need
+ceiling(log2(100000 + 1))                # the most binary search can need
 ## [1] 17
 ```
 
