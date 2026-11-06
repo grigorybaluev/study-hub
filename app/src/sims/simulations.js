@@ -2719,6 +2719,204 @@
                 xaxis: ax({ title: 'n' }), yaxis: ax({ title: 'comparisons', range: [0, Math.max(nmax * Math.log2(nmax), 1) * 1.3] }), legend: { orientation: 'h', y: -0.22 } }), cfg());
   }
 
+  // ══════════════════════════════════════════════════════════════
+  //  MAST 234 — Linear algebra: maps of the plane, bases, complex multiplication, eigenvectors
+  // ══════════════════════════════════════════════════════════════
+  const LA_BLUE = '#60a5fa', LA_GOLD = '#facc15', LA_GREEN = '#34d399', LA_RED = '#f87171', LA_WHITE = '#e5e7eb', LA_GRID = '#334155', LA_GHOST = '#64748b';
+  const laNum = (x, d = 2) => { const s = x.toFixed(d); return Number(s) === 0 ? (0).toFixed(d) : s; };   // never "-0.00"
+  const laMat = (a, b, c, d, n = 2) => `[${laNum(a, n)} ${laNum(b, n)}; ${laNum(c, n)} ${laNum(d, n)}]`;
+  // equal-scale axes centred on the origin
+  const laView = (R, title, annotations) => {
+    const s = square(R);
+    return layout({ ...s, title, annotations: annotations || [], height: 560, xaxis: { ...s.xaxis, title: '', constrain: 'domain' }, yaxis: { ...s.yaxis, title: '' },
+      legend: { orientation: 'h', y: -0.12 }, margin: { t: 80, r: 20, b: 30, l: 40 } });
+  };
+  const LA_CIRCLE = Array.from({ length: 121 }, (_, i) => [Math.cos(i * Math.PI / 60), Math.sin(i * Math.PI / 60)]);
+  // a vector as a legend entry, with its arrowhead added to `ann`
+  function laVec(p, q, color, name, ann) {
+    ann.push(arrow(p[0], p[1], q[0], q[1], color));
+    return { x: [p[0], q[0]], y: [p[1], q[1]], mode: 'lines', line: { color, width: 2.5 }, name };
+  }
+  // the grid drawn by two vectors u, v: n lines each side of the origin, one null-separated trace
+  function laGrid(u, v, n, name) {
+    const xs = [], ys = [];
+    const line = (p, q) => { xs.push(p[0], q[0], null); ys.push(p[1], q[1], null); };
+    for (let i = -n; i <= n; i++) {
+      line([i * u[0] - n * v[0], i * u[1] - n * v[1]], [i * u[0] + n * v[0], i * u[1] + n * v[1]]);
+      line([i * v[0] - n * u[0], i * v[1] - n * u[1]], [i * v[0] + n * u[0], i * v[1] + n * u[1]]);
+    }
+    return { x: xs, y: ys, mode: 'lines', line: { color: LA_GRID, width: 1 }, name, hoverinfo: 'skip' };
+  }
+  const laClosed = (pts, color, name, fillcolor) => ({ x: pts.map(p => p[0]), y: pts.map(p => p[1]), mode: 'lines', fill: fillcolor ? 'toself' : 'none', fillcolor, line: { color, width: 1.5 }, name });
+
+  // ── L1. A 2 × 2 matrix acting on the unit square ───────────────
+  function laMatrixSquare() {
+    const id = 'la-matrix-square';
+    const a = val(id, 'a', 1.5), b = val(id, 'b', 0.5), c = val(id, 'c', 0), d = val(id, 'd', 1);
+    const det = a * d - b * c, A = p => [a * p[0] + b * p[1], c * p[0] + d * p[1]];
+    const sq = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]], flag = [[0, 0], [0.4, 0], [0, 0.7], [0, 0]];
+    const e0 = A([1, 0]), e1 = A([0, 1]), img = sq.map(A);
+    const R = Math.max(3, ...img.flat().map(Math.abs)) * 1.15, ann = [];
+    const state = Math.abs(det) < 1e-9 ? 'the plane collapses: A is not invertible, so the map is not injective'
+      : det < 0 ? `area multiplied by ${laNum(-det)}, orientation flipped` : `area multiplied by ${laNum(det)}, orientation kept`;
+    const traces = [
+      laGrid(e0, e1, 8, 'image of the grid'),
+      laClosed(sq, LA_GHOST, 'unit square'),
+      laClosed(img, LA_GREEN, 'image of the square', 'rgba(52,211,153,.25)'),
+      laClosed(flag.map(A), LA_WHITE, 'image of the small triangle', 'rgba(229,231,235,.45)'),
+      laVec([0, 0], e0, LA_BLUE, 'Ae₀, the first column', ann),
+      laVec([0, 0], e1, LA_GOLD, 'Ae₁, the second column', ann),
+    ];
+    Plotly.newPlot(el(id), traces, laView(R, `A = ${laMat(a, b, c, d, 1)},  det A = ${laNum(det)}<br>${state}`, ann), cfg());
+  }
+
+  // ── L2. Which lines of the plane are subspaces ─────────────────
+  function laSubspaceLine() {
+    const id = 'la-subspace-line';
+    const m = val(id, 'm', 0.5), k = val(id, 'k', 1), s = val(id, 's', 1), t = val(id, 't', 2), c = val(id, 'c', 2);
+    const f = x => m * x + k, u = [s, f(s)], v = [t, f(t)], sum = [s + t, f(s) + f(t)], cu = [c * s, c * f(s)];
+    const on = p => Math.abs(p[1] - f(p[0])) < 1e-9, yn = p => (on(p) ? 'yes' : 'no');
+    const R = Math.max(5, ...[...u, ...v, ...sum, ...cu].map(Math.abs)) * 1.1, ann = [];
+    const mark = (p, name) => ({ x: [p[0]], y: [p[1]], mode: 'markers', name: `${name}: ${on(p) ? 'on W' : 'off W'}`,
+      marker: { size: 13, symbol: on(p) ? 'circle' : 'circle-open', color: on(p) ? LA_GREEN : LA_RED, line: { width: 2.5, color: on(p) ? LA_GREEN : LA_RED } } });
+    const traces = [
+      { x: [-3 * R, 3 * R], y: [f(-3 * R), f(3 * R)], mode: 'lines', line: { color: LA_WHITE, width: 2 }, name: `W: y = ${laNum(m, 1)}x + ${laNum(k, 1)}` },
+      laVec([0, 0], u, LA_BLUE, 'u', ann),
+      laVec([0, 0], v, LA_GOLD, 'v', ann),
+      { x: [u[0], sum[0], v[0]], y: [u[1], sum[1], v[1]], mode: 'lines', line: { color: LA_GHOST, dash: 'dot', width: 1.5 }, showlegend: false, hoverinfo: 'skip' },
+      mark(sum, 'u + v'), mark(cu, 'c·u'), mark([0, 0], '0'),
+    ];
+    const ok = Math.abs(k) < 1e-9;
+    Plotly.newPlot(el(id), traces, laView(R, `0 ∈ W: ${yn([0, 0])},  u + v ∈ W: ${yn(sum)},  c·u ∈ W: ${yn(cu)}<br>${ok ? 'a line through the origin: a subspace' : 'the line misses the origin: not a subspace'}`, ann), cfg());
+  }
+
+  // ── L3. Coordinates of one vector in a basis of the plane ──────
+  function laChangeOfBasis() {
+    const id = 'la-change-of-basis';
+    const b0 = [val(id, 'b0x', 1), val(id, 'b0y', 1)], b1 = [val(id, 'b1x', 1), val(id, 'b1y', -1)], v = [val(id, 'vx', 5), val(id, 'vy', 1)];
+    const det = b0[0] * b1[1] - b0[1] * b1[0], ok = Math.abs(det) > 1e-9, ann = [];
+    const traces = [laGrid(b0, b1, 14, 'grid of the basis')];
+    let title = `det [b₀ b₁] = ${laNum(det)}: b₀ and b₁ lie on one line, so they are not a basis`;
+    if (ok) {
+      const c0 = (v[0] * b1[1] - v[1] * b1[0]) / det, c1 = (b0[0] * v[1] - b0[1] * v[0]) / det;
+      const mid = [c0 * b0[0], c0 * b0[1]];
+      traces.push({ x: [0, mid[0]], y: [0, mid[1]], mode: 'lines', line: { color: LA_BLUE, width: 4 }, name: `${laNum(c0)} · b₀` });
+      traces.push({ x: [mid[0], v[0]], y: [mid[1], v[1]], mode: 'lines', line: { color: LA_GOLD, width: 4 }, name: `${laNum(c1)} · b₁` });
+      title = `v = (${laNum(v[0], 1)}, ${laNum(v[1], 1)}) in the standard basis<br>[v]_B = (${laNum(c0)}, ${laNum(c1)}) = P⁻¹v, with P = [b₀ b₁]`;
+    }
+    traces.push(laVec([0, 0], b0, LA_BLUE, 'b₀', ann), laVec([0, 0], b1, LA_GOLD, 'b₁', ann), laVec([0, 0], v, LA_WHITE, 'v', ann));
+    Plotly.newPlot(el(id), traces, laView(6.5, title, ann), cfg());
+  }
+
+  // ── L4. One operator in different bases: similar matrices ──────
+  function laSimilarMatrices() {
+    const id = 'la-similar-matrices';
+    const t0 = val(id, 'th0', 30) * Math.PI / 180, t1 = val(id, 'th1', 100) * Math.PI / 180;
+    const A = p => [3 * p[0] + p[1], 2 * p[1]];
+    const b0 = [Math.cos(t0), Math.sin(t0)], b1 = [Math.cos(t1), Math.sin(t1)];
+    const det = b0[0] * b1[1] - b0[1] * b1[0], ok = Math.abs(det) > 1e-9, ann = [];
+    const Tb0 = A(b0), Tb1 = A(b1);
+    const coord = w => [(w[0] * b1[1] - w[1] * b1[0]) / det, (b0[0] * w[1] - b0[1] * w[0]) / det];
+    const traces = [
+      laGrid(b0, b1, 10, 'grid of the basis'),
+      laVec([0, 0], b0, LA_BLUE, 'b₀', ann), laVec([0, 0], b1, LA_GOLD, 'b₁', ann),
+      laVec([0, 0], Tb0, '#bfdbfe', 'T(b₀)', ann), laVec([0, 0], Tb1, '#fef08a', 'T(b₁)', ann),
+    ];
+    let title = 'b₀ and b₁ lie on one line: not a basis';
+    if (ok) {
+      const c0 = coord(Tb0), c1 = coord(Tb1), diag = Math.abs(c0[1]) < 5e-3 && Math.abs(c1[0]) < 5e-3;
+      title = `[T]_B = ${laMat(c0[0], c1[0], c0[1], c1[1])}${diag ? ', diagonal' : ''}<br>trace ${laNum(c0[0] + c1[1])}, det ${laNum(c0[0] * c1[1] - c0[1] * c1[0])}: the same in every basis`;
+    }
+    Plotly.newPlot(el(id), traces, laView(4.2, title, ann), cfg());
+  }
+
+  // ── L5. Complex multiplication: rotate and scale ───────────────
+  function laComplexMultiply() {
+    const id = 'la-complex-multiply';
+    const zr = val(id, 'zr', 1.5), zi = val(id, 'zi', 1), r = val(id, 'r', 1.2), th = val(id, 'th', 60) * Math.PI / 180;
+    const w = [r * Math.cos(th), r * Math.sin(th)], wz = [w[0] * zr - w[1] * zi, w[0] * zi + w[1] * zr];
+    const absZ = Math.hypot(zr, zi), absWz = Math.hypot(wz[0], wz[1]);
+    // the principal argument lies in (−180°, 180°]
+    const deg = p => { const d = Math.atan2(p[1], p[0]) * 180 / Math.PI; return Math.hypot(p[0], p[1]) < 1e-9 ? 'not defined' : `${laNum(d <= -179.95 ? 180 : d, 1)}°`; };
+    const R = Math.max(2, absZ, r, absWz) * 1.2, ann = [];
+    const label = (p, text, color) => ({ x: [p[0]], y: [p[1]], mode: 'markers+text', text: [text], textposition: 'top center', textfont: { color }, marker: { size: 8, color }, showlegend: false, hoverinfo: 'skip' });
+    const traces = [
+      { x: LA_CIRCLE.map(p => p[0]), y: LA_CIRCLE.map(p => p[1]), mode: 'lines', line: { color: LA_GHOST, dash: 'dot', width: 1 }, name: 'unit circle' },
+      laClosed([[0, 0], [1, 0], [zr, zi], [0, 0]], LA_BLUE, 'triangle 0, 1, z', 'rgba(96,165,250,.25)'),
+      laClosed([[0, 0], w, wz, [0, 0]], LA_GREEN, 'triangle 0, w, wz', 'rgba(52,211,153,.25)'),
+      laVec([0, 0], [zr, zi], LA_BLUE, 'z', ann), laVec([0, 0], w, LA_GOLD, 'w', ann), laVec([0, 0], wz, LA_GREEN, 'wz', ann),
+      label([zr, zi], 'z', LA_BLUE), label(w, 'w', LA_GOLD), label(wz, 'wz', LA_GREEN),
+    ];
+    Plotly.newPlot(el(id), traces, laView(R, `w z = ${laNum(wz[0])} ${Number(laNum(wz[1])) < 0 ? '−' : '+'} ${laNum(Math.abs(wz[1]))}i,  |w||z| = ${laNum(r)} · ${laNum(absZ)} = ${laNum(absWz)}<br>arg z = ${deg([zr, zi])},  arg w = ${deg(w)},  arg wz = ${deg(wz)}`, ann), cfg());
+  }
+
+  // ── L6. Eigenvectors: the directions that stay on their line ───
+  function laEigenDirections() {
+    const id = 'la-eigen-directions';
+    const a = val(id, 'a', 4), b = val(id, 'b', 1), c = val(id, 'c', 2), d = val(id, 'd', 3), th = val(id, 'th', 20) * Math.PI / 180;
+    const eps = 1e-9, A = p => [a * p[0] + b * p[1], c * p[0] + d * p[1]];
+    const v = [Math.cos(th), Math.sin(th)], Av = A(v);
+    const tr = a + d, det = a * d - b * c, disc = tr * tr - 4 * det;
+    const ellipse = LA_CIRCLE.map(A);
+    const R = Math.max(1.6, ...ellipse.flat().map(Math.abs)) * 1.15, ann = [];
+    const scalar = Math.abs(b) < eps && Math.abs(c) < eps && Math.abs(a - d) < eps;
+    let lams = [], eigen;
+    if (scalar) eigen = `A = ${laNum(a, 1)}·I: every direction is an eigendirection, λ = ${laNum(a)}`;
+    else if (disc < -eps) {
+      const re = tr / 2, im = Math.sqrt(-disc) / 2;
+      eigen = `λ = ${laNum(re)} ± ${laNum(im)}i: no real eigenvector`;
+    } else {
+      const s = Math.sqrt(Math.max(disc, 0));
+      lams = s < 1e-7 ? [tr / 2] : [(tr + s) / 2, (tr - s) / 2];
+      eigen = lams.length === 1 ? `λ = ${laNum(lams[0])} (repeated)` : `λ = ${laNum(lams[0])} and ${laNum(lams[1])}`;
+    }
+    const dir = l => {
+      const q = Math.abs(b) > eps ? [b, l - a] : Math.abs(c) > eps ? [l - d, c] : Math.abs(l - a) < eps ? [1, 0] : [0, 1];
+      const n = Math.hypot(q[0], q[1]) || 1;
+      return [q[0] / n, q[1] / n];
+    };
+    const traces = [
+      { x: LA_CIRCLE.map(p => p[0]), y: LA_CIRCLE.map(p => p[1]), mode: 'lines', line: { color: LA_GHOST, dash: 'dot', width: 1 }, name: 'unit circle' },
+      laClosed(ellipse, LA_GREEN, 'its image under A'),
+    ];
+    lams.forEach(l => {
+      const q = dir(l);
+      traces.push({ x: [-3 * R * q[0], 3 * R * q[0]], y: [-3 * R * q[1], 3 * R * q[1]], mode: 'lines', line: { color: LA_WHITE, dash: 'dash', width: 1.5 }, name: `eigenline, λ = ${laNum(l)}` });
+    });
+    traces.push(laVec([0, 0], v, LA_BLUE, 'v', ann), laVec([0, 0], Av, LA_GOLD, 'Av', ann));
+    const cross = v[0] * Av[1] - v[1] * Av[0], dot = v[0] * Av[0] + v[1] * Av[1], len = Math.hypot(Av[0], Av[1]);
+    // on an eigenline only if a real eigendirection is there: a near-rotation can turn v very little without having one
+    const lined = scalar || lams.some(l => { const q = dir(l); return Math.abs(v[0] * q[1] - v[1] * q[0]) < 0.02; });
+    const here = len < 1e-6 ? 'Av = 0: v is an eigenvector with λ = 0' : lined ? `v is on an eigenline: Av ≈ ${laNum(dot)}·v` : `angle between v and Av: ${laNum(Math.abs(Math.atan2(cross, dot)) * 180 / Math.PI, 1)}°`;
+    Plotly.newPlot(el(id), traces, laView(R, `A = ${laMat(a, b, c, d, 1)}: ${eigen}<br>${here}`, ann), cfg());
+  }
+
+  // ── L7. x_{k+1} = A x_k with chosen eigenvalues ────────────────
+  function laDynamics() {
+    const id = 'la-dynamics';
+    const l0 = val(id, 'l0', 1), l1 = val(id, 'l1', 0.7), x0 = val(id, 'x0', 3), y0 = val(id, 'y0', 9), k = Math.round(val(id, 'k', 10));
+    // eigenvectors p0 = (2, 1), p1 = (1, −1); the start in that basis is c = P⁻¹x₀
+    const c0 = (x0 + y0) / 3, c1 = (x0 - 2 * y0) / 3;
+    const at = j => { const u = c0 * Math.pow(l0, j), w = c1 * Math.pow(l1, j); return [2 * u + w, u - w]; };
+    const pts = Array.from({ length: k + 1 }, (_, j) => at(j)), end = pts[k], R = 14;
+    const A = [(2 * l0 + l1) / 3, (2 * l0 - 2 * l1) / 3, (l0 - l1) / 3, (l0 + 2 * l1) / 3];
+    // only the terms the start really has count: a zero coefficient never shows its eigenvalue
+    const live = [[Math.abs(l0), c0, '(2, 1)'], [Math.abs(l1), c1, '(1, −1)']].filter(t => Math.abs(t[1]) > 1e-9);
+    const top = Math.max(0, ...live.map(t => t[0])), winners = live.filter(t => Math.abs(t[0] - top) < 1e-9);
+    const fate = !live.length ? 'the start is 0, and the state stays there'
+      : top < 1 - 1e-9 ? 'every term has |λ| < 1: the state goes to 0'
+        : top < 1 + 1e-9 ? 'the |λ| = 1 part stays and any |λ| < 1 part dies'
+          : winners.length === 1 ? `|λ| = ${laNum(top)} > 1 dominates: the state runs away along ${winners[0][2]}`
+            : 'both terms grow at the same rate, so no single direction wins';
+    const eigenline = (p, name) => ({ x: [-R * 2 * p[0], R * 2 * p[0]], y: [-R * 2 * p[1], R * 2 * p[1]], mode: 'lines', line: { color: LA_GHOST, dash: 'dash', width: 1.5 }, name });
+    const traces = [
+      eigenline([2, 1], `eigenline, λ₀ = ${laNum(l0)}`), eigenline([1, -1], `eigenline, λ₁ = ${laNum(l1)}`),
+      { x: pts.map(p => p[0]), y: pts.map(p => p[1]), mode: 'lines+markers', line: { color: LA_BLUE, width: 1.5 }, marker: { size: 7, color: LA_GOLD }, name: 'x₀, x₁, …, xₖ' },
+      { x: [x0], y: [y0], mode: 'markers', marker: { size: 12, color: LA_WHITE }, name: 'start' },
+    ];
+    Plotly.newPlot(el(id), traces, laView(R, `A = ${laMat(A[0], A[1], A[2], A[3])},  x_${k} = (${laNum(end[0])}, ${laNum(end[1])})<br>${fate}`), cfg());
+  }
+
   // ══ COMP 348 — Principles of programming languages ══════════
   // ── P1. Building a Python list: append versus insert at the front ──
   // CPython 3.11 list growth: new capacity = (n + n/8 + 6) & ~3 when a list of size n − 1 is full.
@@ -2861,6 +3059,14 @@
     'ds-growable-array':   dsGrowableArray,
     'ds-load-factor':      dsLoadFactor,
     'ds-sort-lower-bound': dsSortLowerBound,
+    // MAST 234
+    'la-matrix-square':    laMatrixSquare,
+    'la-subspace-line':    laSubspaceLine,
+    'la-change-of-basis':  laChangeOfBasis,
+    'la-similar-matrices': laSimilarMatrices,
+    'la-complex-multiply': laComplexMultiply,
+    'la-eigen-directions': laEigenDirections,
+    'la-dynamics':         laDynamics,
     // COMP 348
     'py-348-list-costs':   pyListCosts,
   };

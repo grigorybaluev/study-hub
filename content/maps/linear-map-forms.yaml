@@ -1,0 +1,462 @@
+id: linear-map-forms
+title: "One linear map: from its rule to its powers"
+description: >-
+  A linear map becomes a matrix as soon as bases are chosen, and everything is then computed from the matrix. The
+  left half is about one application of the map: row reduce, and the pivots give the kernel, the image and the
+  verdict on injective and surjective. The right half is about applying the map again and again: the characteristic
+  polynomial gives the eigenvalues, their kernels give the eigenvectors, and if there are enough of them the map is
+  diagonal in that basis, so its powers and its long-term behaviour can be read off.
+canvas: [965, 830]
+
+legend:
+  kinds:
+    algorithm: "mechanical: write the set-up, then compute or ask Sage"
+    condition: "only if: valid only when the condition holds"
+    free: "free: read it off"
+  costs:
+    free: nothing to compute
+    same: one product or one determinant
+    shrinks: keep part of what you have
+    linear: one system or one row reduction
+    design: a polynomial to factor
+
+nodes:
+  - id: rule
+    label: The rule of T
+    sub: a formula or a description
+    tone: grey
+    box: [20, 20, 230, 105]
+    concept: linear-transformation
+    text: "$T(x,y)=\\dots$, $p\\mapsto p'$, $M\\mapsto M^{\\mathrm T}$, a rotation. First check that it is linear: $T(\\mathbf 0)=\\mathbf 0$, sums, multiples."
+  - id: matrix
+    label: The matrix of T · the hub
+    sub: once bases are chosen
+    tone: navy
+    box: [365, 20, 235, 105]
+    concept: matrix
+    text: "$A=[T]_{\\mathcal C\\leftarrow\\mathcal B}$, of size $\\dim W\\times\\dim V$: $[T(\\mathbf v)]_{\\mathcal C}=A[\\mathbf v]_{\\mathcal B}$."
+    easy: every computation on this map.
+  - id: other
+    label: Another basis
+    sub: a similar matrix
+    tone: lavender
+    box: [715, 20, 230, 105]
+    concept: diagonalization
+    text: "$[T]_{\\mathcal C}=P^{-1}[T]_{\\mathcal B}P$. Same operator: same $\\det$, trace, rank and eigenvalues."
+  - id: rref
+    label: RREF
+    sub: the pivots
+    tone: violet
+    box: [20, 195, 230, 100]
+    concept: matrix-rank
+    text: "`A.rref()`, `A.pivots()`. The rank $r$ is the number of pivots."
+  - id: det
+    label: Determinant
+    sub: square matrices only
+    tone: teal
+    box: [365, 195, 235, 100]
+    concept: determinant
+    text: "`det(A)`. It is the product of the eigenvalues; for a $2\\times2$ matrix, $ad-bc$."
+  - id: charpoly
+    label: Characteristic polynomial
+    sub: square matrices only
+    tone: blue
+    box: [715, 195, 230, 100]
+    concept: eigenvalue
+    text: "$p_A(\\lambda)=\\det(\\lambda I-A)$, `A.charpoly()`. For $2\\times2$: $\\lambda^2-\\mathrm{tr}(A)\\lambda+\\det(A)$."
+  - id: kernel
+    label: Kernel
+    sub: what T sends to zero
+    tone: sky
+    box: [20, 365, 230, 100]
+    concept: matrix-rank
+    text: "`A.right_kernel()`. Coordinates of $\\ker(T)$: translate them back to $V$."
+  - id: verdict
+    label: Injective? Surjective?
+    sub: the verdict
+    tone: amber
+    box: [365, 365, 235, 100]
+    concept: function
+    text: "Rank $=n$: injective. Rank $=m$: surjective. Both: bijective, so $A$ is square and invertible."
+  - id: eigenvalues
+    label: Eigenvalues
+    sub: the roots
+    tone: violet
+    box: [715, 365, 230, 100]
+    concept: eigenvalue
+    text: "`A.eigenvalues()`. A real matrix can have complex pairs. Check: the sum is the trace, the product is $\\det$."
+  - id: image
+    label: Image
+    sub: everything T reaches
+    tone: sky
+    box: [20, 535, 230, 100]
+    concept: matrix-rank
+    text: "The pivot columns of the **original** $A$ are a basis of $\\mathrm{col}(A)$: the coordinates of $\\mathrm{im}(T)$."
+  - id: inverse
+    label: Inverse
+    sub: undoing T
+    tone: lavender
+    box: [365, 535, 235, 100]
+    concept: matrix-inverse
+    text: "`A.inverse()`. $T^{-1}$ has matrix $A^{-1}$, and $\\mathbf x=A^{-1}\\mathbf b$ solves $A\\mathbf x=\\mathbf b$."
+  - id: eigenspaces
+    label: Eigenspaces
+    sub: the directions
+    tone: sky
+    box: [715, 535, 230, 100]
+    concept: eigenvalue
+    text: "$E_\\lambda=\\ker(A-\\lambda I)$, `A.eigenvectors_right()`. $\\dim E_\\lambda$ is the geometric multiplicity."
+  - id: longterm
+    label: Long-term behaviour
+    sub: the dominant eigenvalue
+    tone: forest
+    box: [20, 705, 230, 105]
+    concept: diagonalization
+    text: "$\\mathbf x_k=\\sum_ic_i\\lambda_i^k\\mathbf v_i$: terms with $|\\lambda|<1$ die, and the largest $|\\lambda|$ wins."
+  - id: powers
+    label: Powers
+    sub: T applied k times
+    tone: green
+    box: [365, 705, 235, 105]
+    concept: diagonalization
+    text: "$A^k=PD^kP^{-1}$, with $D^k$ computed entry by entry: a closed formula in $k$."
+  - id: diagonal
+    label: Diagonal form
+    sub: the basis of eigenvectors
+    tone: navy
+    box: [715, 705, 230, 105]
+    concept: diagonalization
+    text: "$A=PDP^{-1}$: columns of $P$ are eigenvectors, $D$ has the matching eigenvalues. `D, P = A.eigenmatrix_right()`."
+
+edges:
+  - id: images
+    n: 1
+    from: rule
+    to: matrix
+    kind: algorithm
+    cost: linear
+    name: images of the basis
+    short: "$T(\\mathbf b_j)$ as columns"
+    label: [256, 22, 106]
+    path: M252 72 L363 72
+    steps: >-
+      Apply $T$ to each vector $\mathbf b_j$ of the domain basis, write the result in the coordinates of $\mathcal C$, and put it in as column
+      $j$. For standard bases: `column_matrix(QQ, [T(1, 0), T(0, 1)])`, and a written-out formula gives the rows directly.
+    when: '"find the matrix of $T$ relative to …"'
+    trap: 'columns, not rows; and $\mathcal C$-coordinates of the images, not the images themselves'
+  - id: change-basis
+    n: 2
+    from: matrix
+    to: other
+    both: true
+    kind: algorithm
+    cost: same
+    name: conjugate
+    short: "$P^{-1}AP$"
+    label: [606, 34, 106]
+    path: M602 72 L713 72
+    steps: >-
+      For an operator, with $P=P_{\mathcal B\leftarrow\mathcal C}$: $[T]_{\mathcal C}=P^{-1}[T]_{\mathcal B}P$, `P.inverse() * A * P`. The columns of $P$ are the new
+      basis vectors written in the old basis.
+    when: '"find the matrix of $T$ in the basis …", "are these matrices similar?"'
+    trap: '$PAP^{-1}$ is the opposite direction. Equal $\det$, trace and rank do not prove similarity; a difference disproves it'
+  - id: reduce
+    n: 3
+    from: matrix
+    to: rref
+    kind: algorithm
+    cost: linear
+    name: row reduce
+    short: "`A.rref()`"
+    label: [350, 145, 120]
+    path: M372 127 L252 200
+    steps: "Compute the RREF and note the pivot columns: `A.pivots()`. One reduction serves arrows 6, 7 and 8."
+    when: 'any question about rank, kernel, image, injective or surjective'
+    trap: 'row operations change eigenvalues and the column space; read those from the original $A$'
+  - id: determinant
+    n: 4
+    from: matrix
+    to: det
+    kind: algorithm
+    cost: same
+    name: determinant
+    short: "`det(A)`"
+    label: [490, 142, 100]
+    path: M482 127 L482 193
+    steps: "For a square matrix only. By hand: $ad-bc$, cofactors, or row reduction keeping track of swaps and scalings. In Sage: `det(A)`."
+    when: 'a square matrix and an "is it invertible?" question; a parameter in the matrix'
+    trap: 'a matrix that is not square has no determinant, so use the rank'
+  - id: characteristic
+    n: 5
+    from: matrix
+    to: charpoly
+    kind: algorithm
+    cost: same
+    name: characteristic polynomial
+    short: "$\\det(\\lambda I-A)$"
+    label: [690, 130, 170]
+    path: M598 127 L718 193
+    steps: >-
+      $p_A(\lambda)=\det(\lambda I-A)$, of degree $n$ with leading coefficient 1. For a $2\times2$ matrix write it from the trace and the
+      determinant. In Sage: `A.charpoly()` and `A.charpoly().factor()`.
+    when: '"find the eigenvalues", "find the characteristic polynomial"'
+    trap: 'for an operator, use its matrix relative to any basis; the polynomial does not depend on the basis'
+  - id: free-variables
+    n: 6
+    from: rref
+    to: kernel
+    kind: algorithm
+    cost: linear
+    name: free variables
+    short: "one vector each"
+    label: [143, 312, 100]
+    path: M135 297 L135 363
+    steps: >-
+      Solve $A\mathbf x=\mathbf 0$ with one parameter per free variable; the vector multiplying each parameter is a basis vector.
+      `A.right_kernel(basis='pivot').basis()`. Vectors of $\ker(T)$ are then rebuilt from these coordinates.
+    when: '"find a basis of the kernel"'
+    trap: "`A.kernel()` is the left kernel in Sage: write `right_kernel`"
+  - id: count-pivots
+    n: 7
+    from: rref
+    to: verdict
+    kind: algorithm
+    cost: free
+    name: count the pivots
+    short: "$r$ against $n$ and $m$"
+    label: [335, 302, 140]
+    path: M252 280 L368 368
+    steps: >-
+      For an $m\times n$ matrix of rank $r$: injective $\iff r=n$, surjective $\iff r=m$. When $n>m$ it cannot be injective, and when
+      $n<m$ it cannot be surjective, with no computation.
+    when: '"is $T$ injective? surjective? bijective?"'
+    trap: 'give a witness for a "no": a nonzero vector of the kernel, or a $\mathbf b$ with $A\mathbf x=\mathbf b$ inconsistent'
+  - id: pivot-columns
+    n: 8
+    from: rref
+    to: image
+    kind: algorithm
+    cost: shrinks
+    name: pivot columns
+    short: "of the original $A$"
+    label: [14, 484, 96]
+    path: M18 250 L8 250 L8 585 L18 585
+    steps: "`[A.column(j) for j in A.pivots()]` is a basis of $\\mathrm{col}(A)$, and vectors of $\\mathrm{im}(T)$ are rebuilt from these coordinates in the basis of $W$."
+    when: '"find a basis of the image", "of the column space"'
+    trap: the columns of the RREF are generally not in the image at all
+  - id: rank-nullity
+    n: 9
+    from: kernel
+    to: image
+    both: true
+    kind: free
+    cost: free
+    name: rank–nullity
+    short: "$\\dim\\ker+\\dim\\mathrm{im}=\\dim V$"
+    label: [130, 478, 122]
+    path: M122 467 L122 533
+    steps: "One dimension gives the other: $\\dim\\ker(T)+\\dim\\mathrm{im}(T)=\\dim V$, the dimension of the **domain**."
+    when: '"what is the rank if the kernel is a line?"; a check on arrows 6 and 8'
+    trap: it counts the domain, not the codomain
+  - id: det-verdict
+    n: 10
+    from: det
+    to: verdict
+    kind: algorithm
+    cost: free
+    name: nonzero?
+    short: "$\\det A\\neq0\\iff$ bijective"
+    label: [490, 312, 104]
+    path: M482 297 L482 363
+    steps: "For a square matrix: $\\det(A)\\neq0$ exactly when $A$ is invertible, so $T$ is bijective, and for a square matrix injective and surjective stand or fall together."
+    when: 'a square matrix, especially with a parameter: solve $\det(A)=0$'
+    trap: 'the determinant says nothing for a matrix that is not square'
+  - id: invert
+    n: 11
+    from: verdict
+    to: inverse
+    kind: condition
+    cost: linear
+    name: invert, if bijective
+    short: "$[\\,A\\mid I\\,]\\sim[\\,I\\mid A^{-1}\\,]$"
+    label: [490, 482, 106]
+    path: M482 467 L482 533
+    steps: "Row reduce $[\\,A\\mid I\\,]$, or call `A.inverse()`. Only for a square matrix of full rank; otherwise there is at most a one-sided inverse."
+    when: '"find the inverse of $T$", "solve $A\mathbf x=\mathbf b$ for several $\mathbf b$"'
+    trap: 'if the left block of the RREF is not $I$, the right block means nothing'
+  - id: roots
+    n: 12
+    from: charpoly
+    to: eigenvalues
+    kind: algorithm
+    cost: design
+    name: find the roots
+    short: "factor; quadratic formula"
+    label: [838, 312, 108]
+    path: M830 297 L830 363
+    steps: >-
+      Set $p_A(\lambda)=0$ and factor, trying small integers and then dividing; by the fundamental theorem of algebra there are $n$ roots in
+      $\mathbb C$, counted with multiplicity. In Sage: `A.eigenvalues()`, or `A.charpoly().roots(QQbar)` for roots with multiplicities.
+    when: '"find the eigenvalues"'
+    trap: 'triangular means the diagonal entries; but the RREF has different eigenvalues'
+  - id: zero-eigenvalue
+    n: 13
+    from: eigenvalues
+    to: verdict
+    kind: free
+    cost: free
+    name: is 0 an eigenvalue?
+    short: "then not invertible"
+    label: [604, 368, 108]
+    path: M713 425 L602 425
+    steps: "$0$ is an eigenvalue exactly when $A$ is not invertible, and then $E_0=\\ker(A)$."
+    when: 'the eigenvalues are already known and the question is about invertibility'
+  - id: kernels
+    n: 14
+    from: eigenvalues
+    to: eigenspaces
+    kind: algorithm
+    cost: linear
+    name: a kernel for each
+    short: "$\\ker(A-\\lambda I)$"
+    label: [838, 482, 108]
+    path: M830 467 L830 533
+    steps: >-
+      For each eigenvalue, solve $(A-\lambda I)\mathbf v=\mathbf 0$: `(A - lam*identity_matrix(n)).right_kernel().basis()`, or everything at once with
+      `A.eigenvectors_right()`, which lists (eigenvalue, basis of the eigenspace, multiplicity).
+    when: '"find the eigenvectors", "find the geometric multiplicity"'
+    trap: 'an eigenvector is not zero; if the kernel is only $\{\mathbf 0\}$, then $\lambda$ was computed wrongly. Write `_right`, since `_left` solves $\mathbf vA=\lambda\mathbf v$'
+  - id: diagonalize
+    n: 15
+    from: eigenspaces
+    to: diagonal
+    kind: condition
+    cost: free
+    name: enough eigenvectors?
+    short: "geometric = algebraic"
+    label: [838, 650, 112]
+    path: M830 637 L830 703
+    steps: >-
+      If all the eigenvalues lie in the field you work over (for a real answer, they must be real) and $\dim E_\lambda$ equals the algebraic multiplicity for
+      every eigenvalue (always true with $n$ distinct eigenvalues), the bases of the eigenspaces together form a basis of eigenvectors. Put them in the columns of $P$ and the matching eigenvalues in $D$.
+      Sage: `D, P = A.eigenmatrix_right()`, then check `P.is_invertible()`.
+    when: '"is $A$ diagonalizable?", "find $P$ and $D$"'
+    trap: 'over `QQ`, `is_diagonalizable()` also says no when the eigenvalues are merely irrational: use `A.change_ring(QQbar)`. `eigenmatrix_right` does not refuse: it returns a singular $P$'
+  - id: power
+    n: 16
+    from: diagonal
+    to: powers
+    kind: algorithm
+    cost: same
+    name: raise D
+    short: "$A^k=PD^kP^{-1}$"
+    label: [606, 716, 106]
+    path: M713 758 L602 758
+    steps: "The inner factors cancel: $A^k=PD^kP^{-1}$. Multiply out for a formula in $k$. For a numeric $k$, Sage does `A^k` directly."
+    when: '"find a formula for $A^k$", "compute $A^{100}$"'
+    trap: "$P^{-1}$ goes on the right; and the order in $D$ must match the columns of $P$"
+  - id: long-term
+    n: 17
+    from: powers
+    to: longterm
+    kind: algorithm
+    cost: linear
+    name: expand the start
+    short: "$\\mathbf c=P^{-1}\\mathbf x_0$"
+    label: [256, 704, 106]
+    path: M363 758 L252 758
+    steps: >-
+      Write the start in the eigenvector basis, `P.solve_right(x0)`, so $\mathbf x_k=\sum_ic_i\lambda_i^k\mathbf v_i$. Terms with $|\lambda_i|<1$ die, and a dominant
+      $\lambda_0$ with $c_0\neq0$ gives $\mathbf x_k\approx c_0\lambda_0^k\mathbf v_0$.
+    when: '"what happens in the long run?", "find the steady state"'
+    trap: 'a term with $\lambda=-1$ neither dies nor grows: it flips sign at every step'
+  - id: eigenbasis
+    n: 18
+    from: diagonal
+    to: other
+    kind: free
+    cost: free
+    name: the best basis
+    short: "$D=[T]_{\\mathcal B}$"
+    label: [870, 140, 88]
+    path: M947 758 L958 758 L958 72 L947 72
+    steps: "Nothing to do: $D$ is the matrix of the operator relative to the basis of eigenvectors, with $P$ as the transition matrix. It is the simplest form of $T$."
+    when: '"find a basis in which the matrix of $T$ is diagonal"'
+
+routes:
+  - task: is the map injective? surjective?
+    path: [rule, matrix, rref, verdict]
+    why: the rank against the two dimensions
+  - task: a basis of the kernel
+    path: [rule, matrix, rref, kernel]
+    why: then translate the coordinates back to $V$
+  - task: a basis of the image
+    path: [rule, matrix, rref, image]
+    why: pivot columns of the original matrix
+  - task: the image, once the kernel is known
+    path: [kernel, image]
+    why: rank–nullity gives at least the dimension
+  - task: the inverse of a map
+    path: [rule, matrix, det, verdict, inverse]
+    why: check that it is invertible, then invert
+  - task: the matrix in another basis
+    path: [rule, matrix, other]
+    why: images of the new basis directly, or $P^{-1}AP$
+  - task: eigenvalues and eigenvectors of an operator
+    path: [rule, matrix, charpoly, eigenvalues, eigenspaces]
+    why: any basis of $V$ will do; translate the eigenvectors back
+  - task: diagonalize, or show it is impossible
+    path: [matrix, charpoly, eigenvalues, eigenspaces, diagonal]
+    why: compare the two multiplicities of each eigenvalue
+  - task: a formula for the k-th power
+    path: [matrix, charpoly, eigenvalues, eigenspaces, diagonal, powers]
+    why: only $D$ is raised to the power
+  - task: the long-term behaviour of a system
+    path: [eigenvalues, eigenspaces, diagonal, powers, longterm]
+    why: the eigenvalue largest in size decides
+  - task: invertible, from the eigenvalues
+    path: [eigenvalues, verdict]
+    why: it is invertible exactly when 0 is not an eigenvalue
+
+example:
+  title: One map around the whole map
+  language: "$T(x,y,z)=(x+y,\\ x+y,\\ 2z)$ on $\\mathbb R^3$"
+  walk:
+    - node: rule
+      text: "Each entry is a linear expression in $x,y,z$ with no constant term, so $T$ is linear."
+    - edge: images
+      text: >-
+        $T(\mathbf e_0)=(1,1,0)$, $T(\mathbf e_1)=(1,1,0)$, $T(\mathbf e_2)=(0,0,2)$, so $A=\begin{bmatrix}1&1&0\\1&1&0\\0&0&2\end{bmatrix}$.
+    - edge: reduce
+      text: "The RREF is $\\begin{bmatrix}1&1&0\\\\0&0&1\\\\0&0&0\\end{bmatrix}$, with pivots in columns 0 and 2. The rank is 2."
+    - edge: free-variables
+      text: "$x_1=t$ is free, $x_0=-t$, $x_2=0$: $\\ker(T)=\\mathrm{span}\\{(-1,1,0)\\}$, of dimension 1."
+    - edge: pivot-columns
+      text: "Columns 0 and 2 of $A$: $\\mathrm{im}(T)=\\mathrm{span}\\{(1,1,0),(0,0,2)\\}$, of dimension 2."
+    - edge: rank-nullity
+      text: "$1+2=3=\\dim\\mathbb R^3$."
+    - edge: count-pivots
+      text: "Rank $2<3$: neither injective nor surjective. Witnesses: $T(-1,1,0)=\\mathbf 0$, and $(1,0,0)$ is not reached."
+    - edge: determinant
+      text: "$\\det(A)=2(1-1)=0$."
+    - edge: det-verdict
+      text: "Zero, so not bijective: arrow 11 cannot be used."
+    - edge: characteristic
+      text: "$p_A(\\lambda)=\\bigl((\\lambda-1)^2-1\\bigr)(\\lambda-2)=\\lambda(\\lambda-2)^2$."
+    - edge: roots
+      text: "The eigenvalues are $0$ (once) and $2$ (twice). Check: $0+2+2=4=\\mathrm{tr}(A)$ and $0\\cdot2\\cdot2=0=\\det(A)$."
+    - edge: zero-eigenvalue
+      text: "$0$ is an eigenvalue, the same verdict as the determinant, and $E_0=\\ker(A)$."
+    - edge: kernels
+      text: "$E_0=\\mathrm{span}\\{(-1,1,0)\\}$ and $E_2=\\mathrm{span}\\{(1,1,0),(0,0,1)\\}$."
+    - edge: diagonalize
+      text: >-
+        $\dim E_2=2$ is the algebraic multiplicity of 2, so $P=\begin{bmatrix}-1&1&0\\1&1&0\\0&0&1\end{bmatrix}$ and $D=\mathrm{diag}(0,2,2)$ work.
+    - edge: eigenbasis
+      text: "In the basis of the columns of $P$, $T$ just kills the first coordinate and doubles the other two."
+    - edge: power
+      text: "$D^k=\\mathrm{diag}(0,2^k,2^k)$ for $k\\ge1$, and multiplying out gives $A^k=2^{k-1}A$."
+    - edge: long-term
+      text: >-
+        Start at $\mathbf x_0=(1,0,1)$. In the eigenvector basis $\mathbf c=(-\frac12,\frac12,1)$, and the $E_0$ part dies at once, so for $k\ge1$:
+        $\mathbf x_k=2^k\bigl(\frac12(1,1,0)+(0,0,1)\bigr)$. The state doubles at each step and stays in $E_2$.

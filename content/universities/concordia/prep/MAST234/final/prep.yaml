@@ -1,0 +1,84 @@
+# Study guide for the MAST 234 final (#279): the whole course. The exam facts come from the outline only; the
+# date is a placeholder until the schedule is posted, so it is not stated here.
+exam: Final
+summary: >-
+  One working method, seen three times: turn the question into columns of numbers and row reduce. First for systems
+  and matrices, then for vector spaces and linear maps, where a basis turns everything into numbers, and finally
+  for eigenvalues, where the best basis makes a map diagonal, so its powers and its long-term behaviour can be read off.
+format: >-
+  Three hours, closed book: no notes and no electronic material. It is written in SageMath, on a computer in the computer
+  lab. The Examination Office posts the date and time. It counts 55 % of the grade, or 85 % when that gives the
+  higher result. There is no supplemental exam. The outline does not narrow the topics, so this guide covers all
+  twelve weeks of it.
+maps: [subspace-forms, linear-map-forms]
+types_intro: |
+  Thirteen types of problem, in the order of the course. For each: the reasoning, the steps, the Sage commands, the traps, and worked
+  problems with "pattern at work". Every command on these pages was run in SageMath 10.9.
+
+  :::insight[The one idea behind all thirteen types]
+  **Turn it into columns of numbers, then read the pivots.** Polynomials and matrices become coefficient lists, a condition becomes a
+  system, a map becomes a matrix, an eigenvector is a kernel vector. Sage does the arithmetic; the set-up and the reading are the real work.
+  :::
+
+  :::steps[A routine for every problem]
+  1. Say what the objects are and how big: "$T:\mathcal P_2\to\mathbb R^2$, so dimensions $3$ and $2$". Counting may already answer the question.
+  2. Translate into a matrix: columns of coefficients, the images of a basis, or $A-\lambda I$.
+  3. Let Sage compute, with exact entries: `matrix(QQ, ...)`.
+  4. Read the output in words: "pivots in columns $0$ and $2$, so rank $2$, so not injective".
+  5. Translate back: polynomials, matrices or a sentence, not only coordinates.
+  6. Check one thing that is cheap: $A\mathbf v=\lambda\mathbf v$, $AP=PD$, a rebuilt vector, or rank plus nullity.
+  :::
+plan:
+  - id: definitions
+    title: Definitions and theorems to know exactly
+    items:
+      - "linear combination, span, linear independence, rank, $\\ker(A)$, $\\mathrm{col}(A)$, $\\mathrm{row}(A)$"
+      - "left inverse, right inverse, invertible matrix; the invertible matrix theorem, every item"
+      - "injective, surjective, bijective; linear transformation; standard matrix $[\\,T(\\mathbf e_0)\\ \\cdots\\ T(\\mathbf e_{n-1})\\,]$"
+      - "vector space (the eight rules); subspace test; basis; dimension; coordinate vector"
+      - "transition matrix: the columns are $[\\mathbf b_j]_{\\mathcal C}$; $(P_{\\mathcal C\\leftarrow\\mathcal B})^{-1}=P_{\\mathcal B\\leftarrow\\mathcal C}$"
+      - "kernel and image of $T$; rank–nullity; injective $\\iff\\ker(T)=\\{\\mathbf 0\\}$"
+      - "matrix of a linear map: column $j$ is $[T(\\mathbf b_j)]_{\\mathcal C}$; similar matrices"
+      - "$a+bi$, conjugate, modulus, polar form; fundamental theorem of algebra; conjugate roots"
+      - "eigenvalue, eigenvector, characteristic polynomial, eigenspace, algebraic and geometric multiplicity"
+      - "diagonalizable; the diagonalization theorem; distinct eigenvalues give independent eigenvectors"
+      - "$A^k=PD^kP^{-1}$; $\\mathbf x_k=\\sum_ic_i\\lambda_i^k\\mathbf v_i$"
+  - id: sage
+    title: Sage commands to type without looking
+    items:
+      - "`matrix(QQ, [[...], [...]])`, `column_matrix(QQ, [...])`, `vector(QQ, [...])`, `identity_matrix(n)`, `diagonal_matrix(QQ, [...])`"
+      - "`A.rref()`, `A.pivots()`, `A.rank()`, `A.augment(b)`, `A.solve_right(b)`, `A.right_kernel().basis()`"
+      - "`det(A)`, `A.inverse()`, `A.trace()`, `A.transpose()`, `A.is_invertible()`"
+      - "`T(x, y) = (...)` after `x, y = var('x, y')`; `bool(a == b)`; `solve(eq, k)`; `.subs(k == 3)`"
+      - "`R.<x> = QQ[]`, `p.derivative()`, `p.factor()`, `p.padded_list(3)`, `p.roots(QQbar)`"
+      - "`I`, `z.conjugate()`, `abs(z)`, `arg(z)`, `.n()`"
+      - "`A.charpoly().factor()`, `A.eigenvalues()`, `A.eigenvectors_right()`"
+      - "`D, P = A.eigenmatrix_right()`, `P.is_invertible()`, `A.change_ring(QQbar)`, then `.is_diagonalizable()`"
+  - id: traps
+    title: The twelve traps, one line each
+    items:
+      - "`right_kernel` and `eigenvectors_right`: the plain and `_left` versions are the other side."
+      - "`rref()` with a parameter hides the special values: use `det` or single row operations."
+      - "`matrix(QQ, [u, v])` puts vectors in rows; `column_matrix` puts them in columns."
+      - "A basis of $\\mathrm{col}(A)$ uses the columns of the original matrix, not of the RREF."
+      - "$T(\\mathbf 0)=\\mathbf 0$ and $\\mathbf 0\\in W$ can only fail a candidate; they prove nothing."
+      - "$\\dim\\mathcal P_n=n+1$."
+      - "Rank plus nullity is the dimension of the domain."
+      - "$S\\circ T$ has matrix $[S][T]$; transition matrices read right to left."
+      - "$P^{-1}AP$ with the new basis in the columns of $P$; column $j$ of $P$ pairs with entry $j$ of $D$."
+      - "Row reducing $A$ changes its eigenvalues."
+      - "A repeated eigenvalue is not a failure: compare the two multiplicities."
+      - "`is_diagonalizable()` over `QQ` means rational; `eigenmatrix_right` does not refuse."
+  - id: evening
+    title: If you have one evening
+    items:
+      - "Redo [A parameter](/prep/MAST234/final/types/systems-rank) with single row operations."
+      - "Redo [A basis of a span](/prep/MAST234/final/types/independence-basis) and read the relation from the RREF."
+      - "Redo [Two bases of the plane](/prep/MAST234/final/types/coordinates-transition) and test the direction on one vector."
+      - "Redo [A map on matrices](/prep/MAST234/final/types/kernel-image) and check rank–nullity."
+      - "Redo [An operator in two bases](/prep/MAST234/final/types/matrix-of-a-map) both ways."
+      - "Redo [A 3 × 3 matrix with a repeated eigenvalue](/prep/MAST234/final/types/eigenvalues) by hand, then in Sage."
+      - "Redo [Market shares](/prep/MAST234/final/types/powers-dynamics) through all five steps."
+      - "Walk both [maps](/prep/MAST234/final/map) once, then answer three of their questions from memory."
+      - "Start Sage and type every command of the Sage list without looking."
+      - "Clear the exam's review deck."

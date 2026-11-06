@@ -130,6 +130,13 @@ plotly:
   - ds-growable-array
   - ds-load-factor
   - ds-sort-lower-bound
+  - la-matrix-square
+  - la-subspace-line
+  - la-change-of-basis
+  - la-similar-matrices
+  - la-complex-multiply
+  - la-eigen-directions
+  - la-dynamics
   - py-348-list-costs
 automata:
   modes: [run, convert, minimize, derive, tool, graph, proofs, regex]
