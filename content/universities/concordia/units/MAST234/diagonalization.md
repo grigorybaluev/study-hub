@@ -410,7 +410,7 @@ In the eigenvector basis, a diagonalizable matrix is $n$ independent one-dimensi
 
 :::equations
 - *Diagonalization*: $A = PDP^{-1}$; columns of $P$ are eigenvectors, $D$ has the matching eigenvalues; $AP = PD$.
-- *Condition*: $n$ independent eigenvectors; $n$ distinct eigenvalues is enough; in general geometric $=$ algebraic multiplicity for each eigenvalue.
+- *Condition*: $n$ independent eigenvectors. With all the eigenvalues in the field, $n$ distinct ones are enough, and in general geometric $=$ algebraic multiplicity for each eigenvalue.
 - *Powers*: $A^k = PD^kP^{-1}$.
 - *Dynamics*: $\mathbf x_k = A^k\mathbf x_0 = \sum_i c_i\lambda_i^k\mathbf v_i$, with $\mathbf c = P^{-1}\mathbf x_0$.
 - *Long term*: all $|\lambda_i| < 1$ gives $\mathbf x_k \to \mathbf 0$; a dominant $\lambda_0$ gives $\mathbf x_k \approx c_0\lambda_0^k\mathbf v_0$.

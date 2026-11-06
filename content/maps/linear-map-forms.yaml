@@ -170,7 +170,7 @@ edges:
     short: "`A.rref()`"
     label: [350, 145, 120]
     path: M372 127 L252 200
-    steps: "Compute the RREF and note the pivot columns: `A.pivots()`. One reduction serves arrows 5, 6 and 7."
+    steps: "Compute the RREF and note the pivot columns: `A.pivots()`. One reduction serves arrows 6, 7 and 8."
     when: 'any question about rank, kernel, image, injective or surjective'
     trap: 'row operations change eigenvalues and the column space; read those from the original $A$'
   - id: determinant
@@ -337,8 +337,8 @@ edges:
     label: [838, 650, 112]
     path: M830 637 L830 703
     steps: >-
-      If $\dim E_\lambda$ equals the algebraic multiplicity for every eigenvalue (always true with $n$ distinct eigenvalues), the bases of the
-      eigenspaces together form a basis of eigenvectors. Put them in the columns of $P$ and the matching eigenvalues in $D$.
+      If all the eigenvalues lie in the field you work over (for a real answer, they must be real) and $\dim E_\lambda$ equals the algebraic multiplicity for
+      every eigenvalue (always true with $n$ distinct eigenvalues), the bases of the eigenspaces together form a basis of eigenvectors. Put them in the columns of $P$ and the matching eigenvalues in $D$.
       Sage: `D, P = A.eigenmatrix_right()`, then check `P.is_invertible()`.
     when: '"is $A$ diagonalizable?", "find $P$ and $D$"'
     trap: 'over `QQ`, `is_diagonalizable()` also says no when the eigenvalues are merely irrational: use `A.change_ring(QQbar)`. `eigenmatrix_right` does not refuse: it returns a singular $P$'

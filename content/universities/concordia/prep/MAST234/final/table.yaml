@@ -99,7 +99,7 @@ shared:
       invertible $\iff$ $0$ is not an eigenvalue. A triangular matrix has its diagonal. In Sage: `A.charpoly().factor()`, `A.eigenvectors_right()`.
   - label: Diagonalization
     text: >-
-      $A=PDP^{-1}\iff$ $n$ independent eigenvectors $\iff$ $\dim E_\lambda$ equals the algebraic multiplicity for every $\lambda$. Distinct eigenvalues suffice. Columns of $P$ pair with entries of $D$, and $A^k=PD^kP^{-1}$. In Sage: `D, P = A.eigenmatrix_right()`, then check
+      $A=PDP^{-1}\iff$ $n$ independent eigenvectors $\iff$ all the eigenvalues lie in the field and $\dim E_\lambda$ equals the algebraic multiplicity for every $\lambda$. With all eigenvalues in the field, distinct ones suffice. Columns of $P$ pair with entries of $D$, and $A^k=PD^kP^{-1}$. In Sage: `D, P = A.eigenmatrix_right()`, then check
       `P.is_invertible()`; use `A.change_ring(QQbar).is_diagonalizable()` for the honest answer.
   - label: Dynamics
     text: >-

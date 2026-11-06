@@ -2726,9 +2726,12 @@
   const laNum = (x, d = 2) => { const s = x.toFixed(d); return Number(s) === 0 ? (0).toFixed(d) : s; };   // never "-0.00"
   const laMat = (a, b, c, d, n = 2) => `[${laNum(a, n)} ${laNum(b, n)}; ${laNum(c, n)} ${laNum(d, n)}]`;
   // equal-scale axes centred on the origin
-  const laView = (R, title, annotations) => layout({ title, annotations: annotations || [], height: 560,
-    xaxis: ax({ range: [-R, R], constrain: 'domain' }), yaxis: ax({ range: [-R, R], scaleanchor: 'x', scaleratio: 1 }),
-    legend: { orientation: 'h', y: -0.12 }, margin: { t: 80, r: 20, b: 30, l: 40 } });
+  const laView = (R, title, annotations) => {
+    const s = square(R);
+    return layout({ ...s, title, annotations: annotations || [], height: 560, xaxis: { ...s.xaxis, title: '', constrain: 'domain' }, yaxis: { ...s.yaxis, title: '' },
+      legend: { orientation: 'h', y: -0.12 }, margin: { t: 80, r: 20, b: 30, l: 40 } });
+  };
+  const LA_CIRCLE = Array.from({ length: 121 }, (_, i) => [Math.cos(i * Math.PI / 60), Math.sin(i * Math.PI / 60)]);
   // a vector as a legend entry, with its arrowhead added to `ann`
   function laVec(p, q, color, name, ann) {
     ann.push(arrow(p[0], p[1], q[0], q[1], color));
@@ -2773,7 +2776,7 @@
     const m = val(id, 'm', 0.5), k = val(id, 'k', 1), s = val(id, 's', 1), t = val(id, 't', 2), c = val(id, 'c', 2);
     const f = x => m * x + k, u = [s, f(s)], v = [t, f(t)], sum = [s + t, f(s) + f(t)], cu = [c * s, c * f(s)];
     const on = p => Math.abs(p[1] - f(p[0])) < 1e-9, yn = p => (on(p) ? 'yes' : 'no');
-    const R = Math.max(5, ...[...sum, ...cu].map(Math.abs)) * 1.1, ann = [];
+    const R = Math.max(5, ...[...u, ...v, ...sum, ...cu].map(Math.abs)) * 1.1, ann = [];
     const mark = (p, name) => ({ x: [p[0]], y: [p[1]], mode: 'markers', name: `${name}: ${on(p) ? 'on W' : 'off W'}`,
       marker: { size: 13, symbol: on(p) ? 'circle' : 'circle-open', color: on(p) ? LA_GREEN : LA_RED, line: { width: 2.5, color: on(p) ? LA_GREEN : LA_RED } } });
     const traces = [
@@ -2833,18 +2836,18 @@
     const zr = val(id, 'zr', 1.5), zi = val(id, 'zi', 1), r = val(id, 'r', 1.2), th = val(id, 'th', 60) * Math.PI / 180;
     const w = [r * Math.cos(th), r * Math.sin(th)], wz = [w[0] * zr - w[1] * zi, w[0] * zi + w[1] * zr];
     const absZ = Math.hypot(zr, zi), absWz = Math.hypot(wz[0], wz[1]);
-    const deg = p => (Math.hypot(p[0], p[1]) < 1e-9 ? 'not defined' : `${laNum(Math.atan2(p[1], p[0]) * 180 / Math.PI, 1)}°`);
+    // the principal argument lies in (−180°, 180°]
+    const deg = p => { const d = Math.atan2(p[1], p[0]) * 180 / Math.PI; return Math.hypot(p[0], p[1]) < 1e-9 ? 'not defined' : `${laNum(d <= -179.95 ? 180 : d, 1)}°`; };
     const R = Math.max(2, absZ, r, absWz) * 1.2, ann = [];
-    const circle = Array.from({ length: 121 }, (_, i) => [Math.cos(i * Math.PI / 60), Math.sin(i * Math.PI / 60)]);
     const label = (p, text, color) => ({ x: [p[0]], y: [p[1]], mode: 'markers+text', text: [text], textposition: 'top center', textfont: { color }, marker: { size: 8, color }, showlegend: false, hoverinfo: 'skip' });
     const traces = [
-      { x: circle.map(p => p[0]), y: circle.map(p => p[1]), mode: 'lines', line: { color: LA_GHOST, dash: 'dot', width: 1 }, name: 'unit circle' },
+      { x: LA_CIRCLE.map(p => p[0]), y: LA_CIRCLE.map(p => p[1]), mode: 'lines', line: { color: LA_GHOST, dash: 'dot', width: 1 }, name: 'unit circle' },
       laClosed([[0, 0], [1, 0], [zr, zi], [0, 0]], LA_BLUE, 'triangle 0, 1, z', 'rgba(96,165,250,.25)'),
       laClosed([[0, 0], w, wz, [0, 0]], LA_GREEN, 'triangle 0, w, wz', 'rgba(52,211,153,.25)'),
       laVec([0, 0], [zr, zi], LA_BLUE, 'z', ann), laVec([0, 0], w, LA_GOLD, 'w', ann), laVec([0, 0], wz, LA_GREEN, 'wz', ann),
       label([zr, zi], 'z', LA_BLUE), label(w, 'w', LA_GOLD), label(wz, 'wz', LA_GREEN),
     ];
-    Plotly.newPlot(el(id), traces, laView(R, `w z = ${laNum(wz[0])} ${wz[1] < 0 ? '−' : '+'} ${laNum(Math.abs(wz[1]))}i,  |w||z| = ${laNum(r)} · ${laNum(absZ)} = ${laNum(absWz)}<br>arg z = ${deg([zr, zi])},  arg w = ${deg(w)},  arg wz = ${deg(wz)}`, ann), cfg());
+    Plotly.newPlot(el(id), traces, laView(R, `w z = ${laNum(wz[0])} ${Number(laNum(wz[1])) < 0 ? '−' : '+'} ${laNum(Math.abs(wz[1]))}i,  |w||z| = ${laNum(r)} · ${laNum(absZ)} = ${laNum(absWz)}<br>arg z = ${deg([zr, zi])},  arg w = ${deg(w)},  arg wz = ${deg(wz)}`, ann), cfg());
   }
 
   // ── L6. Eigenvectors: the directions that stay on their line ───
@@ -2854,8 +2857,7 @@
     const eps = 1e-9, A = p => [a * p[0] + b * p[1], c * p[0] + d * p[1]];
     const v = [Math.cos(th), Math.sin(th)], Av = A(v);
     const tr = a + d, det = a * d - b * c, disc = tr * tr - 4 * det;
-    const ellipse = Array.from({ length: 121 }, (_, i) => A([Math.cos(i * Math.PI / 60), Math.sin(i * Math.PI / 60)]));
-    const circle = Array.from({ length: 121 }, (_, i) => [Math.cos(i * Math.PI / 60), Math.sin(i * Math.PI / 60)]);
+    const ellipse = LA_CIRCLE.map(A);
     const R = Math.max(1.6, ...ellipse.flat().map(Math.abs)) * 1.15, ann = [];
     const scalar = Math.abs(b) < eps && Math.abs(c) < eps && Math.abs(a - d) < eps;
     let lams = [], eigen;
@@ -2874,16 +2876,17 @@
       return [q[0] / n, q[1] / n];
     };
     const traces = [
-      { x: circle.map(p => p[0]), y: circle.map(p => p[1]), mode: 'lines', line: { color: LA_GHOST, dash: 'dot', width: 1 }, name: 'unit circle' },
+      { x: LA_CIRCLE.map(p => p[0]), y: LA_CIRCLE.map(p => p[1]), mode: 'lines', line: { color: LA_GHOST, dash: 'dot', width: 1 }, name: 'unit circle' },
       laClosed(ellipse, LA_GREEN, 'its image under A'),
     ];
-    lams.forEach((l, i) => {
+    lams.forEach(l => {
       const q = dir(l);
-      traces.push({ x: [-3 * R * q[0], 3 * R * q[0]], y: [-3 * R * q[1], 3 * R * q[1]], mode: 'lines', line: { color: LA_WHITE, dash: 'dash', width: 1.5 }, name: `eigenline, λ = ${laNum(l)}`, showlegend: i < 2 });
+      traces.push({ x: [-3 * R * q[0], 3 * R * q[0]], y: [-3 * R * q[1], 3 * R * q[1]], mode: 'lines', line: { color: LA_WHITE, dash: 'dash', width: 1.5 }, name: `eigenline, λ = ${laNum(l)}` });
     });
     traces.push(laVec([0, 0], v, LA_BLUE, 'v', ann), laVec([0, 0], Av, LA_GOLD, 'Av', ann));
     const cross = v[0] * Av[1] - v[1] * Av[0], dot = v[0] * Av[0] + v[1] * Av[1], len = Math.hypot(Av[0], Av[1]);
-    const lined = len < 1e-6 || Math.abs(cross) < 0.02 * len;
+    // on an eigenline only if a real eigendirection is there: a near-rotation can turn v very little without having one
+    const lined = scalar || lams.some(l => { const q = dir(l); return Math.abs(v[0] * q[1] - v[1] * q[0]) < 0.02; });
     const here = len < 1e-6 ? 'Av = 0: v is an eigenvector with λ = 0' : lined ? `v is on an eigenline: Av ≈ ${laNum(dot)}·v` : `angle between v and Av: ${laNum(Math.abs(Math.atan2(cross, dot)) * 180 / Math.PI, 1)}°`;
     Plotly.newPlot(el(id), traces, laView(R, `A = ${laMat(a, b, c, d, 1)}: ${eigen}<br>${here}`, ann), cfg());
   }
@@ -2897,10 +2900,14 @@
     const at = j => { const u = c0 * Math.pow(l0, j), w = c1 * Math.pow(l1, j); return [2 * u + w, u - w]; };
     const pts = Array.from({ length: k + 1 }, (_, j) => at(j)), end = pts[k], R = 14;
     const A = [(2 * l0 + l1) / 3, (2 * l0 - 2 * l1) / 3, (l0 - l1) / 3, (l0 + 2 * l1) / 3];
-    const m0 = Math.abs(l0), m1 = Math.abs(l1);
-    const fate = m0 < 1 && m1 < 1 ? 'both |λ| < 1: the state goes to 0'
-      : m0 > 1 || m1 > 1 ? `|λ| > 1 on the line of ${m0 >= m1 ? '(2, 1)' : '(1, −1)'}: the state runs away along it`
-        : 'the |λ| = 1 part stays and any |λ| < 1 part dies';
+    // only the terms the start really has count: a zero coefficient never shows its eigenvalue
+    const live = [[Math.abs(l0), c0, '(2, 1)'], [Math.abs(l1), c1, '(1, −1)']].filter(t => Math.abs(t[1]) > 1e-9);
+    const top = Math.max(0, ...live.map(t => t[0])), winners = live.filter(t => Math.abs(t[0] - top) < 1e-9);
+    const fate = !live.length ? 'the start is 0, and the state stays there'
+      : top < 1 - 1e-9 ? 'every term has |λ| < 1: the state goes to 0'
+        : top < 1 + 1e-9 ? 'the |λ| = 1 part stays and any |λ| < 1 part dies'
+          : winners.length === 1 ? `|λ| = ${laNum(top)} > 1 dominates: the state runs away along ${winners[0][2]}`
+            : 'both terms grow at the same rate, so no single direction wins';
     const eigenline = (p, name) => ({ x: [-R * 2 * p[0], R * 2 * p[0]], y: [-R * 2 * p[1], R * 2 * p[1]], mode: 'lines', line: { color: LA_GHOST, dash: 'dash', width: 1.5 }, name });
     const traces = [
       eigenline([2, 1], `eigenline, λ₀ = ${laNum(l0)}`), eigenline([1, -1], `eigenline, λ₁ = ${laNum(l1)}`),

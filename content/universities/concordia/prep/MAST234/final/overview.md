@@ -108,7 +108,7 @@ $A\mathbf v=\lambda\mathbf v$ with $\mathbf v\neq\mathbf 0$. The eigenvalues are
 
 Week 12 · [Diagonalizable matrices and dynamical systems](/unit/MAST234/diagonalization)
 
-$A=PDP^{-1}$ exactly when there are $n$ independent eigenvectors: $n$ distinct eigenvalues guarantee them, and otherwise every eigenspace must be as large as the algebraic multiplicity. Then $A^k=PD^kP^{-1}$, and the solution of $\mathbf x_{k+1}=A\mathbf x_k$ is $\sum_ic_i\lambda_i^k\mathbf v_i$, in which the largest $|\lambda_i|$ wins.
+$A=PDP^{-1}$ exactly when there are $n$ independent eigenvectors: with all the eigenvalues in the field, $n$ distinct ones guarantee them, and otherwise every eigenspace must be as large as the algebraic multiplicity. Then $A^k=PD^kP^{-1}$, and the solution of $\mathbf x_{k+1}=A\mathbf x_k$ is $\sum_ic_i\lambda_i^k\mathbf v_i$, in which the largest $|\lambda_i|$ wins.
 Numerically, eigenvalues come from iteration (the power method is the simplest), not from the characteristic polynomial.
 
 ## How it fits together
