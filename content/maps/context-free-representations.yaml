@@ -1,0 +1,446 @@
+id: context-free-representations
+title: "Context-free languages: every representation, every conversion"
+description: >-
+  A context-free language can be written as a grammar or as a pushdown automaton, and a grammar can be
+  put in a normal form. Each arrow is a method you can run by hand. The grammar and the NPDA are the two
+  hubs: the theorem that they are equivalent is the pair of arrows between them.
+canvas: [975, 716]
+
+nodes:
+  - id: reg
+    label: Regular language
+    sub: regular grammar or DFA
+    tone: grey
+    box: [18, 2, 185, 66]
+    concept: regular-language
+    text: first half of the course.
+  - id: words
+    label: L described in words or set notation
+    tone: grey
+    box: [300, 2, 420, 66]
+    concept: context-free-grammar
+    text: >-
+      First decide: can it be done with **one stack**? Three tied counts or a copy in the same order: no,
+      so use the pumping lemma or closure, off the map.
+  - id: cfg
+    label: Context-free grammar
+    sub: any right-hand side
+    tone: green
+    box: [18, 140, 185, 130]
+    concept: context-free-grammar
+    text: "$G=(V,T,S,P)$; a leftmost derivation or a tree shows one string."
+    easy: "$\\cup$, concatenation, $^*$ (a new start rule), reversal, homomorphism."
+  - id: npda
+    label: NPDA
+    sub: finite control plus one stack
+    tone: sky
+    box: [395, 140, 185, 130]
+    concept: pushdown-automaton
+    text: "Read $a$, pop $b$, push $x$. Accepts if *some* run uses up the input and ends in $F$."
+    easy: "guessing; $\\cap$ a regular language."
+  - id: dpda
+    label: DPDA
+    sub: at most one move at a time
+    tone: navy
+    box: [772, 140, 185, 130]
+    concept: pushdown-automaton
+    text: "at most one move; a $\\lambda$-move excludes reading moves on that state and top."
+    easy: complement; linear-time parsing.
+  - id: clean
+    label: Clean grammar
+    sub: no lambda, unit or useless rules
+    tone: mint
+    box: [18, 350, 170, 112]
+    concept: grammar-normal-forms
+    text: every rule grows the form or adds a terminal.
+    easy: "emptiness, finiteness."
+  - id: triples
+    label: Triple grammar
+    sub: one variable per episode
+    tone: lavender
+    aux: true
+    box: [245, 354, 135, 104]
+    text: "$(q_iAq_j)$: $A$ removed between $q_i$ and $q_j$."
+  - id: nform
+    label: NPDA in special form
+    sub: for the grammar construction
+    tone: teal
+    aux: true
+    box: [480, 350, 180, 100]
+    concept: pushdown-automaton
+    text: "one final state, entered with an empty stack; every move pushes 0 or 2 symbols."
+  - id: cnf
+    label: Chomsky normal form
+    sub: binary trees
+    tone: forest
+    box: [18, 560, 185, 110]
+    concept: grammar-normal-forms
+    text: "$A\\to BC$ or $A\\to a$."
+    easy: "CYK, the pumping lemma; a string of length $n$ takes $2n-1$ steps."
+  - id: cyk
+    label: CYK table
+    sub: membership and a parse
+    tone: lavender
+    aux: true
+    box: [300, 566, 170, 96]
+    concept: parsing
+    text: "$V_{ij}$ = the variables deriving $w_{ij}$; accept if $S\\in V_{1n}$."
+  - id: gnf
+    label: Greibach normal form
+    sub: one terminal per step
+    tone: forest
+    box: [590, 560, 200, 110]
+    concept: grammar-normal-forms
+    text: "$A\\to aB_1\\cdots B_k$."
+    easy: "an NPDA that reads one symbol per move; a string of length $n$ takes $n$ steps."
+
+edges:
+  # ---- design: from a description, no algorithm
+  - id: design-cfg
+    n: D
+    from: words
+    to: cfg
+    kind: design
+    cost: design
+    name: write a grammar
+    short: what is added on the outside at each step?
+    label: [288, 76, 110]
+    path: M300 68 L170 138
+    steps: >-
+      Work from the outside in. Matched parts: one rule that adds both ($S\to aSb$). Parts in sequence:
+      $S\to AB$. A union: $S\to S_1\mid S_2$. Fill the middle with the base case, then test $\lambda$,
+      the shortest strings and a near miss.
+    size: a few variables
+    when: "\"give a grammar\"; a union, a concatenation or a star of simpler languages"
+    trap: forgetting a base case; generating too much (test a string that must be out)
+  - id: design-npda
+    n: D
+    from: words
+    to: npda
+    kind: design
+    cost: design
+    name: design an NPDA
+    short: what is owed on the stack? Guess what the input does not announce.
+    label: [492, 72, 140]
+    path: M487 68 L487 138
+    steps: >-
+      Say what the stack holds at each moment (the unmatched symbols, the first half, a surplus). One
+      state per phase. $z$ on top means everything is matched. Where the phase change is not visible in
+      the input, guess with a $\lambda$-move.
+    size: a few states
+    when: "\"give a PDA\"; palindromes, surpluses, a union of two conditions"
+    trap: "a move with no pop: write $a,x\\to cx$ for each $x$, not $a,\\lambda\\to c$"
+  - id: design-dpda
+    n: D
+    from: words
+    to: dpda
+    kind: design
+    cost: design
+    name: design a DPDA
+    short: every step must be forced.
+    label: [782, 78, 176]
+    path: M680 68 L810 138
+    steps: >-
+      The same design as an NPDA, without any guess: the input must announce each change of phase, for
+      example a marker $c$ in the middle. Check both conditions: at most one move, and no $\lambda$-move
+      next to a reading move on the same state and top.
+    size: a few states
+    when: "\"deterministic\"; $a^nb^n$, $wcw^R$"
+    trap: "some languages have no DPDA: $ww^R$, $a^nb^n\\cup a^nb^{2n}$"
+
+  # ---- the two directions of the theorem
+  - id: cfg-npda
+    n: 1
+    from: cfg
+    to: npda
+    kind: algorithm
+    cost: same
+    name: leftmost derivation on a stack
+    short: "$A\\to x$ gives $\\lambda,A\\to x$; $a,a\\to\\lambda$ for each terminal"
+    label: [210, 146, 180]
+    path: M205 205 L393 205
+    steps: >-
+      Three states. $\delta(q_0,\lambda,z)=\{(q_1,Sz)\}$. For each rule $A\to x$, add
+      $(q_1,x)\in\delta(q_1,\lambda,A)$. For each terminal, add $(q_1,\lambda)\in\delta(q_1,a,a)$. Finish
+      with $\delta(q_1,\lambda,z)=\{(q_2,z)\}$. The input read so far plus the stack is always a
+      sentential form.
+    size: one move per rule and per terminal, plus two
+    when: "\"construct an NPDA for this grammar\"; \"use the construction\""
+    trap: pushing the right-hand side in the wrong order; its leftmost symbol must end up on top
+  - id: free-dpda
+    n: 2
+    from: dpda
+    to: npda
+    kind: free
+    cost: free
+    name: free, one way
+    short: a DPDA is an NPDA
+    label: [598, 164, 160]
+    path: M770 205 L582 205
+    steps: Nothing to do. Every DPDA is an NPDA, and there is no way back in general.
+    size: same
+    when: you hold a DPDA and need a grammar
+    trap: "the converse fails: non-determinism adds power here"
+  - id: prepare
+    n: 3
+    from: npda
+    to: nform
+    kind: algorithm
+    cost: linear
+    name: prepare the machine
+    short: new bottom symbol; one final state; pushes of 0 or 2 symbols
+    label: [552, 278, 142]
+    path: M540 272 L540 348
+    steps: >-
+      Put a new bottom symbol under $z$, so the stack is empty only at the end. From each old final state,
+      go by $\lambda$-moves to a state that pops everything, then to the single final state $q_f$. Replace
+      a push of one symbol by a push of two through a new state, one of them popped at once; cut a longer
+      push into a chain.
+    size: a few new states
+    when: always, before 4
+    trap: "a move such as $a,A\\to B$ pushes one symbol, so it has to be rewritten"
+  - id: triples
+    n: 4
+    from: nform
+    to: triples
+    kind: algorithm
+    cost: explodes
+    name: triples
+    short: pop and push rules
+    label: [384, 360, 92, center]
+    path: M478 412 L382 412
+    steps: >-
+      Variables $(q_iAq_j)$, start $(q_0zq_f)$. A move $(q_j,\lambda)\in\delta(q_i,a,A)$ gives
+      $(q_iAq_j)\to a$. A move $(q_j,BC)\in\delta(q_i,a,A)$ gives
+      $(q_iAq_k)\to a(q_jBq_l)(q_lCq_k)$ for **all** $q_k,q_l$.
+    size: $|Q|^2$ rules for each move that pushes two symbols
+    when: "\"construct a grammar for this NPDA\""
+    trap: leaving some $q_k,q_l$ out; most of the rules are useless, but they are found afterwards
+  - id: clean-triples
+    n: 5
+    from: triples
+    to: clean
+    kind: algorithm
+    cost: shrinks
+    name: clean
+    label: [190, 382, 54, center]
+    path: M243 404 L190 404
+    steps: Remove the useless variables as in 7. Usually only a handful of triples survive. Then rename them.
+    size: far smaller
+    when: always, after 4
+    trap: skipping it leaves a grammar nobody can read
+
+  # ---- grammar and normal forms
+  - id: to-clean
+    n: 7
+    from: cfg
+    to: clean
+    kind: algorithm
+    cost: explodes
+    name: clean up
+    short: λ, then unit, then useless
+    label: [138, 284, 100]
+    path: M130 272 L130 348
+    steps: >-
+      **$\lambda$**: find the nullable variables and copy each rule with every subset of them deleted.
+      **Unit**: find the pairs with $A\overset{*}{\Rightarrow}B$ by unit rules and copy the non-unit rules
+      of $B$ up to $A$. **Useless**: keep the generating variables, then the reachable ones.
+    size: a rule with $k$ nullable variables gives up to $2^k$ copies
+    when: before 8; before a test for finiteness
+    trap: the wrong order leaves rules to remove; generating before reachable
+  - id: clean-free
+    n: 6
+    from: clean
+    to: cfg
+    kind: free
+    cost: free
+    name: free
+    label: [58, 296, 60]
+    path: M50 348 L50 272
+    steps: Nothing to do. A clean grammar is a context-free grammar, for the same language without $\lambda$.
+    size: same
+    when: you have just cleaned a grammar
+    trap: "$\\lambda$ is lost if $S$ was nullable: add $S_0\\to S\\mid\\lambda$ if the language needs it"
+  - id: to-cnf
+    n: 8
+    from: clean
+    to: cnf
+    kind: algorithm
+    cost: linear
+    name: to CNF
+    short: "$T_a\\to a$, then cut long rules with $V_i$"
+    label: [110, 482, 150]
+    path: M100 464 L100 558
+    steps: >-
+      For each terminal $a$ in a right-hand side of length 2 or more, add $T_a\to a$ and replace $a$ by
+      $T_a$. Then cut $A\to C_1\cdots C_n$, $n\ge 3$, into $A\to C_1V_1$, $V_1\to C_2V_2$, …,
+      $V_{n-2}\to C_{n-1}C_n$.
+    size: linear in the total length of the rules
+    when: "\"put it in Chomsky normal form\"; before 9"
+    trap: "$A\\to a$ stays as it is; $A\\to aB$ is not allowed"
+  - id: cyk
+    n: 9
+    from: cnf
+    to: cyk
+    kind: algorithm
+    cost: same
+    name: CYK
+    short: fill by length
+    label: [207, 584, 90]
+    path: M205 625 L298 625
+    steps: >-
+      Row 1: $V_{ii}$ holds the variables with $A\to a_i$. Then by length: $A\in V_{ij}$ when $A\to BC$,
+      $B\in V_{ik}$ and $C\in V_{k+1,j}$ for some $i\le k<j$. Accept if $S\in V_{1n}$. The rules and splits
+      used give a derivation tree.
+    size: about $n^2/2$ cells; time proportional to $n^3$
+    when: "\"is $w$ in $L(G)$?\" with a grammar in CNF"
+    trap: "the split must cover all of $w_{ij}$; try every $k$"
+  - id: to-gnf
+    n: 10
+    from: cnf
+    to: gnf
+    kind: algorithm
+    cost: explodes
+    name: to GNF
+    short: order the variables; substitute; remove left recursion; substitute back
+    label: [262, 670, 400]
+    path: M100 672 L100 708 L690 708 L690 672
+    steps: >-
+      Number the variables. Substitute until every $A_i\to A_j\gamma$ has $j\ge i$. Remove left recursion:
+      $A\to A\alpha\mid\beta$ becomes $A\to\beta\mid\beta B$, $B\to\alpha\mid\alpha B$. Then substitute back
+      from the last variable to the first, and into the new variables.
+    size: can be much larger
+    when: "\"put it in Greibach normal form\"; if the grammar is close to the form, only replace the later terminals"
+    trap: left recursion must go before the back-substitution
+  - id: gnf-npda
+    n: 11
+    from: gnf
+    to: npda
+    kind: algorithm
+    cost: same
+    name: one move per rule
+    short: "$A\\to ax$ gives $a,A\\to x$"
+    label: [708, 420, 130]
+    path: M700 558 L700 252 L582 252
+    steps: >-
+      The machine of 1 without the terminal moves: each rule $A\to ax$ becomes
+      $(q_1,x)\in\delta(q_1,a,A)$, so each move after the first reads one input symbol.
+    size: one move per rule
+    when: a grammar already in GNF
+    trap: "a rule of the original grammar in another form does not fit: use 1 instead"
+  - id: reg-cfg
+    n: 12
+    from: reg
+    to: cfg
+    kind: free
+    cost: free
+    name: free, one way
+    short: a regular grammar is context-free
+    label: [78, 74, 120]
+    path: M70 70 L70 138
+    steps: >-
+      Nothing to do: every right- or left-linear grammar is context-free. There is no way back in general:
+      $S\to aSb\mid\lambda$ gives $a^nb^n$.
+    size: same
+    when: a regular piece inside a larger grammar
+    trap: "closure under intersection with a **regular** language holds; with a context-free one it does not"
+
+routes:
+  - task: a grammar for a described language
+    path: [words, cfg]
+    why: the outside-in question; split unions and sequences first
+  - task: an NPDA for a described language
+    path: [words, npda]
+    why: what is owed goes on the stack, and $\lambda$-moves carry the guesses
+  - task: an NPDA for a grammar
+    path: [cfg, npda]
+    why: three states, whatever the grammar
+  - task: a grammar for an NPDA
+    path: [npda, nform, triples, clean, cfg]
+    why: prepare the machine, write the triples, and throw most of them away
+  - task: Chomsky normal form
+    path: [cfg, clean, cnf]
+    why: the order inside step 7 is λ, unit, useless
+  - task: is w in L(G)?
+    path: [cfg, clean, cnf, cyk]
+    why: if $w=\lambda$, ask instead whether $S$ is nullable
+  - task: Greibach normal form
+    path: [cfg, clean, cnf, gnf]
+    why: for a grammar already close to the form, only replace the later terminals
+  - task: is L(G) empty? is it finite?
+    path: [cfg, clean]
+    why: empty if $S$ is not generating; infinite if the dependency graph of the clean grammar has a cycle
+  - task: a parse of w
+    path: [cfg, clean, cnf, cyk]
+    why: read a tree back from the rules and splits in the table
+  - task: an NPDA that reads one symbol per move
+    path: [cfg, clean, cnf, gnf, npda]
+    why: worth it only for a grammar that is close to the form
+  - task: a grammar for a DPDA
+    path: [dpda, npda, nform, triples, clean, cfg]
+    why: a DPDA is an NPDA; determinism does not simplify the construction
+
+example:
+  title: One language around the whole map
+  language: "$L=\\{a^nb^n: n\\ge 1\\}$"
+  walk:
+    - node: words
+      text: >-
+        $L$ = some $a$'s, then as many $b$'s, at least one of each. One pair of counts in reverse order: one
+        stack is enough, so it is context-free. It is not regular.
+    - edge: design-cfg
+      text: "Each step adds one $a$ outside on the left and one $b$ on the right: $S\\to aSb\\mid ab$."
+    - edge: cfg-npda
+      text: >-
+        Moves: $\lambda,z\to Sz$ from $q_0$ to $q_1$; in $q_1$: $\lambda,S\to aSb$, $\lambda,S\to ab$,
+        $a,a\to\lambda$, $b,b\to\lambda$; then $\lambda,z\to z$ from $q_1$ to $q_2$. On $aabb$:
+        $(q_0,aabb,z)\vdash(q_1,aabb,Sz)\vdash(q_1,aabb,aSbz)\vdash(q_1,abb,Sbz)\vdash(q_1,abb,abbz)\vdash(q_1,bb,bbz)\vdash(q_1,b,bz)\vdash(q_1,\lambda,z)\vdash(q_2,\lambda,z)$.
+      automaton:
+        type: nfa
+        states: q0 70 110, q1 240 110, q2 410 110
+        start: q0
+        finals: q2
+        trans: q0 λ,z→Sz q1; q1 λ,S→aSb|λ,S→ab|a,a→λ|b,b→λ q1; q1 λ,z→z q2
+    - edge: to-clean
+      text: There is nothing to remove here. The grammar has no $\lambda$-rule, no unit rule, and no useless variable.
+    - edge: to-cnf
+      text: >-
+        Terminals: $S\to T_aST_b\mid T_aT_b$. Long rule: $S\to T_aV\mid T_aT_b$, $V\to ST_b$, with
+        $T_a\to a$, $T_b\to b$. The string $aabb$ takes $2\cdot 4-1=7$ steps.
+    - edge: cyk
+      text: >-
+        For $aabb$. Length 1: $T_a,T_a,T_b,T_b$. Length 2: $\varnothing,S,\varnothing$. Length 3:
+        $\varnothing,V$. Length 4: $S$, from $S\to T_aV$ with $T_a\in V_{11}$ and $V\in V_{24}$. So
+        $aabb\in L$.
+    - edge: to-gnf
+      text: >-
+        This grammar is close to the form, so the short way is enough: replace the later terminals in
+        $S\to aSb\mid ab$. That gives $S\to aST_b\mid aT_b$, $T_b\to b$. The string $aabb$ takes four steps.
+    - edge: gnf-npda
+      text: >-
+        $a,S\to ST_b$; $a,S\to T_b$; $b,T_b\to\lambda$, all in $q_1$, with the same start and finish as
+        before: $(q_1,aabb,Sz)\vdash(q_1,abb,ST_bz)\vdash(q_1,bb,T_bT_bz)\vdash(q_1,b,T_bz)\vdash(q_1,\lambda,z)$.
+    - edge: design-dpda
+      text: >-
+        The change of phase is visible, since the first $b$ announces it, so no guess is needed: push on $a$,
+        pop on $b$, and move to a final state when $z$ shows.
+      automaton:
+        type: nfa
+        states: q0 60 110, q1 200 110, q2 340 110, q3 480 110
+        start: q0
+        finals: q3
+        trans: q0 a,z→az q1; q1 a,a→aa q1; q1 b,a→λ q2; q2 b,a→λ q2; q2 λ,z→z q3
+    - edge: prepare
+      text: >-
+        Take the machine with moves $a,z\to Az$ and $a,A\to AA$ in $q_0$, $b,A\to\lambda$ from $q_0$ to $q_1$,
+        $b,A\to\lambda$ in $q_1$, and $\lambda,z\to\lambda$ from $q_1$ to $q_2$. It has one final state, entered
+        with an empty stack, and every move pushes two symbols or none.
+    - edge: triples
+      text: >-
+        Three pop rules: $(q_0Aq_1)\to b$, $(q_1Aq_1)\to b$, $(q_1zq_2)\to\lambda$. Nine rules for each of the
+        two push moves: 21 in all.
+    - edge: clean-triples
+      text: >-
+        Only five rules survive: $(q_0zq_2)\to a(q_0Aq_1)(q_1zq_2)$, $(q_0Aq_1)\to a(q_0Aq_1)(q_1Aq_1)\mid b$,
+        $(q_1Aq_1)\to b$, $(q_1zq_2)\to\lambda$. Renamed: $S\to aXZ$, $X\to aXY\mid b$, $Y\to b$, $Z\to\lambda$,
+        which generates $L$ again.
