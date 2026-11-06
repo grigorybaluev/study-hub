@@ -8,6 +8,7 @@ requires:
   - {concept: partial-derivative, strength: hard}
   - {concept: dot-product, strength: hard}
   - {concept: vector, strength: hard}
+  - {concept: multivariable-chain-rule, strength: hard}
 reinforces:
   - {concept: tangent-plane, perspective: "to level surfaces via the gradient"}
 ---

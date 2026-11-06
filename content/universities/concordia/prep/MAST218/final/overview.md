@@ -8,9 +8,9 @@ The whole course has one habit of thought: **describe an object in the form that
 easy, then do calculus on it.** The objects change, and the calculus stays the single-variable
 calculus already known.
 
-- **Curves in the plane** (chapter 10): the same curve can be Cartesian, parametric or polar, or a conic in standard form. Slopes, areas and lengths are integrals and derivatives in the parameter.
-- **Geometry in space** (chapter 12): vectors, with two products. Lines and planes are a point plus a direction or a normal. Quadric surfaces are read from signs and slices.
-- **Several variables** (chapters 13–14): a function with one input and a vector output draws a curve in space, and a function with several inputs and one output draws a surface. Partial derivatives and the gradient carry all the rates, tangent planes and extrema.
+- **Curves in the plane** (weeks 1–4): the same curve can be Cartesian, parametric or polar, or a conic in standard form. Slopes, areas and lengths are integrals and derivatives in the parameter.
+- **Geometry in space** (weeks 4–7): vectors, with two products. Lines and planes are a point plus a direction or a normal. Quadric surfaces are read from signs and slices.
+- **Several variables** (weeks 7–12): a function with one input and a vector output draws a curve in space, and a function with several inputs and one output draws a surface. Partial derivatives and the gradient carry all the rates, tangent planes and extrema.
 
 :::insight[The pictures to keep in mind]
 - **A parameter is a clock.** A curve is a point moving in time, so $\frac{dy}{dx}$ is a ratio of two rates.
@@ -37,7 +37,7 @@ derivatives.
 
 ## Polar coordinates and conic sections
 
-Weeks 2–4 · [Polar coordinates](/unit/MAST218/polar-coordinates), [Polar areas and curves](/unit/MAST218/polar-areas-and-curves), [Conic sections](/unit/MAST218/conic-sections)
+Weeks 3–4 · [Polar coordinates](/unit/MAST218/polar-coordinates), [Polar areas and curves](/unit/MAST218/polar-areas-and-curves), [Conic sections](/unit/MAST218/conic-sections)
 
 Polar form replaces $x$ and $y$ with a distance and an angle. Circles through the pole, cardioids,
 limaçons and roses are simple there. Areas use sectors, $A = \frac12\int r^2\,d\theta$, and the work is
@@ -56,7 +56,7 @@ puts a focus at the pole, and $e$ names the curve.
 
 ## Vectors in space
 
-Weeks 3–5 · [Coordinates and vectors](/unit/MAST218/vectors-3d), [Dot and cross product](/unit/MAST218/dot-cross-product)
+Weeks 4–5 · [Coordinates and vectors](/unit/MAST218/vectors-3d), [Dot and cross product](/unit/MAST218/dot-cross-product)
 
 A vector is a length and a direction. The **dot product** is a number that measures alignment:
 $\mathbf{a} \cdot \mathbf{b} = |\mathbf{a}|\,|\mathbf{b}|\cos\theta$. It gives angles, tests

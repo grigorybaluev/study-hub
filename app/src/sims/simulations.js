@@ -896,15 +896,13 @@
   }
 
   // ══ MAST 218 — Quadric surfaces, space curves, functions of two variables (units 8–14) ══
-  const C_PLANE = '#60a5fa', C_MINT = '#34d399';
-  const SURF = [[0, '#0f5132'], [1, '#34d399']], FLAT = [[0, C_PLANE], [1, C_PLANE]];
-  const n1 = v => (Math.abs(v) < 0.05 ? 0 : v).toFixed(1).replace('-', '−');
-  const n3m = v => n3(v).replace('-', '−');
+  const C_MINT = '#34d399';
+  const SURF = [[0, '#0f5132'], [1, '#34d399']], FLAT = [[0, C_TAN], [1, C_TAN]];
+  const num = (v, d) => (Math.abs(v) < 0.5 * 10 ** -d ? 0 : v).toFixed(d).replace('-', '−');   // no "−0.0"
+  const minus = (s, v) => `${s} ${v < 0 ? '+' : '−'} ${num(Math.abs(v), 2)}`;                  // "x − 0.80", "x + 0.80"
   const mesh = (f, x0, x1, y0, y1, n) => {
-    const x = [], y = [], z = [];
-    for (let i = 0; i <= n; i++) { x.push(x0 + (x1 - x0) * i / n); y.push(y0 + (y1 - y0) * i / n); }
-    for (const v of y) z.push(x.map(u => f(u, v)));
-    return { x, y, z };
+    const x = lin(x0, x1, n), y = lin(y0, y1, n);
+    return { x, y, z: y.map(v => x.map(u => f(u, v))) };
   };
   // a surface x(u, v), y(u, v), z(u, v) as three matrices
   const paramMesh = (P, u0, u1, v0, v1, n) => {
@@ -920,17 +918,22 @@
     return { x: X, y: Y, z: Z };
   };
   const surf = (m, extra) => ({ type: 'surface', x: m.x, y: m.y, z: m.z, showscale: false, opacity: 0.85, colorscale: SURF, ...extra });
-  const line3 = (xs, ys, zs, name, color, extra) => ({ type: 'scatter3d', mode: 'lines', x: xs, y: ys, z: zs, name, line: { color, width: 6 }, ...extra });
+  const line3 = (xs, ys, zs, name, color, width, dash) => ({ type: 'scatter3d', mode: 'lines', x: xs, y: ys, z: zs, name, line: { color, width: width || 6, dash } });
   const dot3 = (p, name) => ({ type: 'scatter3d', mode: 'markers', x: [p[0]], y: [p[1]], z: [p[2]], name, marker: { color: C_PT, size: 6 } });
-  // keep the view the reader dragged to: every slider move redraws the plot
-  const camera = (id, dflt) => { const g = el(id); return (g && g.layout && g.layout.scene && g.layout.scene.camera) || dflt; };
-  const scene3 = (id, extra) => ({ aspectmode: 'data', bgcolor: '#111827', camera: camera(id, { eye: { x: 1.5, y: 1.4, z: 0.9 } }),
+  // Plotly.react keeps the WebGL scene across slider moves, and uirevision keeps the view the reader dragged to
+  const draw3 = (id, traces, lay) => Plotly.react(el(id), traces, { ...lay, uirevision: id }, cfg());
+  const scene3 = extra => ({ aspectmode: 'data', bgcolor: '#111827', camera: { eye: { x: 1.5, y: 1.4, z: 0.9 } },
     xaxis: { title: 'x', gridcolor: '#2b3648' }, yaxis: { title: 'y', gridcolor: '#2b3648' }, zaxis: { title: 'z', gridcolor: '#2b3648' }, ...extra });
-  const layout3 = (id, title, extra) => layout({ title: { text: title, font: { size: 14 } }, height: 540, scene: scene3(id, extra), margin: { t: 60, r: 0, b: 0, l: 0 }, legend: { orientation: 'h', y: -0.02 } });
+  const layout3 = (title, extra) => layout({ title: { text: title, font: { size: 14 } }, height: 560, scene: scene3(extra), margin: { t: 80, r: 0, b: 0, l: 0 }, legend: { orientation: 'h', y: -0.02 } });
   // a surface on the left, its contour map on the right
-  const sideBySide = (id, title, range) => layout({ title: { text: title, font: { size: 14 } }, height: 460, margin: { t: 60, r: 10, b: 45, l: 10 }, showlegend: false,
-    scene: { ...scene3(id), domain: { x: [0, 0.52], y: [0, 1] }, aspectmode: 'cube' },
+  const sideBySide = (title, range) => layout({ title: { text: title, font: { size: 14 } }, height: 460, margin: { t: 60, r: 10, b: 45, l: 10 }, showlegend: false,
+    scene: { ...scene3(), domain: { x: [0, 0.52], y: [0, 1] }, aspectmode: 'cube' },
     xaxis: ax({ title: 'x', domain: [0.58, 0.99], range }), yaxis: ax({ title: 'y', range, scaleanchor: 'x', scaleratio: 1 }) });
+  // a contour map above, a rate or a value along the bottom: the layout of the gradient and Lagrange sims
+  const mapOverRate = (title, L, annotations, xlabel, ylabel) => twoRows({ title: { text: title, font: { size: 14 } }, height: 680, margin: { t: 85, r: 20, b: 50, l: 55 }, annotations,
+    xaxis: { title: 'x', range: [-L, L], constrain: 'domain' }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
+    xaxis2: { title: xlabel, range: [0, 360] }, yaxis2: { title: ylabel, domain: [0, 0.24] } });
+  const zRange = m => { const flat = m.z.flat(); return [Math.min(...flat), Math.max(...flat)]; };
   const levels = (m, start, end, size) => ({ type: 'contour', x: m.x, y: m.y, z: m.z, showscale: false, showlegend: false, hoverinfo: 'skip', autocontour: false,
     contours: { start, end, size, coloring: 'lines', showlabels: true, labelfont: { size: 9, color: '#c8d0e0' } }, colorscale: [[0, '#475569'], [1, '#94a3b8']], line: { width: 1 } });
   const oneLevel = (m, k, color) => ({ type: 'contour', x: m.x, y: m.y, z: m.z, showscale: false, showlegend: false, hoverinfo: 'skip', autocontour: false,
@@ -988,7 +991,7 @@
     traces.push(surf(plane, { opacity: 0.25, colorscale: FLAT, hoverinfo: 'skip', name: 'z = k' }));
     paths.forEach(([px, py], i) => traces.push({ type: 'scatter3d', mode: px.length > 1 ? 'lines' : 'markers', x: px, y: py, z: px.map(() => k),
       name: 'trace', showlegend: i === 0, line: { color: C_PT, width: 7 }, marker: { color: C_PT, size: 6 } }));
-    Plotly.newPlot(el(id), traces, layout3(id, `${name}: ${eq}<br>z = ${n1(k)}: ${desc}`), cfg());
+    draw3(id, traces, layout3(`${name}: ${eq}<br>z = ${num(k, 1)}: ${desc}`));
   }
 
   // ── P21. A space curve with r(t), r′(t) and the tangent line ───
@@ -1004,14 +1007,14 @@
     const pts = lin(C.lo, C.hi, 300).map(C.r), col = i => pts.map(q => q[i]);
     const at = s => [0, 1, 2].map(i => p[i] + s * d[i]);
     const [e0, e1, tip] = [at(-1.5), at(1.5), at(1)];
-    Plotly.newPlot(el(id), [
+    draw3(id, [
       line3(col(0), col(1), col(2), 'curve', C_PATH),
-      line3([e0[0], e1[0]], [e0[1], e1[1]], [e0[2], e1[2]], 'tangent line', C_GHOST, { line: { color: '#94a3b8', width: 3, dash: 'dash' } }),
-      line3([0, p[0]], [0, p[1]], [0, p[2]], 'r(t)', C_TAN, { line: { color: C_TAN, width: 4 } }),
+      line3([e0[0], e1[0]], [e0[1], e1[1]], [e0[2], e1[2]], 'tangent line', '#94a3b8', 3, 'dash'),
+      line3([0, p[0]], [0, p[1]], [0, p[2]], 'r(t)', C_TAN, 4),
       line3([p[0], tip[0]], [p[1], tip[1]], [p[2], tip[2]], 'r′(t)', C_ARROW),
       { type: 'cone', x: [tip[0]], y: [tip[1]], z: [tip[2]], u: [d[0]], v: [d[1]], w: [d[2]], anchor: 'tip', sizemode: 'absolute', sizeref: 0.35, showscale: false, colorscale: [[0, C_ARROW], [1, C_ARROW]], hoverinfo: 'skip' },
       dot3(p, 'P(t)'),
-    ], layout3(id, `${C.name}<br>t = ${n2(t)}: r = ⟨${n2(p[0])}, ${n2(p[1])}, ${n2(p[2])}⟩, r′ = ⟨${n2(d[0])}, ${n2(d[1])}, ${n2(d[2])}⟩, |r′| = ${speed.toFixed(3)}`, { aspectmode: 'cube' }), cfg());
+    ], layout3(`${C.name}<br>t = ${n2(t)}, |r′| = ${speed.toFixed(3)}<br>r = ⟨${n2(p[0])}, ${n2(p[1])}, ${n2(p[2])}⟩, r′ = ⟨${n2(d[0])}, ${n2(d[1])}, ${n2(d[2])}⟩`, { aspectmode: 'cube' }));
   }
 
   // ── P22. A projectile: velocity along the path, constant acceleration ─
@@ -1068,19 +1071,19 @@
   function levelCurves() {
     const id = 'level-curves', k = val(id, 'k', 2);
     const F = [
-      { name: 'f = x² + y²', f: (x, y) => x * x + y * y, about: k => (k > 1e-9 ? `a circle of radius ${Math.sqrt(k).toFixed(2)}` : k > -1e-9 ? 'the point (0, 0)' : 'no curve: k is outside the range') },
-      { name: 'f = √(x² + y²)', f: (x, y) => Math.hypot(x, y), about: k => (k > 1e-9 ? `a circle of radius ${k.toFixed(2)}` : k > -1e-9 ? 'the point (0, 0)' : 'no curve: k is outside the range') },
-      { name: 'f = x² − y²', f: (x, y) => x * x - y * y, about: k => (Math.abs(k) < 1e-9 ? 'the lines y = ±x' : `a hyperbola opening along the ${k > 0 ? 'x' : 'y'}-axis`) },
-      { name: 'f = y − x²', f: (x, y) => y - x * x, about: k => `the parabola y = x² ${k < 0 ? '−' : '+'} ${Math.abs(k).toFixed(1)}` },
-      { name: 'two hills', f: (x, y) => 3.5 * Math.exp(-((x - 1) ** 2 + y * y)) + 2.5 * Math.exp(-((x + 1.1) ** 2 + (y - 0.6) ** 2)), about: k => (k > 3.6 ? 'no curve: above both hills' : k <= 0 ? 'no curve: below the whole surface' : k > 2.6 ? 'one closed curve, around the higher hill' : 'one or two closed curves') },
+      { name: 'f = x² + y²', L: 2.2, f: (x, y) => x * x + y * y, about: k => (k > 1e-9 ? `a circle of radius ${Math.sqrt(k).toFixed(2)}` : k > -1e-9 ? 'the point (0, 0)' : 'no curve: k is outside the range') },
+      { name: 'f = √(x² + y²)', L: 4.4, f: (x, y) => Math.hypot(x, y), about: k => (k > 1e-9 ? `a circle of radius ${k.toFixed(2)}` : k > -1e-9 ? 'the point (0, 0)' : 'no curve: k is outside the range') },
+      { name: 'f = x² − y²', L: 2.6, f: (x, y) => x * x - y * y, about: k => (Math.abs(k) < 1e-9 ? 'the lines y = ±x' : `a hyperbola opening along the ${k > 0 ? 'x' : 'y'}-axis`) },
+      { name: 'f = y − x²', L: 4.4, f: (x, y) => y - x * x, about: k => `the parabola y = x² ${k < 0 ? '−' : '+'} ${Math.abs(k).toFixed(1)}` },
+      { name: 'two hills', L: 2.6, step: 0.5, f: (x, y) => 3.5 * Math.exp(-((x - 1) ** 2 + y * y)) + 2.5 * Math.exp(-((x + 1.1) ** 2 + (y - 0.6) ** 2)), about: k => (k > 3.52 ? 'no curve: above both hills' : k <= 0 ? 'no curve: below the whole surface' : k > 2.55 ? 'one closed curve, around the higher hill' : 'one or two closed curves') },
     ][Math.round(val(id, 'fn', 0))];
-    const L = 2.2, m = mesh(F.f, -L, L, -L, L, 56), pl = mesh(() => k, -L, L, -L, L, 2);
-    Plotly.newPlot(el(id), [
+    const L = F.L, m = mesh(F.f, -L, L, -L, L, 56), pl = mesh(() => k, -L, L, -L, L, 2), [lo, hi] = zRange(m), step = F.step || 1;
+    draw3(id, [
       surf(m, { scene: 'scene', contours: { z: { show: true, start: k, end: k + 1e-6, size: 1, color: C_PT, width: 4 } } }),
       surf(pl, { scene: 'scene', opacity: 0.25, colorscale: FLAT, hoverinfo: 'skip' }),
-      levels(m, -6, 10, 1),
+      levels(m, Math.ceil(lo), Math.floor(hi), step),
       oneLevel(m, k),
-    ], sideBySide(id, `${F.name}, k = ${n1(k)}: ${F.about(k)}`, [-L, L]), cfg());
+    ], sideBySide(`${F.name}, k = ${num(k, 1)}<br>${F.about(k)}`, [-L, L]));
   }
 
   // ── P25. Limits along paths at the origin ─────────────────────
@@ -1106,8 +1109,8 @@
       { x: xr, y: xr.map(x => F.f(x, py(x))), xaxis: 'x2', yaxis: 'y2', mode: 'lines', name: 'f along the path', line: { color: C_PATH, width: 3 } },
       { x: xl, y: xl.map(x => F.f(x, py(x))), xaxis: 'x2', yaxis: 'y2', mode: 'lines', showlegend: false, line: { color: C_PATH, width: 3 } },
       { x: [0], y: [F.lim], xaxis: 'x2', yaxis: 'y2', mode: 'markers', name: 'limit on this path', marker: { color: C_PT, size: 10, symbol: 'circle-open', line: { width: 2 } } },
-    ], layout({ title: { text: `f = ${F.name} along y = ${n1(m)}x${par ? '²' : ''}: f → ${n3m(F.lim)}<br>${F.exists ? 'the limit at the origin exists and is 0' : 'the limit at the origin does not exist: other paths give other values'}`, font: { size: 14 } },
-      height: 430, margin: { t: 70, r: 20, b: 50, l: 50 }, legend: { orientation: 'h', y: -0.2 },
+    ], layout({ title: { text: `f = ${F.name} along y = ${num(m, 1)}x${par ? '²' : ''}<br>on this path f → ${num(F.lim, 3)}<br>${F.exists ? 'the limit at the origin exists and is 0' : 'the limit at the origin does not exist'}`, font: { size: 14 } },
+      height: 450, margin: { t: 85, r: 20, b: 50, l: 50 }, legend: { orientation: 'h', y: -0.2 },
       xaxis: ax({ title: 'x', domain: [0, 0.44], range: [-1, 1] }), yaxis: ax({ title: 'y', range: [-1, 1] }),
       xaxis2: ax({ title: 'x', domain: [0.56, 1], anchor: 'y2', range: [-1, 1] }), yaxis2: ax({ title: 'f', anchor: 'x2', range: [-1.2, 1.2] }) }), cfg());
   }
@@ -1123,7 +1126,7 @@
     ][Math.round(val(id, 'fn', 0))];
     const f0 = F.f(a, b), g = F.g(a, b), m = mesh(F.f, a - w, a + w, b - w, b + w, 36);
     const traces = [surf(m, { name: 'surface' })];
-    let title = `${F.name} at (${n2(a)}, ${n2(b)}): the partials do not exist, so there is no tangent plane`;
+    let title = `${F.name} at (${n2(a)}, ${n2(b)})<br>the partials do not exist, so there is no tangent plane`;
     if (g) {
       const L = (x, y) => f0 + g[0] * (x - a) + g[1] * (y - b);
       let gap = 0;
@@ -1131,10 +1134,10 @@
       traces.push(surf(mesh(L, a - w, a + w, b - w, b + w, 2), { opacity: 0.55, colorscale: FLAT, name: 'tangent plane' }));
       traces.push(line3([a - w, a + w], [b, b], [f0 - w * g[0], f0 + w * g[0]], 'slope f_x', C_ARROW));
       traces.push(line3([a, a], [b - w, b + w], [f0 - w * g[1], f0 + w * g[1]], 'slope f_y', C_MINT));
-      title = `${F.name} at (${n2(a)}, ${n2(b)}): f = ${n3m(f0)}, f_x = ${n3m(g[0])}, f_y = ${n3m(g[1])}<br>z = ${n3m(f0)} + (${n3m(g[0])})(x − ${n2(a)}) + (${n3m(g[1])})(y − ${n2(b)}); largest gap in the window ${gap.toFixed(4)}`;
+      title = `${F.name} at (${n2(a)}, ${n2(b)}), largest gap ${gap.toFixed(4)}<br>f = ${num(f0, 3)}, f_x = ${num(g[0], 3)}, f_y = ${num(g[1], 3)}<br>z = ${num(f0, 2)} + (${num(g[0], 2)})(${minus('x', a)}) + (${num(g[1], 2)})(${minus('y', b)})`;
     }
     traces.push(dot3([a, b, f0], 'P'));
-    Plotly.newPlot(el(id), traces, layout3(id, title, { aspectmode: 'cube' }), cfg());
+    draw3(id, traces, layout3(title, { aspectmode: 'cube' }));
   }
 
   // ── P27. The gradient, the level curve and D_u f in every direction ─
@@ -1148,7 +1151,7 @@
     ][Math.round(val(id, 'fn', 0))];
     const L = 2.6, m = mesh(F.f, -L, L, -L, L, 70), f0 = F.f(a, b), g = F.g(a, b), len = Math.hypot(g[0], g[1]);
     const u = [Math.cos(th), Math.sin(th)], D = g[0] * u[0] + g[1] * u[1];
-    const flat = m.z.flat(), lo = Math.min(...flat), hi = Math.max(...flat), step = (hi - lo) / 16;
+    const [lo, hi] = zRange(m), step = (hi - lo) / 16;
     const sc = len > 1e-9 ? Math.min(1, 1.6 / len) : 0;
     const ann = [arrow(a, b, a + u[0], b + u[1], C_MINT)];
     if (len > 1e-9) ann.push(arrow(a, b, a + sc * g[0], b + sc * g[1], C_ARROW));
@@ -1158,10 +1161,7 @@
       levels(m, lo, hi, step), oneLevel(m, f0), ...mark,
       { x: degs, y: degs.map(d => g[0] * Math.cos(d * PI / 180) + g[1] * Math.sin(d * PI / 180)), xaxis: 'x2', yaxis: 'y2', mode: 'lines', name: 'D_u f as θ goes round', line: { color: C_TAN, width: 2 } },
       { x: [th * 180 / PI], y: [D], xaxis: 'x2', yaxis: 'y2', mode: 'markers', showlegend: false, marker: { color: C_MINT, size: 10 } },
-    ], twoRows({ title: { text: `${F.name} at (${n2(a)}, ${n2(b)}): ∇f = ⟨${n2(g[0])}, ${n2(g[1])}⟩, |∇f| = ${len.toFixed(3)}<br>D_u f = ${n3m(D)} at θ = ${(th * 180 / PI).toFixed(0)}°${len < 1e-9 ? ': a critical point, every rate is 0' : ''}`, font: { size: 14 } },
-      height: 660, margin: { t: 70, r: 20, b: 50, l: 55 }, annotations: ann,
-      xaxis: { title: 'x', range: [-L, L], constrain: 'domain' }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
-      xaxis2: { title: 'θ (degrees)', range: [0, 360] }, yaxis2: { title: 'D_u f', domain: [0, 0.24] } }), cfg());
+    ], mapOverRate(`${F.name} at (${n2(a)}, ${n2(b)})<br>∇f = ⟨${n2(g[0])}, ${n2(g[1])}⟩, |∇f| = ${len.toFixed(3)}<br>D_u f = ${num(D, 3)} at θ = ${(th * 180 / PI).toFixed(0)}°${len < 1e-9 ? ': a critical point' : ''}`, L, ann, 'θ (degrees)', 'D_u f'), cfg());
   }
 
   // ── P28. Near a critical point: the discriminant decides the shape ─
@@ -1169,10 +1169,10 @@
     const id = 'critical-point-types', A = val(id, 'A', 2), B = val(id, 'B', 1), C = val(id, 'C', 2);
     const q = (x, y) => (A * x * x + 2 * B * x * y + C * y * y) / 2, L = 1.5, m = mesh(q, -L, L, -L, L, 44), D = A * C - B * B;
     const kind = Math.abs(D) < 1e-9 ? 'D = 0: the test cannot decide' : D < 0 ? 'D < 0: a saddle point' : A > 0 ? 'D > 0, f_xx > 0: a local minimum' : 'D > 0, f_xx < 0: a local maximum';
-    Plotly.newPlot(el(id), [
+    draw3(id, [
       surf(m, { scene: 'scene' }),
       levels(m, -10, 10, 0.5),
-    ], sideBySide(id, `D = (${n1(A)})(${n1(C)}) − (${n1(B)})² = ${n2(D)}<br>${kind}`, [-L, L]), cfg());
+    ], sideBySide(`D = (${num(A, 1)})(${num(C, 1)}) − (${num(B, 1)})² = ${n2(D)}<br>${kind}`, [-L, L]));
   }
 
   // ── P29. Lagrange: the level curve touches the constraint ─────
@@ -1187,18 +1187,15 @@
     const nf = Math.hypot(gf[0], gf[1]), ng = Math.hypot(gg[0], gg[1]), sin = (gf[0] * gg[1] - gf[1] * gg[0]) / (nf * ng), touch = Math.abs(sin) < 0.02;
     const lam = (gf[0] * gg[0] + gf[1] * gg[1]) / (ng * ng);
     const ts = lin(0, 360, 240), con = ts.map(d => P.r(d * PI / 180));
-    const flat = m.z.flat(), lo = Math.min(...flat), hi = Math.max(...flat);
+    const [lo, hi] = zRange(m);
     Plotly.newPlot(el(id), [
       levels(m, lo, hi, (hi - lo) / 18), oneLevel(m, f0, C_TAN),
       { x: con.map(q => q[0]), y: con.map(q => q[1]), mode: 'lines', name: 'constraint g = k', line: { color: C_PT, width: 3 } },
       { x: [x], y: [y], mode: 'markers', showlegend: false, marker: { color: '#e5e7eb', size: 10 } },
       { x: ts, y: con.map(q => P.f(q[0], q[1])), xaxis: 'x2', yaxis: 'y2', mode: 'lines', name: 'f along the constraint', line: { color: C_TAN, width: 2 } },
       { x: [t * 180 / PI], y: [f0], xaxis: 'x2', yaxis: 'y2', mode: 'markers', showlegend: false, marker: { color: C_PT, size: 10 } },
-    ], twoRows({ title: { text: `${P.name}<br>(x, y) = (${n2(x)}, ${n2(y)}), f = ${n3m(f0)}: ${touch ? `∇f = λ∇g with λ = ${n2(lam)}, the curves touch` : 'the gradients are not parallel, so f still changes along the curve'}`, font: { size: 14 } },
-      height: 660, margin: { t: 70, r: 20, b: 50, l: 55 },
-      annotations: [arrow(x, y, x + 1.1 * gf[0] / nf, y + 1.1 * gf[1] / nf, C_ARROW), arrow(x, y, x + 1.1 * gg[0] / ng, y + 1.1 * gg[1] / ng, C_MINT)],
-      xaxis: { title: 'x', range: [-L, L], constrain: 'domain' }, yaxis: { title: 'y', domain: [0.36, 1], range: [-L, L], scaleanchor: 'x', scaleratio: 1 },
-      xaxis2: { title: 't (degrees)', range: [0, 360] }, yaxis2: { title: 'f', domain: [0, 0.24] } }), cfg());
+    ], mapOverRate(`${P.name}<br>(x, y) = (${n2(x)}, ${n2(y)}), f = ${num(f0, 3)}<br>${touch ? `∇f = λ∇g with λ = ${n2(lam)}: the curves touch` : 'gradients not parallel: f still changes here'}`, L,
+      [arrow(x, y, x + 1.1 * gf[0] / nf, y + 1.1 * gf[1] / nf, C_ARROW), arrow(x, y, x + 1.1 * gg[0] / ng, y + 1.1 * gg[1] / ng, C_MINT)], 't (degrees)', 'f'), cfg());
   }
 
   // ══════════════════════════════════════════════════════════════

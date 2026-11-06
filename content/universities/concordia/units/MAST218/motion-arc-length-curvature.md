@@ -448,6 +448,8 @@ controls:
 note: 'The red circle is the osculating circle; it has radius 1/κ and is tangent at the point. The arrows are T and N. The lower panel plots κ along the curve. Check the two examples: on the ellipse κ runs between 2/9 and 3/4, and on the hyperbola the peak is at (1, 1) with κ ≈ 0.707.'
 ```
 
+The cross-product formula is one line of code, here on the helix of the earlier example:
+
 ```python
 # Curvature from the cross product, checked on the helix: 3/25 at every t.
 import numpy as np

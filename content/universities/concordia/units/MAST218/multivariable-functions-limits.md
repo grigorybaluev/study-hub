@@ -8,6 +8,7 @@ requires:
   - {concept: function, strength: hard}
   - {concept: limit, strength: hard}
   - {concept: quadric-surface, strength: soft}
+  - {concept: polar-coordinates, strength: soft}
 reinforces:
   - {concept: limit, perspective: "in several variables"}
   - {concept: continuity, perspective: "in several variables"}
@@ -146,7 +147,7 @@ id: level-curves
 controls:
   - {id: fn, label: "Function (0: x² + y², 1: √(x² + y²), 2: x² − y², 3: y − x², 4: two hills)", min: 0, max: 4, step: 1, default: 0, decimals: 0}
   - {id: k, label: Level k, min: -3, max: 4, step: 0.1, default: 2, decimals: 1}
-note: 'Left: the surface and the plane z = k. Right: the contour map, with the level curve f = k in red, the same curve seen from above. A k outside the range leaves no red curve: try k < 0 for the first two functions. Function 4 has two hills, so a single level curve can come in two pieces.'
+note: 'Left: the surface and the plane z = k. Right: the contour map, with the level curve f = k in red, the same curve seen from above. The window changes with the function, so that every k in the range has its curve on screen. A k outside the range leaves no red curve: try k < 0 for the first two functions. Function 4 has two hills, so a single level curve can come in two pieces.'
 ```
 
 :::caution[Equal spacing of the levels, not of the curves]
@@ -359,9 +360,10 @@ bound independent of $\theta$.
 :::
 
 :::insight
-Disproving a limit takes two paths. Proving one takes an inequality. When substitution gives
-$\frac00$ and every term on top has one degree, and every term below another, compare them: a higher
-degree on top gives a limit of $0$, and equal degrees give a value that depends on the path.
+Disproving a limit takes two paths. Proving one takes an inequality. A good first guess on $\frac00$
+at the origin, when every term on top has one degree, every term below another, and the denominator is
+$0$ only at the origin: a higher degree on top gives a limit of $0$, and equal degrees give a value that
+depends only on the direction, so try lines.
 :::
 
 ## Continuity

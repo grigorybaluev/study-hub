@@ -343,6 +343,8 @@ controls:
 note: 'The blue plane is z = L(x, y) at the red point; the yellow and green lines are the slopes in the x and y directions, which fix it. Shrink the window and the surface flattens onto the plane: the title gives the largest gap between them in the window, which falls much faster than the width. On the cone (function 3) move the point to (0, 0): the partials stop existing, and no plane fits at any zoom.'
 ```
 
+The estimate of the earlier example, by machine:
+
 ```python
 # The linearization and its error near (3, 4), with sympy.
 from sympy import symbols, sqrt, diff

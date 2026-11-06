@@ -8,6 +8,7 @@ requires:
   - {concept: vector, strength: hard}
   - {concept: dot-product, strength: hard}
   - {concept: cross-product, strength: hard}
+  - {concept: conic-section, strength: soft}
 reinforces:
   - {concept: line-and-plane-equations, perspective: "vector, parametric and symmetric equations of a line; normal vector, standard and general equations of a plane; building a plane from points, lines and planes; the line where two planes meet; angles and distances"}
 ---

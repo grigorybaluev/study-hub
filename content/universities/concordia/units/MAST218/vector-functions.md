@@ -8,6 +8,8 @@ requires:
   - {concept: vector, strength: hard}
   - {concept: parametric-curve, strength: hard}
   - {concept: derivative, strength: hard}
+  - {concept: integral, strength: hard}
+  - {concept: limit, strength: soft}
 reinforces: []
 ---
 
@@ -302,6 +304,8 @@ controls:
   - {id: u, label: Position along the curve, min: 0, max: 1, step: 0.005, default: 0.125, decimals: 3}
 note: 'The position vector r(t) runs from the origin to the point; the yellow arrow is r′(t), drawn from the point along the tangent line. The curves are those of this unit, and the twisted cubic is r(t) = ⟨t, t², t³⟩. Watch the length of r′(t) in the title: constant on the helix, changing on the others. Drag the plot to turn it.'
 ```
+
+The first example of this part, by machine:
 
 ```python
 # The tangent line of the first example, with sympy.
