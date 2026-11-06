@@ -8,6 +8,7 @@ cards: true
 term: fall-2026
 exams:
   - {name: Midterm, date: 2026-10-25, weeks: [1, 6]}   # Sunday 10:30, all sections (course outline)
+  - {name: Final, date: 2026-12-09, weeks: [1, 13]}    # placeholder: first day of the exam period, until the schedule is posted
 prereqs: [[COMP232, COEN231], [COMP249, COEN244]]
 coreqs: []
 requirements: []
