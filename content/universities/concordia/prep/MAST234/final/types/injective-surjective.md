@@ -37,7 +37,7 @@ A.augment(vector(QQ, [1, 0, 0])).rank() # 3, larger than r: (1, 0, 0) is not rea
 :::caution[Traps]
 - Injective means rank $=n$, the **domain** dimension. Surjective means rank $=m$, the **codomain** dimension. Do not swap them.
 - $n=m$ does not mean bijective: it only means that one property implies the other.
-- For polynomial or matrix spaces, the sizes are the dimensions: $\mathcal P_2\to\mathbb R^2$ is a map from dimension $3$ to dimension $2$.
+- For polynomial or matrix spaces, the sizes are the dimensions: $\mathbb P_2(\mathbb R)\to\mathbb R^2$ is a map from dimension $3$ to dimension $2$.
 - A witness for "not surjective" must be checked: show that the system really is inconsistent.
 :::
 
@@ -60,7 +60,7 @@ Step 2: $n=m=3$, so one check settles both. Step 5: both witnesses come from the
 ```solution-map
 id: evaluation-map-classified
 method: injective-surjective
-task: 'Classify $T:\mathcal P_2\to\mathbb R^2$, $T(p)=(p(0),p(1))$.'
+task: 'Classify $T:\mathbb P_2(\mathbb R)\to\mathbb R^2$, $T(p)=(p(0),p(1))$.'
 steps:
   - node: one-to-one
     text: 'Suppose $T(p)=T(q)$. Then $p-q$ vanishes at $0$ and at $1$, so $p-q=c\,x(x-1)$ for a constant $c$. Nothing forces $c=0$.'
@@ -73,7 +73,7 @@ steps:
     text: 'Take any $(u,v)\in\mathbb R^2$ and try a polynomial of degree at most $1$: $p=u+(v-u)x$.'
   - node: surjective
     answer: yes
-    text: '$p(0)=u$ and $p(1)=v$, and $p$ lies in the domain $\mathcal P_2$.'
+    text: '$p(0)=u$ and $p(1)=v$, and $p$ lies in the domain $\mathbb P_2(\mathbb R)$.'
   - node: classified
     text: 'Surjective, not injective. Rank–nullity agrees: $1+2=3$.'
 ```

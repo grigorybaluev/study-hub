@@ -38,7 +38,7 @@ To test whether $\mathbf b$ lies in the span, compare ranks: `M.rank() == M.augm
 :::caution[Traps]
 - `matrix(QQ, [u, v])` puts vectors in the **rows** and `column_matrix` in the columns. For the pivot method, use columns.
 - The basis of the span is made of original vectors, not columns of the RREF.
-- For $\mathcal P_n$, each list has $n+1$ entries, and the zero coefficients must be written.
+- For $\mathbb P_n(\mathbb R)$, each list has $n+1$ entries, and the zero coefficients must be written.
 - Rows of the RREF give a basis of the **row** space, and it is a different kind of answer: read which space the question names.
 - A set containing $\mathbf 0$ is always dependent.
 :::
@@ -69,7 +69,7 @@ steps:
 ```
 
 ::::exercise[A basis by counting]
-Show that $1+x$, $1+x^2$, $x+x^2$ is a basis of $\mathcal P_2$, and write $p=3+x+2x^2$ in it.
+Show that $1+x$, $1+x^2$, $x+x^2$ is a basis of $\mathbb P_2(\mathbb R)$, and write $p=3+x+2x^2$ in it.
 
 :::solution
 Their coefficient lists are the columns of $M=\begin{bmatrix}1&1&0\\1&0&1\\0&1&1\end{bmatrix}$, and $\det(M)=-2\neq0$. Three independent vectors in dimension $3$ form a basis.

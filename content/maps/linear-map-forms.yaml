@@ -34,7 +34,7 @@ nodes:
     tone: navy
     box: [365, 20, 235, 105]
     concept: matrix
-    text: "$A=[T]_{\\mathcal C\\leftarrow\\mathcal B}$, of size $\\dim W\\times\\dim V$: $[T(\\mathbf v)]_{\\mathcal C}=A[\\mathbf v]_{\\mathcal B}$."
+    text: "$A=[T]_{B \\to C}$, of size $\\dim W\\times\\dim V$: $[T(\\mathbf v)]_{C}=A[\\mathbf v]_{B}$."
     easy: every computation on this map.
   - id: other
     label: Another basis
@@ -42,7 +42,7 @@ nodes:
     tone: lavender
     box: [715, 20, 230, 105]
     concept: diagonalization
-    text: "$[T]_{\\mathcal C}=P^{-1}[T]_{\\mathcal B}P$. Same operator: same $\\det$, trace, rank and eigenvalues."
+    text: "$[T]_{C}=P^{-1}[T]_{B}P$. Same operator: same $\\det$, trace, rank and eigenvalues."
   - id: rref
     label: RREF
     sub: the pivots
@@ -140,10 +140,10 @@ edges:
     label: [256, 22, 106]
     path: M252 72 L363 72
     steps: >-
-      Apply $T$ to each vector $\mathbf b_j$ of the domain basis, write the result in the coordinates of $\mathcal C$, and put it in as column
+      Apply $T$ to each vector $\mathbf b_j$ of the domain basis, write the result in the coordinates of $C$, and put it in as column
       $j$. For standard bases: `column_matrix(QQ, [T(1, 0), T(0, 1)])`, and a written-out formula gives the rows directly.
     when: '"find the matrix of $T$ relative to …"'
-    trap: 'columns, not rows; and $\mathcal C$-coordinates of the images, not the images themselves'
+    trap: 'columns, not rows; and $C$-coordinates of the images, not the images themselves'
   - id: change-basis
     n: 2
     from: matrix
@@ -156,7 +156,7 @@ edges:
     label: [606, 34, 106]
     path: M602 72 L713 72
     steps: >-
-      For an operator, with $P=P_{\mathcal B\leftarrow\mathcal C}$: $[T]_{\mathcal C}=P^{-1}[T]_{\mathcal B}P$, `P.inverse() * A * P`. The columns of $P$ are the new
+      For an operator, with $P=P_{C \to B}$: $[T]_{C}=P^{-1}[T]_{B}P$, `P.inverse() * A * P`. The columns of $P$ are the new
       basis vectors written in the old basis.
     when: '"find the matrix of $T$ in the basis …", "are these matrices similar?"'
     trap: '$PAP^{-1}$ is the opposite direction. Equal $\det$, trace and rank do not prove similarity; a difference disproves it'
@@ -377,7 +377,7 @@ edges:
     kind: free
     cost: free
     name: the best basis
-    short: "$D=[T]_{\\mathcal B}$"
+    short: "$D=[T]_{B}$"
     label: [870, 140, 88]
     path: M947 758 L958 758 L958 72 L947 72
     steps: "Nothing to do: $D$ is the matrix of the operator relative to the basis of eigenvectors, with $P$ as the transition matrix. It is the simplest form of $T$."

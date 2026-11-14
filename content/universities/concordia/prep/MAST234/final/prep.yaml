@@ -21,7 +21,7 @@ types_intro: |
   :::
 
   :::steps[A routine for every problem]
-  1. Say what the objects are and how big: "$T:\mathcal P_2\to\mathbb R^2$, so dimensions $3$ and $2$". Counting may already answer the question.
+  1. Say what the objects are and how big: "$T:\mathbb P_2(\mathbb R)\to\mathbb R^2$, so dimensions $3$ and $2$". Counting may already answer the question.
   2. Translate into a matrix: columns of coefficients, the images of a basis, or $A-\lambda I$.
   3. Let Sage compute, with exact entries: `matrix(QQ, ...)`.
   4. Read the output in words: "pivots in columns $0$ and $2$, so rank $2$, so not injective".
@@ -36,9 +36,9 @@ plan:
       - "left inverse, right inverse, invertible matrix; the invertible matrix theorem, every item"
       - "injective, surjective, bijective; linear transformation; standard matrix $[\\,T(\\mathbf e_0)\\ \\cdots\\ T(\\mathbf e_{n-1})\\,]$"
       - "vector space (the eight rules); subspace test; basis; dimension; coordinate vector"
-      - "transition matrix: the columns are $[\\mathbf b_j]_{\\mathcal C}$; $(P_{\\mathcal C\\leftarrow\\mathcal B})^{-1}=P_{\\mathcal B\\leftarrow\\mathcal C}$"
+      - "transition matrix: the columns are $[\\mathbf b_j]_{C}$; $(P_{B \\to C})^{-1}=P_{C \\to B}$"
       - "kernel and image of $T$; rank–nullity; injective $\\iff\\ker(T)=\\{\\mathbf 0\\}$"
-      - "matrix of a linear map: column $j$ is $[T(\\mathbf b_j)]_{\\mathcal C}$; similar matrices"
+      - "matrix of a linear map: column $j$ is $[T(\\mathbf b_j)]_{C}$; similar matrices"
       - "$a+bi$, conjugate, modulus, polar form; fundamental theorem of algebra; conjugate roots"
       - "eigenvalue, eigenvector, characteristic polynomial, eigenspace, algebraic and geometric multiplicity"
       - "diagonalizable; the diagonalization theorem; distinct eigenvalues give independent eigenvectors"
@@ -62,9 +62,9 @@ plan:
       - "`matrix(QQ, [u, v])` puts vectors in rows; `column_matrix` puts them in columns."
       - "A basis of $\\mathrm{col}(A)$ uses the columns of the original matrix, not of the RREF."
       - "$T(\\mathbf 0)=\\mathbf 0$ and $\\mathbf 0\\in W$ can only fail a candidate; they prove nothing."
-      - "$\\dim\\mathcal P_n=n+1$."
+      - "$\\dim\\mathbb P_n(\\mathbb R)=n+1$."
       - "Rank plus nullity is the dimension of the domain."
-      - "$S\\circ T$ has matrix $[S][T]$; transition matrices read right to left."
+      - "$S\\circ T$ has matrix $[S][T]$; transition matrices act right to left: $P_{C \\to D}P_{B \\to C} = P_{B \\to D}$."
       - "$P^{-1}AP$ with the new basis in the columns of $P$; column $j$ of $P$ pairs with entry $j$ of $D$."
       - "Row reducing $A$ changes its eigenvalues."
       - "A repeated eigenvalue is not a failure: compare the two multiplicities."

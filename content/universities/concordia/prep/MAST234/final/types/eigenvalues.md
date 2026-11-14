@@ -88,7 +88,7 @@ Step 2 over $\mathbb C$ needs only one equation, since the rows of $A-\lambda I$
 :::
 
 ::::exercise[An operator]
-Find the eigenvalues and eigenvectors of $T:\mathcal P_2\to\mathcal P_2$, $T(p)=p+(x+1)p'$.
+Find the eigenvalues and eigenvectors of $T:\mathbb P_2(\mathbb R)\to\mathbb P_2(\mathbb R)$, $T(p)=p+(x+1)p'$.
 
 :::solution
 Relative to $(1,x,x^2)$, $T$ has the triangular matrix $\begin{bmatrix}1&1&0\\0&2&2\\0&0&3\end{bmatrix}$, so the eigenvalues are $1,2,3$.

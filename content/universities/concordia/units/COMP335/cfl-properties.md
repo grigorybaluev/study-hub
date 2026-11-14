@@ -30,13 +30,32 @@ $c$'s. A stack can do the first comparison, but it uses the count up in doing so
 for the first half in the same order, and a stack gives it back reversed. To turn this intuition into
 proofs, one needs what the regular pumping lemma gave: a property of all languages in the class.
 
-### A repeated variable in a tall tree
+### A repeated variable in a derivation
 
-In a finite automaton a long input repeats a state. In a grammar in Chomsky normal form, a long
-string has a tall derivation tree, and on a long path of that tree a variable must repeat.
+In a finite automaton a long input repeats a state. In a grammar, a long string repeats a **variable**: some
+variable $A$ appears inside its own derivation, $A \overset{*}{\Rightarrow} vAy$, and that piece of the derivation can be left
+out or repeated.
 
-Say $A$ occurs twice on a path, the upper occurrence above the lower one. The picture splits the
-string in five:
+::::example[A repeated variable, pumped]
+Take the grammar $S \to AB$, $A \to aBb$, $B \to Sb \mid b$ and the string $abbabbbb$. Find a variable that repeats in its
+derivation, and the strings that the repetition gives.
+
+:::solution
+A derivation:
+$$
+S \Rightarrow AB \Rightarrow aBbB \Rightarrow abbB \Rightarrow abbSb \Rightarrow abbABb \Rightarrow abbaBbBb \Rightarrow abbabbBb \Rightarrow abbabbbb .
+$$
+The last $B$ of $abbB$ derives $Sb \Rightarrow ABb \Rightarrow aBbBb \Rightarrow aBbbb$, which contains $B$ again. So the derivation splits into
+$$
+S \overset{*}{\Rightarrow} abbB, \qquad B \overset{*}{\Rightarrow} aBbbb, \qquad B \Rightarrow b .
+$$
+The middle piece can be used any number of times: $S \overset{*}{\Rightarrow} abb\,(a)^i B\,(bbb)^i \Rightarrow abb\,(a)^i\, b\,(bbb)^i$. With $i = 0$ this is
+$abbb$, with $i = 1$ the original $abbabbbb$, with $i = 2$ the string $abbaabbbbbbb$; all of them are in $L(G)$.
+:::
+::::
+
+In general, cut the tree at two occurrences of the same variable $A$ on one path, the upper occurrence above the
+lower one. The picture splits the string in five:
 
 ```text
                 S
@@ -48,9 +67,14 @@ string in five:
          u  v   x   y  z
 ```
 
-The part of the tree between the two $A$'s can be cut out, which replaces the upper subtree by the
-lower one: that gives $uxz$. Or it can be copied, plugging another copy of itself at the lower $A$:
-that gives $uv^2xy^2z$, and so on.
+So $S \overset{*}{\Rightarrow} uAz$, $A \overset{*}{\Rightarrow} vAy$ and $A \overset{*}{\Rightarrow} x$, with $w = uvxyz$. From these three pieces:
+
+$$
+S \overset{*}{\Rightarrow} uAz \overset{*}{\Rightarrow} uxz = uv^0xy^0z, \qquad
+S \overset{*}{\Rightarrow} uAz \overset{*}{\Rightarrow} uvAyz \overset{*}{\Rightarrow} uvvAyyz \overset{*}{\Rightarrow} \cdots \overset{*}{\Rightarrow} uv^ixy^iz .
+$$
+
+Whenever $w = uvxyz \in L(G)$ arises this way, every $uv^ixy^iz$, $i \ge 0$, is in $L(G)$ too.
 
 ::::example[Pumping in a concrete tree]
 In $S \to aSb \mid c$, take $w = aacbb$. Find a repeated variable and pump.
@@ -66,29 +90,41 @@ two counts in step.
 ::::
 
 ::::theorem[Pumping lemma for context-free languages]
-Let $L$ be an infinite context-free language. Then there is an integer $m \ge 1$ such that every
-$w \in L$ with $|w| \ge m$ can be written as
+Let $L$ be an infinite context-free language. Then there is an integer $m \ge 1$ such that for any string $w \in L$
+with $|w| \ge m$ we can write
 $$w = uvxyz \qquad\text{with}\qquad |vxy| \le m, \qquad |vy| \ge 1,$$
 so that
-$$uv^ixy^iz \in L \qquad\text{for every } i = 0, 1, 2, \dots$$
+$$uv^ixy^iz \in L \qquad\text{for all } i \ge 0 .$$
 
 :::proof
-Take a grammar for $L - \{\lambda\}$ in Chomsky normal form, with $k$ variables, and let $m = 2^k$. In a
-binary tree whose longest path has $h$ edges, the yield has at most $2^{h - 1}$ symbols here, since the last
-edge of a path goes from a variable to a single terminal. So if $|w| \ge 2^k$, then $h \ge k + 1$: the
-longest path has at least $k + 1$ variables.
+Take a grammar $G$ for $L - \{\lambda\}$ with **no unit-productions and no $\lambda$-productions** (the simplification unit
+removes them). Say $G$ has $k$ variables and its longest right-hand side has $f$ symbols; $f \ge 2$, since otherwise
+$L$ would be finite. Let $m = f^{k+1}$.
 
-Go up from the leaf of a longest path. Among the first $k + 1$ variables met, one, say $A$, repeats by the
-pigeonhole principle. Take the repetition as low as possible, and cut $w$ as in the picture.
+*A long string repeats a variable.* If no variable occurred twice on any path from the root of a derivation tree,
+every path would have at most $k$ variables, the tree would have height at most $k$, and its yield at most
+$f^k < m$ symbols. So in the tree of a string $w$ with $|w| \ge m$, some variable repeats on a path.
 
-The upper $A$ has height at most $k + 1$, because the path chosen is a longest one, so $|vxy| \le 2^k = m$.
-The upper $A$ uses a rule $A \to BC$, and the lower $A$ lies under one of the two children; the other
-child derives at least one terminal, since CNF has no $\lambda$-rules. So $|vy| \ge 1$.
+*The last repeated variable.* Take a longest path of the tree. Among its lowest $k + 1$ variables two are equal, by the
+pigeonhole principle; call that variable $A$, the **last repeated variable**, and cut the tree at its two
+occurrences as in the picture. Then $S \overset{*}{\Rightarrow} uAz$, $A \overset{*}{\Rightarrow} vAy$, $A \overset{*}{\Rightarrow} x$ and $w = uvxyz$, so every
+$uv^ixy^iz$ is in $L$.
 
-Finally, $A \overset{*}{\Rightarrow} vAy$ and $A \overset{*}{\Rightarrow} x$, so the middle of the tree can be
-removed or repeated any number of times, and $S \overset{*}{\Rightarrow} uv^ixy^iz$ for every $i \ge 0$.
+*Observation: $|vxy| \le m$.* The upper $A$ is among the lowest $k + 1$ variables of a longest path, so its subtree has
+height at most $k + 1$, and its yield $vxy$ has at most $f^{k+1} = m$ symbols.
+
+*Observation: $|vy| \ge 1$.* Since there are no unit- and no $\lambda$-productions, no step of a derivation shortens the
+sentential form, and a step that keeps the length replaces a variable by a terminal. So $A \overset{+}{\Rightarrow} vAy$ cannot end
+at the lone variable $A$: $vy \ne \lambda$.
 :::
 ::::
+
+:::remark
+The slides take $m = (\text{number of productions}) \times (\text{longest right-hand side}) + 1$. Using the lemma never needs
+the value of $m$, only its existence; the value $f^{k+1}$ above is the one the argument justifies step by step. In
+Chomsky normal form every tree is binary ($f = 2$) and the same argument gives $m = 2^k$: a tree whose longest path
+has $n$ edges yields at most $2^{n-1}$ symbols.
+:::
 
 | | Regular | Context-free |
 |---|---|---|
@@ -113,7 +149,8 @@ neighbouring blocks. A language that ties together three blocks, or two far-apar
 
 :::equations
 - *CFL pumping lemma*: $\exists m\ \forall w \in L,\ |w| \ge m\ \exists\, w = uvxyz,\ |vxy| \le m,\ |vy| \ge 1\ \forall i \ge 0:\ uv^ixy^iz \in L$.
-- *Bound from the grammar*: $m = 2^k$ for a CNF grammar with $k$ variables.
+- *Where it comes from*: no unit- or $\lambda$-productions; the last repeated variable $A$ gives $S \overset{*}{\Rightarrow} uAz$, $A \overset{*}{\Rightarrow} vAy$, $A \overset{*}{\Rightarrow} x$.
+- *The two observations*: $|vxy| \le m$ because $A$ is the last repeated variable; $|vy| \ge 1$ because there are no unit- or $\lambda$-productions.
 :::
 
 ## Proving Languages Not Context-Free
@@ -134,17 +171,31 @@ neighbouring blocks. A language that ties together three blocks, or two far-apar
 Prove that $L = \{a^n b^n c^n : n \ge 0\}$ is not context-free.
 
 :::solution
-Assume it is, with pumping integer $m$. Take $w = a^m b^m c^m$, so $|w| = 3m \ge m$.
+Assume for contradiction that $L$ is context-free. It is infinite, so the pumping lemma applies; let $m$ be its integer.
+Pick $w = a^m b^m c^m \in L$, with $|w| = 3m \ge m$. Write $w = uvxyz$ with $|vxy| \le m$ and $|vy| \ge 1$. We examine every
+possible location of $vxy$ in $w$, and pump with $i = 2$.
 
-Let $w = uvxyz$ with $|vxy| \le m$ and $|vy| \ge 1$. The window is shorter than a whole block plus one
-symbol, so it cannot touch all three blocks: it misses the $a$'s or it misses the $c$'s.
+**Case 1: $vxy$ is within $a^m$.** Then $v$ and $y$ consist of $a$'s only, $k = |vy| \ge 1$ of them, and
+$uv^2xy^2z = a^{m + k} b^m c^m \notin L$.
 
-Take $i = 0$. Then $uxz$ is shorter than $w$ by $|vy| \ge 1$ symbols, and every removed symbol came from
-the block or two blocks that the window touches. A block the window misses still has $m$ symbols, and
-some touched block now has fewer than $m$. So the three counts in $uxz$ are not all equal, and
-$uxz \notin L$. This contradicts the lemma, so $L$ is not context-free.
+**Cases 2 and 3: $vxy$ is within $b^m$, or within $c^m$.** The same: one count grows and the other two stay $m$.
+
+**Case 4: $vxy$ overlaps $a^m$ and $b^m$.**
+- $v$ contains only $a$'s ($k_1$ of them) and $y$ only $b$'s ($k_2$), $k_1 + k_2 \ge 1$: $uv^2xy^2z = a^{m + k_1} b^{m + k_2} c^m \notin L$, since the
+  $c$'s are still $m$.
+- $v$ contains both $a$'s and $b$'s, $v = a^{k_1}b^{k_2}$: then $v^2 = a^{k_1}b^{k_2}a^{k_1}b^{k_2}$ puts an $a$ after a $b$, and
+  $uv^2xy^2z = a^m b^{k_2} a^{k_1} b^{m + k} c^m \notin L$ (with $k = |y|$), because it is not even of the form $a^*b^*c^*$.
+- $y$ contains both $a$'s and $b$'s: the same as the previous possibility.
+
+**Case 5: $vxy$ overlaps $b^m$ and $c^m$.** The same as case 4.
+
+There are no other cases: $|vxy| \le m$, so $vxy$ cannot overlap $a^m$, $b^m$ and $c^m$ at the same time. In every case
+$uv^2xy^2z \notin L$, which contradicts the pumping lemma. So $L$ is not context-free.
 :::
 ::::
+
+Pumping down works as well: with $i = 0$, the window misses the $a$'s or the $c$'s, a block it misses keeps $m$
+symbols, and a block it touches loses some, so the counts of $uxz$ are not all equal.
 
 The same proof covers every language that ties three blocks: $\{a^n b^{2n} c^{3n}\}$, for example.
 
@@ -170,33 +221,45 @@ Every case fails, so $L$ is not context-free.
 :::
 ::::
 
-### Copies: $\{ww\}$
+### Copies: $\{vv\}$
 
-A useful fact first. A string $ss$ that contains both letters has at least four **blocks** (maximal runs
-of one letter). And if it has exactly four, then it has the form $a^p b^q a^p b^q$ or $b^q a^p b^q a^p$.
-Indeed, if $s$ has $t \ge 2$ blocks, then $ss$ has $2t$ of them, or $2t - 1$ if the two blocks at the middle
-merge. Merging needs $s$ to start and end with the same letter, which needs $t \ge 3$.
+The language of copies, $\{vv : v \in \{a, b\}^*\}$ (also written $\{ww\}$), looks like $\{ww^R\}$, which is context-free. The proof
+needs a fact about **blocks**, the maximal runs of one letter. If $s$ has $t$ blocks, then $ss$ has $2t$ of them, or
+$2t - 1$ if the two blocks at the middle merge, which happens when $s$ starts and ends with the same letter. So if
+$ss$ starts with $a$ and ends with $b$, then $s$ does too, $t$ is even, nothing merges, and **the number of blocks of $ss$ is
+a multiple of $4$**. If it is exactly $4$, then $s = a^p b^q$ and $ss = a^p b^q a^p b^q$.
 
-::::example[$\{ww\}$ is not context-free]
-Prove that $L = \{ww : w \in \{a, b\}^*\}$ is not context-free.
+::::example[$\{vv\}$ is not context-free]
+Prove that $L = \{vv : v \in \{a, b\}^*\}$ is not context-free.
 
 :::solution
-Assume it is, with integer $m$. Take $w = a^m b^m a^m b^m$, which is $ss$ for $s = a^m b^m$. Pump with $i = 0$. The
-window has at most $m$ symbols, so it lies inside two neighbouring blocks, and $uxz$ is $w$ with a few
-symbols removed from those blocks.
+Assume for contradiction that $L$ is context-free, with integer $m$. Pick $w = a^m b^m a^m b^m \in L$ (it is $vv$ with
+$v = a^m b^m$). Write $w = uvxyz$ with $|vxy| \le m$ and $|vy| \ge 1$, and pump with $i = 2$. The pumped string still starts
+with $a$ and ends with $b$.
 
-If a block disappears entirely, $uxz$ has at most three blocks and still has both letters, so it is not
-of the form $ss$.
+**Case 1: $vxy$ is within the first $a^m$.** $v = a^{k_1}$, $y = a^{k_2}$, $k_1 + k_2 \ge 1$: $uv^2xy^2z = a^{m + k_1 + k_2} b^m a^m b^m$. It has four
+blocks, and its first and third blocks differ, so it is not $a^p b^q a^p b^q$: $uv^2xy^2z \notin L$.
 
-Otherwise $uxz = a^p b^q a^r b^t$ with all four exponents positive, and it can only be in $L$ with $p = r$
-and $q = t$. But exactly the blocks the window touches have shrunk:
-- window in the first two blocks: $r = t = m$, and $p < m$ or $q < m$;
-- window in the middle two blocks: $p = t = m$, and $q < m$ or $r < m$;
-- window in the last two blocks: $p = q = m$, and $r < m$ or $t < m$.
+**Case 2: $v$ is in the first $a^m$ and $y$ in the first $b^m$.** $v = a^{k_1}$, $y = b^{k_2}$: $uv^2xy^2z = a^{m + k_1} b^{m + k_2} a^m b^m$, again four
+blocks with $p \neq r$ or $q \neq t$: not in $L$.
 
-Each case gives $p \ne r$ or $q \ne t$. So $uxz \notin L$, and $L$ is not context-free.
+**Case 3: $v$ overlaps the first $a^m b^m$, $y$ is in the first $b^m$.** $v = a^{k_1}b^{k_2}$, $y = b^{k_3}$:
+$uv^2xy^2z = a^m b^{k_2} a^{k_1} b^{m + k_3} a^m b^m$. Doubling $v$ added two blocks, so it has $6$ blocks, not a multiple of $4$: not in $L$.
+
+**Case 4: $v$ is in the first $a^m$, $y$ overlaps the first $a^m b^m$.** Similar to case 3.
+
+**The other cases.** $vxy$ within one of the other blocks $b^m$, $a^m$, $b^m$ is like case 1. $vxy$ overlapping the
+middle $b^m a^m$ or the last $a^m b^m$ is like cases 2, 3 and 4. There are no others: since $|vxy| \le m$, the window
+cannot overlap three blocks, and so only $v$ or $y$, not both, can contain a block boundary.
+
+In every case $uv^2xy^2z \notin L$: with four blocks, pumping enlarged one or two neighbouring blocks and left the
+block two places away as it was; with six, the count is not a multiple of $4$. This contradicts the lemma, so $L$
+is not context-free.
 :::
 ::::
+
+Pumping down also works, and needs fewer cases: with $i = 0$ blocks can only shrink or disappear, so $uxz$ has at most
+four blocks, and the blocks the window touched no longer match their partners two places away.
 
 ::::exercise[A string that pumps in $\{ww\}$]
 To prove $\{ww\}$ not context-free, someone picks $w = a^m b a^m b$. Show that the proof does not go through,
@@ -232,6 +295,45 @@ not regular is not context-free either, and the proof above is the regular proof
 for the same gap.
 :::
 
+::::example[$\{a^{n!}\}$ is not context-free]
+Prove that $L = \{a^{n!} : n \ge 0\}$ is not context-free.
+
+:::solution
+Assume for contradiction that $L$ is context-free, with integer $m$; we may take $m \ge 2$. Pick $w = a^{m!} \in L$. Write
+$w = uvxyz$ with $|vxy| \le m$ and $|vy| \ge 1$. There is only one case: every symbol is $a$, so $v = a^{k_1}$, $y = a^{k_2}$, and
+$k = k_1 + k_2$ satisfies $1 \le k \le m$. Pump with $i = 2$: $uv^2xy^2z = a^{m! + k}$. Since $m \ge 2$,
+$$
+m! < m! + k \le m! + m < m! + m \cdot m! = m!\,(1 + m) = (m + 1)! .
+$$
+So $m! + k$ lies strictly between two consecutive factorials, $a^{m! + k} \notin L$, and this contradicts the lemma.
+:::
+::::
+
+::::example[$\{a^{n^2} b^n\}$ is not context-free]
+Prove that $L = \{a^{n^2} b^n : n \ge 0\}$ is not context-free.
+
+:::solution
+Assume for contradiction that $L$ is context-free, with integer $m$. Pick $w = a^{m^2} b^m \in L$ and write $w = uvxyz$ with
+$|vxy| \le m$ and $|vy| \ge 1$.
+
+**$v$ or $y$ contains both letters.** Pumping up ($i = 2$) puts an $a$ after a $b$, so the string is not even in $a^*b^*$.
+
+**Only $a$'s are touched** ($vxy$ within $a^{m^2}$), $k = |vy| \ge 1$: $uxz = a^{m^2 - k} b^m$, and $m^2 - k \ne m^2$, so $uxz \notin L$.
+
+**Only $b$'s are touched:** $uxz = a^{m^2} b^{m - k}$, and $m^2 \ne (m - k)^2$: not in $L$.
+
+**The hardest case: $v = a^{k_1}$ is in the $a$'s and $y = b^{k_2}$ in the $b$'s, with $k_1, k_2 \ge 1$** (and $k_1 + k_2 \le m$).
+Pump down: $uv^0xy^0z = a^{m^2 - k_1} b^{m - k_2}$. It would be in $L$ only if $m^2 - k_1 = (m - k_2)^2$. But
+$$
+(m - k_2)^2 \le (m - 1)^2 = m^2 - 2m + 1 < m^2 - m \le m^2 - k_1 ,
+$$
+using $k_2 \ge 1$, $m \ge 2$ and $k_1 \le m$ (for $m = 1$, both $k$'s cannot be $\ge 1$). So $(m - k_2)^2 < m^2 - k_1$, and $uxz \notin L$.
+
+Every case contradicts the lemma, so $L$ is not context-free. Pumping **up** in the hardest case would not do: it
+adds $k_1$ $a$'s and $k_2$ $b$'s, and it takes more care to show that the result is not of the form $a^{n^2}b^n$.
+:::
+::::
+
 ### Closure as a shortcut
 
 As for regular languages, a language can be reduced to one already known. If $L$ were context-free, then
@@ -257,7 +359,9 @@ they are pumped. Two neighbouring blocks tied together, as in $a^n b^n$, are exa
 :::equations
 - *$a^n b^n c^n$*: $w = a^m b^m c^m$; the window misses a block; $i = 0$ unbalances the counts.
 - *$i < j < k$*: $w = a^m b^{m + 1} c^{m + 2}$; pump up if the window misses the $c$'s, down if it misses the $a$'s.
-- *$ww$*: $w = a^m b^m a^m b^m$; $i = 0$ shrinks only neighbouring blocks.
+- *$vv$*: $w = a^m b^m a^m b^m$; $i = 2$; four blocks with one pair unmatched, or six blocks (not a multiple of $4$).
+- *Factorial lengths, $a^{n!}$*: $w = a^{m!}$; $i = 2$; $m! < m! + k < (m + 1)!$.
+- *A square against a count, $a^{n^2}b^n$*: $w = a^{m^2}b^m$; $i = 0$; hardest case $(m - k_2)^2 < m^2 - k_1$.
 - *$a^{n^2}$*: $w = a^{m^2}$; $m^2 < m^2 + k < (m + 1)^2$.
 :::
 
@@ -371,6 +475,32 @@ The final states are $(q_0, e)$ and $(q_3, e)$, and the machine accepts $\{a^n b
 :::
 ::::
 
+::::example[A product that cuts a language down]
+$L_1 = \{w_1 w_2 : |w_1| = |w_2|,\ w_1 \in \{a, b\}^*,\ w_2 \in \{c, d\}^*\}$ is context-free and $L_2 = \{a, c\}^*$ is regular. Describe
+the NPDA for $L_1 \cap L_2$ that the product construction gives, and the language it accepts.
+
+:::solution
+An NPDA $M_1$ for $L_1$: in a first state it pushes one symbol for each $a$ or $b$ read; a $\lambda$-move goes to a second
+state, which pops one symbol for each $c$ or $d$; it accepts when the bottom of the stack shows. The DFA $M_2$ for
+$\{a, c\}^*$ has one accepting state $p_0$ with loops on $a$ and $c$ (and a trap state for $b$ and $d$). In the product, a move
+of $M_1$ on $a$ or $c$ keeps the DFA in $p_0$, a move on $b$ or $d$ sends it to the trap, and the $\lambda$-moves leave it in place.
+So the product only accepts strings without $b$'s and $d$'s: $L_1 \cap L_2 = \{a^n c^n : n \ge 0\}$, context-free as the theorem says.
+:::
+::::
+
+::::example[Regular closure proves a language context-free]
+Show that $L = \{a^n b^n : n \ge 0,\ n \ne 100\}$ is context-free.
+
+:::solution
+$\{a^n b^n : n \ge 0\}$ is context-free. $\{a^{100}b^{100}\}$ is finite, so regular, and its complement
+$L_1 = L((a + b)^*) - \{a^{100}b^{100}\}$ is regular too. By regular closure,
+$$
+\{a^n b^n : n \ge 0\} \cap L_1 = \{a^n b^n : n \ge 0,\ n \ne 100\}
+$$
+is context-free. Writing a grammar directly would be awkward; closure does it in one line.
+:::
+::::
+
 ### Comparing the classes
 
 | Operation | Regular | Deterministic CF | Context-free |
@@ -411,15 +541,37 @@ works: that is regular intersection.
 A context-free language is given by a grammar or an NPDA, both finite objects, so the questions of the
 regular unit can be asked again.
 
-**Membership.** Is $w \in L(G)$? Convert $G$ to Chomsky normal form and run CYK, in time proportional to
-$|w|^3$ for a fixed grammar. The case $w = \lambda$ is a separate test: is $S$ nullable?
+**Membership.** Is $w \in L(G)$? Two membership algorithms (parsers) are known from the earlier units: **exhaustive
+search parsing**, which terminates for a grammar with no unit- and no $\lambda$-productions, and the **CYK** algorithm:
+convert $G$ to Chomsky normal form and fill the table, in time proportional to $|w|^3$ for a fixed grammar. The case
+$w = \lambda$ is a separate test: is $S$ nullable?
 
-**Emptiness.** Is $L(G) = \varnothing$? Run the first step of the useless-production algorithm: $L(G)$ is empty
-exactly when $S$ is not generating.
+**Emptiness.** Is $L(G) = \varnothing$? 1. Remove the useless variables. 2. Check whether the start variable $S$ is useless.
+$L(G)$ is empty exactly when it is, that is, when $S$ is not generating.
 
-**Finiteness.** Is $L(G)$ finite? Clean the grammar, so that it has no useless, $\lambda$- or
-unit-productions, and draw the dependency graph on its variables. Then $L(G)$ is infinite exactly when
-the graph has a cycle.
+**Finiteness.** Is $L(G)$ infinite?
+
+1. Remove the useless variables.
+2. Remove the unit- and $\lambda$-productions.
+3. Draw the **dependency graph** of the variables: an edge $A \to B$ when $B$ occurs on the right side of a rule of $A$.
+4. If the graph has a loop (a cycle), $L(G)$ is infinite; otherwise it is finite.
+
+If removing unit- and $\lambda$-productions leaves new useless variables, remove those too: the graph must be drawn for a
+grammar with none of the three.
+
+::::example[A loop in the dependency graph]
+Decide whether $S \to AB$, $A \to aCb \mid a$, $B \to bB \mid bb$, $C \to cBS$ generates an infinite language.
+
+:::solution
+Every variable is useful, and there are no unit- or $\lambda$-productions. The dependency graph has the edges $S \to A$,
+$S \to B$, $A \to C$, $B \to B$, $C \to B$, $C \to S$. It has loops, $S \to A \to C \to S$ and $B \to B$, so $L(G)$ is infinite. The first loop
+pumps directly:
+$$
+S \Rightarrow AB \Rightarrow aCbB \Rightarrow acBSbB \overset{*}{\Rightarrow} acbbSbbb ,
+$$
+so $S \overset{*}{\Rightarrow} (acbb)^i S (bbb)^i$ for every $i$, and each of these forms finishes to a different string.
+:::
+::::
 
 ::::example[Emptiness and finiteness]
 Decide emptiness and finiteness for

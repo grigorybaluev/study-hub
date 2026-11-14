@@ -82,7 +82,7 @@ The rules of addition and scaling become the definition, so polynomials, matrice
 
 Week 8 · [Basis, dimension, coordinates and transition matrices](/unit/MAST234/basis-coordinates-transition)
 
-A **basis** is independent and spanning, so every vector is a unique combination of it. All bases have the same size, the **dimension**. Coordinates relative to a basis turn the space into $\mathbb R^n$, faithfully, and $P_{\mathcal C\leftarrow\mathcal B}$ converts between two bases. Its columns are the old basis
+A **basis** is independent and spanning, so every vector is a unique combination of it. All bases have the same size, the **dimension**. Coordinates relative to a basis turn the space into $\mathbb R^n$, faithfully, and $P_{B \to C}$ converts between two bases. Its columns are the old basis
 written in the new one.
 
 ## Linear maps of general spaces

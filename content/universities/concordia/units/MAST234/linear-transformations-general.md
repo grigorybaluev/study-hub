@@ -44,15 +44,15 @@ As in $\mathbb R^n$, linearity gives $T(\mathbf 0_V) = \mathbf 0_W$ and $T\bigl(
 
 | Map | Rule | Why it is linear |
 |---|---|---|
-| differentiation $D : \mathcal P_3 \to \mathcal P_2$ | $p \mapsto p'$ | $(p + q)' = p' + q'$, $(cp)' = cp'$ |
-| evaluation $E : \mathcal P_2 \to \mathbb R$ | $p \mapsto p(2)$ | $(p + q)(2) = p(2) + q(2)$ |
-| integration $J : \mathcal P_2 \to \mathcal P_3$ | $p \mapsto \int_0^x p(t)\,dt$ | the integral splits over sums and scalars |
+| differentiation $D : \mathbb P_3(\mathbb R) \to \mathbb P_2(\mathbb R)$ | $p \mapsto p'$ | $(p + q)' = p' + q'$, $(cp)' = cp'$ |
+| evaluation $E : \mathbb P_2(\mathbb R) \to \mathbb R$ | $p \mapsto p(2)$ | $(p + q)(2) = p(2) + q(2)$ |
+| integration $J : \mathbb P_2(\mathbb R) \to \mathbb P_3(\mathbb R)$ | $p \mapsto \int_0^x p(t)\,dt$ | the integral splits over sums and scalars |
 | transpose $\mathbb R^{m \times n} \to \mathbb R^{n \times m}$ | $M \mapsto M^{\mathrm T}$ | $(M + N)^{\mathrm T} = M^{\mathrm T} + N^{\mathrm T}$ |
 | trace $\mathrm{tr} : \mathbb R^{n \times n} \to \mathbb R$ | $M \mapsto \sum_i m_{i,i}$ | sums of diagonal entries add |
-| coordinates $V \to \mathbb R^n$ | $\mathbf v \mapsto [\mathbf v]_{\mathcal B}$ | shown in the last unit |
+| coordinates $V \to \mathbb R^n$ | $\mathbf v \mapsto [\mathbf v]_{B}$ | shown in the last unit |
 
 ::::example[Three maps that are not linear]
-Show that these are not linear: $\det : \mathbb R^{2 \times 2} \to \mathbb R$; $S : \mathcal P_2 \to \mathcal P_2$, $S(p) = p + 1$; and $Q : \mathcal P_1 \to \mathcal P_2$, $Q(p) = p^2$.
+Show that these are not linear: $\det : \mathbb R^{2 \times 2} \to \mathbb R$; $S : \mathbb P_2(\mathbb R) \to \mathbb P_2(\mathbb R)$, $S(p) = p + 1$; and $Q : \mathbb P_1(\mathbb R) \to \mathbb P_2(\mathbb R)$, $Q(p) = p^2$.
 
 :::solution
 $\det(2I_2) = 4$, but $2\det(I_2) = 2$.
@@ -110,18 +110,18 @@ $T(\mathbf u - \mathbf v) = \mathbf 0$, so $\mathbf u - \mathbf v = \mathbf 0$.
 So injectivity of a linear map is one equation, $T(\mathbf v) = \mathbf 0$, rather than a statement about all pairs.
 
 ::::example[Kernel and image of differentiation]
-Find $\ker(D)$ and $\mathrm{im}(D)$ for $D : \mathcal P_3 \to \mathcal P_2$, $D(p) = p'$.
+Find $\ker(D)$ and $\mathrm{im}(D)$ for $D : \mathbb P_3(\mathbb R) \to \mathbb P_2(\mathbb R)$, $D(p) = p'$.
 
 :::solution
 $p' = 0$ exactly when $p$ is constant, so $\ker(D)$ is the set of constants, with basis $\{1\}$ and nullity $1$.
 
-Every $q \in \mathcal P_2$ is the derivative of an antiderivative, which has degree at most $3$. So $\mathrm{im}(D) = \mathcal P_2$, of rank $3$.
+Every $q \in \mathbb P_2(\mathbb R)$ is the derivative of an antiderivative, which has degree at most $3$. So $\mathrm{im}(D) = \mathbb P_2(\mathbb R)$, of rank $3$.
 $D$ is surjective and not injective.
 :::
 ::::
 
 ::::example[Evaluating at two points]
-Let $T : \mathcal P_2 \to \mathbb R^2$, $T(p) = (p(0), p(1))$. Find the kernel and the image.
+Let $T : \mathbb P_2(\mathbb R) \to \mathbb R^2$, $T(p) = (p(0), p(1))$. Find the kernel and the image.
 
 :::solution
 Write $p = a + bx + cx^2$. Then $T(p) = (a, \ a + b + c)$. The kernel requires $a = 0$ and $b + c = 0$, so $p = b(x - x^2)$, with basis
@@ -153,7 +153,7 @@ $\sum_j c_j\mathbf u_j = \sum_i a_i\mathbf k_i$ for some $a_i$. The whole set is
 :::
 ::::
 
-In both examples above, the count works: $1 + 3 = 4 = \dim \mathcal P_3$ and $1 + 2 = 3 = \dim \mathcal P_2$.
+In both examples above, the count works: $1 + 3 = 4 = \dim \mathbb P_3(\mathbb R)$ and $1 + 2 = 3 = \dim \mathbb P_2(\mathbb R)$.
 
 The dimension of $V$ is shared out: what the kernel takes, the image loses. Finding one of the two numbers gives the other.
 
@@ -172,7 +172,7 @@ Let $T : V \to W$ be linear, with $V$ and $W$ finite-dimensional.
 ::::
 
 :::caution[The theorem counts the domain]
-Rank plus nullity is the dimension of the **domain**, not of the codomain. For $E : \mathcal P_2 \to \mathbb R$, $E(p) = p(2)$, the
+Rank plus nullity is the dimension of the **domain**, not of the codomain. For $E : \mathbb P_2(\mathbb R) \to \mathbb R$, $E(p) = p(2)$, the
 image has dimension $1$, so the kernel has dimension $3 - 1 = 2$, not $1 - 1 = 0$.
 :::
 
@@ -180,46 +180,46 @@ image has dimension $1$, so the kernel has dimension $3 - 1 = 2$, not $1 - 1 = 0
 A bijective linear map is an **isomorphism**, and two spaces joined by one are **isomorphic**.
 :::
 
-The coordinate map shows that every $n$-dimensional space is isomorphic to $\mathbb R^n$: $\mathcal P_3$, $\mathbb R^{2 \times 2}$ and $\mathbb R^4$ are the same
+The coordinate map shows that every $n$-dimensional space is isomorphic to $\mathbb R^n$: $\mathbb P_3(\mathbb R)$, $\mathbb R^{2 \times 2}$ and $\mathbb R^4$ are the same
 space under different names, as far as linear algebra can tell.
 
 ## The matrix of a linear map
 
 ### Definition
 
-Let $T : V \to W$ be linear, with $\mathcal B = (\mathbf b_0, \dots, \mathbf b_{n-1})$ a basis of $V$ and $\mathcal C$ a basis of $W$. Take any $\mathbf v$ with
-$[\mathbf v]_{\mathcal B} = (c_0, \dots, c_{n-1})$. Linearity of $T$ and of the coordinate map gives
+Let $T : V \to W$ be linear, with $B = (\mathbf b_0, \dots, \mathbf b_{n-1})$ a basis of $V$ and $C$ a basis of $W$. Take any $\mathbf v$ with
+$[\mathbf v]_{B} = (c_0, \dots, c_{n-1})$. Linearity of $T$ and of the coordinate map gives
 
 $$
-[T(\mathbf v)]_{\mathcal C} = \Bigl[\, \sum_j c_j\,T(\mathbf b_j) \Bigr]_{\mathcal C} = \sum_j c_j\,[T(\mathbf b_j)]_{\mathcal C} .
+[T(\mathbf v)]_{C} = \Bigl[\, \sum_j c_j\,T(\mathbf b_j) \Bigr]_{C} = \sum_j c_j\,[T(\mathbf b_j)]_{C} .
 $$
 
-The right side is a matrix times $[\mathbf v]_{\mathcal B}$.
+The right side is a matrix times $[\mathbf v]_{B}$.
 
 :::definition[Matrix of a linear map]
-The **matrix of $T$ relative to $\mathcal B$ and $\mathcal C$** has as column $j$ the $\mathcal C$-coordinates of $T(\mathbf b_j)$:
+The **matrix of $T$ relative to $B$ and $C$** has as column $j$ the $C$-coordinates of $T(\mathbf b_j)$:
 
 $$
-[T]_{\mathcal C \leftarrow \mathcal B} = \bigl[\, [T(\mathbf b_0)]_{\mathcal C} \ \ [T(\mathbf b_1)]_{\mathcal C} \ \cdots \ [T(\mathbf b_{n-1})]_{\mathcal C} \,\bigr] .
+[T]_{B \to C} = \bigl[\, [T(\mathbf b_0)]_{C} \ \ [T(\mathbf b_1)]_{C} \ \cdots \ [T(\mathbf b_{n-1})]_{C} \,\bigr] .
 $$
 :::
 
 :::theorem[The matrix does the work of the map]
-For all $\mathbf v \in V$: $[T(\mathbf v)]_{\mathcal C} = [T]_{\mathcal C \leftarrow \mathcal B}\,[\mathbf v]_{\mathcal B}$, and this matrix is the only one with that property.
+For all $\mathbf v \in V$: $[T(\mathbf v)]_{C} = [T]_{B \to C}\,[\mathbf v]_{B}$, and this matrix is the only one with that property.
 :::
 
 The standard matrix is the case of the standard bases, and a transition matrix is the case of the identity map:
-$P_{\mathcal C \leftarrow \mathcal B} = [\mathrm{id}]_{\mathcal C \leftarrow \mathcal B}$.
+$P_{B \to C} = [\mathrm{id}]_{B \to C}$.
 
 :::steps[Finding the matrix of a linear map]
 1. Apply $T$ to each vector $\mathbf b_j$ of the domain basis.
-2. Write each result in coordinates relative to $\mathcal C$.
+2. Write each result in coordinates relative to $C$.
 3. Put these coordinate vectors in as columns, in order.
-4. Check on one vector: $[T]_{\mathcal C \leftarrow \mathcal B}[\mathbf v]_{\mathcal B}$ must equal $[T(\mathbf v)]_{\mathcal C}$.
+4. Check on one vector: $[T]_{B \to C}[\mathbf v]_{B}$ must equal $[T(\mathbf v)]_{C}$.
 :::
 
 ::::example[Differentiation as a matrix]
-Find the matrix of $D : \mathcal P_3 \to \mathcal P_2$ relative to the standard bases $(1, x, x^2, x^3)$ and $(1, x, x^2)$, and use it on $p = 2 - x + 4x^3$.
+Find the matrix of $D : \mathbb P_3(\mathbb R) \to \mathbb P_2(\mathbb R)$ relative to the standard bases $(1, x, x^2, x^3)$ and $(1, x, x^2)$, and use it on $p = 2 - x + 4x^3$.
 
 :::solution
 $D(1) = 0$, $D(x) = 1$, $D(x^2) = 2x$ and $D(x^3) = 3x^2$ have coordinates $(0, 0, 0)$, $(1, 0, 0)$, $(0, 2, 0)$ and $(0, 0, 3)$:
@@ -244,14 +244,14 @@ p.derivative()                          # 12*x^2 - 1
 ```
 
 ::::example[A matrix with a basis that is not standard]
-For $T : \mathcal P_2 \to \mathbb R^2$, $T(p) = (p(0), p(1))$, find the matrix relative to $\mathcal B = (1, x, x^2)$ and $\mathcal C = ((1, 1), (1, -1))$.
+For $T : \mathbb P_2(\mathbb R) \to \mathbb R^2$, $T(p) = (p(0), p(1))$, find the matrix relative to $B = (1, x, x^2)$ and $C = ((1, 1), (1, -1))$.
 
 :::solution
-$T(1) = (1, 1)$, $T(x) = (0, 1)$ and $T(x^2) = (0, 1)$. In $\mathcal C$-coordinates, $(1, 1)$ is $(1, 0)$, and $(0, 1) = \tfrac12(1, 1) - \tfrac12(1, -1)$
+$T(1) = (1, 1)$, $T(x) = (0, 1)$ and $T(x^2) = (0, 1)$. In $C$-coordinates, $(1, 1)$ is $(1, 0)$, and $(0, 1) = \tfrac12(1, 1) - \tfrac12(1, -1)$
 is $(\tfrac12, -\tfrac12)$. So
 
 $$
-[T]_{\mathcal C \leftarrow \mathcal B} = \begin{bmatrix} 1 & \tfrac12 & \tfrac12 \\ 0 & -\tfrac12 & -\tfrac12 \end{bmatrix} .
+[T]_{B \to C} = \begin{bmatrix} 1 & \tfrac12 & \tfrac12 \\ 0 & -\tfrac12 & -\tfrac12 \end{bmatrix} .
 $$
 
 Its rank is $2$, and its kernel is spanned by $(0, 1, -1)$, the polynomial $x - x^2$ found above.
@@ -271,15 +271,15 @@ M.right_kernel().basis()                # [(0, 1, -1)]
 Coordinates are a bijection that respects the operations, so everything can be read from the matrix.
 
 :::theorem[Reading kernel and image from the matrix]
-Let $M = [T]_{\mathcal C \leftarrow \mathcal B}$. Then $\mathbf v \in \ker(T)$ exactly when $[\mathbf v]_{\mathcal B} \in \ker(M)$, and $\mathbf w \in \mathrm{im}(T)$ exactly when
-$[\mathbf w]_{\mathcal C} \in \mathrm{col}(M)$. In particular the rank of $T$ is $\mathrm{rank}(M)$ and the nullity of $T$ is the nullity of $M$.
+Let $M = [T]_{B \to C}$. Then $\mathbf v \in \ker(T)$ exactly when $[\mathbf v]_{B} \in \ker(M)$, and $\mathbf w \in \mathrm{im}(T)$ exactly when
+$[\mathbf w]_{C} \in \mathrm{col}(M)$. In particular the rank of $T$ is $\mathrm{rank}(M)$ and the nullity of $T$ is the nullity of $M$.
 :::
 
 :::theorem[Matrix of a composition]
-If $T : U \to V$ and $S : V \to W$ are linear, with bases $\mathcal B$, $\mathcal C$, $\mathcal D$, then
+If $T : U \to V$ and $S : V \to W$ are linear, with bases $B$, $C$, $D$, then
 
 $$
-[S \circ T]_{\mathcal D \leftarrow \mathcal B} = [S]_{\mathcal D \leftarrow \mathcal C}\,[T]_{\mathcal C \leftarrow \mathcal B} .
+[S \circ T]_{B \to D} = [S]_{C \to D}\,[T]_{B \to C} .
 $$
 :::
 
@@ -310,19 +310,19 @@ Tm.rank(), Tm.right_kernel().dimension()             # (1, 3)
 
 ### Changing the basis of an operator
 
-For an operator $T : V \to V$, one basis is used on both sides, and $[T]_{\mathcal B}$ means $[T]_{\mathcal B \leftarrow \mathcal B}$. A good choice of
+For an operator $T : V \to V$, one basis is used on both sides, and $[T]_{B}$ means $[T]_{B \to B}$. A good choice of
 basis can make this matrix much simpler, so it matters how it changes.
 
 ::::theorem[Change of basis for an operator]
-Let $\mathcal B$ and $\mathcal C$ be bases of $V$ and $P = P_{\mathcal B \leftarrow \mathcal C}$. Then
+Let $B$ and $C$ be bases of $V$ and $P = P_{C \to B}$. Then
 
 $$
-[T]_{\mathcal C} = P^{-1}\,[T]_{\mathcal B}\,P .
+[T]_{C} = P^{-1}\,[T]_{B}\,P .
 $$
 
 :::proof
-Read the product from right to left on $[\mathbf v]_{\mathcal C}$: $P$ turns it into $[\mathbf v]_{\mathcal B}$, then $[T]_{\mathcal B}$ turns that into $[T(\mathbf v)]_{\mathcal B}$,
-and $P^{-1} = P_{\mathcal C \leftarrow \mathcal B}$ turns that into $[T(\mathbf v)]_{\mathcal C}$. So the product does the work of $[T]_{\mathcal C}$, and that matrix is unique.
+Read the product from right to left on $[\mathbf v]_{C}$: $P$ turns it into $[\mathbf v]_{B}$, then $[T]_{B}$ turns that into $[T(\mathbf v)]_{B}$,
+and $P^{-1} = P_{B \to C}$ turns that into $[T(\mathbf v)]_{C}$. So the product does the work of $[T]_{C}$, and that matrix is unique.
 :::
 ::::
 
@@ -351,13 +351,13 @@ only matrix similar to $I_2$ is $P^{-1}I_2P = I_2$ itself. These checks can only
 :::
 
 ::::example[A better basis]
-Let $T(x, y) = (3x + y, \ 2y)$ on $\mathbb R^2$, and $\mathcal C = ((1, 0), (1, -1))$. Find $[T]_{\mathcal C}$.
+Let $T(x, y) = (3x + y, \ 2y)$ on $\mathbb R^2$, and $C = ((1, 0), (1, -1))$. Find $[T]_{C}$.
 
 :::solution
-The standard matrix is $A = \begin{bmatrix} 3 & 1 \\ 0 & 2 \end{bmatrix}$, and $P = \begin{bmatrix} 1 & 1 \\ 0 & -1 \end{bmatrix}$ has the vectors of $\mathcal C$ as columns. Then
+The standard matrix is $A = \begin{bmatrix} 3 & 1 \\ 0 & 2 \end{bmatrix}$, and $P = \begin{bmatrix} 1 & 1 \\ 0 & -1 \end{bmatrix}$ has the vectors of $C$ as columns. Then
 
 $$
-[T]_{\mathcal C} = P^{-1}AP = \begin{bmatrix} 1 & 1 \\ 0 & -1 \end{bmatrix}\begin{bmatrix} 3 & 1 \\ 0 & 2 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 0 & -1 \end{bmatrix} = \begin{bmatrix} 3 & 0 \\ 0 & 2 \end{bmatrix} .
+[T]_{C} = P^{-1}AP = \begin{bmatrix} 1 & 1 \\ 0 & -1 \end{bmatrix}\begin{bmatrix} 3 & 1 \\ 0 & 2 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 0 & -1 \end{bmatrix} = \begin{bmatrix} 3 & 0 \\ 0 & 2 \end{bmatrix} .
 $$
 
 Directly: $T(1, 0) = 3\,(1, 0)$ and $T(1, -1) = (2, -2) = 2\,(1, -1)$. In this basis $T$ only stretches each axis. The trace
@@ -365,7 +365,7 @@ is $5$ and the determinant is $6$ in both matrices. Finding such a basis is the 
 :::
 ::::
 
-The sliders below choose a basis $(\mathbf b_0, \mathbf b_1)$ of unit vectors, for the same map $T$. Read each column of $[T]_{\mathcal B}$ as the
+The sliders below choose a basis $(\mathbf b_0, \mathbf b_1)$ of unit vectors, for the same map $T$. Read each column of $[T]_{B}$ as the
 coordinates of $T(\mathbf b_j)$ on the skewed grid. The matrix changes, but its trace and determinant do not.
 
 ```sim
@@ -393,9 +393,9 @@ to the map, and the entries belong to the choice of bases, so a good basis is on
 :::equations
 - *Kernel and image*: $\ker(T) = \{\mathbf v : T(\mathbf v) = \mathbf 0\}$, $\mathrm{im}(T) = \{T(\mathbf v)\}$; injective $\iff \ker(T) = \{\mathbf 0\}$.
 - *Rank–nullity*: $\dim \ker(T) + \dim \mathrm{im}(T) = \dim V$ (the domain).
-- *Matrix*: column $j$ of $[T]_{\mathcal C \leftarrow \mathcal B}$ is $[T(\mathbf b_j)]_{\mathcal C}$; $[T(\mathbf v)]_{\mathcal C} = [T]_{\mathcal C \leftarrow \mathcal B}[\mathbf v]_{\mathcal B}$.
-- *Matrix of a composition*: $[S \circ T]_{\mathcal D \leftarrow \mathcal B} = [S]_{\mathcal D \leftarrow \mathcal C}[T]_{\mathcal C \leftarrow \mathcal B}$.
-- *Change of basis*: $[T]_{\mathcal C} = P^{-1}[T]_{\mathcal B}P$ with $P = P_{\mathcal B \leftarrow \mathcal C}$.
+- *Matrix*: column $j$ of $[T]_{B \to C}$ is $[T(\mathbf b_j)]_{C}$; $[T(\mathbf v)]_{C} = [T]_{B \to C}[\mathbf v]_{B}$.
+- *Matrix of a composition*: $[S \circ T]_{B \to D} = [S]_{C \to D}[T]_{B \to C}$.
+- *Change of basis*: $[T]_{C} = P^{-1}[T]_{B}P$ with $P = P_{C \to B}$.
 - *Similar*: $B = P^{-1}AP$; equal $\det$, $\mathrm{tr}$, rank.
 :::
 

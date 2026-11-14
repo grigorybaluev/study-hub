@@ -26,7 +26,7 @@ turns per unit of distance.
 For a particle with position $\mathbf{r}(t)$ at time $t$:
 
 - the **velocity** is $\mathbf{v}(t) = \mathbf{r}'(t)$;
-- the **speed** is the number $|\mathbf{v}(t)| = |\mathbf{r}'(t)|$;
+- the **speed** is the length of the velocity, the number $v = |\mathbf{v}(t)| = |\mathbf{r}'(t)| = s'(t)$, where $s$ is the arc length function below;
 - the **acceleration** is $\mathbf{a}(t) = \mathbf{v}'(t) = \mathbf{r}''(t)$.
 :::
 
@@ -174,13 +174,17 @@ note: 'The yellow arrow is the velocity, tangent to the path; the red arrow is t
 The length of a plane curve is $\int_a^b \sqrt{x'(t)^2 + y'(t)^2}\,dt$. A third coordinate adds one
 more square under the root, and the same limit of inscribed polygons gives the formula.
 
-:::definition[Length of a space curve]
-If $\mathbf{r}'$ is continuous on $[a, b]$ and the curve is traversed exactly once as $t$ goes from
-$a$ to $b$, its **length** is
+:::theorem[Length of a space curve]
+Let $C$ be a space curve given by $\mathbf{r}(t) = \langle f(t), g(t), h(t) \rangle$, $a \le t \le b$, where $f'$, $g'$ and $h'$ are continuous. If
+the curve is traced out exactly once as $t$ increases from $a$ to $b$, its **length** is
 
 $$
-L = \int_a^b |\mathbf{r}'(t)|\,dt = \int_a^b \sqrt{x'(t)^2 + y'(t)^2 + z'(t)^2}\,dt .
+L = \int_a^b \sqrt{\left(\frac{dx}{dt}\right)^2 + \left(\frac{dy}{dt}\right)^2 + \left(\frac{dz}{dt}\right)^2}\,dt
+= \int_a^b \sqrt{f'(t)^2 + g'(t)^2 + h'(t)^2}\,dt = \int_a^b |\mathbf{r}'(t)|\,dt .
 $$
+
+For a plane curve $\mathbf{r}(t) = \langle f(t), g(t) \rangle$ the third term drops out:
+$L = \int_a^b \sqrt{f'(t)^2 + g'(t)^2}\,dt = \int_a^b |\mathbf{r}'(t)|\,dt$.
 :::
 
 So length is the integral of the speed: the distance travelled.
@@ -229,8 +233,11 @@ s(t) = \int_a^t |\mathbf{r}'(u)|\,du ,
 $$
 
 the length of the piece from $\mathbf{r}(a)$ to $\mathbf{r}(t)$. By the fundamental theorem of
-calculus, $\dfrac{ds}{dt} = |\mathbf{r}'(t)|$.
+calculus, $s'(t) = |\mathbf{r}'(t)|$.
 :::
+
+$s$ is called the **arc length parameter** of the curve: the curve can be reparametrized in terms of $s$ by finding $t$
+as a function of $s$, $t = t(s)$, and substituting, $\mathbf{r} = \mathbf{r}(t(s))$.
 
 :::steps[Reparametrizing by arc length]
 1. Compute $s(t) = \int_a^t |\mathbf{r}'(u)|\,du$.
@@ -274,20 +281,24 @@ The unit tangent $\mathbf{T}$ records only the direction of a curve. On a straig
 changes. On a tight bend it changes quickly per metre walked. To measure the shape and not the speed
 of the walker, its rate of change is taken with respect to arc length.
 
+Recall that $\mathbf{T}(t) = \dfrac{\mathbf{r}'(t)}{|\mathbf{r}'(t)|}$ is the **unit tangent vector** in the direction of $\mathbf{r}'(t)$, with $|\mathbf{T}(t)| = 1$, and that the
+curve is **smooth** on an interval $I$ when $\mathbf{r}'$ is continuous and $\mathbf{r}'(t) \ne \mathbf{0}$ on $I$.
+
 :::definition[Curvature]
-The **curvature** of a smooth curve is
+The **curvature function** of a smooth curve at the point $P(t)$ is
 
 $$
-\kappa = \left| \frac{d\mathbf{T}}{ds} \right| ,
+\kappa(t) = \left| \frac{d\mathbf{T}}{ds} \right| ,
 $$
 
-the magnitude of the rate of change of the unit tangent with respect to arc length.
+the magnitude of the rate of change of the unit tangent with respect to arc length. $\kappa(t)$ measures how quickly
+the curve changes direction at $P(t)$.
 :::
 
-Since $\mathbf{T}$ is usually a function of $t$, the chain rule $\frac{d\mathbf{T}}{dt} = \frac{d\mathbf{T}}{ds}\frac{ds}{dt}$ gives a formula that needs no reparametrization:
+Since $\mathbf{T}$ is usually a function of $t$, the chain rule gives a formula that needs no reparametrization:
 
 $$
-\kappa(t) = \frac{|\mathbf{T}'(t)|}{|\mathbf{r}'(t)|} .
+\kappa(t) = \left| \frac{d\mathbf{T}}{ds} \right| = \left| \frac{d\mathbf{T}/dt}{ds/dt} \right| = \frac{|\mathbf{T}'(t)|}{|s'(t)|} = \frac{|\mathbf{T}'(t)|}{|\mathbf{r}'(t)|} .
 $$
 
 ::::example[The curvature of a circle]
@@ -377,7 +388,7 @@ it: climbing stretches the bend.
 For a plane curve, embed it in space with $z = 0$. The cross product then has only a $\mathbf{k}$
 component, and the theorem becomes two formulas.
 
-:::proposition[Curvature of a plane curve]
+::::proposition[Curvature of a plane curve]
 For a parametric curve $x = x(t)$, $y = y(t)$,
 
 $$
@@ -387,9 +398,18 @@ $$
 and for a graph $y = f(x)$, taking $x$ as the parameter,
 
 $$
-\kappa(x) = \frac{|f''(x)|}{\left( 1 + f'(x)^2 \right)^{3/2}} .
+\kappa(x) = \frac{|f''(x)|}{\left( \sqrt{1 + f'(x)^2} \right)^{3}} .
 $$
+
+:::proof
+For the graph, write the curve as $\mathbf{r}(x) = x\,\mathbf{i} + f(x)\,\mathbf{j}$, with $x$ as the parameter. Then
+$\mathbf{r}'(x) = \mathbf{i} + f'(x)\,\mathbf{j}$, $\mathbf{r}''(x) = f''(x)\,\mathbf{j}$ and $\mathbf{r}'(x) \times \mathbf{r}''(x) = f''(x)\,\mathbf{k}$, so the theorem gives
+$$
+\kappa(x) = \frac{|\mathbf{r}'(x) \times \mathbf{r}''(x)|}{|\mathbf{r}'(x)|^3} = \frac{|f''(x)\,\mathbf{k}|}{\left(\sqrt{1 + f'(x)^2}\right)^3} = \frac{|f''(x)|}{\left(\sqrt{1 + f'(x)^2}\right)^3} .
+$$
+For the parametric curve, $\langle x', y', 0 \rangle \times \langle x'', y'', 0 \rangle = (x'y'' - y'x'')\,\mathbf{k}$ in the same way.
 :::
+::::
 
 ::::example[An ellipse at its vertices]
 Find the curvature of the ellipse $\mathbf{r}(t) = \langle 3\cos t, 2\sin t \rangle$ at the ends of its axes.
@@ -467,7 +487,7 @@ for t in (0.0, 1.0, 2.5):
 
 ### Normal and binormal vectors
 
-$\mathbf{T}$ has constant length, so $\mathbf{T}'$ is perpendicular to $\mathbf{T}$. Its direction,
+$\mathbf{T}(t)$ and $\mathbf{T}'(t)$ are orthogonal: differentiating $\mathbf{T} \cdot \mathbf{T} = |\mathbf{T}|^2 = 1$ gives $2\,\mathbf{T} \cdot \mathbf{T}' = 0$. The direction of $\mathbf{T}'$,
 the direction in which the curve is turning, gives a second vector, and the cross product a third.
 
 :::definition[Principal normal and binormal]
@@ -477,14 +497,22 @@ $$
 \mathbf{N}(t) = \frac{\mathbf{T}'(t)}{|\mathbf{T}'(t)|} ,
 $$
 
-and the **binormal** is $\mathbf{B}(t) = \mathbf{T}(t) \times \mathbf{N}(t)$.
+and the **binormal vector** is $\mathbf{B}(t) = \mathbf{T}(t) \times \mathbf{N}(t)$.
 :::
 
-The three are mutually perpendicular unit vectors, a right-handed frame that travels along the curve
-(the **TNB frame**). Two planes through a point of the curve take their names from it: the **normal
-plane**, spanned by $\mathbf{N}$ and $\mathbf{B}$, is perpendicular to the curve (its normal is
-$\mathbf{T}$); the **osculating plane**, spanned by $\mathbf{T}$ and $\mathbf{N}$, is the plane the
-curve bends in, and its normal is $\mathbf{B}$.
+Since $\mathbf{T}$ and $\mathbf{T}'$ are orthogonal, so are $\mathbf{T}$ and $\mathbf{N}$. Then $\mathbf{B}$ is a unit vector,
+$|\mathbf{B}| = |\mathbf{T}|\,|\mathbf{N}|\sin\frac{\pi}{2} = 1$, and as a cross product it is perpendicular to both $\mathbf{T}$ and $\mathbf{N}$. The three are mutually
+perpendicular unit vectors, a right-handed frame that travels along the curve (the **TNB frame**).
+
+:::definition[Normal plane and osculating plane]
+Let $C$ be a smooth curve and $P(t)$ a point of $C$.
+
+1. The plane determined by the normal vector $\mathbf{N}(t)$ and the binormal vector $\mathbf{B}(t)$ at $P(t)$ is the **normal plane** of $C$ at $P(t)$.
+2. The plane determined by the tangent vector $\mathbf{T}(t)$ and the normal vector $\mathbf{N}(t)$ at $P(t)$ is the **osculating plane** of $C$ at $P(t)$.
+:::
+
+The normal plane is perpendicular to the curve (its normal vector is $\mathbf{T}$); the osculating plane is the plane the
+curve bends in, and its normal vector is $\mathbf{B}$.
 
 ::::example[The frame of a helix]
 Find $\mathbf{T}$, $\mathbf{N}$ and $\mathbf{B}$ for $\mathbf{r}(t) = \langle 3\cos t, 3\sin t, 4t \rangle$, and the normal and osculating planes at $t = \frac{\pi}{2}$.
@@ -524,10 +552,12 @@ The acceleration always lies in the osculating plane; it has no component along 
 $\mathbf{a} = a_T\,\mathbf{T} + a_N\,\mathbf{N}$, where
 
 $$
-a_T = v' = \frac{\mathbf{r}'(t) \cdot \mathbf{r}''(t)}{|\mathbf{r}'(t)|} ,
+a_T(t) = \frac{d}{dt}|\mathbf{v}(t)| = \frac{\mathbf{r}'(t) \cdot \mathbf{r}''(t)}{|\mathbf{r}'(t)|} ,
 \qquad
-a_N = \kappa v^2 = \frac{|\mathbf{r}'(t) \times \mathbf{r}''(t)|}{|\mathbf{r}'(t)|} .
+a_N(t) = \kappa(t)\,|\mathbf{v}(t)|^2 = \frac{|\mathbf{r}'(t) \times \mathbf{r}''(t)|}{|\mathbf{r}'(t)|} ,
 $$
+
+the **tangential** and the **normal component** of the acceleration.
 :::
 
 $a_T$ changes the speed, and $a_N$ changes the direction. A car taking a bend feels $a_N = \kappa v^2$:

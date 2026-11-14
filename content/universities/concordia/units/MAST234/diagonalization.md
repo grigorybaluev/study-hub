@@ -201,22 +201,22 @@ C.change_ring(QQbar).is_diagonalizable()        # True: over C, with eigenvalues
 ### Diagonalizable operators
 
 :::definition[Diagonalizable operator]
-A linear operator $T : V \to V$ on a finite-dimensional space is **diagonalizable** if $V$ has a basis of eigenvectors of $T$. Relative to such a basis, $[T]_{\mathcal B}$ is diagonal.
+A linear operator $T : V \to V$ on a finite-dimensional space is **diagonalizable** if $V$ has a basis of eigenvectors of $T$. Relative to such a basis, $[T]_{B}$ is diagonal.
 :::
 
-Equivalently, $[T]_{\mathcal C}$ is a diagonalizable matrix for one basis $\mathcal C$, and then for every basis.
+Equivalently, $[T]_{C}$ is a diagonalizable matrix for one basis $C$, and then for every basis.
 
 ::::example[The transpose, in a basis of eigenvectors]
-Diagonalize $T(M) = M^{\mathrm T}$ on $\mathbb R^{2 \times 2}$, and show that differentiation on $\mathcal P_2$ is not diagonalizable.
+Diagonalize $T(M) = M^{\mathrm T}$ on $\mathbb R^{2 \times 2}$, and show that differentiation on $\mathbb P_2(\mathbb R)$ is not diagonalizable.
 
 :::solution
 The eigenspaces of $T$ are the symmetric matrices (dimension $3$) and the skew-symmetric matrices (dimension $1$). Together they give the basis
 
 $$
-\mathcal B = \left( \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}, \begin{bmatrix} 0 & 0 \\ 0 & 1 \end{bmatrix}, \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}, \begin{bmatrix} 0 & 1 \\ -1 & 0 \end{bmatrix} \right) , \qquad [T]_{\mathcal B} = \mathrm{diag}(1, 1, 1, -1) .
+B = \left( \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}, \begin{bmatrix} 0 & 0 \\ 0 & 1 \end{bmatrix}, \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}, \begin{bmatrix} 0 & 1 \\ -1 & 0 \end{bmatrix} \right) , \qquad [T]_{B} = \mathrm{diag}(1, 1, 1, -1) .
 $$
 
-$D$ on $\mathcal P_2$ has the single eigenvalue $0$ of algebraic multiplicity $3$, with $\dim E_0 = 1$. So it is not diagonalizable.
+$D$ on $\mathbb P_2(\mathbb R)$ has the single eigenvalue $0$ of algebraic multiplicity $3$, with $\dim E_0 = 1$. So it is not diagonalizable.
 :::
 ::::
 

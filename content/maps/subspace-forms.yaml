@@ -24,7 +24,7 @@ nodes:
     tone: grey
     box: [20, 20, 230, 100]
     concept: vector-space
-    text: "$\\mathcal P_n$ has dimension $n+1$, $\\mathbb R^{m\\times n}$ has dimension $mn$. Fix the order of the standard basis."
+    text: "$\\mathbb P_n(\\mathbb R)$ has dimension $n+1$, $\\mathbb R^{m\\times n}$ has dimension $mn$. Fix the order of the standard basis."
   - id: condition
     label: A condition
     sub: a subspace given by a property
@@ -74,14 +74,14 @@ nodes:
     tone: green
     box: [20, 570, 230, 110]
     concept: basis-dimension
-    text: "$[\\mathbf v]_{\\mathcal B}$: the coefficients of $\\mathbf v$ on $\\mathcal B$, in the order of $\\mathcal B$."
+    text: "$[\\mathbf v]_{B}$: the coefficients of $\\mathbf v$ on $B$, in the order of $B$."
   - id: other
     label: "Coordinates in C"
     sub: same vector, another basis
     tone: teal
     box: [715, 570, 230, 110]
     concept: basis-dimension
-    text: "$[\\mathbf v]_{\\mathcal C}$. The vector does not change, only its description."
+    text: "$[\\mathbf v]_{C}$. The vector does not change, only its description."
 
 edges:
   - id: coefficients
@@ -96,10 +96,10 @@ edges:
     path: M135 120 L135 198
     steps: >-
       Write each polynomial or matrix as its list of coefficients in the standard basis: $1+2x^2$ in
-      $\mathcal P_2$ is $(1,0,2)$; a $2\times2$ matrix is its four entries row by row (`M.list()`). This is the
+      $\mathbb P_2(\mathbb R)$ is $(1,0,2)$; a $2\times2$ matrix is its four entries row by row (`M.list()`). This is the
       coordinate map, so independence and spanning carry over exactly.
     when: 'any question about polynomials or matrices that is not about a single formula'
-    trap: "$\\mathcal P_2$ lists have 3 entries; write the zero coefficients"
+    trap: "$\\mathbb P_2(\\mathbb R)$ lists have 3 entries; write the zero coefficients"
   - id: solve
     n: 2
     from: condition
@@ -190,7 +190,7 @@ edges:
     path: M602 440 L713 440
     steps: "The dimension is the number of vectors in a basis, whichever basis it is. For the kernel and the column space of $A$: $n-r$ and $r$."
     when: '"what is the dimension of …"'
-    trap: "$\\dim\\mathcal P_n=n+1$, not $n$"
+    trap: "$\\dim\\mathbb P_n(\\mathbb R)=n+1$, not $n$"
   - id: shortcut
     n: 8
     from: dim
@@ -204,7 +204,7 @@ edges:
     steps: >-
       When the number of vectors equals the dimension, independent and spanning are the same condition: check one, and
       for a square matrix of coordinates just check `det(M) != 0`.
-    when: '"show that these three polynomials are a basis of $\mathcal P_2$"'
+    when: '"show that these three polynomials are a basis of $\mathbb P_2(\mathbb R)$"'
     trap: this needs the dimension to be known and the vectors to lie in the space
   - id: coordinates
     n: 9
@@ -217,7 +217,7 @@ edges:
     label: [262, 505, 110]
     path: M400 497 L252 590
     steps: >-
-      Solve $c_0\mathbf b_0+\dots+c_{n-1}\mathbf b_{n-1}=\mathbf v$. With the basis in the columns of $P$: $[\mathbf v]_{\mathcal B}=P^{-1}\mathbf v$,
+      Solve $c_0\mathbf b_0+\dots+c_{n-1}\mathbf b_{n-1}=\mathbf v$. With the basis in the columns of $P$: $[\mathbf v]_{B}=P^{-1}\mathbf v$,
       `P.solve_right(v)`. For polynomials, use coefficient lists for $P$ and $\mathbf v$.
     when: '"find the coordinates of … relative to …"'
     trap: the order of the coordinates is the order of the basis
@@ -228,7 +228,7 @@ edges:
     kind: algorithm
     cost: same
     name: rebuild the vector
-    short: "$\\mathbf v=P[\\mathbf v]_{\\mathcal B}$"
+    short: "$\\mathbf v=P[\\mathbf v]_{B}$"
     label: [24, 420, 120]
     path: M18 630 L8 630 L8 70 L18 70
     steps: "Multiply each basis vector by its coordinate and add: `P * c`. This is the check for arrow 9."
@@ -241,13 +241,13 @@ edges:
     kind: algorithm
     cost: same
     name: transition matrix
-    short: "$[\\mathbf v]_{\\mathcal C}=P_{\\mathcal C\\leftarrow\\mathcal B}[\\mathbf v]_{\\mathcal B}$, $P_{\\mathcal C\\leftarrow\\mathcal B}=P_{\\mathcal C}^{-1}P_{\\mathcal B}$"
+    short: "$[\\mathbf v]_{C}=P_{B \\to C}[\\mathbf v]_{B}$, $P_{B \\to C}=P_{C}^{-1}P_{B}$"
     label: [262, 630, 440, center]
     path: M252 622 L713 622
     steps: >-
-      The columns of $P_{\mathcal C\leftarrow\mathcal B}$ are the vectors of $\mathcal B$ written in $\mathcal C$. Compute it as
-      `PC.inverse() * PB`, or row reduce $[\,P_{\mathcal C}\mid P_{\mathcal B}\,]$ to $[\,I\mid P_{\mathcal C\leftarrow\mathcal B}\,]$. The inverse matrix goes the other way.
-    when: '"find the transition matrix from $\mathcal B$ to $\mathcal C$"; several vectors to convert'
+      The columns of $P_{B \to C}$ are the vectors of $B$ written in $C$. Compute it as
+      `PC.inverse() * PB`, or row reduce $[\,P_{C}\mid P_{B}\,]$ to $[\,I\mid P_{B \to C}\,]$. The inverse matrix goes the other way.
+    when: '"find the transition matrix from $B$ to $C$"; several vectors to convert'
     trap: "the direction: old basis vectors written in the new basis. Test it on one basis vector"
 
 routes:
@@ -281,7 +281,7 @@ routes:
 
 example:
   title: One subspace of polynomials around the whole map
-  language: "$W=\\{p\\in\\mathcal P_3: p(1)=0\\}$"
+  language: "$W=\\{p\\in\\mathbb P_3(\\mathbb R): p(1)=0\\}$"
   walk:
     - node: condition
       text: >-
@@ -297,19 +297,19 @@ example:
     - edge: read-pivots
       text: "A pivot in every column: the three vectors are independent."
     - edge: keep-pivots
-      text: "So $\\mathcal B=(x-1,\\ x^2-1,\\ x^3-1)$ is a basis of $W$."
+      text: "So $B=(x-1,\\ x^2-1,\\ x^3-1)$ is a basis of $W$."
     - edge: count
-      text: "$\\dim W=3$: one condition took one dimension out of the four of $\\mathcal P_3$."
+      text: "$\\dim W=3$: one condition took one dimension out of the four of $\\mathbb P_3(\\mathbb R)$."
     - edge: shortcut
       text: >-
-        $\mathcal C=(x-1,\ (x-1)^2,\ (x-1)^3)$ lies in $W$, and its vectors have different degrees, so they are independent.
+        $C=(x-1,\ (x-1)^2,\ (x-1)^3)$ lies in $W$, and its vectors have different degrees, so they are independent.
         Three independent vectors in dimension 3 are a basis, with no spanning check.
     - edge: coordinates
-      text: "For $p=x^3-x$: $p=(x^3-1)-(x-1)$, so $[p]_{\\mathcal B}=(-1,0,1)$."
+      text: "For $p=x^3-x$: $p=(x^3-1)-(x-1)$, so $[p]_{B}=(-1,0,1)$."
     - edge: transition
       text: >-
-        Writing $\mathcal C$ in $\mathcal B$: $(x-1)^2=(x^2-1)-2(x-1)$ and $(x-1)^3=(x^3-1)-3(x^2-1)+3(x-1)$ give
-        $P_{\mathcal B\leftarrow\mathcal C}=\begin{bmatrix}1&-2&3\\0&1&-3\\0&0&1\end{bmatrix}$. Its inverse sends $(-1,0,1)$ to
-        $[p]_{\mathcal C}=(2,3,1)$.
+        Writing $C$ in $B$: $(x-1)^2=(x^2-1)-2(x-1)$ and $(x-1)^3=(x^3-1)-3(x^2-1)+3(x-1)$ give
+        $P_{C \to B}=\begin{bmatrix}1&-2&3\\0&1&-3\\0&0&1\end{bmatrix}$. Its inverse sends $(-1,0,1)$ to
+        $[p]_{C}=(2,3,1)$.
     - edge: rebuild
       text: "Check: $2(x-1)+3(x-1)^2+(x-1)^3=x^3-x$."
