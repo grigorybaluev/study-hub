@@ -79,15 +79,15 @@ shared:
       solutions of $A\mathbf x=\mathbf b$ with $\mathbf b\neq\mathbf 0$, sets with squares, products or inequalities in the condition, most unions. Passing the zero test proves nothing; one numeric failure of closure is a full answer.
   - label: Dimensions
     text: >-
-      $\dim\mathbb R^n=n$, $\dim\mathcal P_n=n+1$, $\dim\mathbb R^{m\times n}=mn$. $\dim\mathrm{col}(A)=\dim\mathrm{row}(A)=r$, $\dim\ker(A)=n-r$.
+      $\dim\mathbb R^n=n$, $\dim\mathbb P_n(\mathbb R)=n+1$, $\dim\mathbb R^{m\times n}=mn$. $\dim\mathrm{col}(A)=\dim\mathrm{row}(A)=r$, $\dim\ker(A)=n-r$.
       Rank–nullity: $\dim\ker(T)+\dim\mathrm{im}(T)=\dim V$, the domain.
   - label: Coordinates
     text: >-
-      $\mathbf v=P_{\mathcal B}[\mathbf v]_{\mathcal B}$. $[\mathbf v]_{\mathcal C}=P_{\mathcal C\leftarrow\mathcal B}[\mathbf v]_{\mathcal B}$, where the columns of $P_{\mathcal C\leftarrow\mathcal B}$ are the old basis in the new one:
-      $P_{\mathcal C\leftarrow\mathcal B}=P_{\mathcal C}^{-1}P_{\mathcal B}$, and its inverse is $P_{\mathcal B\leftarrow\mathcal C}$. In Sage: `PC.inverse() * PB`.
+      $\mathbf v=P_{B}[\mathbf v]_{B}$. $[\mathbf v]_{C}=P_{B \to C}[\mathbf v]_{B}$, where the columns of $P_{B \to C}$ are the old basis in the new one:
+      $P_{B \to C}=P_{C}^{-1}P_{B}$, and its inverse is $P_{C \to B}$. In Sage: `PC.inverse() * PB`.
   - label: Matrix of a map
     text: >-
-      Column $j$ of $[T]_{\mathcal C\leftarrow\mathcal B}$ is $[T(\mathbf b_j)]_{\mathcal C}$. Composition: $[S\circ T]=[S][T]$. Operator: $[T]_{\mathcal C}=P^{-1}[T]_{\mathcal B}P$, with $P=P_{\mathcal B\leftarrow\mathcal C}$. Similar matrices share
+      Column $j$ of $[T]_{B \to C}$ is $[T(\mathbf b_j)]_{C}$. Composition: $[S\circ T]=[S][T]$. Operator: $[T]_{C}=P^{-1}[T]_{B}P$, with $P=P_{C \to B}$. Similar matrices share
       $\det$, trace, rank, characteristic polynomial and eigenvalues. A difference disproves similarity, and agreement proves nothing.
   - label: Complex numbers
     text: >-

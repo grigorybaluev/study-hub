@@ -214,8 +214,8 @@ The **algebraic multiplicity** of $\lambda$ is its multiplicity as a root of $p_
 For every eigenvalue, $1 \le$ geometric multiplicity $\le$ algebraic multiplicity.
 
 :::proof
-$\lambda$ is an eigenvalue, so $E_\lambda$ contains a nonzero vector, and its dimension $g$ is at least $1$. Extend a basis of $E_\lambda$ to a basis $\mathcal B$ of $\mathbb R^n$. The
-first $g$ columns of the matrix of $\mathbf v \mapsto A\mathbf v$ relative to $\mathcal B$ are $\lambda\mathbf e_0, \dots, \lambda\mathbf e_{g-1}$, so this similar matrix has the block form $\begin{bmatrix} \lambda I_g & C \\ 0 & D \end{bmatrix}$. Its
+$\lambda$ is an eigenvalue, so $E_\lambda$ contains a nonzero vector, and its dimension $g$ is at least $1$. Extend a basis of $E_\lambda$ to a basis $B$ of $\mathbb R^n$. The
+first $g$ columns of the matrix of $\mathbf v \mapsto A\mathbf v$ relative to $B$ are $\lambda\mathbf e_0, \dots, \lambda\mathbf e_{g-1}$, so this similar matrix has the block form $\begin{bmatrix} \lambda I_g & C \\ 0 & D \end{bmatrix}$. Its
 characteristic polynomial is $(x - \lambda)^g\,p_D(x)$, so $\lambda$ is a root of multiplicity at least $g$.
 :::
 ::::
@@ -302,13 +302,13 @@ These numbers are exact elements of `QQbar`, the field of algebraic numbers, eve
 Let $T : V \to V$ be a linear operator. A nonzero $\mathbf v \in V$ is an **eigenvector** of $T$ with **eigenvalue** $\lambda$ if $T(\mathbf v) = \lambda\mathbf v$. The eigenspace is $E_\lambda = \ker(T - \lambda\,\mathrm{id})$.
 :::
 
-If $V$ is finite-dimensional and $\mathcal B$ is a basis, then coordinates turn the equation into $[T]_{\mathcal B}[\mathbf v]_{\mathcal B} = \lambda[\mathbf v]_{\mathcal B}$. So the eigenvalues of $T$ are those of the matrix $[T]_{\mathcal B}$,
+If $V$ is finite-dimensional and $B$ is a basis, then coordinates turn the equation into $[T]_{B}[\mathbf v]_{B} = \lambda[\mathbf v]_{B}$. So the eigenvalues of $T$ are those of the matrix $[T]_{B}$,
 for any basis (similar matrices share them), and the eigenvectors of $T$ are the vectors whose coordinates are eigenvectors of the matrix.
 
 :::steps[Eigenvalues of an operator]
-1. Choose a basis $\mathcal B$ of $V$ and find $[T]_{\mathcal B}$.
+1. Choose a basis $B$ of $V$ and find $[T]_{B}$.
 2. Find the eigenvalues and eigenvectors of this matrix.
-3. Translate each eigenvector back: its entries are the coefficients on $\mathcal B$.
+3. Translate each eigenvector back: its entries are the coefficients on $B$.
 :::
 
 ::::example[The transpose as an operator]
@@ -333,7 +333,7 @@ Tm.charpoly().factor()                      # (x + 1) * (x - 1)^3
 ```
 
 ::::example[Differentiation has one eigenvalue]
-Find the eigenvalues of $D : \mathcal P_2 \to \mathcal P_2$, $D(p) = p'$.
+Find the eigenvalues of $D : \mathbb P_2(\mathbb R) \to \mathbb P_2(\mathbb R)$, $D(p) = p'$.
 
 :::solution
 In the basis $(1, x, x^2)$, $[D] = \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 2 \\ 0 & 0 & 0 \end{bmatrix}$, which is triangular with zeros on the diagonal. The only eigenvalue is $0$, with algebraic multiplicity $3$, and $E_0$ is the set of

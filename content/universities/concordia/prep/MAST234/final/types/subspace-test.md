@@ -52,7 +52,7 @@ q(x) = b0 + b1*x + b2*x^2
 ## Worked problems
 
 ::::exercise[Four subsets]
-Which are subspaces? (a) $\{(x,y,z):x=2y\}$ in $\mathbb R^3$; (b) $\{(x,y):x^2=y^2\}$ in $\mathbb R^2$; (c) $\{A\in\mathbb R^{2\times2}:\mathrm{tr}(A)=0\}$; (d) $\{p\in\mathcal P_2:p(0)=1\}$.
+Which are subspaces? (a) $\{(x,y,z):x=2y\}$ in $\mathbb R^3$; (b) $\{(x,y):x^2=y^2\}$ in $\mathbb R^2$; (c) $\{A\in\mathbb R^{2\times2}:\mathrm{tr}(A)=0\}$; (d) $\{p\in\mathbb P_2(\mathbb R):p(0)=1\}$.
 
 :::solution
 (a) Yes: it is the kernel of $\begin{bmatrix}1&-2&0\end{bmatrix}$.
@@ -72,7 +72,7 @@ Which are subspaces? (a) $\{(x,y,z):x=2y\}$ in $\mathbb R^3$; (b) $\{(x,y):x^2=y
 ```solution-map
 id: equal-values-subspace
 method: is-it-a-subspace
-task: 'Is $W=\{p\in\mathcal P_2:p(0)=p(1)\}$ a subspace of $\mathcal P_2$? Find its dimension.'
+task: 'Is $W=\{p\in\mathbb P_2(\mathbb R):p(0)=p(1)\}$ a subspace of $\mathbb P_2(\mathbb R)$? Find its dimension.'
 steps:
   - node: zero
     answer: yes

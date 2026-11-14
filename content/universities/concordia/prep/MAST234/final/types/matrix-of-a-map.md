@@ -13,15 +13,15 @@ matrices share everything that belongs to the operator, and so they can only be 
 ## Pattern
 
 :::steps[Matrix relative to bases]
-1. Apply $T$ to each vector of the domain basis $\mathcal B$.
-2. Write each result in $\mathcal C$-coordinates: by inspection, or by solving with $P_{\mathcal C}$.
-3. Those are the columns of $[T]_{\mathcal C\leftarrow\mathcal B}$.
-4. Check on one vector: $[T]_{\mathcal C\leftarrow\mathcal B}[\mathbf v]_{\mathcal B}=[T(\mathbf v)]_{\mathcal C}$.
+1. Apply $T$ to each vector of the domain basis $B$.
+2. Write each result in $C$-coordinates: by inspection, or by solving with $P_{C}$.
+3. Those are the columns of $[T]_{B \to C}$.
+4. Check on one vector: $[T]_{B \to C}[\mathbf v]_{B}=[T(\mathbf v)]_{C}$.
 :::
 
 :::steps[Changing the basis of an operator]
-1. $P=P_{\mathcal B\leftarrow\mathcal C}$: the new basis vectors, in the old coordinates, as columns.
-2. $[T]_{\mathcal C}=P^{-1}[T]_{\mathcal B}P$.
+1. $P=P_{C \to B}$: the new basis vectors, in the old coordinates, as columns.
+2. $[T]_{C}=P^{-1}[T]_{B}P$.
 3. Check: trace and determinant are unchanged.
 :::
 
@@ -46,7 +46,7 @@ T = lambda p: p + (x + 1) * p.derivative()
 ## Traps
 
 :::caution[Traps]
-- Coordinates of the **images** in $\mathcal C$ go in the columns, not the images themselves.
+- Coordinates of the **images** in $C$ go in the columns, not the images themselves.
 - $P^{-1}AP$, with $P$ holding the new basis in old coordinates. $PAP^{-1}$ goes the other way.
 - `p.list()` drops trailing zeros: $x$ gives `[0, 1]`. Use `p.padded_list(3)` to get a list of length $3$.
 - Equal trace, determinant and rank do not prove that two matrices are similar. A difference in any of them proves that they are not.
@@ -55,12 +55,12 @@ T = lambda p: p + (x + 1) * p.derivative()
 ## Worked problems
 
 ::::exercise[A map between different spaces]
-Find the matrix of $T:\mathcal P_1\to\mathbb R^3$, $T(p)=(p(0),p(1),p(2))$ relative to $\mathcal B=(1,x)$ and the standard basis. Then find its matrix relative to $\mathcal B'=(1+x,\ 1-x)$.
+Find the matrix of $T:\mathbb P_1(\mathbb R)\to\mathbb R^3$, $T(p)=(p(0),p(1),p(2))$ relative to $B=(1,x)$ and the standard basis. Then find its matrix relative to $B'=(1+x,\ 1-x)$.
 
 :::solution
 $T(1)=(1,1,1)$ and $T(x)=(0,1,2)$, so $[T]=\begin{bmatrix}1&0\\1&1\\1&2\end{bmatrix}$.
 
-For $\mathcal B'$: $T(1+x)=(1,2,3)$ and $T(1-x)=(1,0,-1)$, so the matrix is $\begin{bmatrix}1&1\\2&0\\3&-1\end{bmatrix}$. This equals $[T]\,P$ with $P=\begin{bmatrix}1&1\\1&-1\end{bmatrix}$, the new basis in old coordinates.
+For $B'$: $T(1+x)=(1,2,3)$ and $T(1-x)=(1,0,-1)$, so the matrix is $\begin{bmatrix}1&1\\2&0\\3&-1\end{bmatrix}$. This equals $[T]\,P$ with $P=\begin{bmatrix}1&1\\1&-1\end{bmatrix}$, the new basis in old coordinates.
 
 ```python
 A = column_matrix(QQ, [[1, 1, 1], [0, 1, 2]])
@@ -75,7 +75,7 @@ The domain basis changes the columns. Since $W$ keeps its basis, only one factor
 :::
 
 ::::exercise[An operator in two bases]
-Let $T:\mathcal P_2\to\mathcal P_2$, $T(p)=p+(x+1)p'$. Find $[T]$ relative to $(1,x,x^2)$ and relative to $\mathcal C=(1,\ 1+x,\ (1+x)^2)$.
+Let $T:\mathbb P_2(\mathbb R)\to\mathbb P_2(\mathbb R)$, $T(p)=p+(x+1)p'$. Find $[T]$ relative to $(1,x,x^2)$ and relative to $C=(1,\ 1+x,\ (1+x)^2)$.
 
 :::solution
 $T(1)=1$, $T(x)=x+(x+1)=1+2x$, and $T(x^2)=x^2+2x(x+1)=2x+3x^2$, so
@@ -84,12 +84,12 @@ $$
 A=\begin{bmatrix}1&1&0\\0&2&2\\0&0&3\end{bmatrix} .
 $$
 
-In $\mathcal C$: $T(1)=1$, $T(1+x)=2(1+x)$, $T((1+x)^2)=3(1+x)^2$, so $[T]_{\mathcal C}=\mathrm{diag}(1,2,3)$. The trace is $6$ and the determinant is $6$ in both.
+In $C$: $T(1)=1$, $T(1+x)=2(1+x)$, $T((1+x)^2)=3(1+x)^2$, so $[T]_{C}=\mathrm{diag}(1,2,3)$. The trace is $6$ and the determinant is $6$ in both.
 :::
 ::::
 
 :::note[Pattern at work]
-Both ways of changing the basis agree: images of the new basis directly, or $P^{-1}AP$ as in the Sage block. The vectors of $\mathcal C$ are eigenvectors of $T$, which is why the result is diagonal.
+Both ways of changing the basis agree: images of the new basis directly, or $P^{-1}AP$ as in the Sage block. The vectors of $C$ are eigenvectors of $T$, which is why the result is diagonal.
 :::
 
 ::::exercise[Similar or not?]

@@ -52,14 +52,14 @@ Tm.rank(), Tm.right_kernel().dimension()     # (2, 2)
 ## Worked problems
 
 ::::exercise[The second derivative]
-Find bases of the kernel and the image of $T:\mathcal P_3\to\mathcal P_3$, $T(p)=p''$, and check rank–nullity.
+Find bases of the kernel and the image of $T:\mathbb P_3(\mathbb R)\to\mathbb P_3(\mathbb R)$, $T(p)=p''$, and check rank–nullity.
 
 :::solution
-$p''=0$ exactly when $p=a+bx$, so $\ker(T)=\mathcal P_1$ with basis $1,x$.
+$p''=0$ exactly when $p=a+bx$, so $\ker(T)=\mathbb P_1(\mathbb R)$ with basis $1,x$.
 
-The images of the standard basis are $0$, $0$, $2$, $6x$, so $\mathrm{im}(T)=\mathrm{span}\{2,6x\}=\mathcal P_1$, with basis $1,x$.
+The images of the standard basis are $0$, $0$, $2$, $6x$, so $\mathrm{im}(T)=\mathrm{span}\{2,6x\}=\mathbb P_1(\mathbb R)$, with basis $1,x$.
 
-Check: $2+2=4=\dim\mathcal P_3$. Here kernel and image are the same subspace, which is allowed.
+Check: $2+2=4=\dim\mathbb P_3(\mathbb R)$. Here kernel and image are the same subspace, which is allowed.
 :::
 ::::
 
@@ -93,7 +93,7 @@ A symbolic matrix does step 1 in one line. Note that the kernel and the image he
 :::
 
 ::::exercise[Counting only]
-(a) $T:\mathbb R^5\to\mathbb R^3$ is surjective. What is its nullity? (b) A $4\times7$ matrix has rank $3$. Find the dimensions of its kernel and its column space. (c) Can a linear map $\mathcal P_3\to\mathbb R^{2\times2}$ have kernel $\{0\}$ without being surjective?
+(a) $T:\mathbb R^5\to\mathbb R^3$ is surjective. What is its nullity? (b) A $4\times7$ matrix has rank $3$. Find the dimensions of its kernel and its column space. (c) Can a linear map $\mathbb P_3(\mathbb R)\to\mathbb R^{2\times2}$ have kernel $\{0\}$ without being surjective?
 
 :::solution
 (a) The rank is $3$, so the nullity is $5-3=2$.
