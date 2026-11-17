@@ -1,6 +1,6 @@
 ---
 title: Rejection and importance sampling
-order: 11
+order: 17
 asks: a box or an envelope, the constant k, the acceptance rate, weights g/f, rare events
 units: [monte-carlo-integration]
 method: generating-a-random-variable

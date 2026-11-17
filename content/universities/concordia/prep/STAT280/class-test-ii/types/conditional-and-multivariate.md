@@ -1,6 +1,6 @@
 ---
 title: Conditioning and multivariate draws
-order: 8
+order: 14
 asks: a distribution given an event, sums of draws, independent columns, correlated normals, Cholesky, a joint table
 units: [simulating-random-variables]
 method: generating-a-random-variable
@@ -148,6 +148,6 @@ mean(Y[X == 1] == 3)              # exact: 0.6
 ::::
 
 :::note[Pattern at work]
-Step 6. A table is one finite distribution over its cells, so the discrete tools of type 6 apply. The conditional
+Step 6. A table is one finite distribution over its cells, so the discrete tools of type 12 apply. The conditional
 probability then uses step 1: keep the draws with $X=1$.
 :::

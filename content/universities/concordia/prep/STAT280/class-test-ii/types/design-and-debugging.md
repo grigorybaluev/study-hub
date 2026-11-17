@@ -1,6 +1,6 @@
 ---
 title: Designing, testing and debugging
-order: 2
+order: 8
 asks: the four steps of writing a program, a top-down outline, finding a bug by hand, edge cases, which debugging tool
 units: [programming-practice]
 ---
@@ -128,7 +128,7 @@ mean(replicate(10000, longest.run(sample(0:1, 20, replace = TRUE))))
 :::note[Pattern at work]
 The four steps of writing a program: a specific case by hand, the idea (a running count), the translation, the
 check. The check uses the edges (empty, none, run at the end). The function then becomes one repetition for
-`replicate()`, as in type 1.
+`replicate()`, as in type 7.
 :::
 
 ::::exercise[Which tool?]

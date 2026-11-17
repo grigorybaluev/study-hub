@@ -1,6 +1,6 @@
 ---
 title: Monte Carlo estimates and their error
-order: 5
+order: 11
 asks: an expected value or a probability as an average, the standard error, a 95 % interval, how many draws
 units: [monte-carlo-pseudorandom]
 ---

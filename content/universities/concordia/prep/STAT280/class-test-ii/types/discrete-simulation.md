@@ -1,6 +1,6 @@
 ---
 title: Discrete distributions in R
-order: 6
+order: 12
 asks: which of d, p, q, r; Bernoulli and binomial from uniforms; Poisson counts and the Poisson process; discrete inversion
 units: [simulating-random-variables]
 method: generating-a-random-variable

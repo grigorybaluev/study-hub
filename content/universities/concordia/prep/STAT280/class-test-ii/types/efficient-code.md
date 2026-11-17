@@ -1,6 +1,6 @@
 ---
 title: Efficient code
-order: 3
+order: 9
 asks: a loop rewritten as one vector expression, why growing a vector is slow, counting operations, reading system.time()
 units: [programming-practice]
 ---

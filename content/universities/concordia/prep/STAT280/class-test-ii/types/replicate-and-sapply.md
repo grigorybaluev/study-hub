@@ -1,6 +1,6 @@
 ---
 title: Repeating an experiment
-order: 1
+order: 7
 asks: one experiment as a function, replicate() and sapply(), the shape of the result, a loop rewritten
 units: [programming-practice]
 ---
