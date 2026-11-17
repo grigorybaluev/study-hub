@@ -1,6 +1,6 @@
 ---
 title: The inverse transform
-order: 7
+order: 13
 asks: from a density to F, from F to its inverse, one line of R, and a check against the exact mean
 units: [simulating-random-variables]
 method: generating-a-random-variable

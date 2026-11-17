@@ -1,6 +1,6 @@
 ---
 title: Pseudorandom numbers
-order: 4
+order: 10
 asks: a congruential generator by hand, its period, seeds, runif(), sample(), integers from uniforms
 units: [monte-carlo-pseudorandom]
 ---

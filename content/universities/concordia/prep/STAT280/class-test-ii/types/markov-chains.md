@@ -1,6 +1,6 @@
 ---
 title: Markov chains
-order: 9
+order: 15
 asks: a transition matrix from words, one simulated path, n-step probabilities, the long-run distribution
 units: [simulating-random-variables]
 ---

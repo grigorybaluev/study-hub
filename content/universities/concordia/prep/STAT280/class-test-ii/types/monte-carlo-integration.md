@@ -1,6 +1,6 @@
 ---
 title: Monte Carlo integration
-order: 10
+order: 16
 asks: an integral as an expected value, sample mean against hit-or-miss, boxes, standard errors, infinite ranges
 units: [monte-carlo-integration]
 ---

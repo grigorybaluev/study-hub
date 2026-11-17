@@ -2,7 +2,13 @@
 title: The big picture
 ---
 
-## One idea, two halves
+## Two halves
+
+The test asks for R written and read by hand, and for simulation.
+
+- **Programming with R** (weeks 3–7): data frames, a file imported and plotted, loops and functions for a recursive
+  sequence, Newton's method, what a function sees and returns, and short code traced, fixed and made faster.
+- **Simulation** (weeks 6–10), below.
 
 Weeks 6–10 rest on one idea: **to learn about a random quantity, simulate it many times and average.** Everything
 else is either how to write that repetition well, or how to get the random numbers it needs.
@@ -25,6 +31,51 @@ else is either how to write that repetition well, or how to get the random numbe
 
 The **Map** tab draws this as three maps: from a target distribution to the R code that draws from it, from a
 question to an estimate with its error, and the routes from a transition matrix to the long run.
+
+## Programming with R by hand
+
+Weeks 3–7 · [Data frames and data I/O](/unit/STAT280/data-frames-lists-io) ·
+[Statistical graphics](/unit/STAT280/statistical-graphics) · [Flow control and functions](/unit/STAT280/flow-control-functions)
+
+A data frame is a list of equal-length columns. `d$x` is one column as a vector, a condition such as `d$x > 80` is a
+logical vector with one value per row, and `d[cond, ]` keeps the rows where it is `TRUE`. A new column is an
+assignment, and arithmetic on columns works row by row, with no loop.
+
+```r
+d <- data.frame(name = c("Ana", "Ben", "Cy"), t1 = c(70, 85, 62), t2 = c(80, 75, 90))
+d$avg <- (d$t1 + d$t2) / 2
+d$name[d$avg >= 76]
+## [1] "Ben" "Cy" 
+d[d$t1 > d$t2, ]
+##   name t1 t2 avg
+## 2  Ben 85 75  80
+```
+
+A file comes in with `read.csv("file.csv")`. A plot is one high-level call that sets the axes, then layers on top of
+it: `plot(x, y, pch = 16, col = "blue", xlab = , ylab = , main = )`, then `abline(a = 0, b = 1, lty = 2)`, `points()`,
+`lines()`, `text()`, and a `legend()` that repeats each layer's `col`, `pch` and `lty`.
+
+A loop that builds a sequence pre-allocates, sets the first term and fills term $i$ from term $i-1$. `for` runs a
+known number of times; `while` runs until its condition fails, which might be never. Newton's method is such a
+loop: $x_{n+1}=x_n-f(x_n)/f'(x_n)$ until two guesses differ by less than a tolerance.
+
+```r
+f <- function(x) x^3 - 10
+df <- function(x) 3 * x^2
+x <- 2
+x.new <- x - f(x) / df(x)
+while (abs(x.new - x) >= 1e-8) {
+  x <- x.new
+  x.new <- x - f(x) / df(x)
+}
+x.new                                # the cube root of 10
+## [1] 2.154435
+```
+
+A function runs in its own environment. An assignment inside it is local, so a global variable of the same name is
+unchanged after the call; a name it only reads is found where the function was defined, at the time of the call.
+It returns one object, so several results go back as a named list. Short code is read by **tracing**: a column per
+variable, a row per pass, compared with what it should compute; the first row that differs holds the bug.
 
 ## Repeating a computation
 
@@ -160,6 +211,11 @@ For a density with no usable $F$, or known only up to a constant, there are two 
 
 What you can solve now:
 
+- pick rows and columns of a data frame, add a column, and keep the rows that meet a condition;
+- import a CSV file, plot one column against another with symbols, colours, labels, a reference line and a legend;
+- write a function for the first $n$ terms of a recursive sequence, and a `while` loop that counts the steps to a value;
+- run Newton's method by hand for two steps, write it in R with a tolerance, and say when it fails;
+- say what a function returns and which variables it changes, and return several results as a list;
 - turn an experiment into a function, repeat it, and read the shape of what comes back;
 - trace a short function by hand, find the bug, list the edge cases, and choose the debugging tool;
 - replace a loop by a vector expression, and count the operations of two algorithms;
@@ -171,5 +227,4 @@ What you can solve now:
 - write a transition matrix, simulate a path, and find $P^n$ and $\pi$;
 - write an integral as an expected value, by the sample mean and by hit-or-miss, and estimate it.
 
-Not on this test: weeks 1–5 as topics in their own right, though vectors, functions and loops are used all the
-time, and computational linear algebra (weeks 11–12), which comes after it.
+Not on this test: computational linear algebra (weeks 11–12), which comes after it.

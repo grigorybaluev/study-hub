@@ -1,7 +1,8 @@
 title: "Simulation: every method in one table"
 lead: >-
   One row per method. The first column is the idea as a formula, the second is the line of R, and the third is what
-  goes wrong. The shared rows below are the programming practice of weeks 6–7, which every simulation relies on.
+  goes wrong. The shared rows below are the programming of weeks 3–7: the R of types 1–6 first, then the practice
+  that every simulation relies on.
 
 columns:
   - {id: idea, title: The idea, sub: as a formula, tone: blue, concept: monte-carlo-simulation}
@@ -86,6 +87,27 @@ rows:
       trap: 'No constant is needed for `weighted.mean()`. For `mean(w)`, $g$ must be normalised.'
 
 shared:
+  - label: Data frames
+    text: >-
+      `d$x` is a column as a vector; `d[rows, cols]` a block; `d[cond, ]` the rows where `cond` is `TRUE` (keep the comma);
+      `d$name[cond]` one column of them. New column: `d$z <- d$x + d$y`, row by row. `nrow(d)` rows, `length(d)` columns;
+      `rowMeans()` across, `colMeans()` down; `sum(cond)` counts, `mean(cond)` gives the share. `>=` is "at least".
+  - label: Import and plot
+    text: >-
+      `read.csv("f.csv")` = `read.table("f.csv", header = TRUE, sep = ",")`. `plot(x, y)` with x horizontal; `pch` 16 solid
+      circle, 17 triangle; `lty` 1 solid, 2 dashed, 3 dotted; `type = "l"` lines. Layers: `abline(a, b)`, `abline(h =)`,
+      `points()`, `lines()`, `text()`. `legend("topleft", legend = , col = , pch = c(16, NA), lty = c(0, 2))`. Set `ylim`
+      in the first call when a second series follows.
+  - label: Loops and sequences
+    text: >-
+      First $n$ terms: `a <- numeric(n)`, `a[1] <- a1`, `for (i in seq_len(n)[-1])` with the rule on `a[i - 1]`; even is
+      `a %% 2 == 0`. Steps to a value: a counter and `while (a != target)`, the condition to go **on**; a cap when the
+      sequence can cycle. Newton: $x-f/f'$, one step before the test, `while (abs(x.new - x) >= tol)`.
+  - label: Functions and scope
+    text: >-
+      Defaults in the header, `function(n, a1 = 2)`. Assignments inside are local; a name only read is found where the
+      function was defined, at call time, so `x <- x + n` inside reads the global `x` and leaves it unchanged. One object
+      comes back: several results as `list(mean = , count = , values = )`.
   - label: Repeating
     text: >-
       `replicate(n, expr)` evaluates `expr` afresh $n$ times: one number each gives a vector, $k$ numbers each give a
