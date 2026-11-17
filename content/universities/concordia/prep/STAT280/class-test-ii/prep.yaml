@@ -1,7 +1,10 @@
-# Study guide for STAT 280 Class Test II (#280): weeks 6-10, programming practice and simulation.
+# Study guide for STAT 280 Class Test II (#280): weeks 6-10, programming practice and simulation;
+# types 1-6 (#289) add the programming with R of weeks 3-7 that the test also asks for.
 exam: Class test II
 summary: >-
-  To learn about a random quantity, simulate it many times and average. Weeks 6–7 are how to write that
+  Two halves. First, R written and read by hand: data frames, a file imported and plotted, loops and functions for a
+  recursive sequence, Newton's method, what a function sees and returns, and short code traced, fixed and vectorised.
+  Second, simulation. To learn about a random quantity, simulate it many times and average. Weeks 6–7 are how to write that
   repetition well: replicate(), design, debugging, speed. Weeks 8–10 are where the random numbers come from:
   pseudorandom uniforms, every other distribution built from them, Markov chains one step at a time, and integrals
   written as expected values.
@@ -9,20 +12,30 @@ format: >-
   In class: Tuesday 17 November for section D, Wednesday 18 November for section A. Closed book. 30 % of the final
   grade. Weeks 6–10: replicate, programming guidelines, debugging and maintenance, efficient programming, Monte Carlo
   simulation, pseudorandom numbers, simulating random variables, multivariate generation, Markov chains, Monte Carlo
-  integration and advanced simulation methods. The course outline gives no length, number of questions or calculator
-  rule.
+  integration and advanced simulation methods. Expect the programming of weeks 3–7 as well: answers are lines of R
+  written by hand, and short programs read and explained. The course outline gives no length, number of questions or
+  calculator rule.
 maps: [simulating-a-distribution, monte-carlo-estimates, markov-chain-routes]
 types_intro: |
-  Eleven types of problem. For each: the reasoning, the steps, the traps, and worked problems with "pattern at
-  work". Every topic of weeks 6–10 has a type, since the outline does not say how the marks are split. The test is
-  closed book, so the function names, their arguments and the formulas have to be in your head: practise writing
-  each line of R from memory, and reading a short piece of code to say what it returns.
+  Seventeen types of problem. For each: the reasoning, the steps, the traps, and worked problems with "pattern at
+  work". Types 1–6 are programming with R: the questions most likely to be asked as "write the R command" or "what
+  does this code give". Types 7–17 cover every topic of weeks 6–10, since the outline does not say how the marks are
+  split. The test is closed book, so the function names, their arguments and the formulas have to be in your head:
+  practise writing each line of R from memory, and reading a short piece of code to say what it returns.
 
-  :::insight[The one idea behind all eleven types]
-  **Simulate it many times and average.** Types 1–3 are about writing that repetition well. Types 4 and 6–9, and
-  rejection in type 11, are about getting draws from the right distribution, starting from uniforms. Types 5 and 10,
-  and importance sampling in type 11, turn draws into a number: every probability, integral or volume is an expected
-  value, so its estimate is a mean, and the error is $s/\sqrt n$.
+  :::insight[Types 1–6: write it, then run it in your head]
+  Every answer is a few lines of R, and every line can be checked by hand on the first row, the first term or the
+  first pass. Types 1–2 are data in a **data frame**: columns as vectors, conditions as logical vectors, a plot built
+  in layers. Types 3–4 are **loops**: `for` for a known number of steps, `while` until something happens, and a cap
+  when it might never happen. Types 5–6 are **reading code**: which variable a function sees, and where a trace first
+  differs from what the code should do.
+  :::
+
+  :::insight[Types 7–17: simulate it many times and average]
+  Types 7–9 are about writing that repetition well. Types 10 and 12–15, and rejection in type 17, are about getting
+  draws from the right distribution, starting from uniforms. Types 11 and 16, and importance sampling in type 17,
+  turn draws into a number: every probability, integral or volume is an expected value, so its estimate is a mean,
+  and the error is $s/\sqrt n$.
   :::
 
   :::steps[How to write every answer]
@@ -36,6 +49,7 @@ plan:
   - id: formulas
     title: Formulas to know cold
     items:
+      - "Newton: $x_{n+1}=x_n-f(x_n)/f'(x_n)$; stop when $|x_{n+1}-x_n|<\\text{tol}$; a smaller tol means a few more steps"
       - '$\bar X\pm1.96\,s/\sqrt n$; the error falls like $1/\sqrt n$; $n=(1.96\,s/w)^2$'
       - '$x_n=b\,x_{n-1}\bmod m$, $u_n=x_n/m$; period at most $m-1$; uniform on $(0,1)$: mean $\tfrac12$, variance $\tfrac1{12}$'
       - 'Bernoulli: $p$, $p(1-p)$; binomial: $np$, $np(1-p)$; Poisson: $\lambda$, $\lambda$; exponential: $1/\lambda$, $1/\lambda^2$'
@@ -47,14 +61,24 @@ plan:
   - id: r-names
     title: R to write from memory
     items:
+      - '`d$x`, `d[rows, cols]`, `d[cond, ]`, `d$new <- ...`, `nrow`, `colMeans`, `rowMeans`, `order`, `which.max`, `subset`'
+      - '`read.csv("f.csv")`, `read.table("f.csv", header = TRUE, sep = ",")`, `str`, `head`'
+      - '`plot(x, y, pch, col, xlab, ylab, main, xlim, ylim, type)`, `abline(a, b)`, `abline(h =)`, `points`, `lines`, `text`, `legend(pos, legend, col, pch, lty)`'
+      - '`function(n, a1 = 2)`, `for (i in seq_len(n))`, `while (cond)`, `repeat`/`break`, `if`/`else`, `%%`, `%/%`, `return(list(...))`'
       - '`replicate(n, expr)`, `sapply(x, f)`, `set.seed(k)`, `runif(n, a, b)`, `sample(x, size, replace, prob)`'
       - '`dbinom`, `pbinom`, `qbinom`, `rbinom` with `size`, `prob`; the same with `pois` (`lambda`), `exp` (`rate`), `norm` (`mean`, `sd`)'
       - '`cumsum`, `findInterval`, `pmax`, `pmin`, `ifelse`, `rowSums`, `colMeans`, `sweep`, `table`, `weighted.mean`'
       - '`%%`, `%/%`, `%*%`, `t()`, `diag()`, `chol()`, `eigen()`, `matrix(..., byrow = TRUE)`'
       - '`stopifnot()`, `traceback()`, `browser()`, `debug()`, `undebug()`, `system.time()`, `Rprof()`, `identical()`, `integrate()`'
   - id: traps
-    title: The twelve traps, one line each
+    title: The eighteen traps, one line each
     items:
+      - 'Rows need the comma: `d[cond, ]`. `length(d)` counts columns.'
+      - '`plot(x, y)`: the first argument is horizontal. A second `plot()` wipes the first; add with `points()` or `lines()`.'
+      - 'In `legend()`, a points-only entry gets `lty = 0`, a line-only entry `pch = NA`.'
+      - 'A `while` condition says when to go **on**; a sequence that can cycle needs a cap.'
+      - "Newton: $x-f/f'$, one step before the `while` test, and a check for $f'=0$."
+      - 'An assignment inside a function is local; a name it only reads comes from where it was defined, at call time.'
       - 'The random call goes inside `replicate()`; `replicate()` returns repetitions as **columns**.'
       - '`1:length(x)` on an empty `x` runs twice; `seq_along(x)` does not run at all.'
       - 'Growing with `c()` in a loop copies everything; pre-allocate with `numeric(n)`.'
@@ -70,6 +94,9 @@ plan:
   - id: evening
     title: If you have one evening
     items:
+      - 'Redo [A week at a café](/prep/STAT280/class-test-ii/types/data-frames) and [Sleep on weekdays and weekends](/prep/STAT280/class-test-ii/types/import-and-plot) on paper, every line from memory.'
+      - 'Redo [Divide by three or add four](/prep/STAT280/class-test-ii/types/loops-and-sequences) and [The square root of 5](/prep/STAT280/class-test-ii/types/newton-method): first by hand, then the function.'
+      - 'Redo [A free variable](/prep/STAT280/class-test-ii/types/scope-and-lists) and [One pass of bubble sort](/prep/STAT280/class-test-ii/types/trace-and-fix) without running anything.'
       - 'Redo [A window that is one too wide](/prep/STAT280/class-test-ii/types/design-and-debugging) on paper: trace first, then fix.'
       - 'Redo [Three small generators](/prep/STAT280/class-test-ii/types/pseudorandom-generators) by hand, with the period of each.'
       - 'Redo [The smaller of two uniforms](/prep/STAT280/class-test-ii/types/monte-carlo-estimates) and [How many draws?](/prep/STAT280/class-test-ii/types/monte-carlo-estimates).'
