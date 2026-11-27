@@ -241,7 +241,7 @@ export interface WalkSet {
   id: string;
   course: string;
   title: string;
-  /** a short name for the picker ("A5"); else the title */
+  /** a short name for the picker ("Set 1"); else the title */
   short: string | null;
   /** from walks/<CODE>/local/ (git-ignored): only a local build has it */
   local: boolean;
