@@ -1,6 +1,7 @@
 // A conversion map (#257): representations of one class of objects and the methods between them, drawn
 // on the canvas the content authored (content/maps/<id>.yaml) and scaled to the width. Tap an arrow for
-// its method; "I have / I need" lights up the cheapest route; a worked example walks the map. Below
+// its method; "I have / I need" lights up the cheapest route; a worked example walks the map, and so does
+// each problem of the course's walk sets that is placed on this map (#291), picked from a list. Below
 // 700 px the canvas would be unreadable, so the map becomes a list of representations and their arrows.
 import { lazy, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -8,7 +9,7 @@ import YAML from "yaml";
 import Markdown from "./Markdown";
 import LazyBlock from "./LazyBlock";
 import { href } from "../data/load";
-import type { ConversionMap, MapEdge, MapNode } from "../data/types";
+import type { ConversionMap, MapEdge, MapExampleStep, MapNode, WalkSet } from "../data/types";
 import { cheapest, hopsOf, type Hop } from "./mapRoutes.ts";
 
 const Automaton = lazy(() => import("./Automaton"));
@@ -52,7 +53,31 @@ function straight(a: MapNode, b: MapNode): string {
 
 const inline = (s: string) => <span className="cmap-md"><Markdown source={s} /></span>;
 
-export default function ConversionMapView({ map }: { map: ConversionMap }) {
+/** One thing the walk panel can step through: the map's own example, or a problem of a walk set. */
+interface WalkOption {
+  key: string;
+  /** the set it belongs to (null: the map's example) */
+  set: WalkSet | null;
+  label: string;
+  title: string;
+  language: string | null;
+  walk: MapExampleStep[];
+}
+
+function walkOptions(map: ConversionMap, sets: WalkSet[]): WalkOption[] {
+  const out: WalkOption[] = map.example
+    ? [{ key: "example", set: null, label: map.example.title, title: map.example.title, language: map.example.language ?? null, walk: map.example.walk }]
+    : [];
+  for (const set of sets)
+    for (const p of set.problems.filter((p) => p.map === map.id))
+      out.push({ key: `${set.id}#${p.id}`, set, label: `${p.id}. ${p.title}`, title: `${set.short ?? set.title} · ${p.id}: ${p.title}`,
+        language: p.statement, walk: p.walk });
+  return out;
+}
+
+const NO_WALKS: WalkSet[] = [];
+
+export default function ConversionMapView({ map, walks = NO_WALKS }: { map: ConversionMap; walks?: WalkSet[] }) {
   const wrap = useRef<HTMLDivElement>(null);
   const width = useWidth(wrap);
   const byId = useMemo(() => new Map(map.nodes.map((n) => [n.id, n])), [map]);
@@ -61,11 +86,15 @@ export default function ConversionMapView({ map }: { map: ConversionMap }) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [task, setTask] = useState<number | null>(null);
-  const [step, setStep] = useState<number | null>(null);          // the worked example's step, when walking
+  const [rawStep, setStep] = useState<number | null>(null);       // the walk's step, when walking
+  const options = useMemo(() => walkOptions(map, walks), [map, walks]);
+  const [walkKey, setWalkKey] = useState<string | null>(null);    // the picked walk (null: the first)
+  const current = options.find((o) => o.key === walkKey) ?? options[0] ?? null;
+  const step = current && rawStep !== null && rawStep < current.walk.length ? rawStep : null;   // a stale step closes the walk
 
   const route: Hop[] | null = task !== null ? hopsOf(map, map.routes[task].path)
     : from && to ? cheapest(map, from, to) : null;
-  const walk = map.example && step !== null ? map.example.walk[step] : null;
+  const walk = current && step !== null ? current.walk[step] : null;
   const lit = new Set<string>(route ? route.map((h) => h.edge.id) : walk?.edge ? [walk.edge] : edge ? [edge] : []);
   const litNodes = new Set<string>(route ? route.flatMap((h) => [h.from, h.to]) : walk?.node ? [walk.node]
     : walk?.edge ? [map.edges.find((e) => e.id === walk.edge)!.from, map.edges.find((e) => e.id === walk.edge)!.to] : node ? [node] : []);
@@ -151,7 +180,9 @@ export default function ConversionMapView({ map }: { map: ConversionMap }) {
         </div>
       )}
 
-      {map.example && <Walk map={map} step={step} onStep={(s) => { setStep(s); setTask(null); setFrom(""); setTo(""); setEdge(null); setNode(null); }} />}
+      {current && <Walk map={map} options={options} current={current} step={step}
+        onPick={(key) => { setWalkKey(key); setStep(null); }}
+        onStep={(s) => { setStep(s); setTask(null); setFrom(""); setTo(""); setEdge(null); setNode(null); }} />}
     </div>
   );
 }
@@ -268,15 +299,35 @@ function MapList({ map, open, onEdge }: { map: ConversionMap; open: string | nul
   );
 }
 
-/** The worked example: one language taken along the map, a step at a time. */
-function Walk({ map, step, onStep }: { map: ConversionMap; step: number | null; onStep(s: number | null): void }) {
-  const ex = map.example!;
+/** A machine of more than four states needs the full width of the panel to be read. */
+const bigDiagram = (spec: Record<string, unknown>) =>
+  (Array.isArray(spec.states) ? spec.states.length : String(spec.states ?? "").split(",").filter((x) => x.trim()).length) > 4;
+
+/** The worked example (one language taken along the map) or a problem, a step at a time; a list picks which. */
+function Walk({ map, options, current: ex, step, onPick, onStep }: {
+  map: ConversionMap; options: WalkOption[]; current: WalkOption; step: number | null; onPick(key: string): void; onStep(s: number | null): void;
+}) {
   const n = ex.walk.length;
+  const groups = [...new Set(options.map((o) => o.set))];
   const st = step !== null ? ex.walk[step] : null;
   const where = st?.edge ? map.edges.find((e) => e.id === st.edge) : null;
   const at = st?.node ? map.nodes.find((x) => x.id === st.node) : null;
   return (
     <section className={`cmap-walk${st ? " walking" : ""}`}>
+      {options.length > 1 && (
+        <label className="cmap-walk-pick">
+          <span className="small muted">Walk</span>
+          <select value={ex.key} onChange={(e) => onPick(e.target.value)}>
+            {groups.map((set) => set === null
+              ? options.filter((o) => o.set === null).map((o) => <option key={o.key} value={o.key}>{o.label}</option>)
+              : (
+                <optgroup key={set.id} label={set.local ? `${set.title} (local only)` : set.title}>
+                  {options.filter((o) => o.set === set).map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </optgroup>
+              ))}
+          </select>
+        </label>
+      )}
       <div className="cmap-walk-head">
         <h3>{ex.title}</h3>
         {ex.language && <span>{inline(ex.language)}</span>}
@@ -290,7 +341,7 @@ function Walk({ map, step, onStep }: { map: ConversionMap; step: number | null; 
             <span className="small muted">step {step! + 1} of {n}</span>
             {step! < n - 1 ? <button onClick={() => onStep(step! + 1)}>Next →</button> : <button onClick={() => onStep(null)}>Done</button>}
           </div>
-          <div className={`cmap-walk-body${st.automaton ? " with-diagram" : ""}`}>
+          <div className={`cmap-walk-body${st.automaton ? (bigDiagram(st.automaton) ? " with-diagram big" : " with-diagram") : ""}`}>
             <div>
               <div className="cmap-walk-where">
                 {where && <><span className={`cmap-badge ${where.kind}`}>{where.n}</span> <b>{where.name}</b></>}

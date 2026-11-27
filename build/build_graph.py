@@ -187,6 +187,18 @@ def build(c: Content) -> dict:
                 "plan": [{"id": l["id"], "title": l["title"], "items": l["items"]} for l in m.get("plan") or []],
             })
 
+    # ---- walk sets (#291): problems walked along the maps; data.mjs hands each prep the sets of its course
+    walks = []
+    for uni in c.universities.values():
+        for (code, sid), ws in sorted(uni.walks.items()):
+            m = ws.meta
+            walks.append({
+                "id": f"{uni.id}/{code}/{sid}", "course": f"{uni.id}/{code}", "title": m["title"],
+                "short": m.get("short"), "local": ws.local,
+                "problems": [{"id": str(pr["id"]), "title": pr["title"], "statement": pr.get("statement"), "map": pr["map"],
+                              "walk": pr["walk"]} for pr in m["problems"]],
+            })
+
     nodes.sort(key=lambda n: (n["type"], n["id"]))
     edges.sort(key=lambda e: (e["type"], e["from"], e["to"]))
     return {
@@ -201,6 +213,7 @@ def build(c: Content) -> dict:
         "methods": methods,
         "maps": maps,
         "preps": preps,
+        "walks": walks,
     }
 
 

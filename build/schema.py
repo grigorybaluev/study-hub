@@ -90,6 +90,7 @@ class University:
     units: dict[str, list[Doc]] = field(default_factory=dict)      # code -> [Doc] (unsorted)
     programs: dict[str, dict] = field(default_factory=dict)        # program id -> yaml
     preps: dict[tuple[str, str], "Prep"] = field(default_factory=dict)   # (code, exam slug) -> Prep (#255)
+    walks: dict[tuple[str, str], "WalkSet"] = field(default_factory=dict)   # (code, set id) -> WalkSet (#291)
 
 
 @dataclass
@@ -100,6 +101,15 @@ class Prep:
     overview: Doc | None = None                 # overview.md
     types: list[Doc] = field(default_factory=list)   # types/<slug>.md (unsorted)
     table: dict | None = None                   # table.yaml
+
+
+@dataclass
+class WalkSet:
+    """walks/<CODE>/<set>.yaml: a set of problems, each walked along a conversion map (#291). Sets under
+    walks/<CODE>/local/ are git-ignored: they show on a local build only, never on the site."""
+    path: Path
+    meta: dict
+    local: bool
 
 
 @dataclass
@@ -268,6 +278,15 @@ def load(content_dir: Path = CONTENT) -> Content:
             if (edir / "table.yaml").exists():
                 prep.table = _read_yaml(edir / "table.yaml", errors)
             uni.preps[(edir.parent.name, edir.name)] = prep
+        for cdir in sorted(d for d in (udir / "walks").glob("*") if d.is_dir()):
+            for local, files in ((False, cdir.glob("*.yaml")), (True, (cdir / "local").glob("*.yaml"))):
+                for p in sorted(files):
+                    if (data := _read_yaml(p, errors)) is None:
+                        continue
+                    if (cdir.name, p.stem) in uni.walks:
+                        errors.append((p, f"set id {p.stem!r} is used twice for {cdir.name}"))
+                        continue
+                    uni.walks[(cdir.name, p.stem)] = WalkSet(path=p, meta=data, local=local)
         universities[udir.name] = uni
 
     return Content(concepts=concepts, roadmaps=roadmaps, universities=universities, parse_errors=errors, methods=methods,

@@ -19,6 +19,7 @@ content/
     programs/<program>.yaml           variants -> terms -> courses (placements only)
     programs/local/                   personal plans, same shape, git-ignored
     prep/<CODE>/<exam>/               exam study guide (#262): prep.yaml, overview.md, types/<slug>.md, table.yaml
+    walks/<CODE>/<set>.yaml           problem walks on the maps (#291); walks/<CODE>/local/ is git-ignored
 build/    schema.py, build_graph.py, build_cards.py, derive.py, lint.py
           -> graph.json, cards.json, derived.json (never hand-edited)
 analytics/ report generator and notebooks
@@ -190,6 +191,12 @@ Exam preps (#262)
   `legend: {kinds: {kind: text}, costs: {cost: text}}` puts the map's own words in place of the default
   legend and cost labels (#269). graph.json carries maps and preps; `npm run data` moves each prep
   to `data/prep/<uni>/<CODE>/<exam>.json` and leaves an index entry.
+- Problem walks (#291): `walks/<CODE>/<set>.yaml` has `title`, optional `short` (the picker's prefix, "Set 1") and
+  `problems: [{id, title, statement, map, walk}]`; `walk` steps are shaped like a map example's (`node` | `edge`,
+  `text`, optional `automaton`, whose inline spec may set `loops: {q3: down}`). A prep's map shows the problems of
+  its course that walk it in a picker beside the map's own example. Sets under `walks/<CODE>/local/` are
+  git-ignored: personal sets show on a local build only and never reach the site, which is
+  built in Actions. `npm run data` hands each prep file the sets of its course.
 
 ## Workflow
 

@@ -3,7 +3,8 @@
 // Unit bodies (about half of graph.json) move to one file per course, data/units/<university>/<CODE>.json
 // ({unit id: markdown}), which the unit page fetches on demand (#189); the app's graph.json has none.
 // Likewise each exam prep (#255) moves to data/prep/<university>/<CODE>/<exam>.json; graph.json keeps an
-// index entry (id, course, exam, date, title, summary and which sections it has).
+// index entry (id, course, exam, date, title, summary and which sections it has). The problem walks of a
+// course (#291, graph.json `walks`) go into each of its prep files.
 import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -31,10 +32,13 @@ for (const n of graph.nodes) {
   delete n.body;
 }
 rmSync(resolve(out, "prep"), { recursive: true, force: true });
+const walks = graph.walks ?? [];
+delete graph.walks;
 graph.preps = (graph.preps ?? []).map((p) => {
   const file = resolve(out, "prep", `${p.id}.json`);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, JSON.stringify(p));
+  // the problem walks of the prep's course (#291) travel with the prep: only its maps show them
+  writeFileSync(file, JSON.stringify({ ...p, walks: walks.filter((w) => w.course === p.course) }));
   const sections = [p.overview && "overview", p.types.length && "types", p.table && "table", p.maps.length && "map", p.plan.length && "plan"];
   return { id: p.id, course: p.course, exam: p.exam, date: p.date, title: p.title, summary: p.summary, sections: sections.filter(Boolean) };
 });

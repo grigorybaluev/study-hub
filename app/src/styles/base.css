@@ -1051,6 +1051,8 @@ a.unit-tag:hover b { text-decoration: underline; }
 .cmap-list-node li { margin: 0.35em 0; }
 .cmap-list button.on { font-weight: 650; }
 .cmap-walk { border-top: 1px solid var(--line); margin-top: 1.2rem; padding-top: 0.8rem; }
+.cmap-walk-pick { display: flex; align-items: center; gap: 0.6em; margin-bottom: 0.5rem; }
+.cmap-walk-pick select { font: inherit; flex: 0 1 auto; max-width: 34rem; min-width: 0; }
 .cmap-walk-head { display: flex; flex-wrap: wrap; gap: 0.3em 0.8em; align-items: baseline; }
 .cmap-walk-head h3 { margin: 0; }
 .cmap-walk-start, .cmap-walk-nav button { font: inherit; padding: 0.35em 0.9em; border-radius: 999px; border: 1px solid var(--accent); background: var(--bg-elev); color: var(--fg); cursor: pointer; }
@@ -1061,6 +1063,8 @@ a.unit-tag:hover b { text-decoration: underline; }
 .cmap-walk-body .automaton .fa-svg { max-height: 170px; }
 .cmap-walk-body.with-diagram { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 1rem; align-items: center; }
 @media (max-width: 760px) { .cmap-walk-body.with-diagram { grid-template-columns: minmax(0, 1fr); } }
+.cmap-walk-body.with-diagram.big { grid-template-columns: minmax(0, 1fr); }
+.cmap-walk-body.big .automaton .fa-svg { max-height: 460px; }
 .cmap-task-select { display: none; }
 @media (max-width: 640px) {
   .cmap-task { display: none; }

@@ -225,6 +225,29 @@ export interface ConversionMap {
   legend: { kinds: Partial<Record<MapEdge["kind"], string>>; costs: Partial<Record<MapEdge["cost"], string>> };
 }
 
+/** A problem walked along one map (#291): the same steps as a map's example. */
+export interface WalkProblem {
+  id: string;
+  title: string;
+  statement: string | null;
+  /** the map it walks */
+  map: string;
+  walk: MapExampleStep[];
+}
+
+/** A set of problems of one course, walked on the maps (content/universities/<uni>/walks/<CODE>/<set>.yaml). */
+export interface WalkSet {
+  /** `<university>/<CODE>/<set id>` */
+  id: string;
+  course: string;
+  title: string;
+  /** a short name for the picker ("Set 1"); else the title */
+  short: string | null;
+  /** from walks/<CODE>/local/ (git-ignored): only a local build has it */
+  local: boolean;
+  problems: WalkProblem[];
+}
+
 export type PrepSection = "overview" | "types" | "table" | "map" | "plan";
 
 /** graph.json's entry for an exam prep (#255); the rest is in data/prep/<id>.json (`Prep`). */
@@ -271,6 +294,8 @@ export interface Prep extends Omit<PrepIndex, "sections"> {
   types: PrepType[];
   table: PrepTable | null;
   plan: { id: string; title: string; items: string[] }[];
+  /** the problem walks of the prep's course (#291); each shows on the map it walks */
+  walks: WalkSet[];
 }
 
 export interface Graph {
