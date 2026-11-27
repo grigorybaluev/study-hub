@@ -25,7 +25,8 @@
   FA.expand = expand;
   /** A machine for a static diagram (#111): `{machine: id}` from the library above, or an inline spec
    *  `{type, states, start, finals, trans}` where states are "q0 60 120, q1 …" (id x y) or bare ids
-   *  (then laid out on a row, or on a circle for more than four states). */
+   *  (then laid out on a row, or on a circle for more than four states). Optional: `curves` {"q0|q1": bend}
+   *  and `loops` {q3: up | down | left | right}, the side of the state its self-loop is drawn on (default up). */
   FA.fromSpec = function (spec) {
     if (spec.machine) {
       const lib = M[spec.machine];
@@ -44,7 +45,7 @@
     else { const n = items.length, cx = 240, cy = 170, r = 125; states = items.map((a, i) => S(a[0], Math.round(cx + r * Math.cos(Math.PI + 2 * Math.PI * i / n)), Math.round(cy + r * Math.sin(Math.PI + 2 * Math.PI * i / n)))); }
     const m = { id: spec.id || 'inline', type: spec.type || 'dfa', name: spec.name || '', states,
       start: spec.start || states[0].id, finals: list(spec.finals),
-      trans: expand(Array.isArray(spec.trans) ? spec.trans.join(';') : String(spec.trans || '')), curves: spec.curves || {} };
+      trans: expand(Array.isArray(spec.trans) ? spec.trans.join(';') : String(spec.trans || '')), curves: spec.curves || {}, loops: spec.loops || {} };
     const known = new Set(states.map(q => q.id)), unknown = [m.start, ...m.finals, ...m.trans.flatMap(t => [t.from, t.to])].find(id => !known.has(id));
     if (unknown) throw new Error('state ' + unknown + ' is used but not listed in states');
     m.alphabet = [...new Set(m.trans.map(t => t.sym).filter(x => x !== LAMBDA))].sort();
@@ -60,11 +61,22 @@
       const dx = Q.x - P.x, dy = Q.y - P.y, d = Math.hypot(dx, dy) || 1, off = bend / 2 + Math.sign(bend) * 18;
       pts.push([(P.x + Q.x) / 2 - dy / d * off, (P.y + Q.y) / 2 + dx / d * off]);
     });
+    Object.keys(m.loops || {}).forEach(id => {     // a loop drawn below or beside a state needs room there
+      const q = at[id], side = m.loops[id], t = m.trans.find(x => x.from === id && x.to === id);
+      if (!q || !t || !['down', 'left', 'right'].includes(side)) return;
+      const w = loopLabelWidth(m, id);
+      if (side === 'down') pts.push([q.x, q.y + 70]);
+      if (side === 'right') pts.push([q.x + 80 + w, q.y]);
+      if (side === 'left') pts.push([q.x - 80 - w, q.y]);
+    });
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     const left = Math.min(...xs) - 70, top = Math.min(...ys) - 90;
     m.states.forEach(q => { q.x -= left; q.y -= top; });
     m.w = Math.max(...xs) - left + 45; m.h = Math.max(...ys) - top + 45;
     return m;
+  }
+  function loopLabelWidth(m, id) {   // a rough width of a self-loop's label, at the label font size
+    return m.trans.filter(x => x.from === id && x.to === id).map(x => x.sym).join(',').length * 7.5;
   }
   function def(m) { m.alphabet = m.alphabet || [...new Set(m.trans.map(t => t.sym).filter(s => s !== LAMBDA))].sort(); M[m.id] = m; return m; }
 
@@ -401,8 +413,14 @@
       const cls = 'fa-edge' + (active ? ' active' : '');
       const mk = active ? 'url(#' + uid + '-arrow-a)' : 'url(#' + uid + '-arrow)';
       if (f === t) {
-        const d = 'M ' + (P.x - 10) + ' ' + (P.y - rr + 3) + ' C ' + (P.x - 42) + ' ' + (P.y - rr - 52) + ', ' + (P.x + 42) + ' ' + (P.y - rr - 52) + ', ' + (P.x + 10) + ' ' + (P.y - rr + 3);
-        out += '<path d="' + d + '" class="' + cls + '" marker-end="' + mk + '"/><text x="' + P.x + '" y="' + (P.y - rr - 46) + '" class="fa-label">' + esc(label) + '</text>';
+        // the loop drawn above the state, then turned to the side the spec asks for (`loops`)
+        const turn = { up: 0, right: 90, down: 180, left: 270 }, side = turn[m.loops && m.loops[f]] !== undefined ? m.loops[f] : 'up', a = turn[side] * Math.PI / 180;
+        const r = (dx, dy) => (P.x + dx * Math.cos(a) - dy * Math.sin(a)) + ' ' + (P.y + dx * Math.sin(a) + dy * Math.cos(a));
+        const d = 'M ' + r(-10, -rr + 3) + ' C ' + r(-42, -rr - 52) + ', ' + r(42, -rr - 52) + ', ' + r(10, -rr + 3);
+        const w = loopLabelWidth(m, f);
+        const lx = side === 'right' ? P.x + rr + 50 + w / 2 : side === 'left' ? P.x - rr - 50 - w / 2 : P.x;
+        const ly = side === 'down' ? P.y + rr + 58 : side === 'up' ? P.y - rr - 46 : P.y + 5;
+        out += '<path d="' + d + '" class="' + cls + '" marker-end="' + mk + '"/><text x="' + lx + '" y="' + ly + '" class="fa-label">' + esc(label) + '</text>';
         return;
       }
       const both = groups[t + '|' + f] !== undefined;

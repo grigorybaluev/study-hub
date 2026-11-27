@@ -161,7 +161,7 @@ function Maps({ prep }: { prep: Prep }) {
         <section key={m.id} className="prep-map">
           <h2>{m.title}</h2>
           {m.description && <p className="muted prep-map-lead">{m.description}</p>}
-          <ConversionMapView map={m} />
+          <ConversionMapView map={m} walks={prep.walks} />
         </section>
       ))}
     </>
