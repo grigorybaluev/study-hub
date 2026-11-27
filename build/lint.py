@@ -519,11 +519,72 @@ def lint_maps(c: Content, rep: Report):
             if not (isinstance(ex, dict) and _md(ex.get("title")) and isinstance(walk, list) and walk):
                 rep.error(where, "example: needs a `title` and a non-empty `walk`")
             else:
-                for i, st in enumerate(walk, 1):
-                    at = st.get("edge") if isinstance(st, dict) else None
-                    ok = isinstance(st, dict) and ((st.get("node") in ids) != (at in eids)) and _md(st.get("text"))
-                    if not ok:
-                        rep.error(where, f"example step {i}: needs exactly one of `node` / `edge` of this map, and `text`")
+                for i, msg in walk_step_problems(g, walk):
+                    rep.error(where, f"example step {i}: {msg}")
+
+
+def walk_step_problems(g: dict, walk: list) -> list[tuple[int, str]]:
+    """(1-based step, what is wrong) for each step of a walk along map `g`: a step names exactly one node or
+    edge of the map, has text, and its optional `automaton` is a valid spec."""
+    ids = {n.get("id") for n in g.get("nodes") or [] if isinstance(n, dict)}
+    eids = {e.get("id") for e in g.get("edges") or [] if isinstance(e, dict)}
+    out = []
+    for i, st in enumerate(walk, 1):
+        if not isinstance(st, dict):
+            out.append((i, "must be a mapping"))
+            continue
+        nd, ed = st.get("node"), st.get("edge")
+        on_node = isinstance(nd, str) and nd in ids
+        on_edge = isinstance(ed, str) and ed in eids
+        if on_node == on_edge or not _md(st.get("text")):
+            out.append((i, "needs exactly one of `node` / `edge` of the map, and `text`"))
+        if "automaton" in st and (problem := automaton_problem(st["automaton"])):
+            out.append((i, f"`automaton` {problem}"))
+    return out
+
+
+def lint_walks(c: Content, uni, rep: Report):
+    """walks/<CODE>/<set>.yaml (#291): a set of problems, each walked along one conversion map."""
+    for (code, sid), ws in sorted(uni.walks.items()):
+        where, m = ws.path, ws.meta
+        if code not in uni.courses:
+            rep.error(where, f"course {code!r} does not exist")
+        if not SLUG_RE.match(sid):
+            rep.error(where, "file name must be a slug")
+        if not _md(m.get("title")):
+            rep.error(where, "needs a `title`")
+        if m.get("short") is not None and not _md(m.get("short")):
+            rep.error(where, "`short` must be text")
+        problems = m.get("problems")
+        if not isinstance(problems, list) or not problems:
+            rep.error(where, "needs a non-empty `problems` list")
+            continue
+        shown = {mid for (pc, _), prep in uni.preps.items() if pc == code for mid in prep.meta.get("maps") or []}
+        seen = set()
+        for i, pr in enumerate(problems, 1):
+            if not isinstance(pr, dict):
+                rep.error(where, f"problem {i}: must be a mapping")
+                continue
+            pid = str(pr.get("id", ""))
+            if not pid or pid in seen:
+                rep.error(where, f"problem {i}: needs an `id`, unique in the set")
+            seen.add(pid)
+            if not _md(pr.get("title")):
+                rep.error(where, f"problem {pid or i}: needs a `title`")
+            if pr.get("statement") is not None and not _md(pr.get("statement")):
+                rep.error(where, f"problem {pid or i}: `statement` must be text")
+            g = c.maps.get(pr["map"]) if isinstance(pr.get("map"), str) else None
+            if g is None:
+                rep.error(where, f"problem {pid or i}: `map` {pr.get('map')!r} is not in content/maps/")
+                continue
+            walk = pr.get("walk")
+            if not isinstance(walk, list) or not walk:
+                rep.error(where, f"problem {pid or i}: needs a non-empty `walk`")
+                continue
+            for j, msg in walk_step_problems(g, walk):
+                rep.error(where, f"problem {pid or i} step {j} (map {pr['map']!r}): {msg}")
+            if pr["map"] not in shown:
+                rep.warn(where, f"problem {pid or i}: map {pr['map']!r} is in no prep of {code}, so the problem shows nowhere")
 
 
 def lint_prep(c: Content, uni, code: str, exam: str, prep, rep: Report):
@@ -668,6 +729,21 @@ _FA_JS = ROOT / "app" / "src" / "sims" / "automata.js"
 FA_MACHINES = set(re.findall(r"def\(\{ id: '([\w-]+)'", _FA_JS.read_text(encoding="utf-8"))) if _FA_JS.exists() else set()
 
 
+LOOP_SIDES = {"up", "down", "left", "right"}
+
+
+def automaton_problem(spec) -> str | None:
+    """What is wrong with an automaton spec (a ```automaton block, a walk step's `automaton`), or None."""
+    if not isinstance(spec, dict) or not (spec.get("machine") or (spec.get("states") and spec.get("trans"))):
+        return "needs `machine: <id>` or inline `states` and `trans`"
+    if spec.get("machine") and spec["machine"] not in FA_MACHINES:
+        return f"names an unknown machine {spec['machine']!r} (not defined in app/src/sims/automata.js)"
+    loops = spec.get("loops")
+    if loops is not None and not (isinstance(loops, dict) and all(v in LOOP_SIDES for v in loops.values())):
+        return f"`loops` must map states to one of {sorted(LOOP_SIDES)}"
+    return None
+
+
 def code_fences(body: str):
     """(line, language, language of the previous fence if only blank lines separate them) per opening fence."""
     out, open_lang, open_len, prev, prev_end = [], None, 0, None, -1
@@ -696,10 +772,8 @@ def lint_unit_structure(doc: Doc, pages: str | None, rep: Report):
         except yaml.YAMLError as e:
             rep.error(doc.path, f"automaton block is not valid YAML: {e}")
             continue
-        if not isinstance(spec, dict) or not (spec.get("machine") or (spec.get("states") and spec.get("trans"))):
-            rep.error(doc.path, "automaton block needs `machine: <id>` or inline `states` and `trans`")
-        elif spec.get("machine") and spec["machine"] not in FA_MACHINES:
-            rep.error(doc.path, f"automaton block: unknown machine {spec['machine']!r} (not defined in app/src/sims/automata.js)")
+        if problem := automaton_problem(spec):
+            rep.error(doc.path, f"automaton block {problem}")
     fences = code_fences(doc.body)
     for k, (line, lang, prev) in enumerate(fences):
         sim_code = k > 0 and fences[k - 1][2] == "sim"   # the code before it is a sim's code: collapsed, so no pre to attach to
@@ -900,6 +974,7 @@ def run(content=None) -> Report:
     for uni in c.universities.values():
         for (code, exam), prep in sorted(uni.preps.items()):
             lint_prep(c, uni, code, exam, prep, rep)
+        lint_walks(c, uni, rep)
     # the design specimens (app/src/design/*.md) may hold solution maps too
     for p in sorted((ROOT / "app" / "src" / "design").glob("*.md")):
         lint_solution_maps(c, p.read_text(encoding="utf-8"), p, rep)
